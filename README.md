@@ -1,7 +1,7 @@
 # XKAAPI V2
 
 Welcome to the new experimental XKaapi implementation.
-This repository is high experimental and not yet fully compatible with older XKaapi release embedded into XKBlas at http://gitlab.inria.fr/xkblas/version. 
+This repository is high experimental and not yet fully compatible with older XKaapi release embedded into XKBlas at http://gitlab.inria.fr/xkblas/versions. 
 
 ## ENVIRONMENT VARIABLES
 - `XKAAPI_HELP=1` - displays available environment variables
