@@ -76,7 +76,7 @@ template <int K>
 class KRegisterTreeNode : public KHPTree<K, KRegisterTreeNodeSearch<K>>::Node {
 
     using Base = typename KHPTree<K, KRegisterTreeNodeSearch<K>>::Node;
-    using Hypercube = KHypercube<K>;
+    using Hyperrect = KHyperrect<K>;
     using Node = KRegisterTreeNode<K>;
     using Search = KRegisterTreeNodeSearch<K>;
 
@@ -105,7 +105,7 @@ class KRegisterTreeNode : public KHPTree<K, KRegisterTreeNodeSearch<K>>::Node {
 
         /* the cube was never accessed before, create a new node */
         KRegisterTreeNode<K>(
-            const Hypercube & r,
+            const Hyperrect & r,
             const int k,
             const Color color
         ) :
@@ -121,11 +121,11 @@ class KRegisterTreeNode : public KHPTree<K, KRegisterTreeNodeSearch<K>>::Node {
          *  - src - the node that got split
          *
          * We have:
-         *  U (src->hypercube, r) == the node cube before being shrinked
-         *  n (src->hypercube, r) = {} - empty intersection
+         *  U (src->hyperrect, r) == the node cube before being shrinked
+         *  n (src->hyperrect, r) = {} - empty intersection
          */
         KRegisterTreeNode<K>(
-            const Hypercube & r,
+            const Hyperrect & r,
             const int k,
             const Color color,
             const Node * src
@@ -145,9 +145,9 @@ class KRegisterTreeNode : public KHPTree<K, KRegisterTreeNodeSearch<K>>::Node {
         }
 
         void
-        dump_hypercube_str(FILE * f) const
+        dump_hyperrect_str(FILE * f) const
         {
-            Base::dump_hypercube_str(f);
+            Base::dump_hyperrect_str(f);
         }
 
 }; /* KRegisterTreeNode */
@@ -157,7 +157,7 @@ class KRegisterTree : public KHPTree<K, KRegisterTreeNodeSearch<K>>, public Lock
 
     public:
         using Base = KHPTree<K, KRegisterTreeNodeSearch<K>>;
-        using Hypercube = KHypercube<K>;
+        using Hyperrect = KHyperrect<K>;
         using Node = KRegisterTreeNode<K>;
         using NodeBase = typename KHPTree<K, KRegisterTreeNodeSearch<K>>::Node;
         using Search = KRegisterTreeNodeSearch<K>;
@@ -188,7 +188,7 @@ class KRegisterTree : public KHPTree<K, KRegisterTreeNodeSearch<K>>, public Lock
             assert(search.type == Search::Type::INSERTING_BLOCKS);
         }
 
-        /* shrinking on dimension 'k' from 'this->hypercube[k]' to 'interval' */
+        /* shrinking on dimension 'k' from 'this->hyperrect[k]' to 'interval' */
         void
         on_shrink(
             NodeBase * nodebase,
@@ -199,21 +199,21 @@ class KRegisterTree : public KHPTree<K, KRegisterTreeNodeSearch<K>>, public Lock
             Node * node = reinterpret_cast<Node *>(nodebase);
 
             assert(k < K);
-            assert(node->hypercube[k].includes(interval));
+            assert(node->hyperrect[k].includes(interval));
 
             ///////////////////////
             //  SHRINK HOST VIEW //
             ///////////////////////
 
-            assert(node->hypercube[k].a <= interval.a);
-            const INTERVAL_DIFF_TYPE_T da = interval.a - node->hypercube[k].a;
+            assert(node->hyperrect[k].a <= interval.a);
+            const INTERVAL_DIFF_TYPE_T da = interval.a - node->hyperrect[k].a;
 
-            assert(node->hypercube[k].b >= interval.b);
+            assert(node->hyperrect[k].b >= interval.b);
 
             // must be aligned on sizeof(type)
-            if (k == ACCESS_CUBE_ROW_DIM)
+            if (k == ACCESS_BLAS_ROW_DIM)
             {
-                const INTERVAL_DIFF_TYPE_T db = node->hypercube[k].b - interval.b;
+                const INTERVAL_DIFF_TYPE_T db = node->hyperrect[k].b - interval.b;
                 (void) db;
                 assert(da % this->sizeof_type == 0);
                 assert(db % this->sizeof_type == 0);
@@ -228,7 +228,7 @@ class KRegisterTree : public KHPTree<K, KRegisterTreeNodeSearch<K>>, public Lock
                     for (memory_allocation_view_id_t i = 0 ; i < replicate.nallocations ; ++i)
                     {
                         MemoryReplicateAllocationView * allocation_view = replicate.allocations[i];
-                        const INTERVAL_DIFF_TYPE_T offset = (k == ACCESS_CUBE_ROW_DIM) ? da : (da * allocation_view->view.ld * this->sizeof_type);
+                        const INTERVAL_DIFF_TYPE_T offset = (k == ACCESS_BLAS_ROW_DIM) ? da : (da * allocation_view->view.ld * this->sizeof_type);
                         allocation_view->view.addr += offset;
                         assert(allocation_view->view.addr >= allocation_view->chunk->ptr);
                     }
@@ -243,7 +243,7 @@ class KRegisterTree : public KHPTree<K, KRegisterTreeNodeSearch<K>>, public Lock
         intersect_stop_test(
             NodeBase * nodebase,
             Search & search,
-            const Hypercube & h
+            const Hyperrect & h
         ) const {
 
             (void) nodebase;
@@ -262,12 +262,12 @@ class KRegisterTree : public KHPTree<K, KRegisterTreeNodeSearch<K>>, public Lock
         on_intersect(
             NodeBase * nodebase,
             Search & search,
-            const Hypercube & h
+            const Hyperrect & h
         ) const {
 
             assert(nodebase);
             Node * node = reinterpret_cast<Node *>(nodebase);
-            assert(h.intersects(node->hypercube));
+            assert(h.intersects(node->hyperrect));
 
             switch (search.type)
             {
@@ -275,8 +275,8 @@ class KRegisterTree : public KHPTree<K, KRegisterTreeNodeSearch<K>>, public Lock
                 {
                     /* intersecting against 'cube' that had been inserted
                      * previously, so 'node' must be a sub-block of 'cube' */
-                    assert(h.includes(node->hypercube));
-                    search.partition.partites.push_back(Partite(&(node->block), node->hypercube));
+                    assert(h.includes(node->hyperrect));
+                    search.partition.partites.push_back(Partite(&(node->block), node->hyperrect));
                     break ;
                 }
 
@@ -342,8 +342,8 @@ class KRegisterTree : public KHPTree<K, KRegisterTreeNodeSearch<K>>, public Lock
                 /* search for owners of the access */
                 case (Search::Type::SEARCH_OWNERS):
                 {
-                    Hypercube intersect;
-                    Hypercube::intersection(&intersect, h, node->hypercube);
+                    Hyperrect intersect;
+                    Hyperrect::intersection(&intersect, h, node->hyperrect);
                     const size_t bytes = intersect.size();
                     for (xkrt_device_global_id_t device_global_id = 0 ; device_global_id < XKRT_DEVICES_MAX ; ++device_global_id)
                         if (node->block.coherency & (1 << device_global_id))
@@ -362,7 +362,7 @@ class KRegisterTree : public KHPTree<K, KRegisterTreeNodeSearch<K>>, public Lock
         Node *
         new_node(
             Search & search,
-            const Hypercube & h,
+            const Hyperrect & h,
             const int k,
             const Color color
         ) const {
@@ -373,14 +373,14 @@ class KRegisterTree : public KHPTree<K, KRegisterTreeNodeSearch<K>>, public Lock
         Node *
         new_node(
             Search & search,
-            const Hypercube & h,
+            const Hyperrect & h,
             const int k,
             const Color color,
             const NodeBase * inherit
         ) const {
             (void) search;
             assert(search.type == Search::Type::INSERTING_BLOCKS);
-            assert(!h.intersects(inherit->hypercube));
+            assert(!h.intersects(inherit->hyperrect));
             return new Node(h, k, color, reinterpret_cast<const Node *>(inherit), this->sizeof_type);
         }
 };

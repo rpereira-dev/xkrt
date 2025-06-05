@@ -84,8 +84,7 @@ xkrt_device_task_execute(
     xkrt_thread_t * thread = xkrt_thread_t::get_tls();
     assert(thread);
 
-    task_t * current = thread->current_task;
-    thread->current_task = task;
+    task_format_t * format;
 
     /* running an empty task */
     if (task->fmtid == TASK_FORMAT_NULL)
@@ -95,7 +94,7 @@ xkrt_device_task_execute(
     else if (device)
     {
         /* retrieve task format */
-        task_format_t * format = task_format_get(&(runtime->formats.list), task->fmtid);
+        format = task_format_get(&(runtime->formats.list), task->fmtid);
         assert(format);
 
         // convert device driver type to task format target
@@ -122,13 +121,12 @@ xkrt_device_task_execute(
             targetfmt = TASK_FORMAT_TARGET_HOST;
 
         if (format->f[targetfmt] == NULL)
-            LOGGER_FATAL("task_t got scheduled but its format has no valid function");
+            LOGGER_FATAL("task got scheduled but its format has no valid function");
 
         /* running a host task */
         if (targetfmt == TASK_FORMAT_TARGET_HOST)
         {
-            ((void (*)(task_t *)) format->f[targetfmt])(task);
-            __task_executed(task, xkrt_runtime_submit_task, runtime);
+            goto run_host_task;
         }
         /* running a device task */
         else
@@ -151,16 +149,27 @@ xkrt_device_task_execute(
     else
     {
         /* retrieve task format */
-        task_format_t * format = task_format_get(&(runtime->formats.list), task->fmtid);
+        format = task_format_get(&(runtime->formats.list), task->fmtid);
         if (format)
         {
+run_host_task:
             assert(format->f[TASK_FORMAT_TARGET_HOST]);
+            task_t * current = thread->current_task;
+            thread->current_task = task;
             ((void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST])(task);
+            thread->current_task = current;
         }
-        __task_executed(task, xkrt_runtime_submit_task, runtime);
-    }
 
-    thread->current_task = current;
+        /* if the task yielded, requeue it */
+        if (task->flags & TASK_FLAG_REQUEUE)
+        {
+            task->flags = task->flags & ~(TASK_FLAG_REQUEUE);
+            xkrt_team_thread_task_enqueue(runtime, thread->team, thread, task);
+        }
+        /* else, it executed entirely */
+        else
+            __task_executed(task, xkrt_runtime_submit_task, runtime);
+    }
 }
 
 void
@@ -178,23 +187,19 @@ constexpr task_flag_bitfield_t host_capture_task_flags = TASK_FLAG_ZERO;
 constexpr size_t host_capture_task_size                = task_compute_size(host_capture_task_flags, 0);
 
 inline
-static void
-xkrt_team_task_spawn(
+static task_t *
+xkrt_team_task_capture_create(
     xkrt_runtime_t * runtime,
-    xkrt_team_t * team,
-    xkrt_thread_t * thread,
-    const std::function<void(task_t *)> & f
+    const std::function<void(task_t *)> & f,
+    xkrt_thread_t * tls
 ) {
-    assert(thread);
-
-    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
     task_t * task = tls->allocate_task(host_capture_task_size + sizeof(f));
     new (task) task_t(runtime->formats.host_capture, host_capture_task_flags);
 
     std::function<void(task_t *)> * fcpy = (std::function<void(task_t *)> *) TASK_ARGS(task, host_capture_task_size);
     new (fcpy) std::function<void(task_t *)>(f);
 
-    tls->commit(task, xkrt_team_thread_task_enqueue, runtime, team, thread);
+    return task;
 }
 
 // spawn on some thread of the team
@@ -203,25 +208,12 @@ xkrt_runtime_t::team_task_spawn(
     xkrt_team_t * team,
     const std::function<void(task_t *)> & f
 ) {
-    # pragma message(TODO "Currently always spawning to the first thread, trusting workstealing to dispatch tasks: we could round-robin, random or whatever")
     assert(team->priv.threads);
     assert(team->priv.nthreads);
 
-    # if 0
-    // first, try to spawn in a sleeping thread
-    for (int i = 0 ; i < team->priv.nthreads ; ++i)
-    {
-        xkrt_thread_t * thread = team->priv.threads + i;
-        if (thread->sleep.sleeping)
-        {
-            xkrt_team_task_spawn(this, team, thread, f);
-            pthread_cond_signal(thread->sleep.cond);
-            return ;
-        }
-    }
-    # else
-    xkrt_team_task_spawn(this, team, team->priv.threads + 0, f);
-    # endif
+    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    task_t * task = xkrt_team_task_capture_create(this, f, tls);
+    tls->commit(task, xkrt_team_task_enqueue, this, team);
 }
 
 // spawn on currently executing thread
@@ -229,10 +221,9 @@ void
 xkrt_runtime_t::task_spawn(
     const std::function<void(task_t *)> & f
 ) {
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
-    assert(thread);
-
-    xkrt_team_task_spawn(this, thread->team, thread, f);
+    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    task_t * task = xkrt_team_task_capture_create(this, f, tls);
+    tls->commit(task, xkrt_team_thread_task_enqueue, this, tls->team, tls);
 }
 
 static void

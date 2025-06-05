@@ -3,6 +3,7 @@
 **
 ** Contributors :
 ** Thierry Gautier, thierry.gautier@inrialpes.fr
+** Joao Lima joao.lima@inf.ufsm.br
 ** Romain PEREIRA, romain.pereira@inria.fr + rpereira@anl.gov
 **
 ** This software is a computer program whose purpose is to execute
@@ -35,25 +36,51 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __XKRT_SUPPORT_H__
-# define __XKRT_SUPPORT_H__
+# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 
-/* If the runtime was compiled with Mvidia's CUDA support */
-# define XKRT_SUPPORT_CUDA  1
+constexpr int                         ac = 1;
+constexpr task_flag_bitfield_t     flags = TASK_FLAG_DEPENDENT;
+constexpr               size_t task_size = task_compute_size(flags, ac);
+constexpr               size_t args_size = 0;
 
-/* If the runtime was compiled with Intel's Level Zero support */
-# define XKRT_SUPPORT_ZE    0
+int
+xkrt_runtime_t::memory_unregister_async(
+    xkrt_team_t * team,
+    void * ptr,
+    const size_t chunk_size,
+    int n
+) {
+    LOGGER_FATAL("Not implemented");
 
-/* If the runtime was compiled with SYCL support (for Level Zero interop and mkl) */
-# define XKRT_SUPPORT_SYCL  0
+    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
 
-/* If the kernel was compiled with OpenCL support */
-# define XKRT_SUPPORT_CL 0
+    // null format, the registration occurs during the fetching/fetched state
+    const task_format_id_t fmtid = TASK_FORMAT_NULL;
+    assert(fmtid);
 
-/* If the kernel was compiled with run-time statistics enabled */
-# define XKRT_SUPPORT_STATS 1
+    for (int i = 0 ; i < n ; ++i)
+    {
+        // inserts the interval in the tree to ensure they exist
+        const uintptr_t a = ((const uintptr_t) ptr) + (i+0) * chunk_size;
+        const uintptr_t b = ((const uintptr_t) ptr) + (i+1) * chunk_size;
 
-/* If runtime was compiled with cairo support */
-# define XKRT_SUPPORT_CAIRO 0
+        // create a task that will unregister/pin/unpin the memory
+        task_t * task = tls->allocate_task(task_size + args_size);
+        new(task) task_t(fmtid, flags);
 
-#endif /* __XKRT_SUPPORT_H__ */
+        #ifndef NDEBUG
+        snprintf(task->label, sizeof(task->label), "memory_unregister_async");
+        #endif
+
+        task_dep_info_t * dep = TASK_DEP_INFO(task);
+        new (dep) task_dep_info_t(ac);
+
+        access_t * accesses = TASK_ACCESSES(task, flags);
+        new(accesses + 0) access_t(task, a, b, ACCESS_MODE_UNPIN, ACCESS_CONCURRENCY_COMMUTATIVE);
+
+        tls->commit(task, xkrt_team_task_enqueue, this, team);
+    }
+
+    return 0;
+}

@@ -39,7 +39,7 @@
 # define __ACCESS_HPP__
 
 # include <xkrt/memory/access/mode.h>
-# include <xkrt/memory/access/common/hypercube.hpp>
+# include <xkrt/memory/access/common/hyperrect.hpp>
 # include <xkrt/memory/view.hpp>
 
 # include <vector>
@@ -47,32 +47,32 @@
 /**
  *  We assume col major, dim 0 is for rows; dim 1 is for cols.
  *  These variables controls how a matrix (A, m, n, ld) is converted to an
- *  hypercube for the xktree.
+ *  hyperrect for the xktree.
  *
- *  e.g the matrix (0, 4, 8, 8) can whether be represented as the hypercube
- *      (0:4, 0:8) - if ACCESS_CUBE_ROW_DIM == 0
- *   or (0:8, 0:4) - if ACCESS_CUBE_ROW_DIM == 1
+ *  e.g the matrix (0, 4, 8, 8) can whether be represented as the hyperrect
+ *      (0:4, 0:8) - if ACCESS_BLAS_ROW_DIM == 0
+ *   or (0:8, 0:4) - if ACCESS_BLAS_ROW_DIM == 1
  */
-# define ACCESS_CUBE_ROW_DIM 0
-# define ACCESS_CUBE_COL_DIM (1 - ACCESS_CUBE_ROW_DIM)
+# define ACCESS_BLAS_ROW_DIM 0
+# define ACCESS_BLAS_COL_DIM (1 - ACCESS_BLAS_ROW_DIM)
 
 // task and accesses depends to one another, breaking chicken/egg problem here
 struct task_t;
 
 template<int K>
 static inline void
-memory_view_from_hypercube(
+memory_view_from_hyperrect(
     memory_view_t & view,
-    const KHypercube<K> & h,
+    const KHyperrect<K> & h,
     const size_t ld,
     const size_t sizeof_type
 ) {
     static_assert(K == 2);
 
-    const INTERVAL_TYPE_T       x = h[ACCESS_CUBE_ROW_DIM].a;
-    const INTERVAL_DIFF_TYPE_T dx = h[ACCESS_CUBE_ROW_DIM].length();
-    const INTERVAL_TYPE_T       y = h[ACCESS_CUBE_COL_DIM].a;
-    const INTERVAL_DIFF_TYPE_T dy = h[ACCESS_CUBE_COL_DIM].length();
+    const INTERVAL_TYPE_T       x = h[ACCESS_BLAS_ROW_DIM].a;
+    const INTERVAL_DIFF_TYPE_T dx = h[ACCESS_BLAS_ROW_DIM].length();
+    const INTERVAL_TYPE_T       y = h[ACCESS_BLAS_COL_DIM].a;
+    const INTERVAL_DIFF_TYPE_T dy = h[ACCESS_BLAS_COL_DIM].length();
     assert(dx > 0);
     assert(dy > 0);
 
@@ -89,17 +89,17 @@ memory_view_from_hypercube(
 
 template<int K>
 static inline void
-memory_view_from_hypercubes(
+memory_view_from_rects(
     memory_view_t & view,
-    const KHypercube<K> & h0,
-    const KHypercube<K> & h1,
+    const KHyperrect<K> & h0,
+    const KHyperrect<K> & h1,
     const size_t ld,
     const size_t sizeof_type
 ) {
-    const INTERVAL_DIFF_TYPE_T x0 = (INTERVAL_DIFF_TYPE_T) h0[ACCESS_CUBE_ROW_DIM].a;
-    const INTERVAL_DIFF_TYPE_T xf = (INTERVAL_DIFF_TYPE_T) h1[ACCESS_CUBE_ROW_DIM].b;
-    const INTERVAL_DIFF_TYPE_T y0 = (INTERVAL_DIFF_TYPE_T) h0[ACCESS_CUBE_COL_DIM].a;
-    const INTERVAL_DIFF_TYPE_T yf = (INTERVAL_DIFF_TYPE_T) h1[ACCESS_CUBE_COL_DIM].b;
+    const INTERVAL_DIFF_TYPE_T x0 = (INTERVAL_DIFF_TYPE_T) h0[ACCESS_BLAS_ROW_DIM].a;
+    const INTERVAL_DIFF_TYPE_T xf = (INTERVAL_DIFF_TYPE_T) h1[ACCESS_BLAS_ROW_DIM].b;
+    const INTERVAL_DIFF_TYPE_T y0 = (INTERVAL_DIFF_TYPE_T) h0[ACCESS_BLAS_COL_DIM].a;
+    const INTERVAL_DIFF_TYPE_T yf = (INTERVAL_DIFF_TYPE_T) h1[ACCESS_BLAS_COL_DIM].b;
     assert(0 <= x0 && x0 <= (INTERVAL_DIFF_TYPE_T) (ld * sizeof_type));
     assert(0 <= xf && xf <= (INTERVAL_DIFF_TYPE_T) (ld * sizeof_type));
     assert(y0 < yf);
@@ -123,9 +123,9 @@ memory_view_from_hypercubes(
 
 template<int K>
 static inline void
-memory_view_to_hypercubes(
+memory_view_to_rects(
     const memory_view_t & view,
-    KHypercube<K> (& hypercubes) [2]
+    KHyperrect<K> (& rects) [2]
 ) {
     static_assert(K == 2);
 
@@ -139,7 +139,7 @@ memory_view_to_hypercubes(
     assert((A % (ld * s)) + (m * s) <= ld * s);
     # endif /* ACCESS_FORCE_ALIGNMENT */
 
-    // only 1 cube is needed
+    // only 1 rect is needed
     if ((A % (ld * s)) + m * s <= ld * s)
     {
         /**
@@ -158,15 +158,15 @@ memory_view_to_hypercubes(
 
         {
             Interval list[2];
-            list[ACCESS_CUBE_ROW_DIM] = Interval(x0, x1);
-            list[ACCESS_CUBE_COL_DIM] = Interval(y0, y1);
-            hypercubes[0].set_list(list);
-            assert(!hypercubes[0].is_empty());
+            list[ACCESS_BLAS_ROW_DIM] = Interval(x0, x1);
+            list[ACCESS_BLAS_COL_DIM] = Interval(y0, y1);
+            rects[0].set_list(list);
+            assert(!rects[0].is_empty());
         }
 
-        assert(hypercubes[1].is_empty());
+        assert(rects[1].is_empty());
     }
-    // 2 hypercubes are needed
+    // 2 rects are needed
     else
     {
         /**
@@ -191,34 +191,38 @@ memory_view_to_hypercubes(
 
         {
             Interval list0[2];
-            list0[ACCESS_CUBE_ROW_DIM] = Interval(x0, x1);
-            list0[ACCESS_CUBE_COL_DIM] = Interval(y0, y1);
+            list0[ACCESS_BLAS_ROW_DIM] = Interval(x0, x1);
+            list0[ACCESS_BLAS_COL_DIM] = Interval(y0, y1);
 
-            hypercubes[0].set_list(list0);
-            assert(!hypercubes[0].is_empty());
+            rects[0].set_list(list0);
+            assert(!rects[0].is_empty());
         }
 
         {
             Interval list1[2];
-            list1[ACCESS_CUBE_ROW_DIM] = Interval(x2, x3);
-            list1[ACCESS_CUBE_COL_DIM] = Interval(y2, y3);
-            hypercubes[1].set_list(list1);
-            assert(!hypercubes[1].is_empty());
+            list1[ACCESS_BLAS_ROW_DIM] = Interval(x2, x3);
+            list1[ACCESS_BLAS_COL_DIM] = Interval(y2, y3);
+            rects[1].set_list(list1);
+            assert(!rects[1].is_empty());
         }
     }
 }
 
 /* access types */
-typedef enum    access_type_t
+typedef enum    access_type_t : uint8_t
 {
-    ACCESS_TYPE_POINT,
-    ACCESS_TYPE_BLAS_MATRIX,
+    ACCESS_TYPE_POINT       = 0,
+    ACCESS_TYPE_INTERVAL    = 1,
+    ACCESS_TYPE_BLAS_MATRIX = 2,
+    ACCESS_TYPE_NULL        = 3,
+    ACCESS_TYPE_MAX         = 4,
 }               access_type_t;
 
 class access_t
 {
     public:
-        using Hypercube = KHypercube<2>;
+        using Rect    = KHyperrect<2>;
+        using Segment = KHyperrect<1>;
 
     public:
 
@@ -239,7 +243,7 @@ class access_t
         access_type_t type;
 
         /////////////////////////////////////////////////
-        // logical region - depends on the access type //
+        // region -         depends on the access type //
         /////////////////////////////////////////////////
 
         union {
@@ -249,10 +253,18 @@ class access_t
             ///////////////////
 
             struct {
-                /* Currently always 2 hypercubes that represents a matrix in an
-                 * XKTree (1 cube if access is aligned on ld x sizeof_type,
-                 * else 2 hypercubes) */
-                Hypercube hypercubes[2];
+                /* Currently always 2 rects that represents a matrix in an
+                 * XKTree (1 rect if access is aligned on ld x sizeof_type,
+                 * else 2 rects) */
+                Rect rects[2];
+            };
+
+            //////////////
+            // INTERVAL //
+            //////////////
+
+            struct {
+                Segment segment;
             };
 
             ///////////
@@ -282,7 +294,7 @@ class access_t
         # define ACCESS_GET_TASK(A) (A->task)
         task_t * task;
 
-        /* host view of the access */
+        /* host view of the access = mapped memory from the region */
         memory_view_t host_view;
 
         /* device view of the access - set after fetching the data */
@@ -312,7 +324,7 @@ class access_t
             concurrency(concurrency),
             scope(scope),
             type(ACCESS_TYPE_BLAS_MATRIX),
-            hypercubes(),
+            rects(),
             successors(8),
             task(task),
             host_view(order, addr, ld, offset_m, offset_n, m, n, s),
@@ -322,16 +334,19 @@ class access_t
             successors.clear();
 
             /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
-            assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL);
+            assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL ||
+                    concurrency == ACCESS_CONCURRENCY_COMMUTATIVE);
 
             /* Only ACCESS_MODE_R|ACCESS_MODE_W supported yet */
-            assert(mode == ACCESS_MODE_V || mode == ACCESS_MODE_R || mode == ACCESS_MODE_W || mode == ACCESS_MODE_RW);
+            assert(mode == ACCESS_MODE_V || mode == ACCESS_MODE_R ||
+                    mode == ACCESS_MODE_W || mode == ACCESS_MODE_RW ||
+                    mode == ACCESS_MODE_PIN || mode == ACCESS_MODE_UNPIN);
 
             // not sure about what to do if other ordering
             assert(host_view.order == MATRIX_COLMAJOR);
 
-            // creates the two hypercubes of that memory view
-            memory_view_to_hypercubes(host_view, hypercubes);
+            // creates the two rects of that memory view
+            memory_view_to_rects(host_view, rects);
         }
 
          access_t(
@@ -350,7 +365,7 @@ class access_t
         access_t(
             task_t * task,
             const matrix_order_t & order,
-            const Hypercube & h,
+            const Rect & h,
             const size_t ld,
             const size_t s,
             access_mode_t mode,
@@ -361,7 +376,7 @@ class access_t
             concurrency(concurrency),
             scope(scope),
             type(ACCESS_TYPE_BLAS_MATRIX),
-            hypercubes(),
+            rects(),
             successors(8),
             task(task),
             host_view(order, 0, ld, 0, 0, 0, 0, s),
@@ -374,8 +389,8 @@ class access_t
             assert(mode == ACCESS_MODE_R); // not a big deal, but right now only called from `coherent_async`
             assert(!h.is_empty());
 
-            memory_view_from_hypercube(this->host_view, h, ld, s);
-            new (this->hypercubes + 0) Hypercube(h);
+            memory_view_from_hyperrect(this->host_view, h, ld, s);
+            new (this->rects + 0) Rect(h);
         }
 
         access_t(
@@ -431,6 +446,65 @@ class access_t
         }
 
         //////////////////////////////////////////////////////////////////////
+        // INTERVAL ACCESSES CONSTRUCTORS                                   //
+        //////////////////////////////////////////////////////////////////////
+
+        // TODO : convert it to a BLAS matrix for now, as the memory coherency
+        // tree is quite hard/heavy to implement and would require significant
+        // code refractoring to mutualize code with a 1D implementation
+        access_t(
+            task_t * task,
+            const uintptr_t a,
+            const uintptr_t b,
+            access_mode_t mode,
+            access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
+            access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
+        ) :
+            access_t(
+                task,
+                MATRIX_COLMAJOR,    // order
+                (const void *) a,   // addr
+                SIZE_MAX,           // ld
+                0,                  // offset_m
+                0,                  // offset_n
+                (size_t) (b - a),   // m
+                1,                  // n
+                1,                  // s
+                mode,
+                concurrency,
+                scope
+        ) {
+            assert(a < b);
+        }
+
+        //////////////////////////////////////////////////////////////////////
+        // NULL ACCESS                                                      //
+        //////////////////////////////////////////////////////////////////////
+
+        access_t(
+            task_t * task,
+            access_mode_t mode,
+            access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
+            access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
+        ) :
+            mode(mode),
+            concurrency(concurrency),
+            scope(scope),
+            type(ACCESS_TYPE_NULL),
+            successors(8),
+            task(task),
+            host_view(MATRIX_COLMAJOR, 0, 0, 0, 0, 0, 0, 0),
+            device_view()
+        {
+            /* clear preallocated empty successors */
+            successors.clear();
+
+            /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
+            assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL);
+
+            /* Only ACCESS_MODE_R|ACCESS_MODE_W supported yet */
+            assert(mode == ACCESS_MODE_V || mode == ACCESS_MODE_R || mode == ACCESS_MODE_W || mode == ACCESS_MODE_RW);
+        }
 
         ~access_t() {}
 

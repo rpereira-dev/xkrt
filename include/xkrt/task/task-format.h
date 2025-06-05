@@ -86,7 +86,7 @@ typedef struct  task_format_t
     task_format_func_t f[TASK_FORMAT_TARGET_MAX];
 
     /* a label */
-    char label[16];
+    char label[32];
 
 } task_format_t;
 

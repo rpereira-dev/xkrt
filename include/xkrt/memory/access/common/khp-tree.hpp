@@ -57,36 +57,6 @@
 #ifndef __KHP_TREE_H__
 # define __KHP_TREE_H__
 
-// Whether to automatically rebalance the tree.
-// This only makes sense if cutting the tree.
-// If this is set, you should also set `KHP_TREE_MAINTAIN_SIZE` and
-// `KHP_TREE_MAINTAIN_HEIGHT` to avoid O(n) on each imbalance checks
-# ifndef KHP_TREE_REBALANCE
-#  define KHP_TREE_REBALANCE 0
-# endif
-
-# ifndef KHP_TREE_CUT_ON_INSERT
-#  define KHP_TREE_CUT_ON_INSERT 0
-# endif /* KHP_TREE_CUT_ON_INSERT */
-
-# if KHP_TREE_CUT_ON_INSERT && !KHP_TREE_REBALANCE
-#  pragma message("`KHP_TREE_CUT_ON_INSERT` is set but not `KHP_TREE_REBALANCE` - it means the tree might get imbalanced if cutting occurs")
-# endif
-
-// whether 'height' and 'size' should be computed lazily (i.e. O(n) on each
-// call) or maintained after insertion/rotations
-# ifndef KHP_TREE_MAINTAIN_SIZE
-#  define KHP_TREE_MAINTAIN_SIZE 0
-# endif /* KHP_TREE_MAINTAIN_SIZE */
-
-# ifndef KHP_TREE_MAINTAIN_HEIGHT
-#  define KHP_TREE_MAINTAIN_HEIGHT 0
-# endif /* KHP_TREE_MAINTAIN_HEIGHT */
-
-# if KHP_TREE_REBALANCE && (!KHP_TREE_MAINTAIN_SIZE || !KHP_TREE_MAINTAIN_HEIGHT)
-#  pragma message("`KHP_TREE_REBALANCE` but `KHP_TREE_MAINTAIN_SIZE` and `KHP_TREE_MAINTAIN_HEIGHT` are not. Consider setting them too to avoid O(n) on each operation")
-# endif
-
 // tree assert, must be called within a member function
 # if KHP_TREE_ENABLE_COHERENCY_CHECKS
 #  pragma message("Unset `KHP_TREE_ENABLE_COHERENCY_CHECKS` for max performance")
@@ -134,7 +104,7 @@ khp_twopow(int n)
 }
 
 # include <xkrt/utils/min-max.h>
-# include <xkrt/memory/access/common/hypercube.hpp>
+# include <xkrt/memory/access/common/hyperrect.hpp>
 # include <xkrt/sync/direction.h>
 
 # define FOREACH_K_CHILD_BEGIN(N, C, I, D)                              \
@@ -168,18 +138,45 @@ typedef enum    Color
     RED     = 1
 }               Color;
 
-
 /**
  *  K is the number of dimensions
  *  T is search type
  *  C is whether to cut included nodes or not
  */
-template<int K, typename T>
+template<
+    int K,
+    typename T,
+    bool REBALANCE       = false,
+    bool CUT_ON_INSERT   = false,
+    bool MAINTAIN_SIZE   = false,
+    bool MAINTAIN_HEIGHT = false
+>
 class KHPTree {
+
+    // REBALANCE - Whether to automatically rebalance the tree.  This only
+    // makes sense if cutting the tree.  If this is set, you should also set
+    // `MAINTAIN_SIZE` and `MAINTAIN_HEIGHT` to avoid O(n) on each imbalance
+    // checks
+
+    // CUT_ON_INSERT - to cut subtree nodes when inserting new nodes that
+    // passes the `should_cut` test
+
+    // MAINTAIN_SIZE and MAINTAIN_HEIGHT - whether 'height' and 'size' should
+    // be computed lazily (i.e. O(n) on each call) or maintained after
+    // insertion/rotations
+
+    // `CUT_ON_INSERT` is set but not `REBALANCE`
+    // it means the tree might get imbalanced if cutting occurs
+    static_assert(!CUT_ON_INSERT || (CUT_ON_INSERT && REBALANCE));
+
+
+    // `REBALANCE` is set but not `MAINTAIN_SIZE` and `MAINTAIN_HEIGHT`
+    // Set them too to avoid O(n) on each operation
+    static_assert(!REBALANCE || (REBALANCE && MAINTAIN_SIZE && MAINTAIN_HEIGHT));
 
     public:
 
-        using Hypercube = KHypercube<K>;
+        using Hyperrect = KHyperrect<K>;
 
         class Node {
 
@@ -201,8 +198,8 @@ class KHPTree {
                 /* node's color in each subtree */
                 Color colors[K];
 
-                /* the cube represented by this node */
-                Hypercube hypercube;
+                /* the rect represented by this node */
+                Hyperrect hyperrect;
 
                 /* the dimension represented by this node */
                 int k;
@@ -210,15 +207,42 @@ class KHPTree {
                 /* node's child */
                 subtree_t st[K];
 
-                struct {
-                    Hypercube hypercube;    // subtree englobing cube
-                    # if KHP_TREE_MAINTAIN_SIZE
-                    int size[K];            // subtree number of elements
-                    # endif /* KHP_TREE_MAINTAIN_SIZE */
-                    # if KHP_TREE_MAINTAIN_HEIGHT
-                    int height[K];          // subtree height
-                    # endif /* KHP_TREE_MAINTAIN_HEIGHT */
-                } includes;
+                /* includes metadata */
+                template <bool S, bool H>
+                struct includes_t {};
+
+                template<>
+                struct includes_t<true, true> {
+
+                    // subtree englobing rect
+                    Hyperrect hyperrect;
+
+                    // subtree number of elements
+                    int size[K];
+
+                    // subtree height
+                    int height[K];
+                };
+
+                template<>
+                struct includes_t<true, false> {
+                    Hyperrect hyperrect;
+                    int size[K];
+                };
+
+                template<>
+                struct includes_t<false, true> {
+                    Hyperrect hyperrect;
+                    int height[K];
+                    int total_height;
+                };
+
+                template<>
+                struct includes_t<false, false> {
+                    Hyperrect hyperrect;
+                };
+
+                includes_t <MAINTAIN_SIZE, MAINTAIN_HEIGHT> includes;
 
                 #if KHP_TREE_ENABLE_COHERENCY_CHECKS
                 struct {
@@ -234,29 +258,32 @@ class KHPTree {
                 {}
 
                 Node(
-                    const Hypercube & h,
+                    const Hyperrect & h,
                     const int k,
                     const Color color
                 ) :
                     parent(nullptr),
                     colors{BLACK},
-                    hypercube(h),
+                    hyperrect(h),
                     k(k)
                 {
                     memset(this->st, 0, sizeof(this->st));
 
-                    this->includes.hypercube.copy(h);
+                    this->includes.hyperrect.copy(h);
 
-                    # if KHP_TREE_MAINTAIN_SIZE
-                    memset(this->includes.size, 0, sizeof(this->includes.size));
-                    this->includes.size[k] = 1;
-                    # endif /* KHP_TREE_MAINTAIN_SIZE */
+                    if constexpr (MAINTAIN_SIZE)
+                    {
+                        memset(this->includes.size, 0, sizeof(this->includes.size));
+                        this->includes.size[k] = 1;
+                    }
 
-                    # if KHP_TREE_MAINTAIN_HEIGHT
-                    memset(this->includes.height, 0, sizeof(this->includes.height));
-                    for (int i = k ; i < K ; ++i)
-                        this->includes.height[i] = 1;
-                    # endif /* KHP_TREE_MAINTAIN_HEIGHT */
+                    if constexpr (MAINTAIN_HEIGHT)
+                    {
+                        memset(this->includes.height, 0, sizeof(this->includes.height));
+                        for (int i = k ; i < K ; ++i)
+                            this->includes.height[i] = 1;
+                        this->includes.total_height = 1;
+                    }
 
                     this->colors[k] = color;
                 }
@@ -273,49 +300,7 @@ class KHPTree {
                     return reinterpret_cast<Node *>(this->st[k].children[dir]);
                 }
 
-                # if KHP_TREE_MAINTAIN_HEIGHT
-                inline void
-                update_includes_height(void)
-                {
-                    for (int k = 0 ; k < K ; ++k)
-                    {
-                        int hleft  = this->st[k].left  ? this->st[k].left->includes.height[k]   : 0;
-                        int hright = this->st[k].right ? this->st[k].right->includes.height[k]  : 0;
-                        this->includes.height[k] = 1 + MAX(hleft, hright);
-                    }
-                }
-
-                inline int
-                height(int k) const
-                {
-                    return this->includes.height[k];
-                }
-
-                # else /* KHP_TREE_MAINTAIN_HEIGHT */
-
-                inline int
-                height(int k) const
-                {
-                    int hleft  = this->st[k].left  ? this->st[k].left->height(k)  : 0;
-                    int hright = this->st[k].right ? this->st[k].right->height(k) : 0;
-                    return 1 + MAX(hleft, hright);
-                }
-
-                # endif /* KHP_TREE_MAINTAIN_HEIGHT */
-
-                inline int
-                height(void) const
-                {
-                    // this is wrong
-                    assert(0);
-
-                    int height = 0;
-                    for (int k = 0 ; k < K ; ++k)
-                        height = MAX(height, this->height(k));
-                    return height;
-                }
-
-                # if KHP_TREE_MAINTAIN_SIZE
+                // size
                 // TODO : maintaining the size (n-k) per k-tree is a bothersome O(K²)
                 // It is currently used to detecting imbalance on a k-subtree
                 //
@@ -324,6 +309,7 @@ class KHPTree {
                 // the n-k's and rebalance where it needs
                 inline void
                 update_includes_size(void)
+                requires MAINTAIN_SIZE
                 {
                     for (int k = 0 ; k < K ; ++k)
                         this->includes.size[k] = 0;
@@ -340,28 +326,25 @@ class KHPTree {
                     }
                 }
 
-                inline int
+                int
                 size(const int k) const
                 {
-                    return this->includes.size[k];
-                }
-
-                # else /* KHP_TREE_MAINTAIN_SIZE */
-
-                inline int
-                size(const int k) const
-                {
-                    int s = (k == this->k) ? 1 : 0;
-                    for (int kk = 0 ; kk < K ; ++kk)
+                    if constexpr (MAINTAIN_SIZE)
                     {
-                        int nl = this->st[kk].left  ? this->st[kk].left->size(k)  : 0;
-                        int nr = this->st[kk].right ? this->st[kk].right->size(k) : 0;
-                        s += nr + nl;
+                        return this->includes.size[k];
                     }
-                    return s;
+                    else
+                    {
+                        int s = (k == this->k) ? 1 : 0;
+                        for (int kk = 0 ; kk < K ; ++kk)
+                        {
+                            int nl = this->st[kk].left  ? this->st[kk].left->size(k)  : 0;
+                            int nr = this->st[kk].right ? this->st[kk].right->size(k) : 0;
+                            s += nr + nl;
+                        }
+                        return s;
+                    }
                 }
-
-                # endif /* KHP_TREE_MAINTAIN_SIZE */
 
                 inline int
                 size(void) const
@@ -372,24 +355,93 @@ class KHPTree {
                     return s;
                 }
 
+                // height
+                inline void
+                update_includes_height(void)
+                requires MAINTAIN_HEIGHT
+                {
+                    for (int k = 0 ; k < K ; ++k)
+                    {
+                        // get left height
+                        int hleft, thleft;
+                        if (this->st[k].left)
+                        {
+                            hleft  = this->st[k].left->includes.height[k];
+                            thleft = this->st[k].left->includes.total_height;
+                        }
+                        else
+                        {
+                            hleft  = 0;
+                            thleft = 0;
+                        }
+
+                        // get right height
+                        int hright, thright;
+                        if (this->st[k].right)
+                        {
+                            hright  = this->st[k].right->includes.height[k];
+                            thright = this->st[k].right->includes.total_height;
+                        }
+                        else
+                        {
+                            hright  = 0;
+                            thright = 0;
+                        }
+
+                        // get max height
+                        this->includes.height[k]    = 1 + MAX(hleft, hright);
+                        this->includes.total_height = 1 + MAX(thleft, thright);
+                    }
+                }
+
+                int
+                height(int k) const
+                {
+                    if constexpr(MAINTAIN_HEIGHT)
+                    {
+                        return this->includes.height[k];
+                    }
+                    else
+                    {
+                        int hleft  = this->st[k].left  ? this->st[k].left->height(k)  : 0;
+                        int hright = this->st[k].right ? this->st[k].right->height(k) : 0;
+                        return 1 + MAX(hleft, hright);
+                    }
+                }
+
+                inline int
+                height(void) const
+                {
+                    if constexpr(MAINTAIN_HEIGHT)
+                    {
+                        return this->includes.total_height;
+                    }
+                    else
+                    {
+                        int thleft  = this->st[k].left  ? this->st[k].left->height()  : 0;
+                        int thright = this->st[k].right ? this->st[k].right->height() : 0;
+                        return 1 + MAX(thleft, thright);
+                    }
+                }
+
                 inline void
                 update_includes_interval(void)
                 {
                     for (int k = 0 ; k < K ; ++k)
                     {
-                        this->includes.hypercube[k].a = this->hypercube[k].a;
-                        this->includes.hypercube[k].b = this->hypercube[k].b;
+                        this->includes.hyperrect[k].a = this->hyperrect[k].a;
+                        this->includes.hyperrect[k].b = this->hyperrect[k].b;
 
                         FOREACH_CHILD_BEGIN(this, child, kk, dir)
                         {
-                            this->includes.hypercube[k].a = MIN(
-                                 this->includes.hypercube[k].a,
-                                child->includes.hypercube[k].a
+                            this->includes.hyperrect[k].a = MIN(
+                                 this->includes.hyperrect[k].a,
+                                child->includes.hyperrect[k].a
                             );
 
-                            this->includes.hypercube[k].b = MAX(
-                                 this->includes.hypercube[k].b,
-                                child->includes.hypercube[k].b
+                            this->includes.hyperrect[k].b = MAX(
+                                 this->includes.hyperrect[k].b,
+                                child->includes.hyperrect[k].b
                             );
                         }
                         FOREACH_CHILD_END(this, child, kk, dir);
@@ -401,13 +453,11 @@ class KHPTree {
                 {
                     this->update_includes_interval();
 
-                    # if KHP_TREE_MAINTAIN_SIZE
-                    this->update_includes_size();
-                    # endif /* KHP_TREE_MAINTAIN_SIZE */
+                    if constexpr (MAINTAIN_SIZE)
+                        this->update_includes_size();
 
-                    # if KHP_TREE_MAINTAIN_HEIGHT
-                    this->update_includes_height();
-                    # endif /* KHP_TREE_MAINTAIN_HEIGHT */
+                    if constexpr (MAINTAIN_HEIGHT)
+                        this->update_includes_height();
                 }
 
                 void
@@ -460,18 +510,18 @@ class KHPTree {
                 virtual void
                 dump_str(FILE * f) const
                 {
-                    char cube[1024];
-                    this->hypercube.tostring(cube, sizeof(cube));
+                    char rect[1024];
+                    this->hyperrect.tostring(rect, sizeof(rect));
 
-                    char include_cube[1024];
-                    this->includes.hypercube.tostring(include_cube, sizeof(include_cube));
+                    char include_rect[1024];
+                    this->includes.hyperrect.tostring(include_rect, sizeof(include_rect));
 
                     if (K == 2)
                     {
                         fprintf(f, "k=%d\\n%s\\n\\n--- includes ---\\n%s\\nsize=%d\\nheight=%d",
                             this->k,
-                            cube,
-                            include_cube,
+                            rect,
+                            include_rect,
                             this->size(),
                             this->height()
                         );
@@ -479,40 +529,40 @@ class KHPTree {
                 }
 
                 void
-                dump_hypercube(FILE * f) const
+                dump_hyperrect(FILE * f) const
                 {
                     assert(K == 1 || K == 2);
                     if (K == 1)
                     {
                         fprintf(f, "    \\draw (" INTERVAL_TYPE_MODIFIER ",-" INTERVAL_TYPE_MODIFIER ") rectangle (" INTERVAL_TYPE_MODIFIER ",-" INTERVAL_TYPE_MODIFIER ") node[midway] {[" INTERVAL_TYPE_MODIFIER ".." INTERVAL_TYPE_MODIFIER "[};\n",
-                                this->hypercube[0].a, (INTERVAL_TYPE_T) 0,
-                                this->hypercube[0].b, (INTERVAL_TYPE_T) 2,
-                                this->hypercube[0].a, this->hypercube[0].b
+                                this->hyperrect[0].a, (INTERVAL_TYPE_T) 0,
+                                this->hyperrect[0].b, (INTERVAL_TYPE_T) 2,
+                                this->hyperrect[0].a, this->hyperrect[0].b
                         );
                     }
                     else if (K == 2)
                     {
                         fprintf(f, "    \\draw [line width=2mm] (" INTERVAL_TYPE_MODIFIER ",-" INTERVAL_TYPE_MODIFIER ") rectangle (" INTERVAL_TYPE_MODIFIER ",-" INTERVAL_TYPE_MODIFIER ") node[midway,scale=10] {",
-                            this->hypercube[1].a, this->hypercube[0].a,
-                            this->hypercube[1].b, this->hypercube[0].b
+                            this->hyperrect[1].a, this->hyperrect[0].a,
+                            this->hyperrect[1].b, this->hyperrect[0].b
                         );
-                        this->dump_hypercube_str(f);
+                        this->dump_hyperrect_str(f);
                         fprintf(f, "};\n");
                     }
 
                     FOREACH_CHILD_BEGIN(this, child, k, dir)
                     {
-                        child->dump_hypercube(f);
+                        child->dump_hyperrect(f);
                     }
                     FOREACH_CHILD_END(this, child, k, dir);
                 }
 
                 virtual void
-                dump_hypercube_str(FILE * f) const
+                dump_hyperrect_str(FILE * f) const
                 {
                     fprintf(f, "[" INTERVAL_TYPE_MODIFIER ".." INTERVAL_TYPE_MODIFIER "[ x [" INTERVAL_TYPE_MODIFIER ".." INTERVAL_TYPE_MODIFIER "[",
-                        this->hypercube[0].a, this->hypercube[0].b,
-                        this->hypercube[1].a, this->hypercube[1].b
+                        this->hyperrect[0].a, this->hyperrect[0].b,
+                        this->hyperrect[1].a, this->hyperrect[1].b
                     );
                 }
 
@@ -678,13 +728,13 @@ class KHPTree {
             if (r)
                 fprintf(stderr, "dot failed\n");
 
-            snprintf(filename, sizeof(filename), "%s-cube.tex", label);
+            snprintf(filename, sizeof(filename), "%s-rect.tex", label);
             file = fopen(filename, "w");
-            this->dump_hypercube(file);
+            this->dump_hyperrect(file);
             fclose(file);
 
             snprintf(filename, sizeof(filename),
-                    "pdflatex -interaction=nonstopmode %s-cube.tex > /dev/null 2>&1",
+                    "pdflatex -interaction=nonstopmode %s-rect.tex > /dev/null 2>&1",
                     label
             );
             r = system(filename);
@@ -698,30 +748,31 @@ class KHPTree {
         inline void
         intersect_from(
             T & t,
-            const Hypercube & h,
+            const Hyperrect & h,
             Node * node
         ) const {
 
-            if (node == nullptr || !h.intersects(node->includes.hypercube))
+            if (node == nullptr || !h.intersects(node->includes.hyperrect))
                 return ;
 
             if (this->intersect_stop_test(node, t, h))
                 return ;
-
-            if (h.intersects(node->hypercube))
-                this->on_intersect(node, t, h);
 
             FOREACH_CHILD_BEGIN(node, child, k, dir)
             {
                 this->intersect_from(t, h, child);
             }
             FOREACH_CHILD_END(node, child, k, dir);
+
+            // in-order traversal
+            if (h.intersects(node->hyperrect))
+                this->on_intersect(node, t, h);
         }
 
         inline void
         intersect(
             T & t,
-            const Hypercube & h
+            const Hyperrect & h
         ) const {
             if (h.is_empty())
                 return ;
@@ -915,7 +966,7 @@ class KHPTree {
         inline void
         insert_fixup(
             T & t,
-            const Hypercube & h,
+            const Hyperrect & h,
             Node * parent,
             int k,
             Direction dir,
@@ -941,7 +992,6 @@ class KHPTree {
             this->insert_finalize(node, t);
         }
 
-# if KHP_TREE_REBALANCE
         static inline void
         compress(Node * root, int k, int m)
         {
@@ -1037,7 +1087,7 @@ class KHPTree {
             rebalance_fixup(nullptr, new_root, k, 0, height);
 
 # if KHP_TREE_ENABLE_COHERENCY_CHECKS
-            this->coherency(root->includes.hypercube);
+            this->coherency(root->includes.hyperrect);
 # endif /* KHP_TREE_ENABLE_COHERENCY_CHECKS */
         }
 
@@ -1093,18 +1143,12 @@ class KHPTree {
             return this->root && requires_rebalance(this->root);
         }
 
-# endif /* KHP_TREE_REBALANCE */
-
         void
-        post_insert(const Hypercube & h)
+        post_insert(const Hyperrect & h)
         {
-# if KHP_TREE_REBALANCE
-#  pragma message("Automatic rebalance enabled.")
-            if (this->requires_rebalance())
-                this->rebalance();
-# else /* KHP_TREE_REBALANCE */
-#  pragma message("Automatic rebalance disabled. Enable it with '-DKHP_TREE_REBALANCE'")
-# endif /* KHP_TREE_REBALANCE */
+            if constexpr(REBALANCE)
+                if (this->requires_rebalance())
+                    this->rebalance();
 
 # if KHP_TREE_ENABLE_COHERENCY_CHECKS
             this->coherency(h);
@@ -1116,7 +1160,7 @@ class KHPTree {
         inline void
         insert_from_cut(
             T & t,
-            const Hypercube & h,
+            const Hyperrect & h,
             Node * parent
         ) {
             FOREACH_CHILD_BEGIN(parent, child, k, dir)
@@ -1125,14 +1169,14 @@ class KHPTree {
             }
             FOREACH_CHILD_END(parent, child, k, dir);
 
-            parent->hypercube.copy(h);
+            parent->hyperrect.copy(h);
             this->insert_finalize(parent, t);
         }
 
         inline void
         insert_from(
             T & t,
-            Hypercube & h,
+            Hyperrect & h,
             Node * parent,
             int k,
             const Node * inherit
@@ -1140,25 +1184,28 @@ class KHPTree {
 
             while (k < K)
             {
-                // quick-way out, if the cube includes all subcube with an
+                # if 0
+                // quick-way out, if the rect includes all subrect with an
                 // 'out' access, we can discard all children
-                # if KHP_TREE_CUT_ON_INSERT
-                if (h.includes(parent->includes.hypercube, k))
+                if constexpr (CUT_ON_INSERT)
                 {
-                    // the includes test is accelerated as we know we are
-                    // already matching dimensions <k
-                    if (this->should_cut(t, h, parent, k))
+                    if (h.includes(parent->includes.hyperrect, k))
                     {
-                        // TODO : what if 'node' is not null ?  probably want to
-                        // return something to callee for the case (3)
-                        this->insert_from_cut(t, h, parent);
-                        break ;
+                        // the includes test is accelerated as we know we are
+                        // already matching dimensions <k
+                        if (this->should_cut(t, h, parent, k))
+                        {
+                            // TODO : what if 'node' is not null ?  probably want to
+                            // return something to callee for the case (3)
+                            this->insert_from_cut(t, h, parent);
+                            break ;
+                        }
                     }
                 }
-                # endif /* KHP_TREE_CUT_ON_INSERT */
+                # endif
 
                 // case (1)    J << I
-                if (h[k].b <= parent->hypercube[k].a)
+                if (h[k].b <= parent->hyperrect[k].a)
                 {
                     if (parent->st[k].left == nullptr)
                     {
@@ -1169,7 +1216,7 @@ class KHPTree {
                         parent = parent->get_child(k, LEFT);
                 }
                 // case (2)     J >> I
-                else if (h[k].a >= parent->hypercube[k].b)
+                else if (h[k].a >= parent->hyperrect[k].b)
                 {
                     if (parent->st[k].right == nullptr)
                     {
@@ -1180,10 +1227,10 @@ class KHPTree {
                         parent = parent->get_child(k, RIGHT);
                 }
                 // case (3)     J c I   (or I == J)
-                else if (parent->hypercube[k].a <= h[k].a && h[k].b <= parent->hypercube[k].b)
+                else if (parent->hyperrect[k].a <= h[k].a && h[k].b <= parent->hyperrect[k].b)
                 {
                     // I == J
-                    if (h[k].a == parent->hypercube[k].a && h[k].b == parent->hypercube[k].b)
+                    if (h[k].a == parent->hyperrect[k].a && h[k].b == parent->hyperrect[k].b)
                     {
                         if (++k == K)
                         {
@@ -1196,42 +1243,42 @@ class KHPTree {
                     {
                         // assert(K == 1 || K == 2);
 
-                        class ReinsertHypercube {
+                        class ReinsertHyperrect {
                             public:
-                                Hypercube h;
+                                Hyperrect h;
                                 Node * inherit;
                             public:
-                                ReinsertHypercube(const Hypercube & r, const Interval & interval, int k, Node * i) :
+                                ReinsertHyperrect(const Hyperrect & r, const Interval & interval, int k, Node * i) :
                                     h(r),
                                     inherit(i)
                                 {
                                     h[k] = interval;
-                                    inherit = h.intersects(i->hypercube) ? i : nullptr;
+                                    inherit = h.intersects(i->hyperrect) ? i : nullptr;
                                 }
 
-                                ~ReinsertHypercube() {}
+                                ~ReinsertHyperrect() {}
                         };
 
-                        std::vector<ReinsertHypercube> to_reinsert;
+                        std::vector<ReinsertHyperrect> to_reinsert;
                         const Interval intervals[] = {
-                            Interval(parent->hypercube[k].a,                 h[k].a),
+                            Interval(parent->hyperrect[k].a,                 h[k].a),
                             Interval(                h[k].a,                 h[k].b),
-                            Interval(                h[k].b, parent->hypercube[k].b)
+                            Interval(                h[k].b, parent->hyperrect[k].b)
                         };
 
                         std::function<void(Node *)> f = [this, &f, &intervals, &k, &to_reinsert](Node * node)
                         {
-                            assert(node->hypercube[k].includes(intervals[1]));
+                            assert(node->hyperrect[k].includes(intervals[1]));
 
                             // reinsert sides
                             if (!intervals[0].is_empty())
-                                to_reinsert.push_back(ReinsertHypercube(node->hypercube, intervals[0], k, node));
+                                to_reinsert.push_back(ReinsertHyperrect(node->hyperrect, intervals[0], k, node));
                             if (!intervals[2].is_empty())
-                                to_reinsert.push_back(ReinsertHypercube(node->hypercube, intervals[2], k, node));
+                                to_reinsert.push_back(ReinsertHyperrect(node->hyperrect, intervals[2], k, node));
 
                             // shrink node
                             this->on_shrink(node, intervals[1], k);
-                            node->hypercube[k] = intervals[1];
+                            node->hyperrect[k] = intervals[1];
 
                             // shrink all child
                             for (int kk = k+1; kk < K ; ++kk)
@@ -1247,7 +1294,7 @@ class KHPTree {
                         f(parent);
 
                         assert(inherit == nullptr);
-                        for (ReinsertHypercube & rr : to_reinsert)
+                        for (ReinsertHyperrect & rr : to_reinsert)
                             this->insert_from(t, rr.h, this->root, 0, rr.inherit);
 
                         return this->insert_from(t, h, this->root, 0, nullptr);
@@ -1268,25 +1315,25 @@ class KHPTree {
                     const INTERVAL_TYPE_T b = h[k].b;
 
                     // (1)
-                    if (h[k].a < parent->hypercube[k].a)
+                    if (h[k].a < parent->hyperrect[k].a)
                     {
-                        h[k].b = parent->hypercube[k].a;
+                        h[k].b = parent->hyperrect[k].a;
                         this->insert_from(t, h, this->root, 0, inherit);
                         h[k].b = b;
                     }
 
                     // (2)
-                    if (parent->hypercube[k].b < h[k].b)
+                    if (parent->hyperrect[k].b < h[k].b)
                     {
-                        h[k].a = parent->hypercube[k].b;
+                        h[k].a = parent->hyperrect[k].b;
                         this->insert_from(t, h, this->root, 0, inherit);
                         h[k].a = a;
                     }
 
                     // (3)
                     {
-                        h[k].a = MAX(a, parent->hypercube[k].a);
-                        h[k].b = MIN(b, parent->hypercube[k].b);
+                        h[k].a = MAX(a, parent->hyperrect[k].a);
+                        h[k].b = MIN(b, parent->hyperrect[k].b);
                         this->insert_from(t, h, this->root, 0, inherit);
                         h[k].a = a;
                         h[k].b = b;
@@ -1300,7 +1347,7 @@ class KHPTree {
         inline void
         insert(
             T & t,
-            Hypercube & h
+            Hyperrect & h
         ) {
             if (h.is_empty())
                 return ;
@@ -1336,9 +1383,9 @@ class KHPTree {
             fprintf(f, "}\n");
         }
 
-        // Dump represented hypercube to the given file
+        // Dump represented hyperrect to the given file
         void
-        dump_hypercube(FILE * f) const
+        dump_hyperrect(FILE * f) const
         {
             fprintf(f, "\\documentclass[crop,tikz]{standalone}\n");
             fprintf(f, "\\usetikzlibrary{shapes.multipart}\n");
@@ -1348,7 +1395,7 @@ class KHPTree {
             if constexpr (K == 1 || K == 2)
             {
                 if (this->root)
-                    this->root->dump_hypercube(f);
+                    this->root->dump_hyperrect(f);
             }
             else
             {
@@ -1410,46 +1457,46 @@ class KHPTree {
         }
 
         void
-        coherency_hypercube_includes_check(Node * ref, void * args) const
+        coherency_hyperrect_includes_check(Node * ref, void * args) const
         {
             Node * root = (Node *) args;
-            tassert(root->includes.hypercube.includes(ref->hypercube));
+            tassert(root->includes.hyperrect.includes(ref->hyperrect));
         }
 
         void
-        coherency_hypercube_includes_foreach(Node * node, void * args) const
+        coherency_hyperrect_includes_foreach(Node * node, void * args) const
         {
             (void) args;
-            auto f = std::bind(&KHPTree<K, T>::coherency_hypercube_includes_check, this, _1, _2);
+            auto f = std::bind(&KHPTree<K, T>::coherency_hyperrect_includes_check, this, _1, _2);
             foreach_node(node, f, node);
         }
 
         void
-        coherency_hypercube_includes(Node * root) const
+        coherency_hyperrect_includes(Node * root) const
         {
-            auto f = std::bind(&KHPTree<K, T>::coherency_hypercube_includes_foreach, this, _1, _2);
+            auto f = std::bind(&KHPTree<K, T>::coherency_hyperrect_includes_foreach, this, _1, _2);
             foreach_node(root, f, root);
         }
 
         void
-        coherency_hypercube_disjoint_compare(Node * ref, void * args) const
+        coherency_hyperrect_disjoint_compare(Node * ref, void * args) const
         {
             Node * node = (Node *) args;
-            tassert(node == ref || !node->hypercube.intersects(ref->hypercube));
+            tassert(node == ref || !node->hyperrect.intersects(ref->hyperrect));
         }
 
         void
-        coherency_hypercube_disjoint_for(Node * node, void * args) const
+        coherency_hyperrect_disjoint_for(Node * node, void * args) const
         {
             Node * root = (Node *) args;
-            auto f = std::bind(&KHPTree<K, T>::coherency_hypercube_disjoint_compare, this, _1, _2);
+            auto f = std::bind(&KHPTree<K, T>::coherency_hyperrect_disjoint_compare, this, _1, _2);
             foreach_node(root, f, node);
         }
 
         void
-        coherency_hypercube_disjoint(Node * root) const
+        coherency_hyperrect_disjoint(Node * root) const
         {
-            auto f = std::bind(&KHPTree<K, T>::coherency_hypercube_disjoint_for, this, _1, _2);
+            auto f = std::bind(&KHPTree<K, T>::coherency_hyperrect_disjoint_for, this, _1, _2);
             foreach_node(root, f, root);
         }
 
@@ -1477,9 +1524,8 @@ class KHPTree {
         {
             // when cut is enabled, black_height is not guaranteed
             // TODO: is this a problem ?
-            # if KHP_TREE_CUT_ON_INSERT
+            if constexpr (CUT_ON_INSERT)
                 return 1;
-            # endif /* KHP_TREE_CUT_ON_INSERT */
 
             if (node == nullptr)
                 return 1;
@@ -1510,11 +1556,10 @@ class KHPTree {
             int height    = this->height();
             int size = this->size();
             int ideal_height = khp_log2(size + 1);
-            # if KHP_TREE_CUT_ON_INSERT
-            tassert(height <  2 * K * ideal_height || height < 8);
-            # else
-            tassert(height <= 2 * K * ideal_height);
-            # endif /* KHP_TREE_CUT_ON_INSERT */
+            if constexpr (CUT_ON_INSERT)
+                tassert(height <  2 * K * ideal_height || height < 8);
+            else
+                tassert(height <= 2 * K * ideal_height);
         }
 
         void
@@ -1546,7 +1591,7 @@ class KHPTree {
             {
                 tassert(child->k == k);
                 tassert(node->k <= child->k);
-                tassert(k == 0 || node->hypercube[k-1] == child->hypercube[k-1]);
+                tassert(k == 0 || node->hyperrect[k-1] == child->hyperrect[k-1]);
                 coherency_k_hierarchy(child);
             }
             FOREACH_CHILD_END(node, child, k, dir);
@@ -1565,11 +1610,11 @@ class KHPTree {
              * has the same number of black nodes */
             coherency_black_height(root);
 
-            /* 5. cube must be disjoint (weak check) */
-            coherency_hypercube_disjoint(root);
+            /* 5. rect must be disjoint (weak check) */
+            coherency_hyperrect_disjoint(root);
 
-            /* 6. check includes.hypercube */
-            coherency_hypercube_includes(root);
+            /* 6. check includes.hyperrect */
+            coherency_hyperrect_includes(root);
 
             /* 7. includeness relationship between nodes dimension */
             coherency_k(root);
@@ -1582,23 +1627,23 @@ class KHPTree {
         }
 
         void
-        coherency_hypercube_represented_check(Node * node, void * args) const
+        coherency_hyperrect_represented_check(Node * node, void * args) const
         {
-            const Hypercube * cube = (const Hypercube *) args;
-            tassert(cube->includes(node->hypercube) || !cube->intersects(node->hypercube));
+            const Hyperrect * rect = (const Hyperrect *) args;
+            tassert(rect->includes(node->hyperrect) || !rect->intersects(node->hyperrect));
         }
 
         // TODO : this test is incomplete, should test that all nodes union
-        // also forms the cube
+        // also forms the rect
         void
-        coherency_hypercube_represented(Hypercube cube)
+        coherency_hyperrect_represented(Hyperrect rect)
         {
-            auto f = std::bind(&KHPTree<K, T>::coherency_hypercube_represented_check, this, _1, _2);
-            foreach_node(this->root, f, &cube);
+            auto f = std::bind(&KHPTree<K, T>::coherency_hyperrect_represented_check, this, _1, _2);
+            foreach_node(this->root, f, &rect);
         }
 
         int
-        coherency(const Hypercube & h)
+        coherency(const Hyperrect & h)
         {
             if (this->root)
             {
@@ -1609,8 +1654,8 @@ class KHPTree {
                 /* per-node checks */
                 this->coherency_from(this->root);
 
-                /* ensure the cube is represented in the tree */
-                this->coherency_hypercube_represented(h);
+                /* ensure the rect is represented in the tree */
+                this->coherency_hyperrect_represented(h);
 
                 /* 7. check balance */
                 this->coherency_balance();
@@ -1627,11 +1672,11 @@ class KHPTree {
         // ABSTRACT INTERFACES //
         /////////////////////////
 
-        /* called to create a new node with a cube that never appeared before. */
+        /* called to create a new node with a rect that never appeared before. */
         virtual Node *
         new_node(
             T & t,
-            const Hypercube & h,
+            const Hyperrect & h,
             const int k,
             const Color color
         ) const = 0;
@@ -1641,18 +1686,18 @@ class KHPTree {
         virtual Node *
         new_node(
             T & t,
-            const Hypercube & h,
+            const Hyperrect & h,
             const int k,
             const Color color,
             const Node * inherit
         ) const = 0;
 
-        # if KHP_TREE_CUT_ON_INSERT
+        # if 0
         /* called when the node being inserting includes all the descendent tree
          * return true if the subtree should be cut, false otherwise (in such
          * case, the insertion is propagated to all the subtree */
-        virtual bool should_cut(T & t, Hypercube & h, Node * parent, int k) const = 0;
-        # endif /* KHP_TREE_CUT_ON_INSERT */
+        virtual bool should_cut(T & t, Hyperrect & h, Node * parent, int k) const = 0;
+        # endif
 
         /* called whenever this node is added to the tree */
         virtual void on_insert(Node * node, T & t) = 0;
@@ -1660,11 +1705,11 @@ class KHPTree {
         /* called whenever this node is being shrinked on dimension 'k' to 'interval' */
         virtual void on_shrink(Node * node, const Interval & interval, int k) = 0;
 
-        /* called to detect whether the intersect on 'cube' should stop on the node 'node' */
-        virtual bool intersect_stop_test(Node * node, T & t, const Hypercube & h) const = 0;
+        /* called to detect whether the intersect on 'rect' should stop on the node 'node' */
+        virtual bool intersect_stop_test(Node * node, T & t, const Hyperrect & h) const = 0;
 
-        /* called whenever 'node' intersects with 'cube' */
-        virtual void on_intersect(Node * node, T & t, const Hypercube & h) const = 0;
+        /* called whenever 'node' intersects with 'rect' */
+        virtual void on_intersect(Node * node, T & t, const Hyperrect & h) const = 0;
 };
 
 #endif /* __KHP_TREE_H__ */

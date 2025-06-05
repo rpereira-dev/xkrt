@@ -23,7 +23,7 @@ insert(
     NoopKHPTree<K> & tree,
     Interval intervals[K]
 ) {
-    KHypercube<K> h(intervals);
+    KHyperrect<K> h(intervals);
     unused_type_t t;
     tree.insert(t, h);
     ++ninsert;
@@ -246,7 +246,7 @@ static void launch_tests(NoopKHPTree<K> & tree)
     int nelements = tree.size();
     printf("  Took %lf s.\n", dt);
     printf("    Inserted %d h and %d elements - height is %d\n", ninsert, nelements, height);
-    printf("    Hypercube/s. = %.2lf\n", ninsert / dt);
+    printf("    Hyperrect/s. = %.2lf\n", ninsert / dt);
     printf("    Elements/s. = %.2lf\n", nelements / dt);
     printf("\n");
 }

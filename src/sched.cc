@@ -36,7 +36,7 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-# include <xkrt/memory/access/blas/region/memory-tree.hpp>
+# include <xkrt/memory/access/blas/memory-tree.hpp>
 # include <xkrt/xkrt.h>
 # include <xkrt/runtime.h>
 # include <xkrt/driver/device.hpp>
@@ -334,7 +334,39 @@ xkrt_team_thread_task_enqueue(
 ) {
     (void) runtime;
     (void) team;
-    // TODO : thread should be woke up here, no ?
     thread->deque.push(task);
     thread->wakeup();
 }
+
+void
+xkrt_team_task_enqueue(
+    xkrt_runtime_t * runtime,
+    xkrt_team_t * team,
+    task_t * task
+) {
+    (void) runtime;
+
+    // start at a random thread
+    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    int start = tls->rng() % team->priv.nthreads;
+
+    // find one that is not already working
+    for (int i = 0 ; i < team->priv.nthreads ; ++i)
+    {
+        xkrt_thread_t * thread = team->priv.threads + ((start + i) % team->priv.nthreads);
+        bool busy = !thread->sleep.sleeping;
+        if (busy)
+            continue ;
+
+        // assign it the task
+        thread->deque.push(task);
+        thread->wakeup();
+        return ;
+    }
+
+    // all threads are working, assigning on the first random one
+    xkrt_thread_t * thread = team->priv.threads + start;
+    thread->deque.push(task);
+    thread->wakeup();
+}
+

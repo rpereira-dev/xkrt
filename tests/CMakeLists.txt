@@ -8,20 +8,30 @@ project(tests)
 # list of tests
 set(TEST_SOURCES
     deinit.cc
-    fib-task-format.cc
     fib-task-capture.cc
+    fib-task-format.cc
     init.cc
+    memory-register-async-legacy-memcpy-split.cc
+    memory-register-async-legacy.cc
+    memory-register-async.cc
+    memory-touch-async.cc
+    memory-touch-register-unregister-async.cc
+    memory-unregister-async.cc
     sync.cc
-    task-dependency.cc
+    task-dependency-interval.cc
     task-dependency-point.cc
+    task-dependency.cc
     task-format-host.cc
     task-format.cc
     task-gpu-empty.cc
-    team-cpus.cc
     team-cpus-parallel-for.cc
+    team-cpus.cc
     team-device.cc
-    touch-async.cc
 )
+
+# pthread deps
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
 # Loop over each test source file
 foreach(TEST_FILE ${TEST_SOURCES})
@@ -32,5 +42,7 @@ foreach(TEST_FILE ${TEST_SOURCES})
     add_executable(${TEST_NAME} ${TEST_FILE})
 		target_link_libraries(${TEST_NAME} PRIVATE ${XKRT} ${HWLOC_LIBRARIES} ${CUDA_DRIVER_LIBRARIES})
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+
+    target_link_libraries(${TEST_NAME} PRIVATE Threads::Threads)
 
 endforeach()

@@ -55,8 +55,6 @@ class MemoryCoherencyController {
         /* fetch the given access on the given device */
         virtual void fetch(access_t * access, xkrt_device_global_id_t device_global_id) = 0;
 
-        /* return true if that memory coherency controller can resolve that access */
-        virtual bool can_resolve(const access_t * access) const = 0;
 };
 
 #endif /* __MEMORY_TREE_HPP__ */

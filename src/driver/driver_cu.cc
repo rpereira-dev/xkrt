@@ -169,7 +169,7 @@ get_gpu_topo(
                         );
                         cu_perf_topo[idx] = 1 + perf_rank;
 
-                        if (1 + perf_rank >= sizeof(rank_used) / sizeof(*rank_used))
+                        if (1U + perf_rank >= sizeof(rank_used) / sizeof(*rank_used))
                             LOGGER_FATAL("P2P perf_rank too high");
                         rank_used[1 + perf_rank] = 1;
                         LOGGER_DEBUG("PERF FROM %d to %d is %d", i, j, perf_rank + 1);
@@ -235,7 +235,9 @@ XKRT_DRIVER_ENTRYPOINT(init)(
     unsigned int ndevices,
     bool use_p2p
 ) {
+    LOGGER_INFO("Calling cuInit(0) ...");
     CUresult err = cuInit(0);
+    LOGGER_INFO("Returned from cuInit(0)");
     if (err != CUDA_SUCCESS)
     {
         if (err == CUDA_ERROR_STUB_LIBRARY)
@@ -295,8 +297,11 @@ XKRT_DRIVER_ENTRYPOINT(get_name)(void)
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * schedset, int device_driver_id)
-{
+XKRT_DRIVER_ENTRYPOINT(device_cpuset)(
+    hwloc_topology_t topology,
+    cpu_set_t * schedset,
+    int device_driver_id
+) {
     assert(device_driver_id >= 0);
     assert(device_driver_id < XKRT_DEVICES_MAX);
 

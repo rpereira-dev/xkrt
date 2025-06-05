@@ -68,12 +68,6 @@ class DummyMemoryCoherencyController {
             LOGGER_FATAL("Tried to run coherency controller on an unsupported access");
         }
 
-        /* return true if that memory coherency controller can resolve that access */
-        bool
-        can_resolve(const access_t * access) const
-        {
-            LOGGER_FATAL("Tried to run coherency controller on an unsupported access");
-        }
 };
 
 #endif /* __DUMMY_COHERENCY_CONTROLLER_HPP__ */

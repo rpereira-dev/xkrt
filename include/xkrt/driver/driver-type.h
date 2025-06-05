@@ -51,6 +51,9 @@ typedef enum    xkrt_driver_type_t : uint8_t
     XKRT_DRIVER_TYPE_MAX    = 6
 }               xkrt_driver_type_t;
 
+typedef uint8_t xkrt_driver_type_bitfield_t;
+static_assert(XKRT_DRIVER_TYPE_MAX <= sizeof(xkrt_driver_type_bitfield_t)*8);
+
 extern "C"
 const char * xkrt_driver_name(xkrt_driver_type_t driver_type);
 

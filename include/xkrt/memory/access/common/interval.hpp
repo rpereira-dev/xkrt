@@ -85,6 +85,28 @@ class Interval {
             return lhs.a != rhs.a || lhs.b != rhs.b;
         }
 
+        Interval &
+        operator=(const Interval & other)
+        {
+            this->a = other.a;
+            this->b = other.b;
+            return *this;
+        }
+
+        inline bool
+        intersects(const Interval & other) const
+        {
+            return this->a <= other.b && other.a <= this->b;
+        }
+
+        bool
+        operator<(const Interval & other) const
+        {
+            // this class should only be used to represent disjoint intervals
+            assert(!this->intersects(other));
+            return this->b <= other.a;
+        }
+
 };
 
 #endif /* __INTERVAL_HPP__ */

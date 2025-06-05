@@ -1,14 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*   task-dependency-point.cc                                     .-*-.       */
+/*   task-dependency-interval.cc                                  .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/05/19 00:09:44 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/03 18:13:43 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/04 16:36:55 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
 /*   Author: Thierry GAUTIER <thierry.gautier@inrialpes.fr>                   */
-/*   Author: Romain PEREIRA <rpereira@anl.gov>                                */
+/*   Author: Romain PEREIRA <romain.pereira@outlook.com>                      */
 /*                                                                            */
 /*   Copyright: see AUTHORS                                                   */
 /*                                                                            */
@@ -67,14 +67,14 @@ main(void)
         ACCESS_MODE_RW
     };
 
-    const void * point[] = {
-        &x,
-        &x,
-        &x
+    const Interval interval[] = {
+        Interval((INTERVAL_TYPE_T) (&x - 16), (INTERVAL_TYPE_T) (&x + 16)),
+        Interval((INTERVAL_TYPE_T) (&x -  0), (INTERVAL_TYPE_T) (&x + 19)),
+        Interval((INTERVAL_TYPE_T) (&x -  3), (INTERVAL_TYPE_T) (&x + 12))
     };
 
     constexpr int ntasks = sizeof(modes) / sizeof(access_mode_t);
-    assert(ntasks == sizeof(point) / sizeof(void *));
+    assert(ntasks == sizeof(interval) / sizeof(Interval));
 
     for (int t = 0 ; t < ntasks ; ++t)
     {
@@ -95,7 +95,7 @@ main(void)
         // set accesses
         access_t * accesses = TASK_ACCESSES(task);
         static_assert(AC <= TASK_MAX_ACCESSES);
-        new(accesses + 0) access_t(task, point[t], modes[t]);
+        new(accesses + 0) access_t(task, interval[t].a, interval[t].b, modes[t]);
         thread->resolve<AC>(task, accesses);
 
         // submit it to the runtime

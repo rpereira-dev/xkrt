@@ -49,9 +49,6 @@ class DependencyDomain
 
     public:
 
-        // return true if the dependency domain can resolve
-        virtual bool can_resolve(const access_t * access) const = 0;
-
         // set edges with previous accesses
         virtual void link(access_t * access) = 0;
 

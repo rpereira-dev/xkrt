@@ -48,7 +48,7 @@
 
 /* K is the number of dimensions */
 template<int K>
-class KHypercube {
+class KHyperrect {
 
     public:
 
@@ -56,22 +56,22 @@ class KHypercube {
 
     public:
 
-        KHypercube() : list() {}
+        KHyperrect() : list() {}
 
-        KHypercube(const Interval list[K])
+        KHyperrect(const Interval list[K])
         {
             this->set_list(list);
         }
 
-        KHypercube(const KHypercube & copy)
+        KHyperrect(const KHyperrect & copy)
         {
             this->set_list(copy.list);
         }
 
-        virtual ~KHypercube() {}
+        virtual ~KHyperrect() {}
 
         void
-        copy(const KHypercube & other)
+        copy(const KHyperrect & other)
         {
             this->set_list(other.list);
         }
@@ -107,7 +107,7 @@ class KHypercube {
 
         // return true if intervals intersects on each dimension
         inline bool
-        intersects(const KHypercube & intervals) const
+        intersects(const KHyperrect & intervals) const
         {
             for (int k = 0 ; k < K ; ++k)
             {
@@ -120,9 +120,9 @@ class KHypercube {
 
         static inline void
         intersection(
-            KHypercube * dst,
-            const KHypercube & x,
-            const KHypercube & y
+            KHyperrect * dst,
+            const KHyperrect & x,
+            const KHyperrect & y
         ) {
             for (int k = 0 ; k < K ; ++k)
             {
@@ -132,13 +132,13 @@ class KHypercube {
         }
 
         inline bool
-        intersects(const KHypercube * & intervals) const
+        intersects(const KHyperrect * & intervals) const
         {
             return this->intersects(*intervals);
         }
 
         inline bool
-        equals(const KHypercube & intervals) const
+        equals(const KHyperrect & intervals) const
         {
             for (int k = 0 ; k < K ; ++k)
             {
@@ -150,7 +150,7 @@ class KHypercube {
         }
 
         inline bool
-        includes(const KHypercube & intervals, int k) const
+        includes(const KHyperrect & intervals, int k) const
         {
             for ( ; k < K ; ++k)
             {
@@ -162,7 +162,7 @@ class KHypercube {
         }
 
         inline bool
-        includes(const KHypercube & intervals) const
+        includes(const KHyperrect & intervals) const
         {
             return this->includes(intervals, 0);
         }
@@ -189,8 +189,8 @@ class KHypercube {
          * dimensions of the interval */
         static inline void
         distance_manhattan(
-            const KHypercube & x,
-            const KHypercube & y,
+            const KHyperrect & x,
+            const KHyperrect & y,
             INTERVAL_DIFF_TYPE_T d[K]
         ) {
             for (int k = 0 ; k < K ; ++k)
@@ -198,7 +198,7 @@ class KHypercube {
         }
 
         friend std::ostream &
-        operator<<(std::ostream & os, const KHypercube & intervals)
+        operator<<(std::ostream & os, const KHyperrect & intervals)
         {
             for (int k = 0 ; k < K ; ++k)
             {
@@ -209,8 +209,8 @@ class KHypercube {
             return os;
         }
 
-}; /* class KHypercube */
+}; /* class KHyperrect */
 
-using Hypercube = KHypercube<2>;
+using Hyperrect = KHyperrect<2>;
 
 #endif /* __HYPERCUBE_HPP__ */

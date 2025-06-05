@@ -3,7 +3,7 @@
 /*   dependency-map.hpp                                           .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/05/19 00:09:44 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/03 18:03:59 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/05 22:43:57 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -66,8 +66,6 @@ class DependencyMap : public DependencyDomain
         inline void
         link(access_t * access)
         {
-            assert(this->can_resolve(access));
-
             // retrieve previous accesses on that point
             auto it = map.find(access->point);
 
@@ -94,8 +92,6 @@ class DependencyMap : public DependencyDomain
         inline void
         put(access_t * access)
         {
-            assert(this->can_resolve(access));
-
             // TODO : redundancy check, if we allow redundant dependencies - see
             // https://github.com/cea-hpc/mpc/blob/master/src/MPC_OpenMP/src/mpcomp_task.c#L1274
 
@@ -120,12 +116,6 @@ class DependencyMap : public DependencyDomain
                 node.last_seq_reads.push_back(access);
         }
 
-        bool
-        can_resolve(const access_t * access) const
-        {
-            assert(access);
-            return (access->type == ACCESS_TYPE_POINT);
-        }
 };
 
 #endif /* __DEPENDENCY_MAP_HPP__ */

@@ -359,7 +359,6 @@ run(
     task_t * task
 ) {
     assert(thread == xkrt_thread_t::get_tls());
-    // tls->execute(task, xkrt_team_thread_task_enqueue, runtime, team, thread);
     __Thread_task_execute(thread, task, xkrt_team_thread_task_enqueue, runtime, team, thread);
 }
 
@@ -667,4 +666,29 @@ void
 xkrt_runtime_t::team_critical_end(xkrt_team_t * team)
 {
     pthread_mutex_unlock(&team->priv.critical.mtx);
+}
+
+xkrt_team_t *
+xkrt_runtime_t::team_get(const xkrt_driver_type_t type)
+{
+    xkrt_driver_t * driver = this->driver_get(type);
+    assert(driver);
+
+    return &driver->team;
+}
+
+xkrt_team_t *
+xkrt_runtime_t::team_get_any(const xkrt_driver_type_bitfield_t types)
+{
+    for (uint8_t i = 0 ; i < XKRT_DRIVER_TYPE_MAX ; ++i)
+    {
+        if (types & (1 << i))
+        {
+            xkrt_driver_type_t type = (xkrt_driver_type_t) i;
+            xkrt_driver_t * driver = this->driver_get(type);
+            if (driver)
+                return &driver->team;
+        }
+    }
+    return NULL;
 }

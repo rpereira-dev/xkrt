@@ -49,6 +49,8 @@
 
 # include <hwloc.h>
 
+# include <map>
+
 typedef enum    xkrt_runtime_state_t : uint8_t
 {
     XKRT_RUNTIME_DEINITIALIZED = 0,
@@ -63,10 +65,6 @@ typedef struct  xkrt_runtime_t
     /* driver list */
     xkrt_drivers_t drivers;
 
-    /* the team of thread that register memory (only 1 thread, nvidia driver
-     * serializes register requests anyway... */
-    xkrt_team_t register_team;
-
     /* task formats */
     struct {
         task_formats_t list;
@@ -80,6 +78,11 @@ typedef struct  xkrt_runtime_t
 
     /* memory router */
     RouterAffinity router;
+
+    # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+    /* registered memory segments, map: addr -> size */
+    std::map<uintptr_t, size_t> registered_memory;
+    # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
     /* hwloc topology, read only, initialized at init */
     hwloc_topology_t topology;
@@ -152,18 +155,87 @@ typedef struct  xkrt_runtime_t
     // MEMORY REGISTRATION //
     /////////////////////////
 
-    /** Notify that the pointed memory had been touched, cancelling touching tasks */
-    int memory_notify_touched(void * ptr, const size_t size);
+    /**
+     *  Create 'n' tasks so that each task i in [0..n-1]:
+     *      - access - commutative write on [ptr + i*chunk_size,  ptr + (i+1)*chunk_size]
+     *      - routine - touches memory pages in [ptr + i*chunk_size,  ptr + (i+1)*chunk_size]
+     */
+    int memory_touch_async(xkrt_team_t * team, void * ptr, const size_t chunk_size, int n);
 
     /**
-     *  Create 'nchunks' tasks so that each task i in [0..nchunks-1] touches
-     *  memory pages in [ptr + i*chunk_size,  ptr + (i+1)*chunk_size].
-     *  Tasks will be cancelled if the memory is touched through `notify_touched()`
+     *  Create 'n' tasks so that each task i in [0..n-1]
+     *      - access - commutative write on [ptr + i*chunk_size,  ptr + (i+1)*chunk_size]
+     *      - routine - register a chunk of memory [ptr + i*chunk_size,  ptr + (i+1)*chunk_size].
+     *
+     *  Note: each task may run several 'cuMemRegister' several time on a single chunk
      */
-    int memory_touch_async(void * ptr, const size_t chunk_size, int nchunks);
+    int memory_register_async(xkrt_team_t * team, void * ptr, const size_t chunk_size, int n);
+    int memory_unregister_async(xkrt_team_t * team, void * ptr, const size_t chunk_size, int n);
 
-    int register_async(void * ptr, const size_t chunk_size, int nchunks);
-    int unregister_async(void * ptr, const size_t chunk_size, int nchunks);
+    // TODO - this was a preliminary design. In the end, it got moved to the
+    // memory coherency controller when fetching data on a
+    // ACCESS_MODE_PIN/ACCESS_MODE_UNPIN
+    # if 0
+    /**
+     *  Create tasks to copy memory from/to the host.
+     *  The number of tasks spawned depend on the number and the state of segment previously submitted.
+     *  Each 'transfer' task
+     *      - access - a sequential write on a sub-segment
+     *      - routine - submit a copy instruction to the device stream
+     *      - is detachable - and is fulfilled once the copy completed
+     *
+     *  Discussions
+     *
+     *  This routine supports concurrency with `memory_touch_async` `memory_register_async` `memory_unregister_async` :
+     *      if there is a task currently touching/registering/unregistering a
+     *      sub-segment, then a dependent transfer task will spawn for that sub-segment
+     *
+     *      Similarly, if there is an un-going transfer on a segment,
+     *      future registering/unregistering tasks will depend on it, and
+     *      touching tasks will not touch the sub-segment, as the copy already touched it
+     *
+     *  Said differently, these interfaces put in competition memory
+     *  touching/registering/unregistering/transfer with the heuristic that:
+     *      - better initiating transfer early on unregistered memory over waiting for registration
+     *
+     *  For instance,
+     *
+     *      Legend: R  = registered memory
+     *              U  = unregistered memory
+     *              R' = registering memory
+     *
+     * (1)
+     *      host_addr                               host_addr + size
+     *          [ R  R  R  R  R  R  R  R  R  R  R  R  R  R  R ]
+     *
+     *  Then a single transfer task is spawned and mark ready immediatly.
+     *
+     *
+     * (2)
+     *      host_addr            X           Y        host_addr + size
+     *          [ R  R  R  R  R  U  U  U  U  R  R  R  R  R  R ]
+     *
+     *  Then 3x transfer tasks spawns and are marked ready immediatly.
+     *      [host_addr..X[  ,  [X..Y[  , [Y..host_addr + size[
+     *
+     *
+     * (3)
+     *      host_addr            X           Y        host_addr + size
+     *          [ R  R  R  R  R  U  U  U  U  R' R' R' R' R' R']
+     *
+     *  Then 3x transfer tasks spawns,
+     *      [host_addr..X[  ,  [X..Y[  are marked ready immediatly.
+     *      [Y..host_addr + size[      is made dependent of the task currently registering the segment
+     *
+     */
+    int memory_transfer_async(
+        const xkrt_device_global_id_t device_global_id,
+        const uintptr_t               device_addr,
+        const uintptr_t               host_addr,
+        const size_t                  size,
+        const bool                    h2d
+    );
+    # endif
 
     /////////////////////
     // SYNCHRONIZATION //
@@ -226,6 +298,12 @@ typedef struct  xkrt_runtime_t
     /* spawn a task in the passed team */
     void team_task_spawn(xkrt_team_t * team, const std::function<void(task_t*)> & f);
 
+    /* retrieve the team of thread of the specific driver */
+    xkrt_team_t * team_get(const xkrt_driver_type_t type);
+
+    /* retrieve the first non-null driver' team from the passed bitfield */
+    xkrt_team_t * team_get_any(const xkrt_driver_type_bitfield_t types);
+
     ////////////
     // ENERGY //
     ////////////
@@ -276,6 +354,12 @@ void xkrt_memory_copy_async_register_format(xkrt_runtime_t * runtime);
 /* host capture task format */
 void xkrt_task_host_capture_register_format(xkrt_runtime_t * runtime);
 
+/* register v2 format */
+void xkrt_memory_touch_async_register_format(xkrt_runtime_t * runtime);
+void xkrt_memory_register_async_register_format(xkrt_runtime_t * runtime);
+void xkrt_memory_unregister_async_register_format(xkrt_runtime_t * runtime);
+void xkrt_memory_transfer_async_register_format(xkrt_runtime_t * runtime);
+
 /* Main entry thread created per device */
 void * xkrt_device_thread_main(xkrt_team_t * team, xkrt_thread_t * thread);
 
@@ -294,6 +378,9 @@ void xkrt_device_task_execute(
 
 /* enqueue the task in the thread of the team */
 void xkrt_team_thread_task_enqueue(xkrt_runtime_t * runtime, xkrt_team_t * team, xkrt_thread_t * thread, task_t * task);
+
+/* enqueue the task to a random thread of the team */
+void xkrt_team_task_enqueue(xkrt_runtime_t * runtime, xkrt_team_t * team, task_t * task);
 
 /* submit a task to the given device */
 void xkrt_device_task_submit(

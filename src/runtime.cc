@@ -60,6 +60,7 @@ task_format_register(xkrt_runtime_t * runtime)
     task_formats_init(&(runtime->formats.list));
     xkrt_memory_copy_async_register_format(runtime);
     xkrt_task_host_capture_register_format(runtime);
+    xkrt_memory_touch_async_register_format(runtime);
 }
 
 extern "C"
@@ -95,6 +96,15 @@ xkrt_init(xkrt_runtime_t * runtime)
 
     // the '+1' is to enforce the host device, always
     xkrt_drivers_init(runtime);
+
+    # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+    // initialize the registered memory map
+    new (&runtime->registered_memory) std::map<uintptr_t, size_t>();
+    if (!runtime->conf.protect_registered_memory_overflow)
+        LOGGER_WARN("Compiled with `MEMORY_REGISTER_OVERFLOW_PROTECTION` but `XKAAPI_MEMORY_REGISTER_PROTECT_OVERFLOW` environment variable is not set");
+    # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
+    // mark runtime as initialized
     runtime->state = XKRT_RUNTIME_INITIALIZED;
 
     return 0;

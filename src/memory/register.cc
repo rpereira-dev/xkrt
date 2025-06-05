@@ -36,118 +36,50 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-# include <xkrt/logger/todo.h>
+# include <xkrt/xkrt.h>
 # include <xkrt/runtime.h>
 
-///////////////////////////////////
-//  ORIGINAL KAAPI 1.0 INTERFACE //
-///////////////////////////////////
+constexpr int                         ac = 1;
+constexpr task_flag_bitfield_t     flags = TASK_FLAG_DEPENDENT;
+constexpr               size_t task_size = task_compute_size(flags, ac);
+constexpr               size_t args_size = 0;
 
-//  General idea of these interfaces
-//      - Nvidia GPUs serializes memory pinning anyway
-//      - We have a single thread dedicated to pinning memory to any device
-//      - it schedule 'pinning tasks' that are tasks with read/write access on the memory
-
-
-//  Some ideas:
-//      - can we pin memory independently of CUDA / HIP / ... via 'mlock' and
-//      notify the driver that the memory is pinned ? Would be better in case
-//      of server with different GPU vendors...
-
-
-# pragma message(TODO "The current implementation spawn independent tasks. Maybe make it dependent to a specific type of access")
-
-extern "C"
 int
-xkrt_memory_register(
-    xkrt_runtime_t * runtime,
+xkrt_runtime_t::memory_register_async(
+    xkrt_team_t * team,
     void * ptr,
-    size_t size
+    const size_t chunk_size,
+    int n
 ) {
-    for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
+    LOGGER_FATAL("Not implemented");
+
+    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+
+    // null format, the registration occurs during the fetching/fetched state
+    const task_format_id_t fmtid = TASK_FORMAT_NULL;
+
+    for (int i = 0 ; i < n ; ++i)
     {
-        xkrt_driver_t * driver = runtime->driver_get((xkrt_driver_type_t) driver_id);
-        if (!driver)
-            continue ;
-        if (!driver->f_memory_host_register)
-            LOGGER_WARN("Driver `%u` does not implement memory register", driver_id);
-        else if (driver->f_memory_host_register(ptr, size))
-            LOGGER_ERROR("Could not register memory for driver `%s`", driver->f_get_name());
+        // inserts the interval in the tree to ensure they exist
+        const uintptr_t a = ((const uintptr_t) ptr) + (i+0) * chunk_size;
+        const uintptr_t b = ((const uintptr_t) ptr) + (i+1) * chunk_size;
+
+        // create a task that will register/pin/unpin the memory
+        task_t * task = tls->allocate_task(task_size + args_size);
+        new(task) task_t(fmtid, flags);
+
+        #ifndef NDEBUG
+        snprintf(task->label, sizeof(task->label), "memory_register_async");
+        #endif
+
+        task_dep_info_t * dep = TASK_DEP_INFO(task);
+        new (dep) task_dep_info_t(ac);
+
+        access_t * accesses = TASK_ACCESSES(task, flags);
+        new(accesses + 0) access_t(task, a, b, ACCESS_MODE_PIN, ACCESS_CONCURRENCY_COMMUTATIVE);
+
+        tls->commit(task, xkrt_team_task_enqueue, this, team);
     }
-    return 0;
-}
-
-extern "C"
-int
-xkrt_memory_unregister(xkrt_runtime_t * runtime, void * ptr, size_t size)
-{
-    for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
-    {
-        xkrt_driver_t * driver = runtime->driver_get((xkrt_driver_type_t) driver_id);
-        if (!driver)
-            continue ;
-        if (!driver->f_memory_host_unregister)
-            LOGGER_WARN("Driver `%u` does not implement memory unregister", driver_id);
-        else if (driver->f_memory_host_unregister(ptr, size))
-            LOGGER_ERROR("Could not unregister memory for driver `%s`", driver->f_get_name());
-    }
-    return 0;
-}
-
-extern "C"
-size_t
-xkrt_memory_register_async(xkrt_runtime_t * runtime, void * ptr, size_t size)
-{
-    xkrt_driver_t * driver = runtime->driver_get(XKRT_DRIVER_TYPE_HOST);
-    assert(driver);
-
-    xkrt_team_t * team = &driver->team;
-
-    // TODO : could be optimized using a custom format for register tasks
-    runtime->team_task_spawn(
-        team,
-        [runtime, ptr, size] (task_t * task) {
-            LOGGER_DEBUG("register memory...");
-            xkrt_memory_register(runtime, ptr, size);
-        }
-    );
 
     return 0;
 }
-
-extern "C"
-int
-xkrt_memory_unregister_async(xkrt_runtime_t * runtime, void * ptr, size_t size)
-{
-    xkrt_driver_t * driver = runtime->driver_get(XKRT_DRIVER_TYPE_HOST);
-    assert(driver);
-
-    xkrt_team_t * team = &driver->team;
-
-    // TODO : could be optimized using a custom format for unregister tasks
-    runtime->team_task_spawn(
-        team,
-        [runtime, ptr, size] (task_t * task) {
-            LOGGER_DEBUG("unregistering memory...");
-            xkrt_memory_unregister(runtime, ptr, size);
-        }
-    );
-    return 0;
-}
-
-extern "C"
-int
-xkrt_memory_register_waitall(xkrt_runtime_t * runtime)
-{
-    // atm, waits for all children tasks
-    // instead, we probably want to wait only on register tasks
-
-    runtime->task_wait();
-    return 0;
-}
-
-//////////////////////////
-//  KAAPI 2.0 INTERFACE //
-//////////////////////////
-
-

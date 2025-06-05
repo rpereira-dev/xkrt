@@ -38,7 +38,7 @@
 
 # include <xkrt/runtime.h>
 # include <xkrt/xkrt.h>
-# include <xkrt/memory/access/blas/region/dependency-tree.hpp>
+# include <xkrt/memory/access/blas/dependency-tree.hpp>
 
 # include <math.h>
 

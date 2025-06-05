@@ -77,4 +77,11 @@
 #  define KHP_TREE_ENABLE_COHERENCY_CHECKS 1
 # endif
 
+/* Compile the protection of memory copies over regions that are not
+ * continuously registered, by splitting into multiple copies, to avoid cuda
+ * crashes. It is disabled by default and must be enable with an environment
+ * variable. See XKRT_HELP=1 */
+# define XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION @USE_MEMORY_REGISTER_OVERFLOW_PROTECTION@
+
+
 #endif /* __XKRT_SUPPORT_H__ */

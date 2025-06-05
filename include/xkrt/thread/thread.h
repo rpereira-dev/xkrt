@@ -40,7 +40,7 @@
 
 #  include <xkrt/consts.h>
 #  include <xkrt/sync/spinlock.h>
-#  include <xkrt/memory/access/blas/region/dependency-tree.hpp>
+#  include <xkrt/memory/access/blas/dependency-tree.hpp>
 #  include <xkrt/task/task.hpp>
 
 #  include <xkrt/memory/alignas.h>
@@ -49,10 +49,14 @@
 
 #  include <pthread.h>
 #  include <atomic>
+#  include <random>
 
 #  include <linux/futex.h>      /* Definition of FUTEX_* constants */
 #  include <sys/syscall.h>      /* Definition of SYS_* constants */
 #  include <unistd.h>
+
+/* pointer to the current team */
+# define XKRT_TEAM_CURRENT (xkrt_thread_t::get_tls()->team)
 
 /////////////
 // THREADS //
@@ -162,6 +166,9 @@ typedef struct  xkrt_thread_t
         /* the pthread */
         pthread_t pthread;
 
+        /* global thread tid */
+        int gtid;
+
         /* the tid in the team */
         int tid;
 
@@ -181,7 +188,8 @@ typedef struct  xkrt_thread_t
         /* memory capacity */
         size_t memory_stack_capacity;
 
-    private:
+        /* random number generator */
+        std::minstd_rand rng;
 
         /* lock and condition to sleep the mutex */
         struct {
@@ -189,8 +197,6 @@ typedef struct  xkrt_thread_t
             pthread_cond_t  cond;
             volatile bool   sleeping;
         } sleep;
-
-    public:
 
         struct {
             /* next function index in the team functions */
@@ -214,11 +220,13 @@ typedef struct  xkrt_thread_t
             implicit_task(TASK_FORMAT_NULL, TASK_FLAG_DOMAIN),
             state(XKRT_THREAD_INITIALIZED),
             pthread(pthread),
+            gtid(gettid()),
             tid(tid),
             device_global_id(device_global_id),
             deque(),
             memory_stack_bottom(NULL),
             memory_stack_capacity(THREAD_MAX_MEMORY),
+            rng(),
             parallel_for{.index = 0}
         {
             // set current task
@@ -277,17 +285,11 @@ typedef struct  xkrt_thread_t
         resolve(task_t * task, access_t * accesses)
         {
             (void) task;
-
             assert(task->flags & TASK_FLAG_DEPENDENT);
             assert(AC > 0);
 
-            // TODO
-            // 1) we assume that all accesses use that same dependency domain
-            // 2) C++ pure virtual function cannot be templated. To still
-            //    benefits from compile-time optimization, we force the casting to
-            //    a DependencyTree, as it is the only DependencyDomain implemented currently.
-            DependencyTree * tree = (DependencyTree *) task_get_dependency_domain(this->current_task, accesses + 0);
-            tree->resolve<AC>(accesses);
+            DependencyDomain * dom = task_get_dependency_domain(this->current_task, accesses + 0);
+            dom->resolve<AC>(accesses);
         }
 
         /**

@@ -7,6 +7,13 @@ SET(XKRT xkrt)
 # Project name
 project(${XKRT})
 
+###############
+# C++ version #
+###############
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)  # Optional: disables compiler-specific extensions
+
 #########
 # RPATH #
 #########
@@ -32,6 +39,7 @@ option(USE_SYCL     "Whether to build the SYCL driver." OFF)
 option(USE_ZE       "Whether to build the Level Zero driver." OFF)
 option(USE_ZES      "Use Intel's ZES management library." OFF)
 option(USE_ZE_SYCL_INTEROP "Enable the compilation of SYCL interop with Level Zero driver" OFF)
+option(USE_MEMORY_REGISTER_OVERFLOW_PROTECTION "Enable the protection of memory copies over regions that are not continuously registered, by splitting into multiple copies, to avoid cuda crashes" ON)
 
 include(BooleanUtils)
 convert_bool(ENABLE_HEAVY_DEBUG)
@@ -47,6 +55,7 @@ convert_bool(USE_SYCL)
 convert_bool(USE_ZE)
 convert_bool(USE_ZES)
 convert_bool(USE_ZE_SYCL_INTEROP)
+convert_bool(USE_MEMORY_REGISTER_OVERFLOW_PROTECTION)
 
 configure_file(
     ${CMAKE_SOURCE_DIR}/include/xkrt/support.h.in
@@ -66,32 +75,35 @@ add_custom_target(always_generate_files ALL DEPENDS always-run)
 ########
 
 SET(SOURCE_FILES
-    ${CMAKE_SOURCE_DIR}/src/driver.cc
-    ${CMAKE_SOURCE_DIR}/src/memory.cc
-    ${CMAKE_SOURCE_DIR}/src/power.cc
-    ${CMAKE_SOURCE_DIR}/src/runtime.cc
-    ${CMAKE_SOURCE_DIR}/src/sched.cc
-    ${CMAKE_SOURCE_DIR}/src/task.cc
     ${CMAKE_SOURCE_DIR}/src/conf/conf.cc
     ${CMAKE_SOURCE_DIR}/src/debug/cairo.cc
+    ${CMAKE_SOURCE_DIR}/src/driver.cc
     ${CMAKE_SOURCE_DIR}/src/driver/device.cc
     ${CMAKE_SOURCE_DIR}/src/driver/driver.cc
     ${CMAKE_SOURCE_DIR}/src/driver/stream.cc
-    ${CMAKE_SOURCE_DIR}/src/logger/logger.cc
     ${CMAKE_SOURCE_DIR}/src/logger/bits-to-str.cc
+    ${CMAKE_SOURCE_DIR}/src/logger/logger.cc
     ${CMAKE_SOURCE_DIR}/src/logger/metric.cc
+    ${CMAKE_SOURCE_DIR}/src/memory.cc
     ${CMAKE_SOURCE_DIR}/src/memory/coherent.cc
     ${CMAKE_SOURCE_DIR}/src/memory/copy.cc
     ${CMAKE_SOURCE_DIR}/src/memory/distribute.cc
     ${CMAKE_SOURCE_DIR}/src/memory/invalidate.cc
+    ${CMAKE_SOURCE_DIR}/src/memory/touch.cc
     ${CMAKE_SOURCE_DIR}/src/memory/register.cc
+    ${CMAKE_SOURCE_DIR}/src/memory/unregister.cc
+    ${CMAKE_SOURCE_DIR}/src/memory/register-legacy.cc
     ${CMAKE_SOURCE_DIR}/src/memory/replicate.cc
     ${CMAKE_SOURCE_DIR}/src/memory/touch.cc
+    ${CMAKE_SOURCE_DIR}/src/power.cc
+    ${CMAKE_SOURCE_DIR}/src/runtime.cc
+    ${CMAKE_SOURCE_DIR}/src/sched.cc
     ${CMAKE_SOURCE_DIR}/src/stats/stats.cc
-    ${CMAKE_SOURCE_DIR}/src/task/task.cc
+    ${CMAKE_SOURCE_DIR}/src/task.cc
     ${CMAKE_SOURCE_DIR}/src/task/task-format.cc
-    ${CMAKE_SOURCE_DIR}/src/thread/thread.cc
+    ${CMAKE_SOURCE_DIR}/src/task/task.cc
     ${CMAKE_SOURCE_DIR}/src/thread/deque.cc
+    ${CMAKE_SOURCE_DIR}/src/thread/thread.cc
 )
 
 # XKRT Lib
@@ -111,6 +123,11 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include FILES_MATCHIN
 ###############
 # DEPENDENCES #
 ###############
+
+# PTHREAD
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(${XKRT} PRIVATE Threads::Threads)
 
 # HWLOC
 find_package(HWLOC REQUIRED)
