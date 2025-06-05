@@ -1,7 +1,7 @@
 # XKAAPI V2
 
 Welcome to the new experimental XKaapi implementation.
-This repository is high experimental and not yet fully compatible with older XKaapi release embedded into XKBlas at http://gitlab.inria.fr/xkblas/versions. 
+This repository is highly experimental and not yet fully compatible with older XKaapi/XKBlas releases located at http://gitlab.inria.fr/xkblas/versions.
 
 ## ENVIRONMENT VARIABLES
 - `XKAAPI_HELP=1` - displays available environment variables
@@ -12,8 +12,11 @@ Must have hwloc installed and be sure your `CMAKE_PREFIX_PATH` holds libs/includ
 ```bash
 mkdir build-debug
 cd build-debug
-cmake -DCMAKE_INSTALL_PREFIX=$HOME/install/xkrt/debug -DCMAKE_BUILD_TYPE=Debug -DSTRICT=on -DUSE_STATS=on -DUSE_CUDA=on -DUSE_ZE=off -DUSE_SYCL=off -DUSE_CL=off -DUSE_HIP=off -DUSE_CAIRO=off -DENABLE_HEAVY_DEBUG=off ..
+CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$ONEAPI_ROOT:$CUDA_PATH:/usr:$CMAKE_PREFIX_PATH cmake -DCMAKE_INSTALL_PREFIX=$HOME/install/xkrt/debug-dgx -DCMAKE_BUILD_TYPE=Debug -DSTRICT=on -DUSE_STATS=on -DUSE_CUDA=on -DUSE_ZE=off -DUSE_SYCL=off -DUSE_ZE_SYCL_INTEROP=off -DUSE_CL=off -DUSE_HIP=off -DENABLE_HEAVY_DEBUG=off -DUSE_CAIRO=off -DUSE_NVML=off ..
+cmake -DCMAKE_INSTALL_PREFIX=$HOME/install/xkrt/debug -DCMAKE_BUILD_TYPE=Debug -DUSE_STATS=on -DUSE_CUDA=on ..
 ```
+
+See the `CMakeLists.txt` file for all available options.
 
 ## To improve
 - If OCR is set on a successor task, when the predecessor writter completes
