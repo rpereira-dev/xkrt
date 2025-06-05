@@ -4,8 +4,7 @@ Welcome to the new experimental XKaapi implementation.
 This repository is highly experimental and not yet fully compatible with older XKaapi/XKBlas releases located at http://gitlab.inria.fr/xkblas/versions.
 
 ## ENVIRONMENT VARIABLES
-- `XKAAPI_HELP=1` - displays available environment variables
-Not that alternative environement name could start by XKRT_
+- `XKAAPI_HELP=1` - displays available environment variables.
 
 ## BUILD EXAMPLE
 Must have hwloc installed and be sure your `CMAKE_PREFIX_PATH` holds libs/include locations
