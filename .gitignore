@@ -1,0 +1,6 @@
+build*/
+*.cobaltlog
+*.error
+*.output
+*.swp
+tags
