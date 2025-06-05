@@ -3,29 +3,42 @@
 Welcome to the new experimental XKaapi implementation.
 This repository is highly experimental and not yet fully compatible with older XKaapi/XKBlas releases located at http://gitlab.inria.fr/xkblas/versions.
 
-## ENVIRONMENT VARIABLES
-- `XKAAPI_HELP=1` - displays available environment variables.
+# Getting started
 
-## BUILD EXAMPLE
-Must have hwloc installed and be sure your `CMAKE_PREFIX_PATH` holds libs/include locations
-```bash
-mkdir build-debug
-cd build-debug
-CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DCMAKE_INSTALL_PREFIX=$HOME/install/xkrt/debug-dgx -DCMAKE_BUILD_TYPE=Debug -DUSE_STATS=on -DUSE_CUDA=on ..
-```
+## Installation
+### Requirements
+- A C/C++ compiler with support for C++20 (the only compiler tested is LLVM >=20.x)
+- hwloc - https://github.com/open-mpi/hwloc
+
+### Optional
+- Cuda, HIP, Level Zero, SYCL, OpenCL
+- CUBLAS, HIPBLAS, ONEAPI::MKL
+- NVML, RSMI, Level Zero Sysman
+- Cairo - https://github.com/msteinert/cairo - to visualize memory trees
+
+### Build command example
 
 See the `CMakeLists.txt` file for all available options.
 
-## To improve
+```bash
+# with support for only the host driver and debug modes (useful for developing on local machines)
+CC=clang CXX=clang++ cmake -DUSE_STATS=on -DCMAKE_BUILD_TYPE=Debug ..
+
+# with support for Cuda
+CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE_CUDA=on ..
+```
+
+## Available environment variable
+- `XKAAPI_HELP=1` - displays available environment variables.
+
+# Directions for improvements
 - If OCR is set on a successor task, when the predecessor writter completes
   - the successor device is known: set it already
-  - if reader predecessor completes and the device is known, transfer can be initiated without waiting for all predecessors to complete
-- Tasks descriptor is allocated in the producer thread memory... while it will be heavily accessed and modified by consumers
-- Tasks are currently never deleted
-- Merge continuous memory block to a single transfer - it is unclear if we win on this or not
-
-## Future Directions
-- remove/(make useless) xkrt-init - so all stuff got initialized lazily
+  - if a reader predecessor completes and the device is known, transfer can be initiated without waiting for all predecessors to complete
+- Tasks descriptor are allocated on the producer thread memory... while it will be heavily accessed and modified by consumers
+- Tasks are currently only deleted all-at-once on `invalidate` calls.
+- `xkrt-init` could be removed/made noop - so all stuff got initialized lazily
 - allow C++ capture that run onto device threads
-- implement other access type (interval 1D, blas compact symetric)
-- sycl backend to finally get the shit running on Aurora
+- add support for blas compact symetric matrices
+- add support for commutative write, maybe with a priority-heap favoring accesses with different heuristics (the most successors, the most volume of data as successors, etc...)
+- add support for IA/ML devices (most of them only have high-level Python API, only Graphcore seems to have a good C API)
