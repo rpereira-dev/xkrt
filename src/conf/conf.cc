@@ -138,30 +138,6 @@ __parse_offloader_capacity(xkrt_conf_t * conf, char const * value)
 }
 
 static void
-__parse_nthreads_per_device(xkrt_conf_t * conf, char const * value)
-{
-    if (value)
-        LOGGER_FATAL("deprecated, use `XKAAPI_DRIVERS`");
-
-    # if 0
-    if (value)
-        conf->device.offloader.nthreads_per_device = (uint8_t) atoi(value);
-
-    if (conf->device.offloader.nthreads_per_device < 1)
-    {
-        conf->device.offloader.nthreads_per_device = 1;
-        LOGGER_WARN("Invalid number of threads per device, set it to 1");
-    }
-
-    if (conf->device.offloader.nthreads_per_device > XKRT_MAX_THREADS_PER_DEVICE)
-    {
-        conf->device.offloader.nthreads_per_device = XKRT_MAX_THREADS_PER_DEVICE;
-        LOGGER_WARN("Requested too many threads per device, increase `XKAAPI_MAX_THREADS_PER_DEVICE` and recompile if you want more threads per device");
-    }
-    # endif
-}
-
-static void
 __parse_stats(xkrt_conf_t * conf, char const * value)
 {
     conf->report_stats_on_deinit = value ? atoi(value) : 0;
@@ -212,43 +188,34 @@ extern char ** environ;
 typedef struct  xkrt_conf_parse_t
 {
     char const * name;
-    char const * name_opt;
     void (*parse)(xkrt_conf_t * conf, char const * value);
     char const * descr;
 }               xkrt_conf_parse_t;
 
 // variables are parsed in-order
 static xkrt_conf_parse_t CONF_PARSE[] = {
-    {"XKAAPI_HELP", "XKRT_HELP",                                __parse_help,                "Show this helper"},
-    {"XKAAPI_VERBOSE", "XKRT_VERBOSE",                          __parse_verbose,             "Verbosity level (the higher the most)"},
-    {"XKAAPI_MERGE_TRANSFERS", "XKRT_MERGE_TRANSFERS",          __parse_merge_transfers,     "Merge memory transfers over continuous virtual memory"},
-    {"XKAAPI_PRECISION", "XKRT_PRECISION",                      __parse_deprecated,                        "depreacated"},
-    {"XKAAPI_NGPUS", "XKRT_NGPUS",                              __parse_ngpus,               "Number of gpus to use"},
-    {"XKAAPI_GPU_MEM_PERCENT", "XKRT_GPU_MEM_PERCENT",          __parse_gpu_mem_percent,     "%% of total memory to allocate initially per GPU (in ]0..100["},
-    {"XKAAPI_NTHREADS_PER_DEVICE", "XKRT_NTHREADS_PER_DEVICE",  __parse_nthreads_per_device, "Number of threads per device to poll streams"},
-    {"XKAAPI_NSTREAMS_H2D", "XKRT_NSTREAMS_H2D",                __parse_nstreams_h2d,        "Number of H2D streams per GPU"},
-    {"XKAAPI_NSTREAMS_D2H", "XKRT_NSTREAMS_D2H",                __parse_nstreams_d2h,        "Number of D2H streams per GPU"},
-    {"XKAAPI_NSTREAMS_D2D", "XKRT_NSTREAMS_D2D",                __parse_nstreams_d2d,        "Number of D2D streams per GPU"},
-    {"XKAAPI_NSTREAMS_KERN", "XKRT_NSTREAMS_KERN",              __parse_nstreams_kern,       "Number of KERN streams per GPU"},
-    {"XKAAPI_KERN_PER_STREAM", "XKRT_KERN_PER_STREAM",          __parse_kern_per_stream,     "Number of concurrent kernels per KERN stream before throttling device-thread"},
-    {"XKAAPI_H2D_PER_STREAM", "XKRT_H2D_PER_STREAM",            __parse_h2d_per_stream,      "Number of concurrent copies per H2D stream before throttling device-thread"},
-    {"XKAAPI_D2H_PER_STREAM", "XKRT_D2H_PER_STREAM",            __parse_d2h_per_stream,      "Number of concurrent copies per D2H stream before throttling device-thread"},
-    {"XKAAPI_D2D_PER_STREAM", "XKRT_D2D_PER_STREAM",            __parse_d2d_per_stream,      "Number of concurrent copies per D2D stream before throttling device-thread"},
-    {"XKAAPI_CACHE_LIMIT",          NULL,                        NULL},
-    {"XKAAPI_OFFLOADER_CAPACITY", "XKRT_OFFLOADER_CAPACITY",    __parse_offloader_capacity,  "Maximum number of pending instructions per stream"},
-    {"XKAAPI_DEFAULT_MATH",                                     __parse_deprecated,                        NULL},
-    {"XKAAPI_STATS", "XKRT_STATS",                              __parse_stats,               "Boolean to dump stats on deinit"},
-    {"XKAAPI_DRIVERS", "XKRT_DRIVERS",                          __parse_drivers,             "Exemple: 'cuda,4;hip,2;host,3' - will enable drivers cuda, hip and host respectively with 4, 2, and 3 threads per device."},
-    {"XKAAPI_USE_P2P", "XKRT_USE_P2P",                          __parse_p2p,                 "Boolean to enable/disable the use of p2p transfers"},
-    {NULL,                       NULL,                         NULL}
+    {"XKAAPI_HELP",                                             __parse_help,                "Show this helper"},
+    {"XKAAPI_VERBOSE",                                          __parse_verbose,             "Verbosity level (the higher the most)"},
+    {"XKAAPI_MERGE_TRANSFERS",                                  __parse_merge_transfers,     "Merge memory transfers over continuous virtual memory"},
+    {"XKAAPI_PRECISION",                                        NULL,                        NULL},
+    {"XKAAPI_NGPUS",                                            __parse_ngpus,               "Number of gpus to use"},
+    {"XKAAPI_GPU_MEM_PERCENT",                                  __parse_gpu_mem_percent,     "%% of total memory to allocate initially per GPU (in ]0..100["},
+    {"XKAAPI_NSTREAMS_H2D",                                     __parse_nstreams_h2d,        "Number of H2D streams per GPU"},
+    {"XKAAPI_NSTREAMS_D2H",                                     __parse_nstreams_d2h,        "Number of D2H streams per GPU"},
+    {"XKAAPI_NSTREAMS_D2D",                                     __parse_nstreams_d2d,        "Number of D2D streams per GPU"},
+    {"XKAAPI_NSTREAMS_KERN",                                    __parse_nstreams_kern,       "Number of KERN streams per GPU"},
+    {"XKAAPI_KERN_PER_STREAM",                                  __parse_kern_per_stream,     "Number of concurrent kernels per KERN stream before throttling device-thread"},
+    {"XKAAPI_H2D_PER_STREAM",                                   __parse_h2d_per_stream,      "Number of concurrent copies per H2D stream before throttling device-thread"},
+    {"XKAAPI_D2H_PER_STREAM",                                   __parse_d2h_per_stream,      "Number of concurrent copies per D2H stream before throttling device-thread"},
+    {"XKAAPI_D2D_PER_STREAM",                                   __parse_d2d_per_stream,      "Number of concurrent copies per D2D stream before throttling device-thread"},
+    {"XKAAPI_CACHE_LIMIT",                                       NULL,                       NULL},
+    {"XKAAPI_OFFLOADER_CAPACITY",                               __parse_offloader_capacity,  "Maximum number of pending instructions per stream"},
+    {"XKAAPI_DEFAULT_MATH",                                     NULL,                        NULL},
+    {"XKAAPI_STATS",                                            __parse_stats,               "Boolean to dump stats on deinit"},
+    {"XKAAPI_DRIVERS",                                          __parse_drivers,             "Exemple: 'cuda,4;hip,2;host,3' - will enable drivers cuda, hip and host respectively with 4, 2, and 3 threads per device."},
+    {"XKAAPI_USE_P2P",                                          __parse_p2p,                 "Boolean to enable/disable the use of p2p transfers"},
+    {NULL, NULL, NULL}
 };
-
-void
-__parse_deprecated(xkrt_conf_t * conf, char const * value)
-{
-  LOGGER_INFO("Available environment variables");
-}
-
 
 void
 __parse_help(xkrt_conf_t * conf, char const * value)
@@ -268,6 +235,12 @@ __parse_with_respect_to_prefix(xkrt_conf_t * conf, const char* prefix)
     // check all environment variable and report unknown variables begining by prefix
     for (char ** s = environ; *s; ++s)
     {
+        if (strncmp(*s, "XKRT_", strlen("XKRT_")) == 0)
+        {
+            LOGGER_WARN("`XKRT_` environment variables got renamed with `XKAAPI_`");
+            continue ;
+        }
+
         int error = 0;
         if (strncmp(*s, prefix, strlen(prefix)) ==0) error = 1;
         char const * ss = strchr(*s, '=');
@@ -288,13 +261,11 @@ __parse_with_respect_to_prefix(xkrt_conf_t * conf, const char* prefix)
     for (xkrt_conf_parse_t * var = CONF_PARSE ; var->name ; ++var)
     {
         if (var->parse)
-        {
-            var->parse(conf, getenv(var->name_opt));
             var->parse(conf, getenv(var->name));
-        }
         else
             LOGGER_NOT_IMPLEMENTED_WARN(var->name);
     }
+}
 
 
 void
