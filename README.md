@@ -12,8 +12,7 @@ Must have hwloc installed and be sure your `CMAKE_PREFIX_PATH` holds libs/includ
 ```bash
 mkdir build-debug
 cd build-debug
-CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$ONEAPI_ROOT:$CUDA_PATH:/usr:$CMAKE_PREFIX_PATH cmake -DCMAKE_INSTALL_PREFIX=$HOME/install/xkrt/debug-dgx -DCMAKE_BUILD_TYPE=Debug -DSTRICT=on -DUSE_STATS=on -DUSE_CUDA=on -DUSE_ZE=off -DUSE_SYCL=off -DUSE_ZE_SYCL_INTEROP=off -DUSE_CL=off -DUSE_HIP=off -DENABLE_HEAVY_DEBUG=off -DUSE_CAIRO=off -DUSE_NVML=off ..
-cmake -DCMAKE_INSTALL_PREFIX=$HOME/install/xkrt/debug -DCMAKE_BUILD_TYPE=Debug -DUSE_STATS=on -DUSE_CUDA=on ..
+CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DCMAKE_INSTALL_PREFIX=$HOME/install/xkrt/debug-dgx -DCMAKE_BUILD_TYPE=Debug -DUSE_STATS=on -DUSE_CUDA=on ..
 ```
 
 See the `CMakeLists.txt` file for all available options.
