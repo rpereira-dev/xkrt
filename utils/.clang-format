@@ -1,0 +1,27 @@
+Language: Cpp
+ColumnLimit: 100
+
+# new line after func type
+# SeparateDefinitionBlocks: Always
+# EmptyLineBeforeAccessModifier: LogicalBlock
+
+# pointer right
+
+# Number of column
+
+AlignEscapedNewlines: true
+AlignOperands: Align
+AllowAllParametersOfDeclarationOnNextLine: False
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterDefinitionReturnType: All
+AlwaysBreakBeforeMultilineStrings: false
+BinPackArguments: true
+BinPackParameters: true
+BitFieldColonSpacing: Both
+BreakBeforeBraces: Linux
+
+PointerAlignment: Right
