@@ -77,7 +77,7 @@ xkrt_init(xkrt_runtime_t * runtime)
     xkrt_runtime_t::thread_getaffinity(place);
     xkrt_thread_t * thread = new xkrt_thread_t(team, tid, pthread_self(), device_global_id, place);
     assert(thread);
-    xkrt_thread_t::save_tls(thread);
+    xkrt_thread_t::push_tls(thread);
 
     # if XKRT_SUPPORT_STATS
     memset(&runtime->stats, 0, sizeof(runtime->stats));

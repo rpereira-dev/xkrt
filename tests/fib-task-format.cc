@@ -3,7 +3,7 @@
 /*   fib-task-format.cc                                           .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/03/04 05:42:49 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/03 18:13:22 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/09 03:47:14 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -124,24 +124,6 @@ main_team(xkrt_team_t * team, xkrt_thread_t * thread)
     return NULL;
 }
 
-static int
-get_ncpus(void)
-{
-    // Allocate, initialize, and perform topology detection
-    hwloc_topology_t topology;
-    hwloc_topology_init(&topology);
-    hwloc_topology_load(topology);
-
-    // Try to get the number of CPU cores from topology
-    int depth = hwloc_get_type_depth(topology, HWLOC_OBJ_CORE);
-    int r = hwloc_get_nbobjs_by_depth(topology, depth);
-
-    // Destroy topology object and return
-    hwloc_topology_destroy(topology);
-
-    return r;
-}
-
 int
 main(int argc, char ** argv)
 {
@@ -164,18 +146,8 @@ main(int argc, char ** argv)
     snprintf(format.label, sizeof(format.label), "fib");
     fmtid = task_format_create(&(runtime.formats.list), &format);
 
-    xkrt_team_t team = {
-        .desc = {
-            .routine = main_team,
-            .args = NULL,
-            .nthreads = get_ncpus(),
-            .binding = {
-                .mode = XKRT_TEAM_BINDING_MODE_COMPACT,
-                .places = XKRT_TEAM_BINDING_PLACES_CORE,
-                .flags = XKRT_TEAM_BINDING_FLAG_NONE
-            }
-        }
-    };
+    xkrt_team_t team = XKRT_TEAM_STATIC_INITIALIZER;
+    team.desc.routine = main_team;
 
     runtime.team_create(&team);
     runtime.team_join(&team);

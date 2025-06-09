@@ -50,13 +50,20 @@
 
 # pragma message(TODO "Threading layer had been implemented in half a day with naive algorithm. If perf is an issue, reimplement with well-known hierarchical algorithm")
 
-thread_local xkrt_thread_t * __TLS;
+thread_local xkrt_thread_t * __TLS = NULL;
 
 void
-xkrt_thread_t::save_tls(xkrt_thread_t * thread)
+xkrt_thread_t::push_tls(xkrt_thread_t * thread)
 {
-    assert(!__TLS);
+    thread->prev = __TLS;
     __TLS = thread;
+}
+
+void
+xkrt_thread_t::pop_tls(void)
+{
+    assert(__TLS);
+    __TLS = __TLS->prev;
 }
 
 xkrt_thread_t *
@@ -173,6 +180,18 @@ typedef struct  team_recursive_args_t
     int to;
 }               team_recursive_args_t;
 
+/* get the number of threads by default for that team description */
+static int
+team_create_get_nthreads_auto(
+    xkrt_runtime_t * runtime,
+    xkrt_team_t * team
+) {
+    (void) team;
+    int depth = hwloc_get_type_depth(runtime->topology, HWLOC_OBJ_CORE);
+    int r = hwloc_get_nbobjs_by_depth(runtime->topology, depth);
+    return r;
+}
+
 /** Set the cpuset for the given thread */
 static void inline
 team_create_get_place(
@@ -245,7 +264,7 @@ team_create_recursive(void * vargs)
         new (thread) xkrt_thread_t(team, tid, args->pthread, args->device_global_id, args->place);
 
         // save tls
-        xkrt_thread_t::save_tls(thread);
+        xkrt_thread_t::push_tls(thread);
 
         // launch routine
         thread->state = XKRT_THREAD_INITIALIZED;
@@ -253,7 +272,18 @@ team_create_recursive(void * vargs)
         // starts
         void * r = args->team->desc.routine(team, thread);
 
-        free(args);
+        // if master thread
+        if (team->desc.master_is_member && tid == 0)
+        {
+            // args are allocated on the stack, no need to free
+            // but we have to reset previous TLS
+            xkrt_thread_t::pop_tls();
+        }
+        else
+        {
+            // free heap-allocated args
+            free(args);
+        }
 
         return r;
     }
@@ -329,26 +359,61 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
     team->priv.parallel_for.index = 0;
 
     // allocate thread array
-    const int nthreads = team->desc.nthreads;
-    assert(nthreads);
+    const int nthreads = (team->desc.nthreads == 0) ? team_create_get_nthreads_auto(this, team) : team->desc.nthreads;
+    assert(nthreads >= 0);
+
+    // init priv data
     team->priv.nthreads = nthreads;
     team->priv.threads = (xkrt_thread_t *) calloc(team->priv.nthreads, sizeof(xkrt_thread_t));
     assert(team->priv.threads);
 
-    // init barrier with nthreads + 1 to avoid early barrier release
-    team->priv.barrier.n.store(team->priv.nthreads + 1, std::memory_order_seq_cst);
+    // init barrier
     pthread_mutex_init(&team->priv.barrier.mtx, NULL);
     pthread_cond_init(&team->priv.barrier.cond, NULL);
+    if (!team->desc.master_is_member)
+    {
+        // if master thread is not member of the team,
+        // init with nthreads + 1 to avoid early barrier release
+        team->priv.barrier.n.store(team->priv.nthreads + 1, std::memory_order_seq_cst);
+    }
+    else
+    {
+        team->priv.barrier.n.store(team->priv.nthreads, std::memory_order_seq_cst);
+    }
 
-    // init critical
-    pthread_mutex_init(&team->priv.critical.mtx, NULL);
-
-    // fork thread 0
+    // fork threads
     if (team->priv.nthreads)
-        team_create_recursive_fork(this, team, 0, team->priv.nthreads - 1);
+    {
+        if (!team->desc.master_is_member)
+        {
+            team_create_recursive_fork(this, team, 0, team->priv.nthreads - 1);
+        }
+        // if master is member, start recursive fork
+        else
+        {
+            // retrieve cpuset and the global device id
+            constexpr int tid = 0;
+            xkrt_device_global_id_t device_global_id;
+            xkrt_thread_place_t place;
+            team_create_get_place(this, team, tid, &device_global_id, &place);
+            team_recursive_args_t args = {
+                .runtime = this,
+                .team = team,
+                .pthread = pthread_self(),
+                .device_global_id = device_global_id,
+                .place = place,
+                .from = 0,
+                .to = team->priv.nthreads - 1
+            };
 
-    // decrement barrier
-    team_barrier_fetch(team, 1);
+            // recursively spawn other threads and run the routine
+            team_create_recursive(&args);
+        }
+    }
+
+    // if master thread is not member of the team, the barrier may not be released
+    if (!team->desc.master_is_member)
+        team_barrier_fetch(team, 1);
 }
 
 static inline void
@@ -643,7 +708,8 @@ xkrt_runtime_t::team_join(xkrt_team_t * team)
         this->team_parallel_for(team, nullptr);
 
     // TODO : reimpl this using team's topology
-    for (int i = 0 ; i < team->priv.nthreads ; ++i)
+    const int begin = team->desc.master_is_member ? 1 : 0;
+    for (int i = begin ; i < team->priv.nthreads ; ++i)
     {
         // waiting for the thread to spawn before joining
         while ((volatile xkrt_thread_state_t) team->priv.threads[i].state != XKRT_THREAD_INITIALIZED)

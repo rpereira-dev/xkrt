@@ -26,6 +26,7 @@ set(TEST_SOURCES
     task-gpu-empty.cc
     team-cpus-parallel-for.cc
     team-cpus.cc
+    team-cpus-master-member.cc
     team-device.cc
 )
 

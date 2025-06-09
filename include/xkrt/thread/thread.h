@@ -133,8 +133,11 @@ typedef struct  xkrt_thread_t
 {
     public:
 
-        /* set the TLS */
-        static void save_tls(xkrt_thread_t * thread);
+        /* set the current TLS */
+        static void push_tls(xkrt_thread_t * thread);
+
+        /* pop to the previous TLS */
+        static void pop_tls(void);
 
         /* get the TLS */
         static xkrt_thread_t * get_tls(void);
@@ -204,6 +207,9 @@ typedef struct  xkrt_thread_t
 
         } parallel_for;
 
+        /* previous TLS */
+        xkrt_thread_t * prev;
+
     public:
 
         // xkrt_thread_t(int tid) : xkrt_thread_t(tid, 0, UNSPECIFIED_DEVICE_GLOBAL_ID) {}
@@ -227,7 +233,8 @@ typedef struct  xkrt_thread_t
             memory_stack_bottom(NULL),
             memory_stack_capacity(THREAD_MAX_MEMORY),
             rng(),
-            parallel_for{.index = 0}
+            parallel_for{.index = 0},
+            prev(NULL)
         {
             // set current task
             this->current_task = &this->implicit_task;
@@ -418,9 +425,24 @@ typedef struct  xkrt_team_desc_t
     // type of the team
     xkrt_team_binding_t binding;
 
-    // TODO : add flags with enabled feature ? (barrier, critical, etc...)
+    // whether the master thread should be a member of the team or not
+    bool master_is_member;
 
 }               xkrt_team_desc_t;
+
+# define XKRT_TEAM_STATIC_INITIALIZER {                     \
+        .desc = {                                           \
+            .routine = NULL,                                \
+            .args = NULL,                                   \
+            .nthreads = 0,                                  \
+            .binding = {                                    \
+                .mode   = XKRT_TEAM_BINDING_MODE_COMPACT,   \
+                .places = XKRT_TEAM_BINDING_PLACES_CORE,    \
+                .flags  = XKRT_TEAM_BINDING_FLAG_NONE       \
+            },                                              \
+            .master_is_member = false                       \
+        }                                                   \
+    }
 
 /* a team, currently is made of 1 thread max per device, bound onto its closest physical cpu */
 typedef struct  xkrt_team_t

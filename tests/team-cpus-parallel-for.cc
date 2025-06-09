@@ -3,7 +3,7 @@
 /*   team-cpus-parallel-for.cc                                    .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/03/05 05:19:56 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/03 18:13:56 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/09 03:49:06 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -31,35 +31,14 @@
 
 static xkrt_runtime_t runtime;
 
-static int
-get_ncpus(void)
-{
-    // Try to get the number of CPU cores from topology
-    int depth = hwloc_get_type_depth(runtime.topology, HWLOC_OBJ_CORE);
-    int r = hwloc_get_nbobjs_by_depth(runtime.topology, depth);
-    return r;
-}
-
 int
 main(void)
 {
     XKRT_ASSERT(xkrt_init(&runtime) == 0);
 
     // team on all cpus
-    int ncpus = get_ncpus();
-    xkrt_team_t team = {
-        .desc = {
-            .routine = XKRT_TEAM_ROUTINE_PARALLEL_FOR,
-            .args = NULL,
-            .nthreads = ncpus,
-            .binding = {
-                .mode = XKRT_TEAM_BINDING_MODE_COMPACT,
-                .places = XKRT_TEAM_BINDING_PLACES_CORE,
-                .flags = XKRT_TEAM_BINDING_FLAG_NONE
-            }
-        }
-    };
-    LOGGER_INFO("Team of %d threads", ncpus);
+    xkrt_team_t team = XKRT_TEAM_STATIC_INITIALIZER;
+    team.desc.routine = XKRT_TEAM_ROUTINE_PARALLEL_FOR;
 
     // TEST 1
     // create and destroy the team without working
@@ -81,7 +60,7 @@ main(void)
             }
         );
         runtime.team_join(&team);
-        XKRT_ASSERT(counter == ncpus);
+        XKRT_ASSERT(counter == team.priv.nthreads);
     }
 
     // TEST 3
@@ -95,7 +74,7 @@ main(void)
         for (int i = 0 ; i < n ; ++i)
             runtime.team_parallel_for(&team, [] (xkrt_team_t * team, xkrt_thread_t * thread) { });
         uint64_t tf = xkrt_get_nanotime();
-        LOGGER_INFO("`%d` empty parallel on `%d` threads for took %lf s - that is %luns/task\n", n, ncpus, (tf-t0)/1e9, (tf-t0)/(n*ncpus));
+        LOGGER_INFO("`%d` empty parallel on `%d` threads for took %lf s - that is %luns/task\n", n, team.priv.nthreads, (tf-t0)/1e9, (tf-t0)/(n*team.priv.nthreads));
 
         runtime.team_join(&team);
     }
