@@ -75,16 +75,16 @@ extern "C" {
     /* Submit 1 task per device to create a coherent replicate */
     void xkrt_coherency_replicate_2D_async(
         xkrt_runtime_t * runtime,
-        matrix_order_t order,
+        matrix_storage_t storage,
         void * ptr, size_t ld,
         size_t m, size_t n,
         size_t sizeof_type
     );
 
-    /* Submit a task that reads Region(order, m, n, addr, ld, sizeof_type) onto the host */
+    /* Submit a task that reads Region(storage, m, n, addr, ld, sizeof_type) onto the host */
     void xkrt_coherency_host_async(
         xkrt_runtime_t * runtime,
-        matrix_order_t order,
+        matrix_storage_t storage,
         void * addr, size_t ld,
         size_t m, size_t n,
         size_t sizeof_type
@@ -94,7 +94,7 @@ extern "C" {
     void xkrt_coherency_allocate_2D(
         xkrt_runtime_t * runtime,
         xkrt_device_global_id_t device_global_id,
-        matrix_order_t order,
+        matrix_storage_t storage,
         void * ptr, size_t ld,
         size_t m, size_t n,
         size_t sizeof_type
@@ -151,7 +151,7 @@ extern "C" {
     void xkrt_distribute_async(
         xkrt_runtime_t * runtime,
         xkrt_distribution_type_t type,
-        matrix_order_t order,
+        matrix_storage_t storage,
         void * ptr, size_t ld,
         size_t m, size_t n,
         size_t mb, size_t nb,

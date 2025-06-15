@@ -42,7 +42,7 @@ extern "C"
 void
 xkrt_coherency_replicate_2D_async(
     xkrt_runtime_t * runtime,
-    matrix_order_t order,
+    matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
     size_t sizeof_type
@@ -68,7 +68,7 @@ xkrt_coherency_replicate_2D_async(
         new (dev) task_dev_info_t(device_global_id, UNSPECIFIED_TASK_ACCESS);
 
         access_t * accesses = TASK_ACCESSES(task);
-        new(accesses + 0) access_t(task, order, ptr, ld, m, n, sizeof_type, ACCESS_MODE_R);
+        new(accesses + 0) access_t(task, storage, ptr, ld, m, n, sizeof_type, ACCESS_MODE_R);
 
         thread->resolve<AC>(task, accesses);
         # undef AC

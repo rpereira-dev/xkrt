@@ -66,7 +66,7 @@ main(int argc, char ** argv)
                 LOGGER_INFO("Running with pre-touch");
 
                 uint64_t t0 = xkrt_get_nanotime();
-                runtime.memory_touch_async(team, ptr, chunk_size, nchunks);
+                runtime.memory_touch_async(team, ptr, size, nchunks);
                 runtime.task_wait();
                 uint64_t tf = xkrt_get_nanotime();
                 LOGGER_INFO("      Touch took %lf s.", (tf - t0) / 1e9);
@@ -78,7 +78,7 @@ main(int argc, char ** argv)
 
             {
                 uint64_t t0 = xkrt_get_nanotime();
-                runtime.memory_register_async(team, ptr, chunk_size, nchunks);
+                runtime.memory_register_async(team, ptr, size, nchunks);
                 runtime.task_wait();
                 uint64_t tf = xkrt_get_nanotime();
                 LOGGER_INFO("    Pinning took %lf s.", (tf - t0) / 1e9);
@@ -88,8 +88,8 @@ main(int argc, char ** argv)
         {
             LOGGER_INFO("Running with concurrent touch");
             uint64_t t0 = xkrt_get_nanotime();
-            runtime.memory_register_async(team, ptr, chunk_size, nchunks);
-            runtime.memory_touch_async(team, ptr, chunk_size, nchunks);
+            runtime.memory_register_async(team, ptr, size, nchunks);
+            runtime.memory_touch_async(team, ptr, size, nchunks);
             runtime.task_wait();
             uint64_t tf = xkrt_get_nanotime();
             LOGGER_INFO("  Touch+Pin took %lf s.", (tf - t0) / 1e9);
@@ -97,7 +97,7 @@ main(int argc, char ** argv)
 
         {
             uint64_t t0 = xkrt_get_nanotime();
-            runtime.memory_unregister_async(team, ptr, chunk_size, nchunks);
+            runtime.memory_unregister_async(team, ptr, size, nchunks);
             runtime.task_wait();
             uint64_t tf = xkrt_get_nanotime();
             LOGGER_INFO("  Unpinning took %lf s.", (tf - t0) / 1e9);

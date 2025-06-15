@@ -71,7 +71,7 @@ extern "C"
 void
 xkrt_coherency_host_async(
     xkrt_runtime_t * runtime,
-    matrix_order_t order,
+    matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
     size_t sizeof_type
@@ -100,7 +100,7 @@ xkrt_coherency_host_async(
 
     static_assert(AC <= TASK_MAX_ACCESSES);
     access_t * accesses = TASK_ACCESSES(task, flags);
-    new(accesses + 0) access_t(task, order, ptr, ld, m, n, sizeof_type, ACCESS_MODE_R);
+    new(accesses + 0) access_t(task, storage, ptr, ld, m, n, sizeof_type, ACCESS_MODE_R);
     thread->resolve<AC>(task, accesses);
     # undef AC
 
@@ -117,7 +117,7 @@ xkrt_coherency_host_async(
     assert(thread->current_task);
 
     /* create an access, and retrieve all dependency tree nodes that are in conflict */
-    access_t access(NULL, order, ptr, ld, m, n, sizeof_type, ACCESS_MODE_R);
+    access_t access(NULL, storage, ptr, ld, m, n, sizeof_type, ACCESS_MODE_R);
     DependencyDomain * domain = task_get_dependency_domain(thread->current_task, &access);
 
     std::vector<void *> conflicts;
@@ -166,8 +166,8 @@ xkrt_coherency_host_async(
         bool found = false;
         for (int i = 0 ; i < 2 ; ++i)
         {
-            access_t::Rect h;
-            access_t::Rect::intersection(&h, access.rects[i], node->hyperrect);
+            Rect h;
+            Rect::intersection(&h, access.rects[i], node->hyperrect);
 
             if (!h.is_empty())
             {
@@ -198,7 +198,7 @@ void
 xkrt_coherency_allocate_2D(
     xkrt_runtime_t * runtime,
     xkrt_device_global_id_t device_global_id,
-    matrix_order_t order,
+    matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
     size_t sizeof_type
@@ -210,7 +210,7 @@ xkrt_coherency_allocate_2D(
     assert(thread->current_task);
 
     /* create an access to insert in the memory tree */
-    access_t access(NULL, order, ptr, ld, m, n, sizeof_type, ACCESS_MODE_V);
+    access_t access(NULL, storage, ptr, ld, m, n, sizeof_type, ACCESS_MODE_V);
     BLASMemoryTree * memtree = (BLASMemoryTree *) task_get_memory_controller(runtime, thread->current_task, &access);
     memtree->allocate_to_device(&access, device_global_id);
 }

@@ -3,7 +3,7 @@
 /*   memory-touch-async.cc                                        .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/03/05 05:19:56 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/03 21:20:33 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/14 01:26:42 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -27,7 +27,7 @@ main(void)
 
     # include "memory-register-async.conf.cc"
 
-    runtime.memory_touch_async(team, ptr, chunk_size, nchunks);
+    runtime.memory_touch_async(team, ptr, size, nchunks);
     runtime.task_wait();
 
     assert(xkrt_deinit(&runtime) == 0);

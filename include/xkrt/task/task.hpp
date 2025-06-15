@@ -215,16 +215,16 @@ typedef struct  task_dom_info_t
 {
     /* dependency controller - only the thread currently executing the task may read this list */
     struct {
-        std::vector<DependencyDomain *> blas;
-        DependencyDomain * interval;
         DependencyDomain * point;
+        DependencyDomain * interval;
+        std::vector<DependencyDomain *> blas;
     } deps;
 
     /* memory controller for coherency - all threads may try to access this list */
     struct {
-        std::vector<MemoryCoherencyController *> blas;
-        // DependencyDomain * interval; - not implemented
         // DependencyDomain * point; - not implemented
+        MemoryCoherencyController * interval;
+        std::vector<MemoryCoherencyController *> blas;
     } mccs;
 
     task_dom_info_t() : deps{}, mccs{} {}

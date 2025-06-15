@@ -39,47 +39,165 @@
 # include <xkrt/xkrt.h>
 # include <xkrt/runtime.h>
 
-constexpr int                         ac = 1;
+typedef struct  memory_op_async_args_t
+{
+    xkrt_runtime_t * runtime;
+    uintptr_t start;
+    uintptr_t end;
+
+}               memory_op_async_args_t;
+
+typedef enum    memory_op_type_t
+{
+    REGISTER,
+    UNREGISTER,
+    TOUCH
+}               memory_op_type_t;
+
+constexpr int                         AC = 1;
 constexpr task_flag_bitfield_t     flags = TASK_FLAG_DEPENDENT;
-constexpr               size_t task_size = task_compute_size(flags, ac);
-constexpr               size_t args_size = 0;
+constexpr               size_t task_size = task_compute_size(flags, AC);
+constexpr               size_t args_size = sizeof(memory_op_async_args_t);
+
+template<memory_op_type_t T>
+static void
+body_memory_async(task_t * task)
+{
+    assert(task);
+
+    memory_op_async_args_t * args = (memory_op_async_args_t *) TASK_ARGS(task);
+    assert(args->runtime);
+    assert(args->start < args->end);
+
+    if constexpr (T == REGISTER)
+        xkrt_memory_register(args->runtime, (void *) args->start, (size_t) (args->end - args->start));
+    else if constexpr (T == UNREGISTER)
+        xkrt_memory_unregister(args->runtime, (void *) args->start, (size_t) (args->end - args->start));
+    else if constexpr (T == TOUCH)
+    {
+        // volatile to trick the compiler and avoid optimization of *p = *p
+        volatile unsigned char * a = (volatile unsigned char *) args->start;
+           const unsigned char * b = (   const unsigned char *) args->end;
+             const size_t pagesize = (size_t) getpagesize();
+
+        for ( ; a < b ; a += pagesize)
+            *a = *a;
+    }
+}
+
+template<memory_op_type_t T>
+static int
+memory_op_async(
+    xkrt_runtime_t * runtime,
+    xkrt_team_t * team,
+    void * ptr,
+    size_t size,
+    int n
+) {
+    assert((size_t) n <= size);
+
+    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    assert(tls);
+
+    const size_t chunk_size = size / n;
+    const size_t end = ((uintptr_t)ptr) + size;
+
+    const task_format_id_t fmtid = (T == REGISTER)   ? runtime->formats.memory_register_async   :
+                                   (T == UNREGISTER) ? runtime->formats.memory_unregister_async :
+                                   (T == TOUCH)      ? runtime->formats.memory_touch_async      :
+                                   0;
+    assert(fmtid);
+
+    for (int i = 0 ; i < n ; ++i)
+    {
+        // create a task that will register/pin/unpin the memory
+        task_t * task = tls->allocate_task(task_size + args_size);
+        new(task) task_t(fmtid, flags);
+
+        task_dep_info_t * dep = TASK_DEP_INFO(task);
+        new (dep) task_dep_info_t(AC);
+
+        memory_op_async_args_t * args = (memory_op_async_args_t *) TASK_ARGS(task);
+        args->runtime = runtime;
+        args->start   = ((uintptr_t) ptr) + i * chunk_size;
+        args->end     =  MIN(args->start + chunk_size, end);
+
+        access_t * accesses = TASK_ACCESSES(task, flags);
+
+        new(accesses + 0) access_t(task, (void *) args->start, ACCESS_MODE_WV, ACCESS_CONCURRENCY_COMMUTATIVE);
+
+        # ifndef NDEBUG
+        snprintf(task->label, sizeof(task->label),
+                T == REGISTER   ? "register"   :
+                T == UNREGISTER ? "unregister" :
+                T == TOUCH      ? "touch"      :
+                "(null)");
+        # endif /* NDEBUG */
+
+        // resolve dependencies (point-based)
+        tls->resolve<AC>(task, accesses);
+
+        // commit task
+        tls->commit(task, xkrt_team_task_enqueue, runtime, team);
+    }
+
+    return 0;
+}
+
+int
+xkrt_runtime_t::memory_unregister_async(
+    xkrt_team_t * team,
+    void * ptr,
+    const size_t size,
+    int n
+) {
+    return memory_op_async<UNREGISTER>(this, team, ptr, size, n);
+}
 
 int
 xkrt_runtime_t::memory_register_async(
     xkrt_team_t * team,
     void * ptr,
-    const size_t chunk_size,
+    const size_t size,
     int n
 ) {
-    LOGGER_FATAL("Not implemented");
+    return memory_op_async<REGISTER>(this, team, ptr, size, n);
+}
 
-    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+int
+xkrt_runtime_t::memory_touch_async(
+    xkrt_team_t * team,
+    void * ptr,
+    const size_t size,
+    int n
+) {
+    return memory_op_async<TOUCH>(this, team, ptr, size, n);
+}
 
-    // null format, the registration occurs during the fetching/fetched state
-    const task_format_id_t fmtid = TASK_FORMAT_NULL;
-
-    for (int i = 0 ; i < n ; ++i)
+void
+xkrt_memory_async_register_format(xkrt_runtime_t * runtime)
+{
     {
-        // inserts the interval in the tree to ensure they exist
-        const uintptr_t a = ((const uintptr_t) ptr) + (i+0) * chunk_size;
-        const uintptr_t b = ((const uintptr_t) ptr) + (i+1) * chunk_size;
-
-        // create a task that will register/pin/unpin the memory
-        task_t * task = tls->allocate_task(task_size + args_size);
-        new(task) task_t(fmtid, flags);
-
-        #ifndef NDEBUG
-        snprintf(task->label, sizeof(task->label), "memory_register_async");
-        #endif
-
-        task_dep_info_t * dep = TASK_DEP_INFO(task);
-        new (dep) task_dep_info_t(ac);
-
-        access_t * accesses = TASK_ACCESSES(task, flags);
-        new(accesses + 0) access_t(task, a, b, ACCESS_MODE_PIN, ACCESS_CONCURRENCY_COMMUTATIVE);
-
-        tls->commit(task, xkrt_team_task_enqueue, this, team);
+        task_format_t format;
+        memset(format.f, 0, sizeof(format.f));
+        format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_memory_async<REGISTER>;
+        snprintf(format.label, sizeof(format.label), "memory_op_async");
+        runtime->formats.memory_register_async = task_format_create(&(runtime->formats.list), &format);
     }
 
-    return 0;
+    {
+        task_format_t format;
+        memset(format.f, 0, sizeof(format.f));
+        format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_memory_async<UNREGISTER>;
+        snprintf(format.label, sizeof(format.label), "memory_unregister_async");
+        runtime->formats.memory_unregister_async = task_format_create(&(runtime->formats.list), &format);
+    }
+
+    {
+        task_format_t format;
+        memset(format.f, 0, sizeof(format.f));
+        format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_memory_async<TOUCH>;
+        snprintf(format.label, sizeof(format.label), "memory_touch_async");
+        runtime->formats.memory_touch_async = task_format_create(&(runtime->formats.list), &format);
+    }
 }

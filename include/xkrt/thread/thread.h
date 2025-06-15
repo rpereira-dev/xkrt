@@ -284,9 +284,7 @@ typedef struct  xkrt_thread_t
 
     public:
 
-        /**
-         * Find conflicts and insert accesses int he dependency tree
-         */
+        /** Find conflicts and insert accesses in the dependency tree */
         template <int AC>
         inline void
         resolve(task_t * task, access_t * accesses)
@@ -294,9 +292,15 @@ typedef struct  xkrt_thread_t
             (void) task;
             assert(task->flags & TASK_FLAG_DEPENDENT);
             assert(AC > 0);
+            assert(accesses);
+            assert(this->current_task);
 
-            DependencyDomain * dom = task_get_dependency_domain(this->current_task, accesses + 0);
-            dom->resolve<AC>(accesses);
+            for (int i = 0 ; i < AC ; ++i)
+            {
+                access_t * access = accesses + i;
+                DependencyDomain * dom = task_get_dependency_domain(this->current_task, access);
+                dom->resolve<1>(access);
+            }
         }
 
         /**

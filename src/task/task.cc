@@ -63,6 +63,29 @@ task_get_memory_controller(
     MemoryCoherencyController * mcc;
     switch (access->type)
     {
+        case (ACCESS_TYPE_POINT):
+        {
+            mcc = NULL;
+            break ;
+        }
+
+        case (ACCESS_TYPE_INTERVAL):
+        {
+            // TODO: blas memory coherency tree of ;d SIZE_MAX
+            assert(access->host_view.ld == SIZE_MAX);
+            if (dom->mccs.interval == NULL)
+            {
+                mcc = new BLASMemoryTree(
+                    runtime,
+                    SIZE_MAX,
+                    1,
+                    runtime->conf.merge_transfers
+                );
+            }
+            mcc = dom->mccs.interval;
+            break ;
+        }
+
         case (ACCESS_TYPE_BLAS_MATRIX):
         {
             // TODO : have this list dynamically switch to a hashmap ift here
@@ -86,9 +109,9 @@ task_get_memory_controller(
             );
             dom->mccs.blas.push_back(mcc);
 
+            # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
             /* insert regions that represents registered memory segment, to
              * enforce the split in multiple copies */
-            # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
             if (runtime->conf.protect_registered_memory_overflow)
                 for (const auto & [ptr, size] : runtime->registered_memory)
                     ((BLASMemoryTree *) mcc)->registered(ptr, size);
@@ -97,13 +120,6 @@ task_get_memory_controller(
             LOGGER_DEBUG("Created a new memory tree with (ld, sizeof(type), merge) = (%lu, %lu, %s)",
                     access->host_view.ld, access->host_view.sizeof_type, runtime->conf.merge_transfers ? "true" : "false");
 
-            break ;
-        }
-
-        case (ACCESS_TYPE_INTERVAL):
-        case (ACCESS_TYPE_POINT):
-        {
-            mcc = NULL;
             break ;
         }
 
@@ -129,19 +145,30 @@ task_get_dependency_domain(
     assert(task->flags & TASK_FLAG_DOMAIN);
     assert(access->type >= 0 && access->type < ACCESS_TYPE_MAX);
 
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
-    assert(thread);
-
-    task_dom_info_t * dom = TASK_DOM_INFO(thread->current_task);
+    task_dom_info_t * dom = TASK_DOM_INFO(task);
     assert(dom);
 
     /* create a new domain */
     switch (access->type)
     {
+        case (ACCESS_TYPE_POINT):
+        {
+            if (dom->deps.point == NULL)
+                dom->deps.point = new DependencyMap();
+            return dom->deps.point;
+        }
+
+        case (ACCESS_TYPE_INTERVAL):
+        {
+            if (dom->deps.interval == NULL)
+                dom->deps.interval = new IntervalDependencyTree();
+            LOGGER_FATAL("TODO: also return all blas matrices deptree");
+            return dom->deps.interval;
+        }
+
         case (ACCESS_TYPE_BLAS_MATRIX):
         {
-            // TODO
-            /* find previous deptree for that ld */
+           /* find previous deptree for that ld */
            for (DependencyDomain * domain : dom->deps.blas)
            {
                 BLASDependencyTree * deptree = (BLASDependencyTree *) domain;
@@ -152,26 +179,39 @@ task_get_dependency_domain(
                 }
             }
 
-           DependencyDomain * deptree = new BLASDependencyTree(access->host_view.ld, access->host_view.sizeof_type);
+           /* if none, create a new one */
+           BLASDependencyTree * deptree = new BLASDependencyTree(access->host_view.ld, access->host_view.sizeof_type);
+
+           /* push each uncompleted tasks from the interval dependency tree,
+            * so dependencies between previously spawned interval accesses and
+            * future blas matrix accesses are detected */
+           IntervalDependencyTree * inttree = (IntervalDependencyTree *) dom->deps.interval;
+           if (inttree)
+            {
+                Rect rects[3];
+                for (auto it = inttree->accesses.begin() ; it != inttree->accesses.end() ; )
+                {
+                    access_t * access = *it;
+                    assert(access->type == ACCESS_TYPE_INTERVAL);
+
+                    if (access->task && access->task->state.value == TASK_STATE_COMPLETED)
+                    {
+                        inttree->accesses.erase(it);
+                    }
+                    else
+                    {
+                        deptree->resolve_interval(access);
+                       ++it;
+                    }
+                }
+            }
+
            dom->deps.blas.push_back(deptree);
            return deptree;
-        }
-
-        case (ACCESS_TYPE_INTERVAL):
-        {
-            if (dom->deps.interval == NULL)
-                dom->deps.interval = new IntervalDependencyTree();
-            return dom->deps.interval;
-        }
-
-        case (ACCESS_TYPE_POINT):
-        {
-            if (dom->deps.point == NULL)
-                dom->deps.point = new DependencyMap();
-            return dom->deps.point;
         }
 
         default:
             LOGGER_FATAL("Tried to run a dependency domain on an unsupported access");
     }
+    return NULL;
 }

@@ -168,7 +168,7 @@ xkrt_distribution_get(
 static inline void
 xkrt_distribute_submit(
     xkrt_runtime_t * runtime,
-    matrix_order_t order,
+    matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
     size_t mb, size_t nb,
@@ -203,7 +203,7 @@ xkrt_distribute_submit(
         const ssize_t y1 = MIN(y+nb+hy, n);
         const  size_t sx = x1 - x0;
         const  size_t sy = y1 - y0;
-        new(accesses + 0) access_t(task, order, ptr, ld, x0, y0, sx, sy, sizeof_type, ACCESS_MODE_RW);
+        new(accesses + 0) access_t(task, storage, ptr, ld, x0, y0, sx, sy, sizeof_type, ACCESS_MODE_RW);
     }
     thread->resolve<AC>(task, accesses);
     # undef AC
@@ -220,7 +220,7 @@ void
 xkrt_distribute_async(
     xkrt_runtime_t * runtime,
     xkrt_distribution_type_t type,
-    matrix_order_t order,
+    matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
     size_t mb, size_t nb,
@@ -235,5 +235,5 @@ xkrt_distribute_async(
 
     for (size_t tm = 0; tm < d.mt; ++tm)
         for (size_t tn = 0; tn < d.nt; ++tn)
-            xkrt_distribute_submit(runtime, order, ptr, ld, m, n, mb, nb, sizeof_type, hx, hy, tm, tn, xkrt_distribution_get(&d, tm, tn));
+            xkrt_distribute_submit(runtime, storage, ptr, ld, m, n, mb, nb, sizeof_type, hx, hy, tm, tn, xkrt_distribution_get(&d, tm, tn));
 }

@@ -93,7 +93,7 @@ xkrt_device_prepare_task(
             for (int i = 0 ; i < dep->ac ; ++i)
             {
                 access_t * access = accesses + i;
-                if (access->mode == ACCESS_MODE_V)
+                if (access->mode & ACCESS_MODE_V)
                     continue ;
 
                 assert(task == access->task);
