@@ -322,17 +322,10 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
                     if ((search.access->mode & ACCESS_MODE_W) && node->last_reads.size())
                     {
                         for (access_t * pred : node->last_reads)
-                        {
-                            // the predecessor access must intersect this node, else it shouldnt be in that list
-                            assert(pred->rects[0].intersects(h) || pred->rects[1].intersects(h));
                             __access_precedes(pred, search.access);
-                        }
                     }
                     else if (node->last_write)
-                    {
-                        assert(node->last_write->rects[0].intersects(h) || node->last_write->rects[1].intersects(h));
                         __access_precedes(node->last_write, search.access);
-                    }
 
                     break ;
                 }

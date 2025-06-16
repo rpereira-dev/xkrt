@@ -95,7 +95,7 @@ memory_op_async(
     size_t size,
     int n
 ) {
-    assert((size_t) n <= size);
+    assert(n > 0);
 
     constexpr int AC = (T == TOUCH) ? 1 : 2;
     constexpr size_t task_size = task_compute_size(flags, AC);
@@ -103,16 +103,34 @@ memory_op_async(
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
     assert(tls);
 
-    const size_t chunk_size = size / n;
-    const size_t end = ((uintptr_t)ptr) + size;
-
     const task_format_id_t fmtid = (T == REGISTER)   ? runtime->formats.memory_register_async   :
                                    (T == UNREGISTER) ? runtime->formats.memory_unregister_async :
                                    (T == TOUCH)      ? runtime->formats.memory_touch_async      :
                                    0;
     assert(fmtid);
 
-    for (int i = 0 ; i < n ; ++i)
+    const size_t pagesize = (size_t) getpagesize();
+
+    // compute number of pages to register
+    const size_t npages = (size < pagesize) ? 1 : size / pagesize;
+
+    // compute number of tasks
+    const size_t ntasks = (npages < (size_t) n) ? npages : (size_t) n;
+
+    // compute number of pages to register per task
+    const size_t pages_per_task = (npages < ntasks) ? 1 : npages / ntasks;
+
+    // round to closest pages
+    const uintptr_t  p = (const uintptr_t) ptr;
+    const uintptr_t pp = p + size;
+    const uintptr_t  a = p - (p % pagesize);
+    const uintptr_t  b = pp + (pagesize - (pp % pagesize)) % pagesize;
+    assert(a < b);
+    assert(a % pagesize == 0);
+    assert(b % pagesize == 0);
+
+    // spawn tasks
+    for (size_t i = 0 ; i < ntasks ; ++i)
     {
         // create a task that will register/pin/unpin the memory
         task_t * task = tls->allocate_task(task_size + args_size);
@@ -121,14 +139,26 @@ memory_op_async(
         task_dep_info_t * dep = TASK_DEP_INFO(task);
         new (dep) task_dep_info_t(AC);
 
+        // setup register args
         memory_op_async_args_t * args = (memory_op_async_args_t *) TASK_ARGS(task);
         args->runtime = runtime;
-        args->start   = ((uintptr_t) ptr) + i * chunk_size;
-        args->end     =  MIN(args->start + chunk_size, end);
 
-        access_t * accesses = TASK_ACCESSES(task, flags);
+        // ensure the same page is not registered twice by consecutive tasks
+        args->start = a + (i+0) * pagesize * pages_per_task;
+        args->end   = a + (i+1) * pagesize * pages_per_task;
+
+        // clamp upper
+        if (args->end > p + size)
+            args->end = p + size;
+
+        assert(a <= args->start);
+        assert(     args->start < b);
+        assert(a <= args->end);
+        assert(     args->end <= b);
+        assert(args->start < args->end);
 
         // virtual write onto the memory segment
+        access_t * accesses = TASK_ACCESSES(task, flags);
         constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V);
         new(accesses + 0) access_t(task, args->start, args->end, mode);
 

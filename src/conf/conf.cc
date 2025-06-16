@@ -297,7 +297,7 @@ xkrt_init_conf(xkrt_conf_t * conf)
     conf->device.gpu_mem_percent                = (float) 90.0;
     conf->device.use_p2p                        = true;
     conf->merge_transfers                       = false;
-    conf->protect_registered_memory_overflow    = false;
+    conf->protect_registered_memory_overflow    = true;
 
     //////////////////
     // drivers conf //

@@ -142,12 +142,12 @@ matrix_from_rect(
     assert(dx > 0);
     assert(dy > 0);
 
-    mat.storage         = MATRIX_COLMAJOR;
-    mat.addr          = x + y * ld * sizeof_type;
-    mat.ld            = ld;
-    mat.m             = dx / sizeof_type;
-    mat.n             = dy;
-    mat.sizeof_type   = sizeof_type;
+    mat.storage     = MATRIX_COLMAJOR;
+    mat.addr        = x + y * ld * sizeof_type;
+    mat.ld          = ld;
+    mat.m           = dx / sizeof_type;
+    mat.n           = dy;
+    mat.sizeof_type = sizeof_type;
 
     // accesses must be aligned on sizeof(type)
     assert((INTERVAL_DIFF_TYPE_T) (mat.m * sizeof_type) == dx);

@@ -38,6 +38,7 @@
 
 # include <xkrt/logger/todo.h>
 # include <xkrt/runtime.h>
+# include <xkrt/memory/access/blas/memory-tree.hpp>
 
 ///////////////////////////////////
 //  ORIGINAL KAAPI 1.0 INTERFACE //
@@ -78,6 +79,21 @@ xkrt_memory_register(
     # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
     /* save in the registered map, for later accesses */
     runtime->registered_memory[(uintptr_t)ptr] = size;
+
+    /* notify the current memory coherency controllers that the memory got registered */
+    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    assert(tls);
+    assert(tls->current_task);
+
+    task_t * parent = tls->current_task->parent;
+    if (parent && parent->flags & TASK_FLAG_DOMAIN)
+    {
+        task_dom_info_t * dom = TASK_DOM_INFO(parent);
+        assert(dom);
+
+        for (MemoryCoherencyController * mcc : dom->mccs.blas)
+            ((BLASMemoryTree *)mcc)->registered((uintptr_t)ptr, size);
+    }
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
     # if XKRT_SUPPORT_STATS

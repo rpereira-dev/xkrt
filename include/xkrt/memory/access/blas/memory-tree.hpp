@@ -690,7 +690,8 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             runtime(runtime),
             ld(ld),
             sizeof_type(sizeof_type),
-            merge_transfers(merge_transfers)
+            merge_transfers(merge_transfers),
+            pagesize(getpagesize())
         {}
 
         ~KBLASMemoryTree() {}
@@ -709,6 +710,9 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
         /* whether transfers in continuous virtual memory should be merged */
         const bool merge_transfers;
+
+        /* pagesize, to avoid repetitively calling `getpagesize()` */
+        const size_t pagesize;
 
     public:
 
@@ -2113,9 +2117,18 @@ next_view:
             uintptr_t ptr,
             size_t size
         ) {
+            const uintptr_t   p = (const uintptr_t) ptr;
+            const uintptr_t  pp = p + size;
+
+            const uintptr_t a = p - (p % pagesize);
+            const uintptr_t b = pp + (pagesize - (pp % pagesize)) % pagesize;
+
+            assert(a % pagesize == 0);
+            assert(b % pagesize == 0);
+
             static_assert(K == 2);
             Rect rects[3];
-            interval_to_rects(ptr, ptr + size, this->ld, this->sizeof_type, rects);
+            interval_to_rects(a, b, this->ld, this->sizeof_type, rects);
 
             /* insert blocks in the tree with the registered bit */
             Search search;
