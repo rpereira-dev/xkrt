@@ -83,4 +83,8 @@
  * variable. See XKRT_HELP=1 */
 # define XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION @USE_MEMORY_REGISTER_OVERFLOW_PROTECTION@
 
+/* Disable all logging activities */
+# define XKRT_SHUT_UP @USE_SHUT_UP@
+# define LOGGER_SHUT_UP XKRT_SHUT_UP
+
 #endif /* __XKRT_SUPPORT_H__ */

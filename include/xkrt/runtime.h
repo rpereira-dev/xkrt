@@ -272,6 +272,11 @@ typedef struct  xkrt_runtime_t
              stats_int_t commited;
              stats_int_t completed;
          } tasks[TASK_FORMAT_MAX];
+
+         struct {
+             stats_int_t registered;
+             stats_int_t unregistered;
+         } memory;
      } stats;
      # endif /* XKRT_SUPPORT_STATS */
 

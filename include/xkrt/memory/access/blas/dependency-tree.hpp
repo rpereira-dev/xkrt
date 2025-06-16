@@ -227,17 +227,27 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
             NodeBase * nodebase,
             Search & search
         ) {
-            assert(nodebase);
             assert(search.type == Search::Type::SEARCH_TYPE_RESOLVE);
 
             Node * node = reinterpret_cast<Node *>(nodebase);
-            if (search.access->mode & ACCESS_MODE_W)
-            {
-                node->last_reads.clear();
-                node->last_write = search.access;
+            assert(node);
+
+            // must check if it intersects, because this node insertion may
+            // have been triggered by a splitting a node that do not intersects
+            // with the originally inserted rectangle
+            if(
+                search.access->rects[0].intersects(node->hyperrect) ||
+                search.access->rects[1].intersects(node->hyperrect) ||
+                search.access->rects[2].intersects(node->hyperrect)
+            ) {
+                if (search.access->mode & ACCESS_MODE_W)
+                {
+                    node->last_reads.clear();
+                    node->last_write = search.access;
+                }
+                else if (search.access->mode == ACCESS_MODE_R)
+                    node->last_reads.push_back(search.access);
             }
-            else if (search.access->mode == ACCESS_MODE_R)
-                node->last_reads.push_back(search.access);
         }
 
         inline void
@@ -301,18 +311,28 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
 
             (void) h;
 
-            assert(nodebase);
             Node * node = reinterpret_cast<Node *>(nodebase);
+            assert(node);
+            assert(node->hyperrect.intersects(h));
 
             switch (search.type)
             {
                 case (Search::Type::SEARCH_TYPE_RESOLVE):
                 {
                     if ((search.access->mode & ACCESS_MODE_W) && node->last_reads.size())
+                    {
                         for (access_t * pred : node->last_reads)
+                        {
+                            // the predecessor access must intersect this node, else it shouldnt be in that list
+                            assert(pred->rects[0].intersects(h) || pred->rects[1].intersects(h));
                             __access_precedes(pred, search.access);
+                        }
+                    }
                     else if (node->last_write)
+                    {
+                        assert(node->last_write->rects[0].intersects(h) || node->last_write->rects[1].intersects(h));
                         __access_precedes(node->last_write, search.access);
+                    }
 
                     break ;
                 }
@@ -402,17 +422,32 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
             }
         }
 
+        inline void
+        prepare_interval_access_rects(access_t * access)
+        {
+            /* compute the 3 rect for that access */
+            const INTERVAL_TYPE_T       ptr = (INTERVAL_TYPE_T)      access->host_view.addr;
+            const INTERVAL_DIFF_TYPE_T size = (INTERVAL_DIFF_TYPE_T) access->host_view.m;
+            interval_to_rects(ptr, size, this->ld, this->sizeof_type, access->rects);
+        }
+
+        void
+        put_interval(access_t * access)
+        {
+            assert(access->type == ACCESS_TYPE_INTERVAL);
+
+            this->prepare_interval_access_rects(access);
+            this->put(access);
+        }
+
         void
         resolve_interval(access_t * access)
         {
             assert(access->type == ACCESS_TYPE_INTERVAL);
 
-            /* compute the 3 rect for that access */
-            const INTERVAL_TYPE_T       ptr = (INTERVAL_TYPE_T)      access->host_view.addr;
-            const INTERVAL_DIFF_TYPE_T size = (INTERVAL_DIFF_TYPE_T) access->host_view.m;
-            interval_to_rects(ptr, size, this->ld, this->sizeof_type, access->rects);
-
-            this->template resolve<1>(access);
+            this->prepare_interval_access_rects(access);
+            this->link(access);
+            this->put(access);
         }
 };
 

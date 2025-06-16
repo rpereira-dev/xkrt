@@ -752,7 +752,7 @@ xkrt_runtime_t::team_get_any(const xkrt_driver_type_bitfield_t types)
         {
             xkrt_driver_type_t type = (xkrt_driver_type_t) i;
             xkrt_driver_t * driver = this->driver_get(type);
-            if (driver)
+            if (driver && driver->team.priv.nthreads)
                 return &driver->team;
         }
     }

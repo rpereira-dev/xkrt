@@ -53,6 +53,8 @@ typedef struct  device_stats_t
             stats_int_t total;
             stats_int_t currently;
         } allocated;
+        stats_int_t registered;
+        stats_int_t unregistered;
     } memory;
 
     struct {
@@ -66,6 +68,13 @@ typedef struct  device_stats_t
     } instructions[XKRT_STREAM_INSTR_TYPE_MAX];
 
 }               device_stats_t;
+
+static void
+xkrt_runtime_stats_device_agg_gather(xkrt_runtime_t * runtime, device_stats_t * agg)
+{
+    agg->memory.registered += runtime->stats.memory.registered;
+    agg->memory.unregistered += runtime->stats.memory.unregistered;
+}
 
 static void
 xkrt_runtime_stats_device_agg(device_stats_t * src, device_stats_t * agg)
@@ -102,6 +111,16 @@ xkrt_runtime_stats_device_report(device_stats_t * stats)
 
     xkrt_metric_byte(buffer, sizeof(buffer), stats->memory.freed.load());
     LOGGER_WARN("    Freed: %s", buffer);
+
+    if (stats->memory.registered.load() || stats->memory.unregistered.load())
+    {
+        xkrt_metric_byte(buffer, sizeof(buffer), stats->memory.registered.load());
+        LOGGER_WARN("    Registered: %s", buffer);
+
+        xkrt_metric_byte(buffer, sizeof(buffer), stats->memory.unregistered.load());
+        LOGGER_WARN("    Unregistered: %s", buffer);
+    }
+
 
     LOGGER_WARN("  Streams");
     for (int stype = 0 ; stype < XKRT_STREAM_TYPE_ALL ; ++stype)
@@ -208,6 +227,7 @@ xkrt_runtime_stats_report(xkrt_runtime_t * runtime)
         xkrt_runtime_stats_device_report(&stats);
         xkrt_runtime_stats_device_agg(&stats, &agg);
     }
+    xkrt_runtime_stats_device_agg_gather(runtime, &agg);
 
     LOGGER_WARN("-----------------------------------------");
     LOGGER_WARN("All Devices");

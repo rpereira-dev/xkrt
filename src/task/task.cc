@@ -126,6 +126,7 @@ task_get_memory_controller(
         default:
         {
             LOGGER_FATAL("Tried to run coherency controller on an unsupported access");
+            mcc = NULL;
             break ;
         }
     }
@@ -175,7 +176,7 @@ task_get_dependency_domain_blas_matrix(
             }
             else
             {
-                deptree->resolve_interval(access);
+                deptree->put_interval(access);
                 ++it;
             }
         }
@@ -221,6 +222,7 @@ task_dependency_resolve(
                 BLASDependencyTree * deptree = (BLASDependencyTree *) domain;
                 deptree->resolve_interval(access);
             }
+
             break ;
         }
 
