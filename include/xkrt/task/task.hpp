@@ -231,9 +231,18 @@ typedef struct  task_dom_info_t
 
 }               task_dom_info_t;
 
-DependencyDomain * task_get_dependency_domain(
+/** insert the 'access' in the 'task' dependency domain, and resolve conflicts
+ * with previously resolved tasks */
+void task_dependency_resolve(
     task_t * task,
-    const access_t * access
+    access_t * access
+);
+
+/* retrieve the dependency domain of the given blas matrix */
+DependencyDomain * task_get_dependency_domain_blas_matrix(
+    task_t * task,
+    size_t ld,
+    size_t sizeof_type
 );
 
 /* fallback if wrong flags parameter - https://stackoverflow.com/questions/20461121/constexpr-error-at-compile-time-but-no-overhead-at-run-time */

@@ -117,8 +117,10 @@ xkrt_coherency_host_async(
     assert(thread->current_task);
 
     /* create an access, and retrieve all dependency tree nodes that are in conflict */
+    DependencyDomain * domain = task_get_dependency_domain_blas_matrix(thread->current_task, ld, sizeof_type);
+    assert(domain);
+
     access_t access(NULL, storage, ptr, ld, m, n, sizeof_type, ACCESS_MODE_R);
-    DependencyDomain * domain = task_get_dependency_domain(thread->current_task, &access);
 
     std::vector<void *> conflicts;
     ((BLASDependencyTree *) domain)->conflicting(&conflicts, &access);

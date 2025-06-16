@@ -81,7 +81,7 @@ body_memory_async(task_t * task)
              const size_t pagesize = (size_t) getpagesize();
 
         for ( ; a < b ; a += pagesize)
-            *a = *a;
+            *a = 0;
     }
 }
 
@@ -181,7 +181,7 @@ xkrt_memory_async_register_format(xkrt_runtime_t * runtime)
         task_format_t format;
         memset(format.f, 0, sizeof(format.f));
         format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_memory_async<REGISTER>;
-        snprintf(format.label, sizeof(format.label), "memory_op_async");
+        snprintf(format.label, sizeof(format.label), "memory_register_async");
         runtime->formats.memory_register_async = task_format_create(&(runtime->formats.list), &format);
     }
 

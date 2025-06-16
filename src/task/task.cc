@@ -133,13 +133,40 @@ task_get_memory_controller(
     return mcc;
 }
 
+/* retrieve the dependency domain of the given blas matrix */
+DependencyDomain *
+task_get_dependency_domain_blas_matrix(
+    task_t * task,
+    size_t ld,
+    size_t sizeof_type
+) {
+    assert(task);
+    assert(task->flags & TASK_FLAG_DOMAIN);
+
+    task_dom_info_t * dom = TASK_DOM_INFO(task);
+    assert(dom);
+
+    /* find previous deptree for that ld */
+    for (DependencyDomain * domain : dom->deps.blas)
+    {
+        BLASDependencyTree * deptree = (BLASDependencyTree *) domain;
+        if (deptree->ld == ld && deptree->sizeof_type == sizeof_type)
+            return deptree;
+    }
+
+    /* if none, create a new one */
+    BLASDependencyTree * deptree = new BLASDependencyTree(ld, sizeof_type);
+    dom->deps.blas.push_back(deptree);
+    return deptree;
+}
+
 /**
  * Retrieve or (insert and return) the dependency domain of the passed task for the given access
  */
-DependencyDomain *
-task_get_dependency_domain(
+void
+task_dependency_resolve(
     task_t * task,
-    const access_t * access
+    access_t * access
 ) {
     assert(task);
     assert(task->flags & TASK_FLAG_DOMAIN);
@@ -155,34 +182,30 @@ task_get_dependency_domain(
         {
             if (dom->deps.point == NULL)
                 dom->deps.point = new DependencyMap();
-            return dom->deps.point;
+            dom->deps.point->resolve<1>(access);
+            break ;
         }
 
         case (ACCESS_TYPE_INTERVAL):
         {
             if (dom->deps.interval == NULL)
                 dom->deps.interval = new IntervalDependencyTree();
-            LOGGER_FATAL("TODO: also return all blas matrices deptree");
-            return dom->deps.interval;
+            dom->deps.interval->resolve<1>(access);
+
+            for (DependencyDomain * domain : dom->deps.blas)
+            {
+                BLASDependencyTree * deptree = (BLASDependencyTree *) domain;
+                deptree->resolve_interval(access);
+            }
+            break ;
         }
 
         case (ACCESS_TYPE_BLAS_MATRIX):
         {
-           /* find previous deptree for that ld */
-           for (DependencyDomain * domain : dom->deps.blas)
-           {
-                BLASDependencyTree * deptree = (BLASDependencyTree *) domain;
-                if (deptree->ld == access->host_view.ld &&
-                    deptree->sizeof_type == access->host_view.sizeof_type)
-                {
-                    return deptree;
-                }
-            }
+            BLASDependencyTree * deptree = (BLASDependencyTree *) task_get_dependency_domain_blas_matrix(task, access->host_view.ld, access->host_view.sizeof_type);
+            assert(deptree);
 
-           /* if none, create a new one */
-           BLASDependencyTree * deptree = new BLASDependencyTree(access->host_view.ld, access->host_view.sizeof_type);
-
-           /* push each uncompleted tasks from the interval dependency tree,
+            /* push each uncompleted tasks from the interval dependency tree,
             * so dependencies between previously spawned interval accesses and
             * future blas matrix accesses are detected */
            IntervalDependencyTree * inttree = (IntervalDependencyTree *) dom->deps.interval;
@@ -206,12 +229,11 @@ task_get_dependency_domain(
                 }
             }
 
-           dom->deps.blas.push_back(deptree);
-           return deptree;
+           deptree->resolve<1>(access);
+           break ;
         }
 
         default:
             LOGGER_FATAL("Tried to run a dependency domain on an unsupported access");
     }
-    return NULL;
 }

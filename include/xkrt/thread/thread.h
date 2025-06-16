@@ -298,28 +298,12 @@ typedef struct  xkrt_thread_t
             for (int i = 0 ; i < AC ; ++i)
             {
                 access_t * access = accesses + i;
-                DependencyDomain * dom = task_get_dependency_domain(this->current_task, access);
-                dom->resolve<1>(access);
+                task_dependency_resolve(this->current_task, access);
             }
         }
 
-        /**
-         * Insert a task and its access in the dependency tree, without finding conflicts
-         */
-        template <int AC>
-        inline void
-        insert(task_t * task, access_t * accesses)
-        {
-            (void) task;
-            assert(task->flags & TASK_FLAG_DEPENDENT);
-            assert(AC > 0);
-
-            DependencyDomain * dom = task_get_dependency_domain(this->current_task, accesses + 0);
-            dom->put<AC>(accesses);
-        }
-
         # define __Thread_task_execute(T, t, F, ...)                                                \
-        do {                                                                                        \
+            do {                                                                                    \
                 assert(T && t);                                                                     \
                 task_format_t * format = runtime->formats.list.list + t->fmtid;                     \
                 assert(format->f[TASK_FORMAT_TARGET_HOST]);                                         \
