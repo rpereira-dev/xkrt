@@ -38,13 +38,13 @@
 #ifndef __ACCESS_MODE_H__
 # define __ACCESS_MODE_H__
 
-typedef enum    access_mode_t
+typedef enum    access_mode_t : int
 {
     ACCESS_MODE_R       = 0b00000001,   // read
     ACCESS_MODE_W       = 0b00000010,   // write
     ACCESS_MODE_RW      = ACCESS_MODE_R | ACCESS_MODE_W,
     ACCESS_MODE_V       = 0b00000100,   // virtual (= dont really move the memory)
-    ACCESS_MODE_WV      = ACCESS_MODE_W | ACCESS_MODE_V,
+    ACCESS_MODE_P       = 0b00001000,   // pinning = serialize all pinning accesses
 }               access_mode_t;
 
 typedef enum    access_concurrency_t

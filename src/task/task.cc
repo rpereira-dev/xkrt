@@ -126,6 +126,7 @@ task_get_memory_controller(
         default:
         {
             LOGGER_FATAL("Tried to run coherency controller on an unsupported access");
+            mcc = NULL;
             break ;
         }
     }
@@ -157,6 +158,30 @@ task_get_dependency_domain_blas_matrix(
     /* if none, create a new one */
     BLASDependencyTree * deptree = new BLASDependencyTree(ld, sizeof_type);
     dom->deps.blas.push_back(deptree);
+
+    /* push each uncompleted tasks from the interval dependency tree,
+     * so dependencies between previously spawned interval accesses and
+     * future blas matrix accesses are detected */
+    IntervalDependencyTree * inttree = (IntervalDependencyTree *) dom->deps.interval;
+    if (inttree)
+    {
+        for (auto it = inttree->accesses.begin() ; it != inttree->accesses.end() ; )
+        {
+            access_t * access = *it;
+            assert(access->type == ACCESS_TYPE_INTERVAL);
+
+            if (access->task && access->task->state.value == TASK_STATE_COMPLETED)
+            {
+                it = inttree->accesses.erase(it);
+            }
+            else
+            {
+                deptree->put_interval(access);
+                ++it;
+            }
+        }
+    }
+
     return deptree;
 }
 
@@ -197,6 +222,7 @@ task_dependency_resolve(
                 BLASDependencyTree * deptree = (BLASDependencyTree *) domain;
                 deptree->resolve_interval(access);
             }
+
             break ;
         }
 
@@ -205,32 +231,8 @@ task_dependency_resolve(
             BLASDependencyTree * deptree = (BLASDependencyTree *) task_get_dependency_domain_blas_matrix(task, access->host_view.ld, access->host_view.sizeof_type);
             assert(deptree);
 
-            /* push each uncompleted tasks from the interval dependency tree,
-            * so dependencies between previously spawned interval accesses and
-            * future blas matrix accesses are detected */
-           IntervalDependencyTree * inttree = (IntervalDependencyTree *) dom->deps.interval;
-           if (inttree)
-            {
-                Rect rects[3];
-                for (auto it = inttree->accesses.begin() ; it != inttree->accesses.end() ; )
-                {
-                    access_t * access = *it;
-                    assert(access->type == ACCESS_TYPE_INTERVAL);
-
-                    if (access->task && access->task->state.value == TASK_STATE_COMPLETED)
-                    {
-                        inttree->accesses.erase(it);
-                    }
-                    else
-                    {
-                        deptree->resolve_interval(access);
-                       ++it;
-                    }
-                }
-            }
-
-           deptree->resolve<1>(access);
-           break ;
+            deptree->resolve<1>(access);
+            break ;
         }
 
         default:

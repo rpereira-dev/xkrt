@@ -80,6 +80,10 @@ xkrt_memory_register(
     runtime->registered_memory[(uintptr_t)ptr] = size;
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
+    # if XKRT_SUPPORT_STATS
+    runtime->stats.memory.registered += size;
+    # endif /* XKRT_SUPPORT_STATS */
+
     return 0;
 }
 
@@ -102,6 +106,10 @@ xkrt_memory_unregister(xkrt_runtime_t * runtime, void * ptr, size_t size)
     /* remove from the registered map */
     runtime->registered_memory.erase((uintptr_t)ptr);
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
+    # if XKRT_SUPPORT_STATS
+    runtime->stats.memory.unregistered += size;
+    # endif /* XKRT_SUPPORT_STATS */
 
     return 0;
 }

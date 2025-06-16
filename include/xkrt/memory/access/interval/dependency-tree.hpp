@@ -226,17 +226,21 @@ class IntervalDependencyTree : public KHPTree<K, IntervalDependencyTreeSearch>, 
             NodeBase * nodebase,
             Search & search
         ) {
-            assert(nodebase);
             assert(search.type == Search::Type::SEARCH_TYPE_RESOLVE);
 
             Node * node = reinterpret_cast<Node *>(nodebase);
-            if (search.access->mode & ACCESS_MODE_W)
+            assert(node);
+
+            if (search.access->segment.intersects(node->hyperrect))
             {
-                node->last_reads.clear();
-                node->last_write = search.access;
+                if (search.access->mode & ACCESS_MODE_W)
+                {
+                    node->last_reads.clear();
+                    node->last_write = search.access;
+                }
+                else if (search.access->mode == ACCESS_MODE_R)
+                    node->last_reads.push_back(search.access);
             }
-            else if (search.access->mode == ACCESS_MODE_R)
-                node->last_reads.push_back(search.access);
         }
 
         inline void

@@ -296,10 +296,7 @@ typedef struct  xkrt_thread_t
             assert(this->current_task);
 
             for (int i = 0 ; i < AC ; ++i)
-            {
-                access_t * access = accesses + i;
-                task_dependency_resolve(this->current_task, access);
-            }
+                task_dependency_resolve(this->current_task, accesses + i);
         }
 
         # define __Thread_task_execute(T, t, F, ...)                                                \
