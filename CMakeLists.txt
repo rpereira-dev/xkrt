@@ -40,6 +40,7 @@ option(USE_ZE       "Whether to build the Level Zero driver." OFF)
 option(USE_ZES      "Use Intel's ZES management library." OFF)
 option(USE_ZE_SYCL_INTEROP "Enable the compilation of SYCL interop with Level Zero driver" OFF)
 option(USE_MEMORY_REGISTER_OVERFLOW_PROTECTION "Enable the protection of memory copies over regions that are not continuously registered, by splitting into multiple copies, to avoid cuda crashes" ON)
+option(USE_SHUT_UP  "Disable all logging activities" OFF)
 
 include(BooleanUtils)
 convert_bool(ENABLE_HEAVY_DEBUG)
@@ -56,6 +57,7 @@ convert_bool(USE_ZE)
 convert_bool(USE_ZES)
 convert_bool(USE_ZE_SYCL_INTEROP)
 convert_bool(USE_MEMORY_REGISTER_OVERFLOW_PROTECTION)
+convert_bool(USE_SHUT_UP)
 
 configure_file(
     ${CMAKE_SOURCE_DIR}/include/xkrt/support.h.in

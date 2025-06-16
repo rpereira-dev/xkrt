@@ -432,6 +432,7 @@ __task_precedes(
 ) {
     assert(pred);
     assert(succ);
+    assert(pred != succ);
     assert(pred->state.value >= TASK_STATE_ALLOCATED);
     assert(succ->state.value >= TASK_STATE_ALLOCATED);
     assert(pred->flags & TASK_FLAG_DEPENDENT);
@@ -443,6 +444,7 @@ __task_precedes(
         {
             if (pred->state.value < TASK_STATE_COMPLETED)
             {
+                LOGGER_DEBUG("Dependency: `%s` -> `%s`", pred->label, succ->label);
                 task_dep_info_t * sdep = TASK_DEP_INFO(succ);
                 sdep->wc.fetch_add(1, std::memory_order_seq_cst);
                 F(std::forward<Args>(args)...);

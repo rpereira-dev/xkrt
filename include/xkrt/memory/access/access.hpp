@@ -389,9 +389,6 @@ class access_t
             /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
             assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL ||
                     concurrency == ACCESS_CONCURRENCY_COMMUTATIVE);
-
-            /* Only ACCESS_MODE_R|ACCESS_MODE_W supported yet */
-            assert(mode == ACCESS_MODE_V || mode == ACCESS_MODE_R || mode == ACCESS_MODE_W || mode == ACCESS_MODE_RW || mode == ACCESS_MODE_WV);
         }
 
         //////////////////////////////////////////////////////////////////////
@@ -462,10 +459,6 @@ class access_t
             /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
             assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL ||
                     concurrency == ACCESS_CONCURRENCY_COMMUTATIVE);
-
-            /* Only ACCESS_MODE_R|ACCESS_MODE_W supported yet */
-            assert(mode == ACCESS_MODE_V || mode == ACCESS_MODE_R ||
-                    mode == ACCESS_MODE_W || mode == ACCESS_MODE_RW);
 
             // not sure about what to do if other storageing
             assert(host_view.storage == MATRIX_COLMAJOR);
@@ -564,9 +557,6 @@ class access_t
 
             /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
             assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL);
-
-            /* Only ACCESS_MODE_R|ACCESS_MODE_W supported yet */
-            assert(mode == ACCESS_MODE_V || mode == ACCESS_MODE_R || mode == ACCESS_MODE_W || mode == ACCESS_MODE_RW);
         }
 
         ~access_t() {}

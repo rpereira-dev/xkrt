@@ -54,10 +54,8 @@ typedef enum    memory_op_type_t
     TOUCH
 }               memory_op_type_t;
 
-constexpr int                         AC = 1;
-constexpr task_flag_bitfield_t     flags = TASK_FLAG_DEPENDENT;
-constexpr               size_t task_size = task_compute_size(flags, AC);
-constexpr               size_t args_size = sizeof(memory_op_async_args_t);
+constexpr size_t args_size = sizeof(memory_op_async_args_t);
+constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT;
 
 template<memory_op_type_t T>
 static void
@@ -65,7 +63,10 @@ body_memory_async(task_t * task)
 {
     assert(task);
 
-    memory_op_async_args_t * args = (memory_op_async_args_t *) TASK_ARGS(task);
+    constexpr int AC = (T == TOUCH) ? 1 : 2;
+    constexpr size_t task_size = task_compute_size(flags, AC);
+
+    memory_op_async_args_t * args = (memory_op_async_args_t *) TASK_ARGS(task, task_size);
     assert(args->runtime);
     assert(args->start < args->end);
 
@@ -96,6 +97,9 @@ memory_op_async(
 ) {
     assert((size_t) n <= size);
 
+    constexpr int AC = (T == TOUCH) ? 1 : 2;
+    constexpr size_t task_size = task_compute_size(flags, AC);
+
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
     assert(tls);
 
@@ -124,7 +128,14 @@ memory_op_async(
 
         access_t * accesses = TASK_ACCESSES(task, flags);
 
-        new(accesses + 0) access_t(task, (void *) args->start, ACCESS_MODE_WV, ACCESS_CONCURRENCY_COMMUTATIVE);
+        // virtual write onto the memory segment
+        constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V);
+        new(accesses + 0) access_t(task, args->start, args->end, mode);
+
+        // if register/unregister, create a virtual write on NULL, to
+        // serialize, and avoid blocking thread in cuda driver
+        if constexpr(T == REGISTER || T == UNREGISTER)
+            new(accesses + 1) access_t(task, (const void*) NULL, mode, ACCESS_CONCURRENCY_COMMUTATIVE);
 
         # ifndef NDEBUG
         snprintf(task->label, sizeof(task->label),
