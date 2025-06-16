@@ -46,7 +46,7 @@
 # include <sys/types.h>
 # include <stdlib.h>
 
-typedef enum    matrix_order_t
+typedef enum    matrix_storage_t
 {
     /****************
      *  0   1   2   *
@@ -62,12 +62,12 @@ typedef enum    matrix_order_t
      ****************/
     MATRIX_COLMAJOR, /* Fortran */
 
-}               matrix_order_t;
+}               matrix_storage_t;
 
 typedef struct  matrix_tile_t
 {
-    /* matrix_order_t */
-    matrix_order_t order;
+    /* matrix_storage_t */
+    matrix_storage_t storage;
 
     /* matrix address (passed to the BLAS kernel) */
     uintptr_t addr;
@@ -86,7 +86,7 @@ typedef struct  matrix_tile_t
     matrix_tile_t() : matrix_tile_t(MATRIX_COLMAJOR, static_cast<uintptr_t>(0), 0, 0, 0, 0, 0, 0) {}
 
     matrix_tile_t(
-        const matrix_order_t & order,
+        const matrix_storage_t & storage,
         const void * & addr,
         const size_t & ld,
         const size_t & offset_m,
@@ -95,11 +95,11 @@ typedef struct  matrix_tile_t
         const size_t & n,
         const size_t & sizeof_type
     ) :
-        matrix_tile_t(order, (uintptr_t)addr, ld, offset_m, offset_n, m, n, sizeof_type)
+        matrix_tile_t(storage, (uintptr_t)addr, ld, offset_m, offset_n, m, n, sizeof_type)
     {}
 
     matrix_tile_t(
-        const matrix_order_t & order,
+        const matrix_storage_t & storage,
         const uintptr_t & addr,
         const size_t & ld,
         const size_t & offset_m,
@@ -108,19 +108,19 @@ typedef struct  matrix_tile_t
         const size_t & n,
         const size_t & sizeof_type
     ) :
-        order(order),
+        storage(storage),
         addr(addr),
         ld(ld),
         m(m),
         n(n),
         sizeof_type(sizeof_type)
     {
-        assert(this->order == MATRIX_ROWMAJOR || this->order == MATRIX_COLMAJOR);
+        assert(this->storage == MATRIX_ROWMAJOR || this->storage == MATRIX_COLMAJOR);
         this->addr = this->offset_addr(offset_m, offset_n);
     }
 
     matrix_tile_t(const matrix_tile_t & src) :
-        order(src.order),
+        storage(src.storage),
         addr(src.addr),
         ld(src.ld),
         m(src.m),
@@ -148,11 +148,11 @@ typedef struct  matrix_tile_t
     inline uintptr_t
     offset_addr(const size_t offset_m, const size_t offset_n) const
     {
-        assert(this->order == MATRIX_ROWMAJOR || this->order == MATRIX_COLMAJOR);
+        assert(this->storage == MATRIX_ROWMAJOR || this->storage == MATRIX_COLMAJOR);
         assert(offset_n >= 0);
         assert(offset_m >= 0);
 
-        switch (this->order)
+        switch (this->storage)
         {
             case (MATRIX_ROWMAJOR):
                 return this->addr + ((size_t)offset_n * this->sizeof_type) +
@@ -170,8 +170,8 @@ typedef struct  matrix_tile_t
     inline uintptr_t
     end_addr(void) const
     {
-        assert(this->order == MATRIX_ROWMAJOR || this->order == MATRIX_COLMAJOR);
-        switch (this->order)
+        assert(this->storage == MATRIX_ROWMAJOR || this->storage == MATRIX_COLMAJOR);
+        switch (this->storage)
         {
             case (MATRIX_ROWMAJOR):
                 return this->addr +

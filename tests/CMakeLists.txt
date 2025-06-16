@@ -18,15 +18,16 @@ set(TEST_SOURCES
     memory-touch-register-unregister-async.cc
     memory-unregister-async.cc
     sync.cc
+    task-dependency-interval-matrix.cc
     task-dependency-interval.cc
     task-dependency-point.cc
     task-dependency.cc
     task-format-host.cc
     task-format.cc
     task-gpu-empty.cc
+    team-cpus-master-member.cc
     team-cpus-parallel-for.cc
     team-cpus.cc
-    team-cpus-master-member.cc
     team-device.cc
 )
 

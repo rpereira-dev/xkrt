@@ -64,8 +64,6 @@ xkrt_memory_register(
     void * ptr,
     size_t size
 ) {
-    LOGGER_DEBUG("registering %p of size %zu", ptr, size);
-
     for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
     {
         xkrt_driver_t * driver = runtime->driver_get((xkrt_driver_type_t) driver_id);
@@ -81,8 +79,6 @@ xkrt_memory_register(
     /* save in the registered map, for later accesses */
     runtime->registered_memory[(uintptr_t)ptr] = size;
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
-
-    LOGGER_DEBUG("registered %p of size %zu", ptr, size);
 
     return 0;
 }
@@ -123,6 +119,7 @@ xkrt_memory_register_async(xkrt_runtime_t * runtime, void * ptr, size_t size)
     runtime->team_task_spawn(
         team,
         [runtime, ptr, size] (task_t * task) {
+            (void) task;
             xkrt_memory_register(runtime, ptr, size);
         }
     );
@@ -143,7 +140,7 @@ xkrt_memory_unregister_async(xkrt_runtime_t * runtime, void * ptr, size_t size)
     runtime->team_task_spawn(
         team,
         [runtime, ptr, size] (task_t * task) {
-            LOGGER_DEBUG("unregistering memory...");
+            (void) task;
             xkrt_memory_unregister(runtime, ptr, size);
         }
     );

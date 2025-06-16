@@ -42,6 +42,7 @@
 # include <xkrt/driver/driver.h>
 # include <xkrt/thread/thread.h>
 # include <xkrt/memory/access/coherency-controller.hpp>
+# include <xkrt/memory/register.h>
 # include <xkrt/memory/routing/router-affinity.hpp>
 # include <xkrt/stats/stats.h>
 # include <xkrt/sync/spinlock.h>
@@ -71,6 +72,8 @@ typedef struct  xkrt_runtime_t
         task_format_id_t copy_async;
         task_format_id_t host_capture;
         task_format_id_t memory_touch_async;
+        task_format_id_t memory_register_async;
+        task_format_id_t memory_unregister_async;
     } formats;
 
     /* user conf */
@@ -156,21 +159,15 @@ typedef struct  xkrt_runtime_t
     /////////////////////////
 
     /**
-     *  Create 'n' tasks so that each task i in [0..n-1]:
-     *      - access - commutative write on [ptr + i*chunk_size,  ptr + (i+1)*chunk_size]
-     *      - routine - touches memory pages in [ptr + i*chunk_size,  ptr + (i+1)*chunk_size]
-     */
-    int memory_touch_async(xkrt_team_t * team, void * ptr, const size_t chunk_size, int n);
-
-    /**
      *  Create 'n' tasks so that each task i in [0..n-1]
-     *      - access - commutative write on [ptr + i*chunk_size,  ptr + (i+1)*chunk_size]
-     *      - routine - register a chunk of memory [ptr + i*chunk_size,  ptr + (i+1)*chunk_size].
+     *      - access - commutative write on ptr + i*size/n
+     *      - routine - register/unregister/touch [ptr + i*size/n,  MIN(ptr + (i+1)*size/n, ptr+size)]
      *
      *  Note: each task may run several 'cuMemRegister' several time on a single chunk
      */
-    int memory_register_async(xkrt_team_t * team, void * ptr, const size_t chunk_size, int n);
-    int memory_unregister_async(xkrt_team_t * team, void * ptr, const size_t chunk_size, int n);
+    int memory_register_async(xkrt_team_t * team, void * ptr, const size_t size, int n);
+    int memory_unregister_async(xkrt_team_t * team, void * ptr, const size_t size, int n);
+    int memory_touch_async(xkrt_team_t * team, void * ptr, const size_t size, int n);
 
     // TODO - this was a preliminary design. In the end, it got moved to the
     // memory coherency controller when fetching data on a
@@ -355,10 +352,7 @@ void xkrt_memory_copy_async_register_format(xkrt_runtime_t * runtime);
 void xkrt_task_host_capture_register_format(xkrt_runtime_t * runtime);
 
 /* register v2 format */
-void xkrt_memory_touch_async_register_format(xkrt_runtime_t * runtime);
-void xkrt_memory_register_async_register_format(xkrt_runtime_t * runtime);
-void xkrt_memory_unregister_async_register_format(xkrt_runtime_t * runtime);
-void xkrt_memory_transfer_async_register_format(xkrt_runtime_t * runtime);
+void xkrt_memory_async_register_format(xkrt_runtime_t * runtime);
 
 /* Main entry thread created per device */
 void * xkrt_device_thread_main(xkrt_team_t * team, xkrt_thread_t * thread);

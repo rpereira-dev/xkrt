@@ -3,7 +3,7 @@
 /*   memory-register-async.cc                                     .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/03 21:20:22 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/14 01:25:26 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -27,7 +27,7 @@ main(void)
 
     # include "memory-register-async.conf.cc"
 
-    runtime.memory_register_async(team, ptr, chunk_size, nchunks);
+    runtime.memory_register_async(team, ptr, size, nchunks);
     runtime.task_wait();
 
     assert(xkrt_deinit(&runtime) == 0);
