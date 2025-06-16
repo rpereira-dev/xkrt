@@ -59,47 +59,112 @@
 // task and accesses depends to one another, breaking chicken/egg problem here
 struct task_t;
 
-template<int K>
+using Segment   = KHyperrect<1>;
+using Rect      = KHyperrect<2>;
+
+
 static inline void
-memory_view_from_hyperrect(
-    memory_view_t & view,
-    const KHyperrect<K> & h,
+interval_to_rects(
+    INTERVAL_TYPE_T      a,
+    INTERVAL_DIFF_TYPE_T size,
+    size_t ld,
+    size_t sizeof_type,
+    Rect (& rects) [3]
+) {
+     /**
+      *  a = start address
+      *  b = end address
+      *  size = b - a
+      *      --------------------------------->
+      *      |      x  x  x
+      *      |      x  x  x
+      *      |      x  x  x
+      * LD.s |   a  x  x  x
+      *      |   x  x  x  b
+      *      |   x  x  x
+      *      v
+      *
+      *  generate 3 rects from it
+      *
+      *          y0 y1 y2 y3
+      *      --------------------------------->
+      *      |      1  1  2   x2
+      *      |      1  1  2
+      *      |      1  1  2
+      * x0   |   0  1  1  2
+      *      |   0  1  1  2   x3
+      * x1   |   0  1  1
+      *      v
+      */
+
+    assert(size > 0);
+    const INTERVAL_TYPE_T LDs = ld * sizeof_type;
+
+    const INTERVAL_TYPE_T x0 = a % LDs;
+    const INTERVAL_TYPE_T x1 = MIN(x0 + size, LDs);
+    const INTERVAL_TYPE_T dx10 = x1 - x0;
+
+    const INTERVAL_TYPE_T x2 = 0;
+    const INTERVAL_TYPE_T x3 = (size - dx10) % LDs;
+    const INTERVAL_TYPE_T dx32 = x3 - x2;
+
+    assert((size - dx10 - dx32) % LDs == 0);
+
+    const INTERVAL_TYPE_T y0 = a / LDs;
+    const INTERVAL_TYPE_T y1 = y0 + 1;
+    const INTERVAL_TYPE_T y3 = y0 + ((size - dx10 - dx32) / LDs) + 2;
+    const INTERVAL_TYPE_T y2 = y3 - 1;
+
+    Interval intervals[3][2];
+    intervals[0][ACCESS_BLAS_ROW_DIM] = Interval(x0, x1);
+    intervals[0][ACCESS_BLAS_COL_DIM] = Interval(y0, y1);
+    intervals[1][ACCESS_BLAS_ROW_DIM] = Interval(0, LDs);
+    intervals[1][ACCESS_BLAS_COL_DIM] = Interval(y1, y2);
+    intervals[2][ACCESS_BLAS_ROW_DIM] = Interval(x2, x3);
+    intervals[2][ACCESS_BLAS_COL_DIM] = Interval(y2, y3);
+
+    rects[0].set_list(intervals[0]);
+    rects[1].set_list(intervals[1]);
+    rects[2].set_list(intervals[2]);
+}
+
+static inline void
+matrix_from_rect(
+    matrix_tile_t & mat,
+    const Rect & rect,
     const size_t ld,
     const size_t sizeof_type
 ) {
-    static_assert(K == 2);
-
-    const INTERVAL_TYPE_T       x = h[ACCESS_BLAS_ROW_DIM].a;
-    const INTERVAL_DIFF_TYPE_T dx = h[ACCESS_BLAS_ROW_DIM].length();
-    const INTERVAL_TYPE_T       y = h[ACCESS_BLAS_COL_DIM].a;
-    const INTERVAL_DIFF_TYPE_T dy = h[ACCESS_BLAS_COL_DIM].length();
+    const INTERVAL_TYPE_T       x = rect[ACCESS_BLAS_ROW_DIM].a;
+    const INTERVAL_DIFF_TYPE_T dx = rect[ACCESS_BLAS_ROW_DIM].length();
+    const INTERVAL_TYPE_T       y = rect[ACCESS_BLAS_COL_DIM].a;
+    const INTERVAL_DIFF_TYPE_T dy = rect[ACCESS_BLAS_COL_DIM].length();
     assert(dx > 0);
     assert(dy > 0);
 
-    view.order         = MATRIX_COLMAJOR;
-    view.addr          = x + y * ld * sizeof_type;
-    view.ld            = ld;
-    view.m             = dx / sizeof_type;
-    view.n             = dy;
-    view.sizeof_type   = sizeof_type;
+    mat.storage         = MATRIX_COLMAJOR;
+    mat.addr          = x + y * ld * sizeof_type;
+    mat.ld            = ld;
+    mat.m             = dx / sizeof_type;
+    mat.n             = dy;
+    mat.sizeof_type   = sizeof_type;
 
     // accesses must be aligned on sizeof(type)
-    assert((INTERVAL_DIFF_TYPE_T) (view.m * sizeof_type) == dx);
+    assert((INTERVAL_DIFF_TYPE_T) (mat.m * sizeof_type) == dx);
 }
 
-template<int K>
 static inline void
-memory_view_from_rects(
-    memory_view_t & view,
-    const KHyperrect<K> & h0,
-    const KHyperrect<K> & h1,
+matrix_from_rects(
+    matrix_tile_t & mat,
+    const Rect & r0,
+    const Rect & r1,
     const size_t ld,
     const size_t sizeof_type
 ) {
-    const INTERVAL_DIFF_TYPE_T x0 = (INTERVAL_DIFF_TYPE_T) h0[ACCESS_BLAS_ROW_DIM].a;
-    const INTERVAL_DIFF_TYPE_T xf = (INTERVAL_DIFF_TYPE_T) h1[ACCESS_BLAS_ROW_DIM].b;
-    const INTERVAL_DIFF_TYPE_T y0 = (INTERVAL_DIFF_TYPE_T) h0[ACCESS_BLAS_COL_DIM].a;
-    const INTERVAL_DIFF_TYPE_T yf = (INTERVAL_DIFF_TYPE_T) h1[ACCESS_BLAS_COL_DIM].b;
+    const INTERVAL_DIFF_TYPE_T x0 = (INTERVAL_DIFF_TYPE_T) r0[ACCESS_BLAS_ROW_DIM].a;
+    const INTERVAL_DIFF_TYPE_T xf = (INTERVAL_DIFF_TYPE_T) r1[ACCESS_BLAS_ROW_DIM].b;
+    const INTERVAL_DIFF_TYPE_T y0 = (INTERVAL_DIFF_TYPE_T) r0[ACCESS_BLAS_COL_DIM].a;
+    const INTERVAL_DIFF_TYPE_T yf = (INTERVAL_DIFF_TYPE_T) r1[ACCESS_BLAS_COL_DIM].b;
     assert(0 <= x0 && x0 <= (INTERVAL_DIFF_TYPE_T) (ld * sizeof_type));
     assert(0 <= xf && xf <= (INTERVAL_DIFF_TYPE_T) (ld * sizeof_type));
     assert(y0 < yf);
@@ -113,27 +178,25 @@ memory_view_from_rects(
     }
     m = m / sizeof_type;
 
-    view.order        = MATRIX_COLMAJOR;
-    view.addr         = x0 + y0 * ld * sizeof_type;
-    view.ld           = ld;
-    view.m            = (size_t) m;
-    view.n            = (size_t) n;
-    view.sizeof_type  = sizeof_type;
+    mat.storage        = MATRIX_COLMAJOR;
+    mat.addr         = x0 + y0 * ld * sizeof_type;
+    mat.ld           = ld;
+    mat.m            = (size_t) m;
+    mat.n            = (size_t) n;
+    mat.sizeof_type  = sizeof_type;
 }
 
-template<int K>
+/* rects must have at least a capacity of 2x Rect */
 static inline void
-memory_view_to_rects(
-    const memory_view_t & view,
-    KHyperrect<K> (& rects) [2]
+matrix_to_rects(
+    matrix_tile_t & mat,
+    Rect (& rects) []
 ) {
-    static_assert(K == 2);
-
-    const size_t  A = view.begin_addr();
-    const size_t ld = view.ld;
-    const size_t  m = view.m;
-    const size_t  n = view.n;
-    const size_t  s = view.sizeof_type;
+    const size_t  A = mat.begin_addr();
+    const size_t ld = mat.ld;
+    const size_t  m = mat.m;
+    const size_t  n = mat.n;
+    const size_t  s = mat.sizeof_type;
 
     # if ACCESS_FORCE_ALIGNMENT
     assert((A % (ld * s)) + (m * s) <= ld * s);
@@ -221,10 +284,6 @@ typedef enum    access_type_t : uint8_t
 class access_t
 {
     public:
-        using Rect    = KHyperrect<2>;
-        using Segment = KHyperrect<1>;
-
-    public:
 
         //////////////
         // the mode //
@@ -253,10 +312,11 @@ class access_t
             ///////////////////
 
             struct {
-                /* Currently always 2 rects that represents a matrix in an
-                 * XKTree (1 rect if access is aligned on ld x sizeof_type,
-                 * else 2 rects) */
-                Rect rects[2];
+                /**
+                 *  BLAS matrices have 2 rects in their frame of reference (ld, s)
+                 *  Interval accesses have 3 rects different on each frame of reference (ld, s)
+                 */
+                Rect rects[3];
             };
 
             //////////////
@@ -303,118 +363,6 @@ class access_t
     public:
 
         //////////////////////////////////////////////////////////////////////
-        // BLAS MATRIX ACCESSES CONSTRUCTORS                                //
-        //////////////////////////////////////////////////////////////////////
-
-        access_t(
-            task_t * task,
-            const matrix_order_t & order,
-            const void * addr,
-            const size_t ld,
-            const size_t offset_m,
-            const size_t offset_n,
-            const size_t m,
-            const size_t n,
-            const size_t s, // sizeof_type,
-            access_mode_t mode,
-            access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
-            access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
-        ) :
-            mode(mode),
-            concurrency(concurrency),
-            scope(scope),
-            type(ACCESS_TYPE_BLAS_MATRIX),
-            rects(),
-            successors(8),
-            task(task),
-            host_view(order, addr, ld, offset_m, offset_n, m, n, s),
-            device_view()
-        {
-            /* clear preallocated empty successors */
-            successors.clear();
-
-            /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
-            assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL ||
-                    concurrency == ACCESS_CONCURRENCY_COMMUTATIVE);
-
-            /* Only ACCESS_MODE_R|ACCESS_MODE_W supported yet */
-            assert(mode == ACCESS_MODE_V || mode == ACCESS_MODE_R ||
-                    mode == ACCESS_MODE_W || mode == ACCESS_MODE_RW ||
-                    mode == ACCESS_MODE_PIN || mode == ACCESS_MODE_UNPIN);
-
-            // not sure about what to do if other ordering
-            assert(host_view.order == MATRIX_COLMAJOR);
-
-            // creates the two rects of that memory view
-            memory_view_to_rects(host_view, rects);
-        }
-
-         access_t(
-            task_t * task,
-            const matrix_order_t & order,
-            const void * addr,
-            const size_t ld,
-            const size_t m,
-            const size_t n,
-            const size_t s, // sizeof_type,
-            access_mode_t mode,
-            access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
-            access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
-        ) : access_t(task, order, addr, ld, 0, 0, m, n, s, mode, concurrency, scope) {}
-
-        access_t(
-            task_t * task,
-            const matrix_order_t & order,
-            const Rect & h,
-            const size_t ld,
-            const size_t s,
-            access_mode_t mode,
-            access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
-            access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
-        ) :
-            mode(mode),
-            concurrency(concurrency),
-            scope(scope),
-            type(ACCESS_TYPE_BLAS_MATRIX),
-            rects(),
-            successors(8),
-            task(task),
-            host_view(order, 0, ld, 0, 0, 0, 0, s),
-            device_view()
-        {
-            /* clear preallocated empty successors */
-            successors.clear();
-
-            assert(order == MATRIX_COLMAJOR);
-            assert(mode == ACCESS_MODE_R); // not a big deal, but right now only called from `coherent_async`
-            assert(!h.is_empty());
-
-            memory_view_from_hyperrect(this->host_view, h, ld, s);
-            new (this->rects + 0) Rect(h);
-        }
-
-        access_t(
-            task_t * task,
-            const access_t * other,
-            access_mode_t mode,
-            access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
-            access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
-        ) :
-            access_t(
-                task,
-                other->host_view.order,
-                (void *) other->host_view.addr,
-                other->host_view.ld,
-                other->host_view.m,
-                other->host_view.n,
-                other->host_view.sizeof_type,
-                mode,
-                concurrency,
-                scope
-            )
-        {}
-
-        //////////////////////////////////////////////////////////////////////
         // POINT ACCESSES CONSTRUCTORS                                      //
         //////////////////////////////////////////////////////////////////////
 
@@ -439,10 +387,11 @@ class access_t
             successors.clear();
 
             /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
-            assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL);
+            assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL ||
+                    concurrency == ACCESS_CONCURRENCY_COMMUTATIVE);
 
             /* Only ACCESS_MODE_R|ACCESS_MODE_W supported yet */
-            assert(mode == ACCESS_MODE_V || mode == ACCESS_MODE_R || mode == ACCESS_MODE_W || mode == ACCESS_MODE_RW);
+            assert(mode == ACCESS_MODE_V || mode == ACCESS_MODE_R || mode == ACCESS_MODE_W || mode == ACCESS_MODE_RW || mode == ACCESS_MODE_WV);
         }
 
         //////////////////////////////////////////////////////////////////////
@@ -462,7 +411,7 @@ class access_t
         ) :
             access_t(
                 task,
-                MATRIX_COLMAJOR,    // order
+                MATRIX_COLMAJOR,    // storage
                 (const void *) a,   // addr
                 SIZE_MAX,           // ld
                 0,                  // offset_m
@@ -473,9 +422,123 @@ class access_t
                 mode,
                 concurrency,
                 scope
-        ) {
+            )
+        {
             assert(a < b);
+            this->type = ACCESS_TYPE_INTERVAL;
         }
+
+        //////////////////////////////////////////////////////////////////////
+        // BLAS MATRIX ACCESSES CONSTRUCTORS                                //
+        //////////////////////////////////////////////////////////////////////
+
+        access_t(
+            task_t * task,
+            const matrix_storage_t & storage,
+            const void * addr,
+            const size_t ld,
+            const size_t offset_m,
+            const size_t offset_n,
+            const size_t m,
+            const size_t n,
+            const size_t s, // sizeof_type,
+            access_mode_t mode,
+            access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
+            access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
+        ) :
+            mode(mode),
+            concurrency(concurrency),
+            scope(scope),
+            type(ACCESS_TYPE_BLAS_MATRIX),
+            rects(),
+            successors(8),
+            task(task),
+            host_view(storage, addr, ld, offset_m, offset_n, m, n, s),
+            device_view()
+        {
+            /* clear preallocated empty successors */
+            successors.clear();
+
+            /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
+            assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL ||
+                    concurrency == ACCESS_CONCURRENCY_COMMUTATIVE);
+
+            /* Only ACCESS_MODE_R|ACCESS_MODE_W supported yet */
+            assert(mode == ACCESS_MODE_V || mode == ACCESS_MODE_R ||
+                    mode == ACCESS_MODE_W || mode == ACCESS_MODE_RW);
+
+            // not sure about what to do if other storageing
+            assert(host_view.storage == MATRIX_COLMAJOR);
+
+            // creates the two rects of that memory view
+            matrix_to_rects(host_view, rects);
+        }
+
+         access_t(
+            task_t * task,
+            const matrix_storage_t & storage,
+            const void * addr,
+            const size_t ld,
+            const size_t m,
+            const size_t n,
+            const size_t s, // sizeof_type,
+            access_mode_t mode,
+            access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
+            access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
+        ) : access_t(task, storage, addr, ld, 0, 0, m, n, s, mode, concurrency, scope) {}
+
+        access_t(
+            task_t * task,
+            const matrix_storage_t & storage,
+            const Rect & h,
+            const size_t ld,
+            const size_t s,
+            access_mode_t mode,
+            access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
+            access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
+        ) :
+            mode(mode),
+            concurrency(concurrency),
+            scope(scope),
+            type(ACCESS_TYPE_BLAS_MATRIX),
+            rects(),
+            successors(8),
+            task(task),
+            host_view(storage, 0, ld, 0, 0, 0, 0, s),
+            device_view()
+        {
+            /* clear preallocated empty successors */
+            successors.clear();
+
+            assert(storage == MATRIX_COLMAJOR);
+            assert(mode == ACCESS_MODE_R); // not a big deal, but right now only called from `coherent_async`
+            assert(!h.is_empty());
+
+            matrix_from_rect(this->host_view, h, ld, s);
+            new (this->rects + 0) Rect(h);
+        }
+
+        access_t(
+            task_t * task,
+            const access_t * other,
+            access_mode_t mode,
+            access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
+            access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
+        ) :
+            access_t(
+                task,
+                other->host_view.storage,
+                (void *) other->host_view.addr,
+                other->host_view.ld,
+                other->host_view.m,
+                other->host_view.n,
+                other->host_view.sizeof_type,
+                mode,
+                concurrency,
+                scope
+            )
+        {}
+
 
         //////////////////////////////////////////////////////////////////////
         // NULL ACCESS                                                      //

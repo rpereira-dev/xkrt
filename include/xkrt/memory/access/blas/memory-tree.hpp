@@ -328,6 +328,7 @@ class KMemoryBlock {
 
             this->coherency = inheriting_block.coherency;
             this->fetching = inheriting_block.fetching;
+
             # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
             this->registered = inheriting_block.registered;
             # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
@@ -474,14 +475,14 @@ class KBLASMemoryTreeNodeSearch {
    public:
 
        /* different search type */
-       enum Type : uint8_t {
-           INSERTING_BLOCKS     = 0,    // insert new blocks
-           SEARCH_FOR_PARTITION = 1,    // search for a partition
-           SEARCH_AWAITING      = 2,    // search tasks awaiting on blocks (to be transfered onto a gpu, typically)
-           SEARCH_OWNERS        = 3,    // search how many bytes owns each device
+        enum Type : uint8_t {
+            INSERTING_BLOCKS     = 0,    // insert new blocks
+            SEARCH_FOR_PARTITION = 1,    // search for a partition
+            SEARCH_AWAITING      = 2,    // search tasks awaiting on blocks (to be transfered onto a gpu, typically)
+            SEARCH_OWNERS        = 3,    // search how many bytes owns each device
             # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
-            REGISTERED          = 4,    // mark memory block as registered
-            UNREGISTERED        = 5,    // mark memory block as unregistered
+            REGISTERED           = 4,    // mark memory block as registered
+            UNREGISTERED         = 5,    // mark memory block as unregistered
             # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
        };
 
@@ -894,7 +895,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                         assert( fi->rects[1].is_empty());
                         assert( fj->rects[1].is_empty());
 
-                        memory_view_from_rects<K>(
+                        matrix_from_rects(
                             fi->host_view,
                             fi->rects[0], fj->rects[0],
                             fi->host_view.ld,
@@ -1003,7 +1004,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                         forward_list->fetching();
 
                         // upcoming copy only needs m, n, sizeof_type
-                        memory_view_from_hyperrect(forward_fetch->host_view, forward.dst_hyperrect, tree->ld, tree->sizeof_type);
+                        matrix_from_rect(forward_fetch->host_view, forward.dst_hyperrect, tree->ld, tree->sizeof_type);
 
                         // the chunk to use
                         forward_fetch->dst_chunk = forward.chunk;
@@ -1069,7 +1070,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
                 /* set the views */
                 memory_view_t host_view;
-                memory_view_from_hyperrect(host_view, partite.hyperrect, this->ld, this->sizeof_type);
+                matrix_from_rect(host_view, partite.hyperrect, this->ld, this->sizeof_type);
                 const memory_replicate_view_t host_replicate_view(host_view.begin_addr(), this->ld);
                 const memory_replicate_view_t dst_view = (partite.dst_allocation_view_id == MEMORY_REPLICATE_ALLOCATION_VIEW_NONE) ? host_replicate_view : partite.dst_view;
                 const memory_replicate_view_t src_view = (partite.src_allocation_view_id == MEMORY_REPLICATE_ALLOCATION_VIEW_NONE) ? host_replicate_view : partite.src_view;
@@ -1886,7 +1887,6 @@ next_view:
                     node->block.registered = false;
                     break ;
                 }
-
                 # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
                 default:
@@ -2074,9 +2074,9 @@ next_view:
         ) const {
             assert(
                 search.type == Search::Type::INSERTING_BLOCKS
-             # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+                # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
                 || search.type == Search::Type::REGISTERED
-             # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+                # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
             );
             return new Node(search.access, h, k, color);
         }
@@ -2092,19 +2092,19 @@ next_view:
             (void) search;
             assert(
                 search.type == Search::Type::INSERTING_BLOCKS
-             # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+                # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
                 || search.type == Search::Type::REGISTERED
-             # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+                # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
             );
             assert(!h.intersects(inherit->hyperrect));
             return new Node(h, k, color, reinterpret_cast<const Node *>(inherit), this->sizeof_type);
         }
 
+        # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+
         //////////////////////////////////////////
         // Memory registration / unregistration //
         //////////////////////////////////////////
-
-        # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
 
         /* the given memory segment got (un)registered */
         template<Search::Type T>
@@ -2113,63 +2113,9 @@ next_view:
             uintptr_t ptr,
             size_t size
         ) {
-            using Rect = Hyperrect;
             static_assert(K == 2);
-
-            /**
-             *  x = memory being registered
-             *      --------------------------------->
-             *      |      x  x  x
-             *      |      x  x  x
-             *      |      x  x  x
-             * LD.s |   x  x  x  x
-             *      |   x  x  x  x
-             *      |   x  x  x
-             *      v
-             *
-             *  generate 3 rects from it
-             *
-             *          y0 y1 y2 y3
-             *      --------------------------------->
-             *      |      1  1  2   x2
-             *      |      1  1  2
-             *      |      1  1  2
-             * x0   |   0  1  1  2
-             *      |   0  1  1  2   x3
-             * x1   |   0  1  1
-             *      v
-             */
-
-            const INTERVAL_TYPE_T LDs = this->ld * this->sizeof_type;
-
-            const INTERVAL_TYPE_T x0 = ptr % LDs;
-            const INTERVAL_TYPE_T x1 = MIN(x0 + size, LDs);
-            const INTERVAL_TYPE_T dx10 = x1 - x0;
-
-            const INTERVAL_TYPE_T x2 = 0;
-            const INTERVAL_TYPE_T x3 = (size - dx10) % LDs;
-            const INTERVAL_TYPE_T dx32 = x3 - x2;
-
-            assert((size - dx10 - dx32) % LDs == 0);
-
-            const INTERVAL_TYPE_T y0 = ptr / LDs;
-            const INTERVAL_TYPE_T y1 = y0 + 1;
-            const INTERVAL_TYPE_T y3 = y0 + ((size - dx10 - dx32) / LDs) + 2;
-            const INTERVAL_TYPE_T y2 = y3 - 1;
-
-            Interval intervals[3][2];
-            intervals[0][ACCESS_BLAS_ROW_DIM] = Interval(x0, x1);
-            intervals[0][ACCESS_BLAS_COL_DIM] = Interval(y0, y1);
-            intervals[1][ACCESS_BLAS_ROW_DIM] = Interval(0, LDs);
-            intervals[1][ACCESS_BLAS_COL_DIM] = Interval(y1, y2);
-            intervals[2][ACCESS_BLAS_ROW_DIM] = Interval(x2, x3);
-            intervals[2][ACCESS_BLAS_COL_DIM] = Interval(y2, y3);
-
-            Rect rects[3] = {
-                Rect(intervals[0]),
-                Rect(intervals[1]),
-                Rect(intervals[2])
-            };
+            Rect rects[3];
+            interval_to_rects(ptr, ptr + size, this->ld, this->sizeof_type, rects);
 
             /* insert blocks in the tree with the registered bit */
             Search search;
@@ -2200,6 +2146,7 @@ next_view:
         }
 
         # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
 };
 
 using BLASMemoryTree = KBLASMemoryTree<2>;

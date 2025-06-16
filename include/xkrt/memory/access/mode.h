@@ -40,12 +40,11 @@
 
 typedef enum    access_mode_t
 {
-    ACCESS_MODE_V       = 0b00000000,   // virtual
     ACCESS_MODE_R       = 0b00000001,   // read
     ACCESS_MODE_W       = 0b00000010,   // write
     ACCESS_MODE_RW      = ACCESS_MODE_R | ACCESS_MODE_W,
-    ACCESS_MODE_PIN     = 0b00000100,   // registration   (pin)
-    ACCESS_MODE_UNPIN   = 0b00001000,   // unregistration (unpin)
+    ACCESS_MODE_V       = 0b00000100,   // virtual (= dont really move the memory)
+    ACCESS_MODE_WV      = ACCESS_MODE_W | ACCESS_MODE_V,
 }               access_mode_t;
 
 typedef enum    access_concurrency_t
@@ -82,8 +81,6 @@ access_mode_to_str(access_mode_t mode)
         case (ACCESS_MODE_R):     return "ACCESS_MODE_R";
         case (ACCESS_MODE_W):     return "ACCESS_MODE_W";
         case (ACCESS_MODE_RW):    return "ACCESS_MODE_RW";
-        case (ACCESS_MODE_PIN):   return "ACCESS_MODE_PIN";
-        case (ACCESS_MODE_UNPIN): return "ACCESS_MODE_UNPIN";
         default:                  return "ACCESS_MODE_UNKN";
     }
 }

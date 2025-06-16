@@ -24,10 +24,10 @@ main(void)
 
     # include "memory-register-async.conf.cc"
 
-    runtime.memory_register_async(team, ptr, chunk_size, nchunks);
+    runtime.memory_register_async(team, ptr, size, nchunks);
     runtime.task_wait();
 
-    runtime.memory_unregister_async(team, ptr, chunk_size, nchunks);
+    runtime.memory_unregister_async(team, ptr, size, nchunks);
     runtime.task_wait();
 
     assert(xkrt_deinit(&runtime) == 0);

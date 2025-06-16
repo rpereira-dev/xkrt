@@ -98,10 +98,10 @@ class IntervalDependencyTreeNode : public KHPTree<K, IntervalDependencyTreeSearc
 
     public:
 
-        /* last tasks that performed a read access */
+        /* last accesses that read */
         std::vector<access_t *> last_reads;
 
-        /* last task that performed a write access */
+        /* last access that wrote */
         access_t * last_write;
 
         /* number of writes in all subtrees */
@@ -193,11 +193,13 @@ class IntervalDependencyTree : public KHPTree<K, IntervalDependencyTreeSearch>, 
 
     public:
 
+        /* accesses submitted to the interval tree */
+        std::list<access_t *> accesses;
+
+    public:
+
         /* alignment is ld.sizeof_type */
-        IntervalDependencyTree() : Base()
-        {
-            LOGGER_FATAL("IntervalDependencyTree shouldnt be used. Use BLAS matrix with ld=SIZE_MAX instead");
-        }
+        IntervalDependencyTree() : Base(), accesses() {}
         ~IntervalDependencyTree() {}
 
     public:
@@ -347,6 +349,8 @@ class IntervalDependencyTree : public KHPTree<K, IntervalDependencyTreeSearch>, 
             Search search;
             search.prepare_resolve(access);
             Base::insert(search, access->segment);
+
+            this->accesses.push_front(access);
         }
 
 };
