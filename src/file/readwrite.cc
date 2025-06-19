@@ -36,30 +36,26 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __STREAM_INSTRUCTION_TYPE_H__
-# define __STREAM_INSTRUCTION_TYPE_H__
+# include <xkrt/runtime.h>
 
-typedef enum    xkrt_stream_instruction_type_t
-{
-    XKRT_STREAM_INSTR_TYPE_KERN         = 0,
+ssize_t
+xkrt_runtime_t::file_read_async(
+    int fd,
+    void * buffer,
+    size_t n,
+    unsigned int nchunks
+) {
+    LOGGER_FATAL("Impl me");
+    return -1;
+}
 
-    XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D  = 1,
-    XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D  = 2,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D  = 3,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D  = 4,
-
-    XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D  = 5,
-    XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D  = 6,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D  = 7,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D  = 8,
-
-    XKRT_STREAM_INSTR_TYPE_FILE_READ    = 9,
-    XKRT_STREAM_INSTR_TYPE_FILE_WRITE   = 10,
-
-    XKRT_STREAM_INSTR_TYPE_MAX          = 11
-
-}               xkrt_stream_instruction_type_t;
-
-const char * xkrt_stream_instruction_type_to_str(xkrt_stream_instruction_type_t type);
-
-#endif /* __STREAM_INSTRUCTION_H__ */
+ssize_t
+xkrt_runtime_t::file_write_async(
+    int fd,
+    void * buffer,
+    size_t n,
+    unsigned int nchunks
+) {
+    LOGGER_FATAL("Impl me");
+    return -1;
+}

@@ -10,6 +10,7 @@ set(TEST_SOURCES
     deinit.cc
     fib-task-capture.cc
     fib-task-format.cc
+    file-read.cc
     init.cc
     memory-register-async-legacy-memcpy-split.cc
     memory-register-async-legacy.cc

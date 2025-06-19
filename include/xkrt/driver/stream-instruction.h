@@ -71,27 +71,23 @@ typedef struct  xkrt_stream_instruction_copy_2D_t
 
 }               xkrt_stream_instruction_copy_2D_t;
 
-typedef struct  xkrt_stream_instruction_copy_t
-{
-    xkrt_stream_instruction_copy_1D_t D1;
-    xkrt_stream_instruction_copy_2D_t D2;
-
-}               xkrt_stream_instruction_copy_t;
-
-/* marker call back, acts as a full memory barrier : any write, read or kernel instructon
-   before the sync are never re-ordered after the sync.
-   */
-typedef struct xkrt_stream_instruction_barrier_t
-{
-
-}               xkrt_stream_instruction_barrier_t;
-
 /* io instruction kernel : to launch kernel on the device */
 typedef struct  xkrt_stream_instruction_kernel_t
 {
     void (*launch)(void * istream, void * instr, xkrt_stream_instruction_counter_t idx);
     void * vargs;
 }               xkrt_stream_instruction_kernel_t;
+
+/* io instruction to read/write files */
+typedef struct  xkrt_stream_instruction_file_read_t
+{
+    int fd;
+    void * buffer;
+    size_t total_size;
+    size_t nchunks;
+}               xkrt_stream_instruction_file_read_t;
+
+typedef xkrt_stream_instruction_file_read_t xkrt_stream_instruction_file_write_t;
 
 /* An PTR I/O instruction */
 typedef struct  xkrt_stream_instruction_t
@@ -100,9 +96,11 @@ typedef struct  xkrt_stream_instruction_t
     xkrt_callback_t callback;
     union
     {
-        xkrt_stream_instruction_copy_t      copy;
-        xkrt_stream_instruction_kernel_t    kern;
-        xkrt_stream_instruction_barrier_t   barrier;
+        xkrt_stream_instruction_copy_1D_t       copy_1D;
+        xkrt_stream_instruction_copy_2D_t       copy_2D;
+        xkrt_stream_instruction_kernel_t        kern;
+        xkrt_stream_instruction_file_read_t     file_read;
+        xkrt_stream_instruction_file_write_t    file_write;
     };
 
 }               xkrt_stream_instruction_t;

@@ -123,6 +123,28 @@ typedef struct  xkrt_runtime_t
         const xkrt_callback_t         & callback
     );
 
+    /////////////////////
+    // I/O FILESYSTEM //
+    /////////////////////
+
+    /**
+     *  Create a task that reads 'n' bytes from the file descriptor 'fd' ,
+     *  and write to the 'buffer' memory.
+     *
+     *  Task' access is `write: Interval(buffer, n)`
+     *
+     *  Dependencies may be released early if nchunks > 1
+     *  Example:
+     *      if nchunks == 1, then dependencies are released once 'n' bytes got read
+     *      if nchunks == 2, then dependencies are released twice, on
+     *          - Interval(buffer      , n/2) - once it has been read
+     *          - Interval(buffer + n/2, n/2) - once it has been read
+     *
+     *  Return the number of bytes read/written, or -1 on error
+     */
+    ssize_t file_read_async(int fd, void * buffer, size_t n, unsigned int nchunks);
+    ssize_t file_write_async(int fd, void * buffer, size_t n, unsigned int nchunks);
+
     ////////////
     // MEMORY //
     ////////////

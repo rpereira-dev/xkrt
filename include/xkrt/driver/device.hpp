@@ -370,16 +370,16 @@ typedef struct  xkrt_device_t
 
         /* create a new copy instruction */
         if constexpr (IS_1D) {
-            instr->copy.D1.size = host_view;
-            instr->copy.D1.dst_device_addr  = dst_device_view;
-            instr->copy.D1.src_device_addr  = src_device_view;
-            XKRT_STATS_INCR(stream->stats.transfered, instr->copy.D1.size);
+            instr->copy_1D.size = host_view;
+            instr->copy_1D.dst_device_addr  = dst_device_view;
+            instr->copy_1D.src_device_addr  = src_device_view;
+            XKRT_STATS_INCR(stream->stats.transfered, instr->copy_1D.size);
         } else if constexpr (IS_2D) {
-            instr->copy.D2.m                = host_view.m;
-            instr->copy.D2.n                = host_view.n;
-            instr->copy.D2.sizeof_type      = host_view.sizeof_type;
-            instr->copy.D2.dst_device_view  = dst_device_view;
-            instr->copy.D2.src_device_view  = src_device_view;
+            instr->copy_2D.m                = host_view.m;
+            instr->copy_2D.n                = host_view.n;
+            instr->copy_2D.sizeof_type      = host_view.sizeof_type;
+            instr->copy_2D.dst_device_view  = dst_device_view;
+            instr->copy_2D.src_device_view  = src_device_view;
             XKRT_STATS_INCR(stream->stats.transfered, host_view.m * host_view.n * host_view.sizeof_type);
         }
 
