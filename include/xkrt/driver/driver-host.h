@@ -36,30 +36,33 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __STREAM_INSTRUCTION_TYPE_H__
-# define __STREAM_INSTRUCTION_TYPE_H__
+#ifndef __DRIVER_HOST_H__
+# define __DRIVER_HOST_H__
 
-typedef enum    xkrt_stream_instruction_type_t
+# include <atomic>
+
+# include <xkrt/driver/driver.h>
+# include <xkrt/driver/stream.h>
+
+typedef std::atomic<uint8_t> xkrt_stream_host_event_t;
+
+typedef struct  xkrt_stream_host_t
 {
-    XKRT_STREAM_INSTR_TYPE_KERN         = 0,
+    xkrt_stream_t super;
 
-    XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D  = 1,
-    XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D  = 2,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D  = 3,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D  = 4,
+    struct {
 
-    XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D  = 5,
-    XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D  = 6,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D  = 7,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D  = 8,
+        struct {
+            xkrt_stream_host_event_t * buffer;
+            xkrt_stream_instruction_counter_t capacity;
+        } events;
 
-    XKRT_STREAM_INSTR_TYPE_FD_READ      = 9,
-    XKRT_STREAM_INSTR_TYPE_FD_WRITE     = 10,
+    } host;
+}               xkrt_stream_host_t;
 
-    XKRT_STREAM_INSTR_TYPE_MAX          = 11
+typedef struct  xkrt_driver_host_t
+{
+    xkrt_driver_t super;
+}               xkrt_driver_host_t;
 
-}               xkrt_stream_instruction_type_t;
-
-const char * xkrt_stream_instruction_type_to_str(xkrt_stream_instruction_type_t type);
-
-#endif /* __STREAM_INSTRUCTION_H__ */
+#endif /* __DRIVER_HOST_H__ */

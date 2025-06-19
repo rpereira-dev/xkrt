@@ -52,7 +52,7 @@
 /* counter for the stream queues */
 typedef uint32_t xkrt_stream_instruction_counter_t;
 
-/* io instruction to move data between devices */
+/* move data between devices */
 typedef struct  xkrt_stream_instruction_copy_1D_t
 {
     size_t size;
@@ -71,36 +71,32 @@ typedef struct  xkrt_stream_instruction_copy_2D_t
 
 }               xkrt_stream_instruction_copy_2D_t;
 
-/* io instruction kernel : to launch kernel on the device */
+/* kernel : to launch kernel on the device */
 typedef struct  xkrt_stream_instruction_kernel_t
 {
     void (*launch)(void * istream, void * instr, xkrt_stream_instruction_counter_t idx);
     void * vargs;
 }               xkrt_stream_instruction_kernel_t;
 
-/* io instruction to read/write files */
-typedef struct  xkrt_stream_instruction_file_read_t
+/* read/write files */
+typedef struct  xkrt_stream_instruction_fd_t
 {
     int fd;
     void * buffer;
-    size_t total_size;
-    size_t nchunks;
-}               xkrt_stream_instruction_file_read_t;
+    size_t n;
+}               xkrt_stream_instruction_fd_t;
 
-typedef xkrt_stream_instruction_file_read_t xkrt_stream_instruction_file_write_t;
-
-/* An PTR I/O instruction */
+/* instructions */
 typedef struct  xkrt_stream_instruction_t
 {
     xkrt_stream_instruction_type_t type;
     xkrt_callback_t callback;
     union
     {
-        xkrt_stream_instruction_copy_1D_t       copy_1D;
-        xkrt_stream_instruction_copy_2D_t       copy_2D;
-        xkrt_stream_instruction_kernel_t        kern;
-        xkrt_stream_instruction_file_read_t     file_read;
-        xkrt_stream_instruction_file_write_t    file_write;
+        xkrt_stream_instruction_copy_1D_t   copy_1D;
+        xkrt_stream_instruction_copy_2D_t   copy_2D;
+        xkrt_stream_instruction_kernel_t    kern;
+        xkrt_stream_instruction_fd_t        fd;
     };
 
 }               xkrt_stream_instruction_t;

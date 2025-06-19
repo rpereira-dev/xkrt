@@ -835,7 +835,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     xkrt_stream_cu_t * stream = (xkrt_stream_cu_t *) mem;
 
     /*************************/
-    /* init xkrt stream */
+    /* init xkrt stream      */
     /*************************/
     xkrt_stream_init(
         (xkrt_stream_t *) stream,
@@ -847,7 +847,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     );
 
     /*************************/
-    /* do cu specific init */
+    /* do cu specific init   */
     /*************************/
 
     /* events */

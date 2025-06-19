@@ -74,6 +74,8 @@ typedef struct  xkrt_runtime_t
         task_format_id_t memory_touch_async;
         task_format_id_t memory_register_async;
         task_format_id_t memory_unregister_async;
+        task_format_id_t file_read_async;
+        task_format_id_t file_write_async;
     } formats;
 
     /* user conf */
@@ -139,11 +141,9 @@ typedef struct  xkrt_runtime_t
      *      if nchunks == 2, then dependencies are released twice, on
      *          - Interval(buffer      , n/2) - once it has been read
      *          - Interval(buffer + n/2, n/2) - once it has been read
-     *
-     *  Return the number of bytes read/written, or -1 on error
      */
-    ssize_t file_read_async(int fd, void * buffer, size_t n, unsigned int nchunks);
-    ssize_t file_write_async(int fd, void * buffer, size_t n, unsigned int nchunks);
+    int file_read_async(int fd, void * buffer, size_t n, unsigned int nchunks);
+    int file_write_async(int fd, void * buffer, size_t n, unsigned int nchunks);
 
     ////////////
     // MEMORY //
@@ -315,6 +315,9 @@ void xkrt_task_host_capture_register_format(xkrt_runtime_t * runtime);
 
 /* register v2 format */
 void xkrt_memory_async_register_format(xkrt_runtime_t * runtime);
+
+/* file async format */
+void xkrt_file_async_register_format(xkrt_runtime_t * runtime);
 
 /* Main entry thread created per device */
 void * xkrt_device_thread_main(xkrt_team_t * team, xkrt_thread_t * thread);

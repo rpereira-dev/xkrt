@@ -42,6 +42,7 @@
 # include <xkrt/conf/conf.h>
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
+# include <xkrt/driver/driver-host.h>
 # include <xkrt/driver/stream.h>
 # include <xkrt/sync/bits.h>
 # include <xkrt/sync/mutex.h>
@@ -150,7 +151,6 @@ XKRT_DRIVER_ENTRYPOINT(device_commit)(int device_driver_id, xkrt_device_global_i
 // STREAM //
 ////////////
 
-# if 0
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
     xkrt_stream_t * istream,
@@ -158,23 +158,53 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
     xkrt_stream_instruction_counter_t idx
 ) {
     (void) istream;
-    (void) instr;
     (void) idx;
+
+    assert(instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ ||
+            instr->type == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
+
+    switch (instr->type)
+    {
+        case (XKRT_STREAM_INSTR_TYPE_FD_READ):
+        case (XKRT_STREAM_INSTR_TYPE_FD_WRITE):
+        {
+            LOGGER_FATAL("IMPL ME");
+            return EINPROGRESS;
+        }
+
+        default:
+            break ;
+    }
+
     return 0;
 }
-# endif
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
     int device_driver_id,
     xkrt_stream_type_t stype
 ) {
-    (void) stype;
     assert(device_driver_id == 0);
+    switch (stype)
+    {
+        case (XKRT_STREAM_TYPE_FD_READ):
+        case (XKRT_STREAM_TYPE_FD_WRITE):
+            return 1;
+
+        default:
+            return 0;
+    }
     return 0;
 }
 
-# if 0
+static inline int
+XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
+    xkrt_stream_t * istream
+) {
+    LOGGER_FATAL("Not supported");
+    return 0;
+}
+
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     xkrt_stream_t * istream,
@@ -182,14 +212,27 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     xkrt_stream_instruction_counter_t idx
 ) {
     (void)istream;
-    (void)instr;
     (void)idx;
-    assert(0);
-    return EINPROGRESS;
-}
-# endif
 
-# if 0
+    assert(instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ ||
+            instr->type == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
+
+    switch (instr->type)
+    {
+        case (XKRT_STREAM_INSTR_TYPE_FD_READ):
+        case (XKRT_STREAM_INSTR_TYPE_FD_WRITE):
+        {
+            LOGGER_FATAL("IMPL ME");
+            return EINPROGRESS;
+        }
+
+        default:
+            break ;
+    }
+
+    return 0;
+}
+
 static xkrt_stream_t *
 XKRT_DRIVER_ENTRYPOINT(stream_create)(
     xkrt_device_t * idevice,
@@ -198,21 +241,44 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
 ) {
     (void)idevice;
     (void)type;
-    (void)capacity;
-    assert(0);
-    return NULL;
-}
-# endif
 
-# if 0
+    assert(type == XKRT_STREAM_TYPE_FD_READ || type == XKRT_STREAM_TYPE_FD_WRITE);
+
+    uint8_t * mem = (uint8_t *) malloc(sizeof(xkrt_stream_host_t) + capacity * sizeof(xkrt_stream_host_event_t));
+    assert(mem);
+
+    xkrt_stream_host_t * stream = (xkrt_stream_host_t *) mem;
+
+    /*************************/
+    /* init xkrt stream */
+    /*************************/
+    xkrt_stream_init(
+        (xkrt_stream_t *) stream,
+        type,
+        capacity,
+        XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
+        XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress),
+        XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)
+    );
+
+    /*************************/
+    /* do host specific init */
+    /*************************/
+
+    /* events */
+    stream->host.events.buffer = (xkrt_stream_host_event_t *) (stream + 1);
+    stream->host.events.capacity = capacity;
+    memset(stream->host.events.buffer, 0, capacity * sizeof(xkrt_stream_host_event_t));
+
+    return (xkrt_stream_t *) stream;
+}
+
 static void
 XKRT_DRIVER_ENTRYPOINT(stream_delete)(
     xkrt_stream_t * istream
 ) {
-    (void)istream;
-    assert(0);
+    free(istream);
 }
-# endif
 
 ////////////
 // MEMORY //
@@ -354,8 +420,8 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(device_cpuset);
 
     REGISTER(stream_suggest);
- // REGISTER(stream_create);
- // REGISTER(stream_delete);
+    REGISTER(stream_create);
+    REGISTER(stream_delete);
 
  // REGISTER(module_load);
  // REGISTER(module_unload);

@@ -48,12 +48,14 @@ xkrt_stream_type_to_str(xkrt_stream_type_t type)
 {
     switch (type)
     {
-        case (XKRT_STREAM_TYPE_H2D):    return "H2D";
-        case (XKRT_STREAM_TYPE_D2H):    return "D2H";
-        case (XKRT_STREAM_TYPE_D2D):    return "D2D";
-        case (XKRT_STREAM_TYPE_KERN):   return "KERN";
-        case (XKRT_STREAM_TYPE_ALL):    return "ALL";
-        default:                        return NULL;
+        case (XKRT_STREAM_TYPE_H2D):        return "H2D";
+        case (XKRT_STREAM_TYPE_D2H):        return "D2H";
+        case (XKRT_STREAM_TYPE_D2D):        return "D2D";
+        case (XKRT_STREAM_TYPE_KERN):       return "KERN";
+        case (XKRT_STREAM_TYPE_FD_READ):    return "FD_READ";
+        case (XKRT_STREAM_TYPE_FD_WRITE):   return "FD_WRITE";
+        case (XKRT_STREAM_TYPE_ALL):        return "ALL";
+        default:                            return  NULL;
     }
 }
 
@@ -71,6 +73,8 @@ xkrt_stream_instruction_type_to_str(xkrt_stream_instruction_type_t type)
          case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D): return "COPY_H2D_2D";
          case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D): return "COPY_D2H_2D";
          case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D): return "COPY_D2D_2D";
+         case (XKRT_STREAM_INSTR_TYPE_FD_READ):     return "FD_READ";
+         case (XKRT_STREAM_INSTR_TYPE_FD_WRITE):    return "FD_WRITE";
          default:                                   return NULL;
     }
 }
@@ -214,6 +218,8 @@ xkrt_stream_t::launch_ready_instructions(void)
             case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
             case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
             case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+            case (XKRT_STREAM_INSTR_TYPE_FD_READ):
+            case (XKRT_STREAM_INSTR_TYPE_FD_WRITE):
             default:
             {
                 err = this->f_instruction_launch(this, instr, p);

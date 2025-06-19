@@ -38,24 +38,158 @@
 
 # include <xkrt/runtime.h>
 
-ssize_t
+typedef struct  file_args_t
+{
+    xkrt_runtime_t * runtime;
+    int fd;
+    void * buffer;
+    size_t n;
+    unsigned int nchunks;
+    std::atomic<unsigned int> nchunks_completed;
+}               file_args_t;
+
+constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT | TASK_FLAG_DETACHABLE;
+constexpr unsigned int ac  = 1;
+constexpr size_t task_size = task_compute_size(flags, ac);
+constexpr size_t args_size = sizeof(file_args_t);
+
+static void
+body_file_async_callback(const void * vargs [XKRT_CALLBACK_ARGS_MAX])
+{
+    task_t * task = (task_t *) vargs[0];
+    assert(task);
+
+    file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
+
+    // if all read/write completed, complete the task
+    if (args->nchunks_completed.fetch_add(1, std::memory_order_relaxed) == args->nchunks - 1)
+        args->runtime->task_detachable_post(task);
+}
+
+template<xkrt_stream_instruction_type_t T>
+static void
+body_file_async(task_t * task)
+{
+    assert(task);
+
+    xkrt_callback_t callback;
+    callback.func    = body_file_async_callback;
+    callback.args[0] = task;
+
+    file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
+
+    xkrt_device_t * device = args->runtime->device_get(HOST_DEVICE_GLOBAL_ID);
+    assert(device);
+
+    // compute chunk size
+    const size_t chunksize = args->n / args->nchunks;
+    assert(chunksize > 0);
+
+    const uintptr_t ptr = (const uintptr_t) args->buffer;
+    for (size_t i = 0 ; i < args->nchunks ; ++i)
+    {
+        callback.args[1] = (void *) i;
+
+        device->offloader_stream_instruction_submit_file<T>(
+            args->fd,
+            (void *) (ptr + i * chunksize),
+            (i == args->nchunks - 1) ? (args->n - i*chunksize) : chunksize,
+            callback
+        );
+    }
+}
+
+template<xkrt_stream_instruction_type_t T>
+static inline int
+file_async(
+    xkrt_runtime_t * runtime,
+    int fd,
+    void * buffer,
+    size_t n,
+    unsigned int nchunks
+) {
+    static_assert(T == XKRT_STREAM_INSTR_TYPE_FD_READ || T == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
+    assert(nchunks > 0);
+
+    // compute number of instructions to spawn
+    if (n < nchunks)
+       nchunks = (unsigned int) n;
+
+    // create the task that submit the i/o instruction
+    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    assert(thread);
+
+    // get task format
+    const task_format_id_t fmtid = (T == XKRT_STREAM_INSTR_TYPE_FD_READ) ? runtime->formats.file_read_async : runtime->formats.file_write_async;
+
+    task_t * task = thread->allocate_task(task_size + args_size);
+    new(task) task_t(fmtid, flags);
+
+    # if 0 /* no need to init det info if initializing dep info */
+    task_det_info_t * det = TASK_DET_INFO(task);
+    new (det) task_det_info_t();
+    # endif
+
+    task_dep_info_t * dep = TASK_DEP_INFO(task);
+    new (dep) task_dep_info_t(ac);
+
+    // virtual write onto the memory segment
+    access_t * accesses = TASK_ACCESSES(task, flags);
+    constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V | ACCESS_MODE_D);
+    const uintptr_t ptr = (const uintptr_t) buffer;
+    new(accesses + 0) access_t(task, ptr, ptr + n, mode);
+
+    // copy arguments
+    file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
+    args->runtime = runtime;
+    args->fd = fd;
+    args->buffer = buffer;
+    args->n = n;
+    args->nchunks = nchunks;
+    args->nchunks_completed.store(0);
+
+    // commit
+    runtime->task_commit(task);
+
+    return 0;
+}
+
+int
 xkrt_runtime_t::file_read_async(
     int fd,
     void * buffer,
     size_t n,
     unsigned int nchunks
 ) {
-    LOGGER_FATAL("Impl me");
-    return -1;
+    return file_async<XKRT_STREAM_INSTR_TYPE_FD_READ>(this, fd, buffer, n, nchunks);
 }
 
-ssize_t
+int
 xkrt_runtime_t::file_write_async(
     int fd,
     void * buffer,
     size_t n,
     unsigned int nchunks
 ) {
-    LOGGER_FATAL("Impl me");
-    return -1;
+    return file_async<XKRT_STREAM_INSTR_TYPE_FD_WRITE>(this, fd, buffer, n, nchunks);
+}
+
+void
+xkrt_file_async_register_format(xkrt_runtime_t * runtime)
+{
+    {
+        task_format_t format;
+        memset(format.f, 0, sizeof(format.f));
+        format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_file_async<XKRT_STREAM_INSTR_TYPE_FD_READ>;
+        snprintf(format.label, sizeof(format.label), "file_read_async");
+        runtime->formats.file_read_async = task_format_create(&(runtime->formats.list), &format);
+    }
+
+    {
+        task_format_t format;
+        memset(format.f, 0, sizeof(format.f));
+        format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_file_async<XKRT_STREAM_INSTR_TYPE_FD_WRITE>;
+        snprintf(format.label, sizeof(format.label), "file_write_async");
+        runtime->formats.file_write_async = task_format_create(&(runtime->formats.list), &format);
+    }
 }

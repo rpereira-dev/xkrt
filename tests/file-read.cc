@@ -3,7 +3,7 @@
 /*   file-read.cc                                                 .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/19 02:24:22 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/19 21:53:42 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -27,7 +27,8 @@
 
 constexpr const char * filename = "file.bin";             // filename
 constexpr size_t buffer_size = (1024 * 1024);             // 1MB
-constexpr size_t total_size  = (1L * 1024 * 1024 * 1024); // 5GB
+//constexpr size_t total_size  = (1L * 1024 * 1024 * 1024); // 1GB
+constexpr size_t total_size  = (1L * 1024 * 1024); // 1MB
 constexpr int    nchunks      = 4;                        // tasks that reads the file
 
 static xkrt_runtime_t runtime;

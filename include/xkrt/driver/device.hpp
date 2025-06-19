@@ -267,6 +267,41 @@ typedef struct  xkrt_device_t
         xkrt_stream_instruction_t * instr
     );
 
+    /* submit a file I/O instruction */
+    template <xkrt_stream_instruction_type_t T>
+    void offloader_stream_instruction_submit_file(
+        int fd,
+        void * buffer,
+        size_t n,
+        const xkrt_callback_t & callback
+    ) {
+        static_assert(
+            T == XKRT_STREAM_INSTR_TYPE_FD_READ ||
+            T == XKRT_STREAM_INSTR_TYPE_FD_WRITE
+        );
+
+        /* create a new instruction and retrieve its offload stream */
+        constexpr xkrt_stream_type_t stype = (T == XKRT_STREAM_INSTR_TYPE_FD_READ) ? XKRT_STREAM_TYPE_FD_READ : XKRT_STREAM_TYPE_FD_WRITE;
+        constexpr xkrt_stream_instruction_type_t itype = T;
+
+        xkrt_thread_t * thread;
+        xkrt_stream_t * stream;
+        xkrt_stream_instruction_t * instr;
+        this->offloader_stream_instruction_new(stype, &thread, &stream, itype, &instr, callback);
+        assert(thread);
+        assert(stream);
+        assert(instr);
+
+        /* create a new file i/o instruction */
+        instr->fd.fd = fd;
+        instr->fd.buffer = buffer;
+        instr->fd.n = n;
+
+        /* submit instr */
+        this->offloader_stream_instruction_commit(thread, stream, instr);
+
+    }
+
     /* submit a kernel execution instruction */
     void offloader_stream_instruction_submit_kernel(
         void (*launch)(void * istream, void * instr, xkrt_stream_instruction_counter_t idx),

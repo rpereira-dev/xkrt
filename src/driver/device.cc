@@ -286,10 +286,6 @@ xkrt_device_t::offloader_init(
     /* count total number of stream */
     this->nstreams_per_thread = 0;
 
-    // TODO : hardcoded ugly stuff here
-    if (this->driver_type == XKRT_DRIVER_TYPE_HOST)
-        return ;
-
     for (int stype = 0 ; stype < XKRT_STREAM_TYPE_ALL ; ++stype)
     {
         this->count[stype] = (this->conf->offloader.streams[stype].n > 0) ? this->conf->offloader.streams[stype].n : f_stream_suggest ? f_stream_suggest(this->driver_id, (xkrt_stream_type_t) stype) : 4;
