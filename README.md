@@ -39,6 +39,7 @@ CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE
 - `XKAAPI_HELP=1` - displays available environment variables.
 
 # Directions for improvements
+- Add a memory coherency controller for 'point' accesses, to retrieve original xkblas/kaapi behavior
 - If OCR is set on a successor task, when the predecessor writter completes
   - the successor device is known: set it already
   - if a reader predecessor completes and the device is known, transfer can be initiated without waiting for all predecessors to complete
