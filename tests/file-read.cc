@@ -3,7 +3,7 @@
 /*   file-read.cc                                                 .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/19 21:53:42 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/20 21:27:50 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -44,7 +44,8 @@ createfile(void)
         exit(EXIT_FAILURE);
     }
 
-    char * buffer = (char *) calloc(1, buffer_size);
+    char * buffer = (char *) malloc(buffer_size);
+    memset(buffer, 1, buffer_size);
     if (!buffer)
     {
         perror("Failed to allocate buffer");
@@ -88,13 +89,27 @@ main(void)
         exit(EXIT_FAILURE);
     }
 
-    runtime.file_read_async( fd, buffer, total_size, nchunks);
+    runtime.file_read_async(fd, buffer, total_size, nchunks);
+    for (int i = 0 ; i < nchunks ; ++i)
+    {
+        runtime.task_spawn<1>(
+            [&i] (task_t * task) {
+                LOGGER_INFO("Chunk %d is read");
+            },
+
+            // TODO
+            [] (access_t * accesses) {
+                access_t * access = accesses + 0;
+                new (access) access_t();
+            }
+        );
+    }
     // TODO : spawn successor tasks on each chunks
     runtime.task_wait();
 
     close(fd);
     if (remove(filename) == 0)
-        LOGGER_INFO("Deleted file: %s\n", filename);
+        LOGGER_INFO("Deleted file: %s", filename);
     else
         perror("remove");
 

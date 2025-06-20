@@ -79,12 +79,12 @@ typedef struct  xkrt_stream_instruction_kernel_t
 }               xkrt_stream_instruction_kernel_t;
 
 /* read/write files */
-typedef struct  xkrt_stream_instruction_fd_t
+typedef struct  xkrt_stream_instruction_file_t
 {
     int fd;
     void * buffer;
     size_t n;
-}               xkrt_stream_instruction_fd_t;
+}               xkrt_stream_instruction_file_t;
 
 /* instructions */
 typedef struct  xkrt_stream_instruction_t
@@ -96,7 +96,7 @@ typedef struct  xkrt_stream_instruction_t
         xkrt_stream_instruction_copy_1D_t   copy_1D;
         xkrt_stream_instruction_copy_2D_t   copy_2D;
         xkrt_stream_instruction_kernel_t    kern;
-        xkrt_stream_instruction_fd_t        fd;
+        xkrt_stream_instruction_file_t      file;
     };
 
 }               xkrt_stream_instruction_t;

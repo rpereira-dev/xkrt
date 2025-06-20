@@ -218,7 +218,7 @@ typedef struct  xkrt_runtime_t
     int task_schedule(void);
 
     /* spawn a task in the currently executing thread team */
-    void task_spawn(const std::function<void(task_t*)> & f);
+    void task_spawn(const std::function<void(task_t*)> & f, const std::function<void(task_t *)> & set_accesses = nullptr);
 
     ///////////////
     // THREADING //
@@ -250,7 +250,7 @@ typedef struct  xkrt_runtime_t
     void team_parallel_for(xkrt_team_t * team, xkrt_team_parallel_for_func_t func);
 
     /* spawn a task in the passed team */
-    void team_task_spawn(xkrt_team_t * team, const std::function<void(task_t*)> & f);
+    void team_task_spawn(xkrt_team_t * team, const std::function<void(task_t*)> & f, const std::function<void(task_t *)> & set_accesses = nullptr);
 
     /* retrieve the team of thread of the specific driver */
     xkrt_team_t * team_get(const xkrt_driver_type_t type);

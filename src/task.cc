@@ -183,20 +183,37 @@ xkrt_runtime_t::task_submit(
 }
 
 // spawn an independent task
-constexpr task_flag_bitfield_t host_capture_task_flags = TASK_FLAG_ZERO;
-constexpr size_t host_capture_task_size                = task_compute_size(host_capture_task_flags, 0);
-
 inline
 static task_t *
 xkrt_team_task_capture_create(
     xkrt_runtime_t * runtime,
     const std::function<void(task_t *)> & f,
+    const std::function<void(task_t *)> & set_accesses,
+    const int naccesses,
     xkrt_thread_t * tls
 ) {
-    task_t * task = tls->allocate_task(host_capture_task_size + sizeof(f));
-    new (task) task_t(runtime->formats.host_capture, host_capture_task_flags);
+    task_flag_bitfield_t flags;
+    size_t size;
+    if (set_accesses)
+    {
+        assert(naccesses);
+        flags = TASK_FLAG_DEPENDENT;
+        size = task_compute_size(flags, naccesses);
+    }
+    else
+    {
+        constexpr task_flag_bitfield_t host_capture_task_flags_no_deps = TASK_FLAG_ZERO;
+        constexpr size_t host_capture_task_size_no_deps                = task_compute_size(host_capture_task_flags_no_deps, 0);
+    }
 
-    std::function<void(task_t *)> * fcpy = (std::function<void(task_t *)> *) TASK_ARGS(task, host_capture_task_size);
+
+    const task_flag_bitfield_t flags = set_accesses ? host_capture_task_flags_deps : host_capture_task_flags_no_deps;
+    const size_t size                = set_accesses ? host_capture_task_size_deps  : host_capture_task_size_no_deps;
+
+    task_t * task = tls->allocate_task(size + sizeof(f));
+    new (task) task_t(runtime->formats.host_capture, flags);
+
+    std::function<void(task_t *)> * fcpy = (std::function<void(task_t *)> *) TASK_ARGS(task, size);
     new (fcpy) std::function<void(task_t *)>(f);
 
     return task;
@@ -206,23 +223,27 @@ xkrt_team_task_capture_create(
 void
 xkrt_runtime_t::team_task_spawn(
     xkrt_team_t * team,
-    const std::function<void(task_t *)> & f
+    const std::function<void(task_t *)> & f,
+    const std::function<void(task_dep_info_t *)> & set_accesses,
+    int naccesses
 ) {
     assert(team->priv.threads);
     assert(team->priv.nthreads);
 
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
-    task_t * task = xkrt_team_task_capture_create(this, f, tls);
+    task_t * task = xkrt_team_task_capture_create(this, f, set_accesses, tls);
     tls->commit(task, xkrt_team_task_enqueue, this, team);
 }
 
 // spawn on currently executing thread
 void
 xkrt_runtime_t::task_spawn(
-    const std::function<void(task_t *)> & f
+    const std::function<void(task_t *)> & f,
+    const std::function<void(task_t *)> & set_accesses,
+    int naccesses
 ) {
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
-    task_t * task = xkrt_team_task_capture_create(this, f, tls);
+    task_t * task = xkrt_team_task_capture_create(this, f, set_accesses, naccesses, tls);
     tls->commit(task, xkrt_team_thread_task_enqueue, this, tls->team, tls);
 }
 
@@ -231,7 +252,7 @@ body_host_capture(task_t * task)
 {
     assert(task);
 
-    std::function<void(task_t *)> * f = (std::function<void(task_t *)> *) TASK_ARGS(task, host_capture_task_size);
+    std::function<void(task_t *)> * f = (std::function<void(task_t *)> *) TASK_ARGS(task);
     (*f)(task);
 }
 

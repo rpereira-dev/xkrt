@@ -44,20 +44,44 @@
 # include <xkrt/driver/driver.h>
 # include <xkrt/driver/stream.h>
 
+# include <linux/io_uring.h>
+
 typedef std::atomic<uint8_t> xkrt_stream_host_event_t;
 
 typedef struct  xkrt_stream_host_t
 {
     xkrt_stream_t super;
 
+    /* events to be polled */
+    struct {
+        xkrt_stream_host_event_t * buffer;
+        xkrt_stream_instruction_counter_t capacity;
+    } events;
+
+    /* async i/o */
     struct {
 
-        struct {
-            xkrt_stream_host_event_t * buffer;
-            xkrt_stream_instruction_counter_t capacity;
-        } events;
+        /* io_uring file desc */
+        int fd;
 
-    } host;
+        /* submission queue */
+        unsigned char * sq_ptr;
+        unsigned char * sq_tail;
+        unsigned char * sq_mask;
+        unsigned char * sq_array;
+
+        struct io_uring_sqe * sqes;
+
+        /* completion queue */
+        unsigned char * cq_ptr;
+        unsigned char * cq_head;
+        unsigned char * cq_tail;
+        unsigned char * cq_mask;
+        unsigned char * cq_array;
+
+        struct io_uring_cqe * cqes;
+
+    } io_uring;
 }               xkrt_stream_host_t;
 
 typedef struct  xkrt_driver_host_t

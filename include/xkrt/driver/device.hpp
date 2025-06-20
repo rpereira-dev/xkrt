@@ -293,9 +293,9 @@ typedef struct  xkrt_device_t
         assert(instr);
 
         /* create a new file i/o instruction */
-        instr->fd.fd = fd;
-        instr->fd.buffer = buffer;
-        instr->fd.n = n;
+        instr->file.fd = fd;
+        instr->file.buffer = buffer;
+        instr->file.n = n;
 
         /* submit instr */
         this->offloader_stream_instruction_commit(thread, stream, instr);
