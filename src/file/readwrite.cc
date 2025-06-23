@@ -62,7 +62,7 @@ body_file_async_callback(const void * vargs [XKRT_CALLBACK_ARGS_MAX])
     file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
 
     // TODO : fulfill dependencies for this chunk
-    LOGGER_ERROR("TODO: fulfill dependencies for this chunk");
+    // LOGGER_WARN("Currently, all the dependencies are fulfilled on task completion. Instead, use detached accesses and release dependencies early for that file chunk only");
 
     // if all read/write completed, complete the task
     if (args->nchunks_completed.fetch_add(1, std::memory_order_relaxed) == args->nchunks - 1)
@@ -128,20 +128,6 @@ file_async(
     task_t * task = thread->allocate_task(task_size + args_size);
     new(task) task_t(fmtid, flags);
 
-    # if 0 /* no need to init det info if initializing dep info */
-    task_det_info_t * det = TASK_DET_INFO(task);
-    new (det) task_det_info_t();
-    # endif
-
-    task_dep_info_t * dep = TASK_DEP_INFO(task);
-    new (dep) task_dep_info_t(ac);
-
-    // virtual write onto the memory segment
-    access_t * accesses = TASK_ACCESSES(task, flags);
-    constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V | ACCESS_MODE_D);
-    const uintptr_t ptr = (const uintptr_t) buffer;
-    new(accesses + 0) access_t(task, ptr, ptr + n, mode);
-
     // copy arguments
     file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
     args->runtime = runtime;
@@ -150,6 +136,26 @@ file_async(
     args->n = n;
     args->nchunks = nchunks;
     args->nchunks_completed.store(0);
+
+    # if 0 /* no need to init det info if initializing dep info */
+    task_det_info_t * det = TASK_DET_INFO(task);
+    new (det) task_det_info_t();
+    # endif
+
+    task_dep_info_t * dep = TASK_DEP_INFO(task);
+    new (dep) task_dep_info_t(ac);
+
+    # ifndef NDEBUG
+    snprintf(task->label, sizeof(task->label), T == XKRT_STREAM_INSTR_TYPE_FD_READ ? "fread" : "fwrite");
+    # endif
+
+    // virtual write onto the memory segment
+    access_t * accesses = TASK_ACCESSES(task, flags);
+    // constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V | ACCESS_MODE_D);
+    constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V);
+    const uintptr_t ptr = (const uintptr_t) buffer;
+    new(accesses + 0) access_t(task, ptr, ptr + n, mode);
+    thread->resolve<1>(task, accesses);
 
     // commit
     runtime->task_commit(task);

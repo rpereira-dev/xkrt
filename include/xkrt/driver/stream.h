@@ -125,7 +125,10 @@ class xkrt_stream_t : public Lockable
         );
 
         /* complete the instruction at the i-th position in the pending queue (invoke the callback) */
-        void complete_instruction(const xkrt_stream_instruction_counter_t i);
+        void complete_instruction(const xkrt_stream_instruction_counter_t p);
+
+        /* complete the instruction that must be in the pending queue */
+        void complete_instruction(xkrt_stream_instruction_t * instr);
 
         /* commit the instruction to the stream (must be allocated via 'instruction_new') */
         int commit(xkrt_stream_instruction_t * instruction);

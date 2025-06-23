@@ -208,8 +208,15 @@ xkrt_team_task_capture_create(
     {
         task_dep_info_t * dep = TASK_DEP_INFO(task);
         new (dep) task_dep_info_t(ac);
-        set_accesses(task, TASK_ACCESSES(task, flags));
+
+        access_t * accesses = TASK_ACCESSES(task, flags);
+        set_accesses(task, accesses);
+        tls->resolve<ac>(task, accesses);
     }
+
+    # ifndef NDEBUG
+    snprintf(task->label, sizeof(task->label), "capture");
+    # endif
 
     return task;
 }

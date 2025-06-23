@@ -145,6 +145,30 @@ typedef struct  xkrt_runtime_t
     int file_read_async(int fd, void * buffer, size_t n, unsigned int nchunks);
     int file_write_async(int fd, void * buffer, size_t n, unsigned int nchunks);
 
+    inline void file_foreach_chunk(
+        void * buffer,
+        const size_t total_size,
+        size_t nchunks,
+        const std::function<void(uintptr_t, uintptr_t)> & func)
+    {
+        // compute number of instructions to spawn
+        if (total_size < nchunks)
+            nchunks = (unsigned int) total_size;
+
+        // compute chunk size
+        const size_t chunksize = total_size / nchunks;
+        assert(chunksize > 0);
+
+        for (std::size_t i = 0; i < nchunks; ++i) {
+            const uintptr_t a = reinterpret_cast<uintptr_t>(static_cast<char*>(buffer) + i * chunksize);
+            const uintptr_t b = reinterpret_cast<uintptr_t>(
+                (i == nchunks - 1)
+                    ? static_cast<char*>(buffer) + total_size
+                    : static_cast<char*>(buffer) + (i + 1) * chunksize);
+            func(a, b);
+        }
+    }
+
     ////////////
     // MEMORY //
     ////////////

@@ -3,7 +3,7 @@
 /*   file-read.cc                                                 .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/23 01:29:30 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/23 15:37:21 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -29,8 +29,8 @@
 
 constexpr const char * filename = "file.bin";             // filename
 constexpr size_t buffer_size = (1024 * 1024);             // 1MB
-//constexpr size_t total_size  = (1L * 1024 * 1024 * 1024); // 1GB
-constexpr size_t total_size  = (1L * 1024 * 1024); // 1MB
+// constexpr size_t total_size  = (1L * 1024 * 1024 * 1024); // 1GB
+constexpr size_t total_size  = (8L * 1024 * 1024);      // 8MB
 constexpr int    nchunks      = 4;                        // tasks that reads the file
 
 static xkrt_runtime_t runtime;
@@ -83,7 +83,6 @@ main(void)
 
     unsigned char * buffer = (unsigned char *) malloc(total_size);
     assert(buffer);
-    const size_t chunksize = total_size / nchunks;
 
     int fd = open(filename, O_RDONLY, 0644);
     if (fd < 0)
@@ -92,25 +91,27 @@ main(void)
         exit(EXIT_FAILURE);
     }
 
+    /* spawn tasks that read the file */
     runtime.file_read_async(fd, buffer, total_size, nchunks);
-    for (int i = 0 ; i < nchunks ; ++i)
-    {
-        const uintptr_t a = (const uintptr_t) (buffer + (i+0) * chunksize);
-        const uintptr_t b = (const uintptr_t) ((i == nchunks-1) ? buffer + total_size : buffer + (i+1) * chunksize);
-        runtime.task_spawn<1>(
-            [a, b] (task_t * task, access_t * accesses) {
-                access_t * access = accesses + 0;
-               new (access) access_t(task, a, b, ACCESS_MODE_R);
-            },
 
-            [i, a, b] (task_t * task) {
-                LOGGER_INFO("Chunk %d is read", i);
-                for (uintptr_t x = a ; x < b ; ++x)
-                    assert(*((unsigned char *) x) == 1);
-            }
-        );
-    }
-    // TODO : spawn successor tasks on each chunks
+    /* spawn a successor for each read task */
+    runtime.file_foreach_chunk(buffer, total_size, nchunks, [] (const uintptr_t a, const uintptr_t b) {
+            runtime.task_spawn<1>(
+                [a, b] (task_t * task, access_t * accesses) {
+                    access_t * access = accesses + 0;
+                    new (access) access_t(task, a, b, ACCESS_MODE_R);
+                },
+
+                [a, b] (task_t * task) {
+                    LOGGER_INFO("Chunk [%lu, %lu] is read", a, b);
+                    for (uintptr_t x = a ; x < b ; ++x)
+                        assert(*((unsigned char *) x) == 1);
+                }
+            );
+        }
+    );
+
+    /* wait for all tasks completion */
     runtime.task_wait();
 
     close(fd);

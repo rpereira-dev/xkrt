@@ -279,18 +279,10 @@ xkrt_stream_t::launch_ready_instructions(void)
 
 template <bool set_completed_flag>
 static inline void
-__complete_instruction_internal(xkrt_stream_t * stream, const xkrt_stream_instruction_counter_t p)
+__complete_instruction_internal(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr)
 {
-    assert(p >= 0);
-    assert(p < stream->pending.capacity);
-
-    xkrt_stream_instruction_t * instr = stream->pending.instr + p;
-    assert(instr);
-
-    if (instr->callback.func)
-        instr->callback.func(instr->callback.args);
-
-    XKRT_STATS_INCR(stream->stats.instructions[instr->type].completed, 1);
+    assert(instr >= stream->pending.instr);
+    assert(instr <  stream->pending.instr + stream->pending.capacity);
 
     LOGGER_DEBUG(
         "Completed instruction `%s` on stream %p of type `%s`",
@@ -301,13 +293,34 @@ __complete_instruction_internal(xkrt_stream_t * stream, const xkrt_stream_instru
 
     if (set_completed_flag)
         instr->completed = true;
+
+    if (instr->callback.func)
+        instr->callback.func(instr->callback.args);
+
+    XKRT_STATS_INCR(stream->stats.instructions[instr->type].completed, 1);
+}
+
+template <bool set_completed_flag>
+static inline void
+__complete_instruction_internal(xkrt_stream_t * stream, const xkrt_stream_instruction_counter_t p)
+{
+    xkrt_stream_instruction_t * instr = stream->pending.instr + p;
+    __complete_instruction_internal<set_completed_flag>(stream, instr);
 }
 
 // complete the given instruction
 void
 xkrt_stream_t::complete_instruction(const xkrt_stream_instruction_counter_t p)
 {
+    assert(p >= 0);
+    assert(p <  this->pending.capacity);
     __complete_instruction_internal<true>(this, p);
+}
+
+void
+xkrt_stream_t::complete_instruction(xkrt_stream_instruction_t * instr)
+{
+    __complete_instruction_internal<true>(this, instr);
 }
 
 // complete all instructions to 'ok_p'
@@ -353,8 +366,7 @@ xkrt_stream_t::progress_pending_instructions(void)
 
     // move reading position to first uncompleted instr
     xkrt_stream_instruction_counter_t i = a;
-    while (this->pending.instr[i].completed)
-        ++i;
+    for ( ; i < b && this->pending.instr[i].completed ; ++i);
     this->pending.pos.r = i;
 
     // return err code

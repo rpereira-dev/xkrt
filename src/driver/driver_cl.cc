@@ -583,6 +583,8 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     for (xkrt_stream_instruction_counter_t idx = a ; idx < b ; ++idx)
     {
         xkrt_stream_instruction_t * instr = istream->pending.instr + idx;
+        if (instr->completed)
+            continue ;
         cl_event event = stream->cl.events[idx];
 
         switch (instr->type)
