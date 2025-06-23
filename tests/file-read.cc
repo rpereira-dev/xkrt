@@ -3,7 +3,7 @@
 /*   file-read.cc                                                 .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/23 15:37:21 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/23 16:03:57 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -29,7 +29,7 @@
 
 constexpr const char * filename = "file.bin";             // filename
 constexpr size_t buffer_size = (1024 * 1024);             // 1MB
-// constexpr size_t total_size  = (1L * 1024 * 1024 * 1024); // 1GB
+//constexpr size_t total_size  = (1L * 1024 * 1024 * 1024); // 1GB
 constexpr size_t total_size  = (8L * 1024 * 1024);      // 8MB
 constexpr int    nchunks      = 4;                        // tasks that reads the file
 
@@ -91,6 +91,10 @@ main(void)
         exit(EXIT_FAILURE);
     }
 
+    # if 0
+    uint64_t t0 = xkrt_get_nanotime();
+    # endif
+
     /* spawn tasks that read the file */
     runtime.file_read_async(fd, buffer, total_size, nchunks);
 
@@ -103,7 +107,7 @@ main(void)
                 },
 
                 [a, b] (task_t * task) {
-                    LOGGER_INFO("Chunk [%lu, %lu] is read", a, b);
+                    LOGGER_INFO("File chunk [%lu, %lu] is read", a, b);
                     for (uintptr_t x = a ; x < b ; ++x)
                         assert(*((unsigned char *) x) == 1);
                 }
@@ -113,6 +117,12 @@ main(void)
 
     /* wait for all tasks completion */
     runtime.task_wait();
+
+    # if 0
+    uint64_t tf = xkrt_get_nanotime();
+    double dt_ns = (double) (tf - t0);
+    LOGGER_INFO("Read with %.2lf GB/s", total_size/dt_ns);
+    # endif
 
     close(fd);
     if (remove(filename) == 0)

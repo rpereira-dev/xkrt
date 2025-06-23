@@ -48,6 +48,7 @@ typedef struct  file_args_t
     std::atomic<unsigned int> nchunks_completed;
 }               file_args_t;
 
+/* the task completes once all segment completed */
 constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT | TASK_FLAG_DETACHABLE;
 constexpr unsigned int ac  = 1;
 constexpr size_t task_size = task_compute_size(flags, ac);
@@ -59,10 +60,14 @@ body_file_async_callback(const void * vargs [XKRT_CALLBACK_ARGS_MAX])
     task_t * task = (task_t *) vargs[0];
     assert(task);
 
+    /* retrieve task args */
     file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
 
-    // TODO : fulfill dependencies for this chunk
-    // LOGGER_WARN("Currently, all the dependencies are fulfilled on task completion. Instead, use detached accesses and release dependencies early for that file chunk only");
+    # if 0
+    /* fulfill dependencies of successors */
+    const uintptr_t a = (const uintptr_t) args->buffer;
+    const uintptr_t b = a + args->n;
+    # endif
 
     // if all read/write completed, complete the task
     if (args->nchunks_completed.fetch_add(1, std::memory_order_relaxed) == args->nchunks - 1)
@@ -149,10 +154,11 @@ file_async(
     snprintf(task->label, sizeof(task->label), T == XKRT_STREAM_INSTR_TYPE_FD_READ ? "fread" : "fwrite");
     # endif
 
-    // virtual write onto the memory segment
+    // detached virtual write onto the memory segment
     access_t * accesses = TASK_ACCESSES(task, flags);
     // constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V | ACCESS_MODE_D);
     constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V);
+    LOGGER_WARN("Right now, fulfilling all dependencies on task completion... implemented detached accesses and fix me");
     const uintptr_t ptr = (const uintptr_t) buffer;
     new(accesses + 0) access_t(task, ptr, ptr + n, mode);
     thread->resolve<1>(task, accesses);
