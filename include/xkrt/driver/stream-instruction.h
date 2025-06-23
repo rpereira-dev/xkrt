@@ -98,6 +98,7 @@ typedef struct  xkrt_stream_instruction_t
         xkrt_stream_instruction_kernel_t    kern;
         xkrt_stream_instruction_file_t      file;
     };
+    bool completed;
 
 }               xkrt_stream_instruction_t;
 

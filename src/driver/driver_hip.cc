@@ -618,11 +618,11 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
         case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
         case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
         {
-            const size_t count  = instr->copy.D1.size;
+            const size_t count  = instr->copy_1D.size;
             assert(count > 0);
 
-            void * src = (void *) instr->copy.D1.src_device_addr;
-            void * dst = (void *) instr->copy.D1.dst_device_addr;
+            void * src = (void *) instr->copy_1D.src_device_addr;
+            void * dst = (void *) instr->copy_1D.dst_device_addr;
 
             switch (instr->type)
             {
@@ -663,8 +663,8 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
             hipMemoryType src_type, dst_type;
             void * src_host, * dst_host;
 
-            void * src = (void *) instr->copy.D2.src_device_view.addr;
-            void * dst = (void *) instr->copy.D2.dst_device_view.addr;
+            void * src = (void *) instr->copy_2D.src_device_view.addr;
+            void * dst = (void *) instr->copy_2D.dst_device_view.addr;
 
             switch (instr->type)
             {
@@ -717,11 +717,11 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                 }
             }
 
-            const size_t dpitch = instr->copy.D2.dst_device_view.ld * instr->copy.D2.sizeof_type;
-            const size_t spitch = instr->copy.D2.src_device_view.ld * instr->copy.D2.sizeof_type;
+            const size_t dpitch = instr->copy_2D.dst_device_view.ld * instr->copy_2D.sizeof_type;
+            const size_t spitch = instr->copy_2D.src_device_view.ld * instr->copy_2D.sizeof_type;
 
-            const size_t width  = instr->copy.D2.m * instr->copy.D2.sizeof_type;
-            const size_t height = instr->copy.D2.n;
+            const size_t width  = instr->copy_2D.m * instr->copy_2D.sizeof_type;
+            const size_t height = instr->copy_2D.n;
             assert(width > 0);
             assert(height > 0);
 
@@ -769,46 +769,61 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
     return 0;
 }
 
-static inline int
+static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+    xkrt_stream_instruction_counter_t a,
+    xkrt_stream_instruction_counter_t b
 ) {
-    xkrt_stream_hip_t * stream = (xkrt_stream_hip_t *) istream;
-    assert(stream);
+    assert(istream);
 
-    switch (instr->type)
+    xkrt_stream_hip_t * stream = (xkrt_stream_hip_t *) istream;
+    int r = 0;
+
+    for (xkrt_stream_instruction_counter_t idx = a ; idx < b ; ++idx)
     {
-        case (XKRT_STREAM_INSTR_TYPE_KERN):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+        xkrt_stream_instruction_t * instr = istream->pending.instr + idx;
+        hipEvent_t event = stream->hip.events.buffer[idx];
+
+        switch (instr->type)
         {
-            /* poll events */
-            for (int i = 0 ; i < 16 ; ++i)
+            case (XKRT_STREAM_INSTR_TYPE_KERN):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
             {
-                hipError_t res = hipEventQuery(stream->hip.events.buffer[idx]);
-                if (res == hipErrorNotReady)
-                    sched_yield();
-                else if (res == hipSuccess)
-                    return 0;
-                else
-                    LOGGER_FATAL("Error querying event");
+                /* poll events */
+                for (int i = 0 ; i < 4 ; ++i)
+                {
+                    hipError_t res = hipEventQuery(event);
+                    if (res == hipErrorNotReady)
+                        sched_yield();
+                    else if (res == hipSuccess)
+                    {
+                        istream->complete_instruction(idx);
+                        goto next_instr;
+                    }
+                    else
+                        LOGGER_FATAL("Error querying event");
+                }
+                r = EINPROGRESS;
+                break ;
             }
-            break ;
+
+            default:
+                LOGGER_FATAL("Wrong instruction");
         }
 
-        default:
-            LOGGER_FATAL("Wrong instruction");
+        next_instr:
+            continue ;
     }
 
-    return EINPROGRESS;
+    return r;
 }
 
 static xkrt_stream_t *

@@ -3,7 +3,7 @@
 /*   file-read.cc                                                 .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/23 01:15:27 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/23 01:29:30 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -95,16 +95,18 @@ main(void)
     runtime.file_read_async(fd, buffer, total_size, nchunks);
     for (int i = 0 ; i < nchunks ; ++i)
     {
+        const uintptr_t a = (const uintptr_t) (buffer + (i+0) * chunksize);
+        const uintptr_t b = (const uintptr_t) ((i == nchunks-1) ? buffer + total_size : buffer + (i+1) * chunksize);
         runtime.task_spawn<1>(
-            [i, &buffer, &chunksize] (task_t * task, access_t * accesses) {
+            [a, b] (task_t * task, access_t * accesses) {
                 access_t * access = accesses + 0;
-                const uintptr_t a = (const uintptr_t) (buffer + (i+0) * chunksize);
-                const uintptr_t b = (const uintptr_t) (buffer + (i+1) * chunksize);
-                new (access) access_t(task, a, b, ACCESS_MODE_R);
+               new (access) access_t(task, a, b, ACCESS_MODE_R);
             },
 
-            [i, &buffer] (task_t * task) {
+            [i, a, b] (task_t * task) {
                 LOGGER_INFO("Chunk %d is read", i);
+                for (uintptr_t x = a ; x < b ; ++x)
+                    assert(*((unsigned char *) x) == 1);
             }
         );
     }

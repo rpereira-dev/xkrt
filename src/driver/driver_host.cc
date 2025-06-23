@@ -251,7 +251,6 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
             instr->type == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
 
     xkrt_stream_host_t * stream = (xkrt_stream_host_t *) istream;
-    xkrt_stream_host_event_t * event = stream->events.buffer + idx;
 
     switch (instr->type)
     {
@@ -273,9 +272,10 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
             sqe->addr = (unsigned long) instr->file.buffer;
             sqe->len = instr->file.n;
             sqe->off = 0;
+            sqe->user_data = (__u64) instr;
 
             stream->io_uring.sq_array[index] = index;
-            tail++;
+            ++tail;
 
             /* Update the tail */
             io_uring_smp_store_release(stream->io_uring.sq_tail, tail);
@@ -332,54 +332,73 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+    xkrt_stream_instruction_counter_t a,
+    xkrt_stream_instruction_counter_t b
 ) {
-    assert(instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ ||
-            instr->type == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
+    assert(istream);
 
     xkrt_stream_host_t * stream = (xkrt_stream_host_t *) istream;
-    xkrt_stream_host_event_t * event = stream->events.buffer + idx;
+    int r = 0;
 
-    switch (instr->type)
+    for (xkrt_stream_instruction_counter_t idx = a ; idx < b ; ++idx)
     {
-        case (XKRT_STREAM_INSTR_TYPE_FD_READ):
-        case (XKRT_STREAM_INSTR_TYPE_FD_WRITE):
+        xkrt_stream_instruction_t * instr = istream->pending.instr + idx;
+
+        assert(instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ ||
+                instr->type == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
+
+        switch (instr->type)
         {
-            return 0;
+            case (XKRT_STREAM_INSTR_TYPE_FD_READ):
+            case (XKRT_STREAM_INSTR_TYPE_FD_WRITE):
+            {
+                /*
+                 * Read from completion queue.
+                 * We read completion events from the completion queue.
+                 * We dequeue the CQE, update and head and return the result of the operation.
+                 */
 
-            /*
-             * Read from completion queue.
-             * We read completion events from the completion queue.
-             * We dequeue the CQE, update and head and return the result of the operation.
-             */
+                while (1)
+                {
+                    /* Read barrier */
+                    unsigned head = io_uring_smp_load_acquire(stream->io_uring.cq_head);
 
-            /* Read barrier */
-            unsigned head = io_uring_smp_load_acquire(stream->io_uring.cq_head);
+                    /* If head == tail, it means that the buffer is empty. */
+                    if (head == *stream->io_uring.cq_tail)
+                        break ;
 
-            /*If head == tail, it means that the buffer is empty. */
-            assert(head != *stream->io_uring.cq_tail);
-            //  if (head == *stream->io_uring.cq_tail)
-            //      return 0;
+                    /* Get the entry */
+                    struct io_uring_cqe * cqe = &stream->io_uring.cqes[head & (*stream->io_uring.cq_mask)];
 
-            /* Get the entry */
-            struct io_uring_cqe * cqe = &stream->io_uring.cqes[head & (*stream->io_uring.cq_mask)];
-            if (cqe->res < 0)
-                LOGGER_FATAL("Error: %s", strerror(abs(cqe->res)));
+                    if (cqe->res < 0)
+                        LOGGER_FATAL("Error: %s", strerror(abs(cqe->res)));
+                    else if (cqe->res == instr->file.n)
+                    {
+                        xkrt_stream_instruction_t * cinstr = (xkrt_stream_instruction_t *) cqe->user_data;
+                        assert(cinstr);
 
-            ++head;
+                        ++head;
 
-            /* Write barrier so that update to the head are made visible */
-            io_uring_smp_store_release(stream->io_uring.cq_head, head);
+                        /* Write barrier so that update to the head are made visible */
+                        io_uring_smp_store_release(stream->io_uring.cq_head, head);
 
-            return 0;
+                        LOGGER_INFO("Completed %u with size %u", head, cqe->res);
+                        istream->complete_instruction(idx);
+
+                        break ;
+                    }
+                    else
+                        r = EINPROGRESS;
+                }
+                break ;
+            }
+
+            default:
+                break ;
         }
-
-        default:
-            break ;
     }
 
-    return 0;
+    return r;
 }
 
 static xkrt_stream_t *
@@ -389,11 +408,12 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     xkrt_stream_instruction_counter_t capacity
 ) {
     (void)idevice;
-    (void)type;
+    (void) type;
+    (void) capacity;
 
     assert(type == XKRT_STREAM_TYPE_FD_READ || type == XKRT_STREAM_TYPE_FD_WRITE);
 
-    uint8_t * mem = (uint8_t *) malloc(sizeof(xkrt_stream_host_t) + capacity * sizeof(xkrt_stream_host_event_t));
+    uint8_t * mem = (uint8_t *) malloc(sizeof(xkrt_stream_host_t));
     assert(mem);
 
     xkrt_stream_host_t * stream = (xkrt_stream_host_t *) mem;
@@ -414,10 +434,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     /* do host specific init */
     /*************************/
 
-    /* events */
-    stream->events.buffer = (xkrt_stream_host_event_t *) (stream + 1);
-    stream->events.capacity = capacity;
-    memset(stream->events.buffer, 0, capacity * sizeof(xkrt_stream_host_event_t));
+    // nothing to do
 
     return (xkrt_stream_t *) stream;
 }

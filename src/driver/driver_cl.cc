@@ -337,9 +337,9 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
         case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
         case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
         {
-            const uintptr_t dst = instr->copy.D1.dst_device_addr;
-            const uintptr_t src = instr->copy.D1.src_device_addr;
-            const size_t size   = instr->copy.D1.size;
+            const uintptr_t dst = instr->copy_1D.dst_device_addr;
+            const uintptr_t src = instr->copy_1D.src_device_addr;
+            const size_t size   = instr->copy_1D.size;
 
             const cl_bool blocking = CL_FALSE;
 
@@ -431,15 +431,15 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
         case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
         case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
         {
-            const uintptr_t dst     = instr->copy.D2.dst_device_view.addr;
-            const uintptr_t src     = instr->copy.D2.src_device_view.addr;
+            const uintptr_t dst     = instr->copy_2D.dst_device_view.addr;
+            const uintptr_t src     = instr->copy_2D.src_device_view.addr;
 
-            size_t dst_row_pitch    = instr->copy.D2.dst_device_view.ld * instr->copy.D2.sizeof_type;
-            size_t src_row_pitch    = instr->copy.D2.src_device_view.ld * instr->copy.D2.sizeof_type;
+            size_t dst_row_pitch    = instr->copy_2D.dst_device_view.ld * instr->copy_2D.sizeof_type;
+            size_t src_row_pitch    = instr->copy_2D.src_device_view.ld * instr->copy_2D.sizeof_type;
 
             // assume col major - if not, need to do some shit here
-            const size_t width  = instr->copy.D2.m * instr->copy.D2.sizeof_type;
-            const size_t height = instr->copy.D2.n;
+            const size_t width  = instr->copy_2D.m * instr->copy_2D.sizeof_type;
+            const size_t height = instr->copy_2D.n;
             assert(width >= 0);
             assert(height >= 0);
 
@@ -572,44 +572,56 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
-
+    xkrt_stream_instruction_counter_t a,
+    xkrt_stream_instruction_counter_t b
 ) {
     assert(istream);
 
     xkrt_stream_cl_t * stream = (xkrt_stream_cl_t *) istream;
-    cl_event event = stream->cl.events[idx];
-    switch (instr->type)
+    int r = 0;
+
+    for (xkrt_stream_instruction_counter_t idx = a ; idx < b ; ++idx)
     {
-        case (XKRT_STREAM_INSTR_TYPE_KERN):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+        xkrt_stream_instruction_t * instr = istream->pending.instr + idx;
+        cl_event event = stream->cl.events[idx];
+
+        switch (instr->type)
         {
-            /* poll event */
-            for (int i = 0 ; i < 16 ; ++i)
+            case (XKRT_STREAM_INSTR_TYPE_KERN):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
             {
-                cl_int event_status;
-                CL_SAFE_CALL(clGetEventInfo(event, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &event_status, NULL));
-                if (event_status == CL_COMPLETE)
-                    return 0;
-                sched_yield();
+                /* poll event */
+                for (int i = 0 ; i < 4 ; ++i)
+                {
+                    cl_int event_status;
+                    CL_SAFE_CALL(clGetEventInfo(event, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &event_status, NULL));
+                    if (event_status == CL_COMPLETE)
+                    {
+                        istream->complete_instruction(idx);
+                        goto next_instr;
+                    }
+                    sched_yield();
+                }
+                r = EINPROGRESS;
+                break ;
             }
 
-            return EINPROGRESS;
+            default:
+                LOGGER_FATAL("Wrong instruction");
         }
 
-        default:
-            LOGGER_FATAL("Wrong instruction");
+        next_instr:
+            continue ;
     }
 
-    return EINPROGRESS;
+    return r;
 }
 
 

@@ -52,12 +52,6 @@ typedef struct  xkrt_stream_host_t
 {
     xkrt_stream_t super;
 
-    /* events to be polled */
-    struct {
-        xkrt_stream_host_event_t * buffer;
-        xkrt_stream_instruction_counter_t capacity;
-    } events;
-
     /* async i/o */
     struct {
 

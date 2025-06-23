@@ -111,7 +111,7 @@ class xkrt_stream_t : public Lockable
         int (*f_instruction_launch)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx);
 
         /* progrtream instruction */
-        int (*f_instructions_progress)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx);
+        int (*f_instructions_progress)(xkrt_stream_t * stream, xkrt_stream_instruction_counter_t a, xkrt_stream_instruction_counter_t b);
 
         /* wait  instructions completion on a stream */
         int (*f_instructions_wait)(xkrt_stream_t * stream);
@@ -125,7 +125,7 @@ class xkrt_stream_t : public Lockable
         );
 
         /* complete the instruction at the i-th position in the pending queue (invoke the callback) */
-        void complete(const xkrt_stream_instruction_counter_t i);
+        void complete_instruction(const xkrt_stream_instruction_counter_t i);
 
         /* commit the instruction to the stream (must be allocated via 'instruction_new') */
         int commit(xkrt_stream_instruction_t * instruction);
@@ -156,7 +156,7 @@ void xkrt_stream_init(
     xkrt_stream_type_t type,
     xkrt_stream_instruction_counter_t capacity,
     int (*f_instruction_launch)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx),
-    int (*f_instructions_progress)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx),
+    int (*f_instructions_progress)(xkrt_stream_t * stream, xkrt_stream_instruction_counter_t a, xkrt_stream_instruction_counter_t b),
     int (*f_instructions_wait)(xkrt_stream_t * stream)
 );
 

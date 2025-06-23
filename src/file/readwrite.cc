@@ -61,6 +61,9 @@ body_file_async_callback(const void * vargs [XKRT_CALLBACK_ARGS_MAX])
 
     file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
 
+    // TODO : fulfill dependencies for this chunk
+    LOGGER_ERROR("TODO: fulfill dependencies for this chunk");
+
     // if all read/write completed, complete the task
     if (args->nchunks_completed.fetch_add(1, std::memory_order_relaxed) == args->nchunks - 1)
         args->runtime->task_detachable_post(task);
