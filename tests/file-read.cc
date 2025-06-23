@@ -3,7 +3,7 @@
 /*   file-read.cc                                                 .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/20 21:27:50 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/23 01:15:27 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -20,6 +20,8 @@
 # include <stdio.h>
 # include <string.h>
 # include <errno.h>
+
+# include <new>
 
 # include <xkrt/xkrt.h>
 # include <xkrt/logger/logger.h>
@@ -81,6 +83,7 @@ main(void)
 
     unsigned char * buffer = (unsigned char *) malloc(total_size);
     assert(buffer);
+    const size_t chunksize = total_size / nchunks;
 
     int fd = open(filename, O_RDONLY, 0644);
     if (fd < 0)
@@ -93,14 +96,15 @@ main(void)
     for (int i = 0 ; i < nchunks ; ++i)
     {
         runtime.task_spawn<1>(
-            [&i] (task_t * task) {
-                LOGGER_INFO("Chunk %d is read");
+            [i, &buffer, &chunksize] (task_t * task, access_t * accesses) {
+                access_t * access = accesses + 0;
+                const uintptr_t a = (const uintptr_t) (buffer + (i+0) * chunksize);
+                const uintptr_t b = (const uintptr_t) (buffer + (i+1) * chunksize);
+                new (access) access_t(task, a, b, ACCESS_MODE_R);
             },
 
-            // TODO
-            [] (access_t * accesses) {
-                access_t * access = accesses + 0;
-                new (access) access_t();
+            [i, &buffer] (task_t * task) {
+                LOGGER_INFO("Chunk %d is read", i);
             }
         );
     }

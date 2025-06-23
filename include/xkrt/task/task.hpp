@@ -310,7 +310,7 @@ task_get_extra_size(const task_flag_bitfield_t flags)
 /* Given flags and the number of accesses, computes (at compile-time) the size
  * in bytes required for the task (without args_t) */
 static constexpr inline size_t
-task_compute_size(const task_flag_bitfield_t flags, const uint8_t ac)
+task_compute_size(const task_flag_bitfield_t flags, const task_access_counter_t ac)
 {
     return sizeof(task_t) + task_get_extra_size(flags) + ac*sizeof(access_t);
 }
