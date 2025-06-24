@@ -96,3 +96,9 @@ xkrt_coherency_reset(xkrt_runtime_t * runtime)
     // deallocate all device memory
     xkrt_memory_deallocate_all(runtime);
 }
+
+void
+xkrt_runtime_t::reset(void)
+{
+    xkrt_coherency_reset(this);
+}

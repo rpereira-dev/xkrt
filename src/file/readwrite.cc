@@ -63,11 +63,7 @@ body_file_async_callback(const void * vargs [XKRT_CALLBACK_ARGS_MAX])
     /* retrieve task args */
     file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
 
-    # if 0
-    /* fulfill dependencies of successors */
-    const uintptr_t a = (const uintptr_t) args->buffer;
-    const uintptr_t b = a + args->n;
-    # endif
+    LOGGER_WARN("TODO: Implement partitioned accesses");
 
     // if all read/write completed, complete the task
     if (args->nchunks_completed.fetch_add(1, std::memory_order_relaxed) == args->nchunks - 1)

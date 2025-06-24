@@ -39,6 +39,7 @@
 # define __XKRT_RUNTIME_H__
 
 # include <xkrt/conf/conf.h>
+# include <xkrt/distribution/distribution.h>
 # include <xkrt/driver/driver.h>
 # include <xkrt/thread/thread.h>
 # include <xkrt/memory/access/coherency-controller.hpp>
@@ -93,11 +94,11 @@ typedef struct  xkrt_runtime_t
     hwloc_topology_t topology;
 
     //////////////////////////////////////////////////////////////////////////////////////////////
-    // UTILITIES FOR THE MEMORY COHERENCY TREE - THIS SHOULD GTFO AND BE ABSTRACTED IN THE TREE //
+    // PUBLIC INTERFACES //
     //////////////////////////////////////////////////////////////////////////////////////////////
-    /// It currently only serves as a glue between the tree 'xkrt_device_global_id_t' representation
-    /// and the runtime 'xkrt_device_t' structures
-    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    /* deallocate all memory replicates and tasks */
+    void reset(void);
 
     ////////////////////
     // DATA MOVEMENTS //
@@ -123,6 +124,28 @@ typedef struct  xkrt_runtime_t
         const xkrt_device_global_id_t   src_device_global_id,
         const memory_replicate_view_t & src_device_view,
         const xkrt_callback_t         & callback
+    );
+
+    /* spawn tasks to make the host replicate coherent */
+    void coherent_async(void * ptr, size_t size);
+    void coherent_async(matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
+
+    /* distribute memory across all devices */
+    void distribute_async(
+        xkrt_distribution_type_t type,
+        void * ptr, size_t size,
+        size_t nb,
+        size_t h
+    );
+
+    void distribute_async(
+        xkrt_distribution_type_t type,
+        matrix_storage_t storage,
+        void * ptr, size_t ld,
+        size_t m, size_t n,
+        size_t mb, size_t nb,
+        size_t sizeof_type,
+        size_t hx, size_t hy
     );
 
     /////////////////////

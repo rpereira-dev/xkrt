@@ -257,7 +257,7 @@ __parse_with_respect_to_prefix(xkrt_conf_t * conf, const char* prefix)
     {
         if (strncmp(*s, "XKRT_", strlen("XKRT_")) == 0)
         {
-            LOGGER_FATAL("`XKRT_` environment variables got renamed with `XKAAPI_` - please unset `%s`", *s);
+            LOGGER_ERROR("`XKRT_` environment variables got renamed with `XKAAPI_` - please unset `%s`", *s);
             continue ;
         }
 
