@@ -1681,15 +1681,32 @@ next_view:
             xkrt_device_global_id_t device_global_id = (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID) ? fetch->dst_device_global_id : fetch->src_device_global_id;
 
             /* launch asynchronous copy */
-            this->runtime->copy(
-                device_global_id,
-                fetch->host_view,
-                fetch->dst_device_global_id,
-                fetch->dst_view,
-                fetch->src_device_global_id,
-                fetch->src_view,
-                callback
-            );
+            if (access->type == ACCESS_TYPE_INTERVAL)
+            {
+                assert(fetch->host_view.n == 1);
+                assert(fetch->host_view.sizeof_type == 1);
+                this->runtime->copy(
+                    device_global_id,
+                    (size_t) fetch->host_view.m,
+                    fetch->dst_device_global_id,
+                    (uintptr_t) fetch->dst_view.addr,
+                    fetch->src_device_global_id,
+                    (uintptr_t) fetch->src_view.addr,
+                    callback
+                );
+            }
+            else
+            {
+                this->runtime->copy(
+                    device_global_id,
+                    fetch->host_view,
+                    fetch->dst_device_global_id,
+                    fetch->dst_view,
+                    fetch->src_device_global_id,
+                    fetch->src_view,
+                    callback
+                );
+            }
         }
 
         inline void

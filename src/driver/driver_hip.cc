@@ -89,6 +89,7 @@ hip_set_context(int device_driver_id)
 {
     xkrt_device_hip_t * device = device_hip_get(device_driver_id);
     HIP_SAFE_CALL(hipCtxSetCurrent(device->hip.context));
+    HIP_SAFE_CALL(hipSetDevice(device_driver_id));
 }
 
 static unsigned int
