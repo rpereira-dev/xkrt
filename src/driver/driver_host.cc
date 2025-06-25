@@ -271,7 +271,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
             sqe->fd = instr->file.fd;
             sqe->addr = (unsigned long) instr->file.buffer;
             sqe->len = instr->file.n;
-            sqe->off = 0;
+            sqe->off = instr->file.offset;
             sqe->user_data = (__u64) idx;
 
             stream->io_uring.sq_array[index] = index;

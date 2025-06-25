@@ -42,10 +42,13 @@ typedef struct  file_args_t
 {
     xkrt_runtime_t * runtime;
     int fd;
+    size_t offset;
     void * buffer;
-    size_t n;
+    size_t size;
+    # if 0
     unsigned int nchunks;
     std::atomic<unsigned int> nchunks_completed;
+    # endif
 }               file_args_t;
 
 /* the task completes once all segment completed */
@@ -63,11 +66,14 @@ body_file_async_callback(const void * vargs [XKRT_CALLBACK_ARGS_MAX])
     /* retrieve task args */
     file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
 
+    # if 1
+    args->runtime->task_detachable_post(task);
+    # else
     LOGGER_WARN("TODO: Implement partitioned accesses");
-
     // if all read/write completed, complete the task
     if (args->nchunks_completed.fetch_add(1, std::memory_order_relaxed) == args->nchunks - 1)
         args->runtime->task_detachable_post(task);
+    # endif
 }
 
 template<xkrt_stream_instruction_type_t T>
@@ -85,6 +91,12 @@ body_file_async(task_t * task)
     xkrt_device_t * device = args->runtime->device_get(HOST_DEVICE_GLOBAL_ID);
     assert(device);
 
+    # if 1
+
+    device->offloader_stream_instruction_submit_file<T>(
+            args->fd, args->buffer, args->size, args->offset, callback);
+
+    # else
     // compute chunk size
     const size_t chunksize = args->n / args->nchunks;
     assert(chunksize > 0);
@@ -101,8 +113,10 @@ body_file_async(task_t * task)
             callback
         );
     }
+    # endif
 }
 
+// TODO: reimplement using partitionned dependencies
 template<xkrt_stream_instruction_type_t T>
 static inline int
 file_async(
@@ -112,6 +126,72 @@ file_async(
     size_t n,
     unsigned int nchunks
 ) {
+    # if 1
+
+    static_assert(T == XKRT_STREAM_INSTR_TYPE_FD_READ || T == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
+    assert(nchunks > 0);
+
+    // compute number of instructions to spawn
+    if (n < nchunks)
+       nchunks = (unsigned int) n;
+
+    // compute chunk size
+    const size_t chunksize = n / nchunks;
+    assert(chunksize > 0);
+
+    // create the task that submit the i/o instruction
+    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    assert(thread);
+
+    // get task format
+    const task_format_id_t fmtid = (T == XKRT_STREAM_INSTR_TYPE_FD_READ) ? runtime->formats.file_read_async : runtime->formats.file_write_async;
+
+    const uintptr_t p = (const uintptr_t) buffer;
+
+    for (unsigned int i = 0 ; i < nchunks ; ++i)
+    {
+        task_t * task = thread->allocate_task(task_size + args_size);
+        new(task) task_t(fmtid, flags);
+
+        // copy arguments
+        file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
+        args->runtime = runtime;
+        args->fd = fd;
+        args->offset = i * chunksize;
+        args->buffer = (void *) (p + args->offset);
+        args->size   = (i == nchunks - 1) ? (n - args->offset) : chunksize;
+
+        # if 0 /* no need to init det info if initializing dep info */
+        task_det_info_t * det = TASK_DET_INFO(task);
+        new (det) task_det_info_t();
+        # endif
+
+        task_dep_info_t * dep = TASK_DEP_INFO(task);
+        new (dep) task_dep_info_t(ac);
+
+        # ifndef NDEBUG
+        snprintf(task->label, sizeof(task->label), T == XKRT_STREAM_INSTR_TYPE_FD_READ ? "fread" : "fwrite");
+        # endif
+
+        const uintptr_t a = (const uintptr_t) args->buffer;
+        const uintptr_t b = a + args->size;
+
+        // detached virtual write onto the memory segment
+        access_t * accesses = TASK_ACCESSES(task, flags);
+        constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V);
+        new(accesses + 0) access_t(task, a, b, mode);
+        thread->resolve<1>(task, accesses);
+
+        // commit
+        runtime->task_commit(task);
+    }
+
+    return 0;
+
+    # else
+    // OLD IMPLEMENTATION WITH 1 single task, use that once we have partitioned dependencies
+    LOGGER_FATAL("TODO: reimplement to create 'n' tasks");
+
     static_assert(T == XKRT_STREAM_INSTR_TYPE_FD_READ || T == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
     assert(nchunks > 0);
 
@@ -163,6 +243,7 @@ file_async(
     runtime->task_commit(task);
 
     return 0;
+    # endif
 }
 
 int

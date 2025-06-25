@@ -273,6 +273,7 @@ typedef struct  xkrt_device_t
         int fd,
         void * buffer,
         size_t n,
+        size_t offset,
         const xkrt_callback_t & callback
     ) {
         static_assert(
@@ -296,6 +297,7 @@ typedef struct  xkrt_device_t
         instr->file.fd = fd;
         instr->file.buffer = buffer;
         instr->file.n = n;
+        instr->file.offset = offset;
 
         /* submit instr */
         this->offloader_stream_instruction_commit(thread, stream, instr);

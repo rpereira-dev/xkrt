@@ -84,6 +84,7 @@ typedef struct  xkrt_stream_instruction_file_t
     int fd;
     void * buffer;
     size_t n;
+    size_t offset;
 }               xkrt_stream_instruction_file_t;
 
 /* instructions */
