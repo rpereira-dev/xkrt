@@ -42,6 +42,7 @@
 # include <xkrt/conf/conf.h>
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
+# include <xkrt/driver/driver-host.h>
 # include <xkrt/driver/stream.h>
 # include <xkrt/sync/bits.h>
 # include <xkrt/sync/mutex.h>
@@ -55,6 +56,20 @@
 # include <cstdint>
 # include <cerrno>
 # include <functional>
+
+# include <stdlib.h>
+# include <sys/stat.h>
+# include <sys/ioctl.h>
+# include <sys/syscall.h>
+# include <sys/mman.h>
+# include <sys/uio.h>
+# include <linux/fs.h>
+# include <fcntl.h>
+# include <unistd.h>
+# include <string.h>
+# include <stdatomic.h>
+
+# include <linux/io_uring.h>
 
 static int
 XKRT_DRIVER_ENTRYPOINT(init)(
@@ -150,7 +165,79 @@ XKRT_DRIVER_ENTRYPOINT(device_commit)(int device_driver_id, xkrt_device_global_i
 // STREAM //
 ////////////
 
-# if 0
+/* Macros for barriers needed by io_uring */
+# define io_uring_smp_store_release(p, v)                                                       \
+    (reinterpret_cast<std::atomic<std::remove_reference_t<decltype(*(p))>>*>(p)->store((v), std::memory_order_release))
+
+#define io_uring_smp_load_acquire(p)                                                            \
+    (reinterpret_cast<std::atomic<std::remove_reference_t<decltype(*(p))>>*>(p)->load(std::memory_order_acquire))
+
+/** see : https://man7.org/linux/man-pages/man7/io_uring.7.html */
+static inline void
+XKRT_DRIVER_ENTRYPOINT(io_uring_init)(xkrt_stream_host_t * stream)
+{
+    // TODO: what is this ?
+    # define QUEUE_DEPTH 1
+    struct io_uring_params p;
+    memset(&p, 0, sizeof(p));
+    stream->io_uring.fd = (int) syscall(__NR_io_uring_setup, QUEUE_DEPTH, &p);
+    // stream->io_uring.fd = io_uring_setup(QUEUE_DEPTH, &p);
+    # undef QUEUE_DEPTH
+
+    /*
+     * io_uring communication happens via 2 shared kernel-user space ring
+     * buffers, which can be jointly mapped with a single mmap() call in
+     * kernels >= 5.4.
+     */
+
+    int sring_sz = p.sq_off.array + p.sq_entries * sizeof(unsigned);
+    int cring_sz = p.cq_off.cqes + p.cq_entries * sizeof(struct io_uring_cqe);
+
+    /* Rather than check for kernel version, the recommended way is to
+     * check the features field of the io_uring_params structure, which is a
+     * bitmask. If IORING_FEAT_SINGLE_MMAP is set, we can do away with the
+     * second mmap() call to map in the completion ring separately.
+     */
+    if (p.features & IORING_FEAT_SINGLE_MMAP)
+    {
+        if (cring_sz > sring_sz)
+            sring_sz = cring_sz;
+        cring_sz = sring_sz;
+    }
+
+    /* Map in the submission and completion queue ring buffers.
+     *  Kernels < 5.4 only map in the submission queue, though. */
+
+    stream->io_uring.sq_ptr = (unsigned char *) mmap(0, sring_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, stream->io_uring.fd, IORING_OFF_SQ_RING);
+    if (stream->io_uring.sq_ptr == MAP_FAILED)
+        LOGGER_FATAL("Failed to mmap io_uring for asynchronous file i/o (1)");
+
+    if (p.features & IORING_FEAT_SINGLE_MMAP) {
+        stream->io_uring.cq_ptr = stream->io_uring.sq_ptr;
+    } else {
+        /* Map in the completion queue ring buffer in older kernels separately */
+        stream->io_uring.cq_ptr = (unsigned char *) mmap(0, cring_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, stream->io_uring.fd, IORING_OFF_CQ_RING);
+        if (stream->io_uring.cq_ptr == MAP_FAILED)
+            LOGGER_FATAL("Failed to mmap io_uring for asynchronous file i/o (2)");
+    }
+
+    /* Save useful fields for later easy reference */
+    stream->io_uring.sq_tail  = stream->io_uring.sq_ptr + p.sq_off.tail;
+    stream->io_uring.sq_mask  = stream->io_uring.sq_ptr + p.sq_off.ring_mask;
+    stream->io_uring.sq_array = stream->io_uring.sq_ptr + p.sq_off.array;
+
+    /* Map in the submission queue entries array */
+    stream->io_uring.sqes = (struct io_uring_sqe *) mmap(0, p.sq_entries * sizeof(struct io_uring_sqe), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, stream->io_uring.fd, IORING_OFF_SQES);
+    if (stream->io_uring.sqes == MAP_FAILED)
+        LOGGER_FATAL("Failed to mmap io_uring for asynchronous file i/o (3)");
+
+    /* Save useful fields for later easy reference */
+    stream->io_uring.cq_head = stream->io_uring.cq_ptr + p.cq_off.head;
+    stream->io_uring.cq_tail = stream->io_uring.cq_ptr + p.cq_off.tail;
+    stream->io_uring.cq_mask = stream->io_uring.cq_ptr + p.cq_off.ring_mask;
+    stream->io_uring.cqes    = (struct io_uring_cqe *) (stream->io_uring.cq_ptr + p.cq_off.cqes);
+}
+
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
     xkrt_stream_t * istream,
@@ -158,38 +245,145 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
     xkrt_stream_instruction_counter_t idx
 ) {
     (void) istream;
-    (void) instr;
     (void) idx;
+
+    assert(instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ ||
+            instr->type == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
+
+    xkrt_stream_host_t * stream = (xkrt_stream_host_t *) istream;
+
+    switch (instr->type)
+    {
+        case (XKRT_STREAM_INSTR_TYPE_FD_READ):
+        case (XKRT_STREAM_INSTR_TYPE_FD_WRITE):
+        {
+            if (stream->io_uring.sq_ptr == NULL)
+                XKRT_DRIVER_ENTRYPOINT(io_uring_init)(stream);
+            assert(stream->io_uring.sq_ptr);
+
+            /* Add our submission queue entry to the tail of the SQE ring buffer */
+            unsigned tail  = *stream->io_uring.sq_tail;
+            unsigned index = tail & *stream->io_uring.sq_mask;
+            struct io_uring_sqe * sqe = &stream->io_uring.sqes[index];
+
+            /* Fill in the parameters required for the read or write operation */
+            sqe->opcode = (instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ) ? IORING_OP_READ : IORING_OP_WRITE;
+            sqe->fd = instr->file.fd;
+            sqe->addr = (unsigned long) instr->file.buffer;
+            sqe->len = instr->file.n;
+            sqe->off = instr->file.offset;
+            sqe->user_data = (__u64) idx;
+
+            stream->io_uring.sq_array[index] = index;
+            ++tail;
+
+            /* Update the tail */
+            io_uring_smp_store_release(stream->io_uring.sq_tail, tail);
+
+            /*
+             * Tell the kernel we have submitted events with the io_uring_enter()
+             * system call. We also pass in the IOURING_ENTER_GETEVENTS flag which
+             * causes the io_uring_enter() call to wait until min_complete
+             * (the 3rd param) events complete.
+             */
+            const int to_submit = 1;
+            const int min_complete = 1;
+            const unsigned int flags = IORING_ENTER_GETEVENTS;
+            int r = (int) syscall(__NR_io_uring_enter, stream->io_uring.fd, to_submit, min_complete, flags, NULL, 0);
+            if (r < 0)
+                LOGGER_FATAL("__NR_io_uring_enter");
+
+            return EINPROGRESS;
+        }
+
+        default:
+            break ;
+    }
+
     return 0;
 }
-# endif
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
     int device_driver_id,
     xkrt_stream_type_t stype
 ) {
-    (void) stype;
     assert(device_driver_id == 0);
+    switch (stype)
+    {
+        case (XKRT_STREAM_TYPE_FD_READ):
+        case (XKRT_STREAM_TYPE_FD_WRITE):
+            return 1;
+
+        default:
+            return 0;
+    }
     return 0;
 }
 
-# if 0
+static inline int
+XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
+    xkrt_stream_t * istream
+) {
+    LOGGER_FATAL("Not supported");
+    return 0;
+}
+
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+    xkrt_stream_instruction_counter_t a,
+    xkrt_stream_instruction_counter_t b
 ) {
-    (void)istream;
-    (void)instr;
-    (void)idx;
-    assert(0);
-    return EINPROGRESS;
-}
-# endif
+    assert(istream);
 
-# if 0
+    xkrt_stream_host_t * stream = (xkrt_stream_host_t *) istream;
+    int r = 0;
+
+    // no need to iterate through instr, its saved in the completion queue for I/O Instructions
+    {
+        /*
+         * Read from completion queue.
+         * We read completion events from the completion queue.
+         * We dequeue the CQE, update and head and return the result of the operation.
+         */
+
+        while (1)
+        {
+            /* Read barrier */
+            unsigned head = io_uring_smp_load_acquire(stream->io_uring.cq_head);
+
+            /* If head == tail, it means that the buffer is empty. */
+            if (head == *stream->io_uring.cq_tail)
+                break ;
+
+            /* Get the entry */
+            struct io_uring_cqe * cqe = &stream->io_uring.cqes[head & (*stream->io_uring.cq_mask)];
+
+            if (cqe->res < 0)
+                LOGGER_FATAL("Error: %s", strerror(abs(cqe->res)));
+            else
+            {
+                const xkrt_stream_instruction_counter_t p = (const xkrt_stream_instruction_counter_t) cqe->user_data;
+                xkrt_stream_instruction_t * instr = istream->pending.instr + p;
+                assert(instr);
+                assert(instr->completed == false);
+                assert(cqe->res == instr->file.n);
+
+                ++head;
+
+                /* Write barrier so that update to the head are made visible */
+                io_uring_smp_store_release(stream->io_uring.cq_head, head);
+
+                /* complete kinstruction */
+                istream->complete_instruction(instr);
+            }
+        }
+    }
+
+    return r;
+}
+
 static xkrt_stream_t *
 XKRT_DRIVER_ENTRYPOINT(stream_create)(
     xkrt_device_t * idevice,
@@ -197,22 +391,43 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     xkrt_stream_instruction_counter_t capacity
 ) {
     (void)idevice;
-    (void)type;
-    (void)capacity;
-    assert(0);
-    return NULL;
-}
-# endif
+    (void) type;
+    (void) capacity;
 
-# if 0
+    assert(type == XKRT_STREAM_TYPE_FD_READ || type == XKRT_STREAM_TYPE_FD_WRITE);
+
+    uint8_t * mem = (uint8_t *) malloc(sizeof(xkrt_stream_host_t));
+    assert(mem);
+
+    xkrt_stream_host_t * stream = (xkrt_stream_host_t *) mem;
+
+    /*************************/
+    /* init xkrt stream */
+    /*************************/
+    xkrt_stream_init(
+        (xkrt_stream_t *) stream,
+        type,
+        capacity,
+        XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
+        XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress),
+        XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)
+    );
+
+    /*************************/
+    /* do host specific init */
+    /*************************/
+
+    // nothing to do
+
+    return (xkrt_stream_t *) stream;
+}
+
 static void
 XKRT_DRIVER_ENTRYPOINT(stream_delete)(
     xkrt_stream_t * istream
 ) {
-    (void)istream;
-    assert(0);
+    free(istream);
 }
-# endif
 
 ////////////
 // MEMORY //
@@ -354,8 +569,8 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(device_cpuset);
 
     REGISTER(stream_suggest);
- // REGISTER(stream_create);
- // REGISTER(stream_delete);
+    REGISTER(stream_create);
+    REGISTER(stream_delete);
 
  // REGISTER(module_load);
  // REGISTER(module_unload);

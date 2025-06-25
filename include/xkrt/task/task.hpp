@@ -106,11 +106,11 @@ task_state_to_str(task_state_t state)
 typedef enum    task_flags_t
 {
     TASK_FLAG_ZERO          = 0,
-    TASK_FLAG_DEPENDENT     = (1 << 0), // the task may have dependencies
-    TASK_FLAG_DETACHABLE    = (1 << 1), // the task completion is associated with the completion of user-defined external events
-    TASK_FLAG_DEVICE        = (1 << 2), // task task may execute on a device
-    TASK_FLAG_DOMAIN        = (1 << 3), // if this task may have dependent children tasks - in such case, it will have a dependency and a memory domain
-    TASK_FLAG_REQUEUE       = (1 << 4), // if this flag is set, the task will be re-queued after returning from its body
+    TASK_FLAG_DEPENDENT     = (1 << 0), // may have dependencies
+    TASK_FLAG_DETACHABLE    = (1 << 1), // completion is associated with the completion of user-defined external events
+    TASK_FLAG_DEVICE        = (1 << 2), // may execute on a device
+    TASK_FLAG_DOMAIN        = (1 << 3), // may have dependent children tasks - in such case, it will have a dependency and a memory domain
+    TASK_FLAG_REQUEUE       = (1 << 4), // will be re-queued after returning from its body
 
     // support me in the future
   // TASK_FLAG_UNDEFERED     = (1 << X), // suspend the current task execution until that task completed
@@ -310,7 +310,7 @@ task_get_extra_size(const task_flag_bitfield_t flags)
 /* Given flags and the number of accesses, computes (at compile-time) the size
  * in bytes required for the task (without args_t) */
 static constexpr inline size_t
-task_compute_size(const task_flag_bitfield_t flags, const uint8_t ac)
+task_compute_size(const task_flag_bitfield_t flags, const task_access_counter_t ac)
 {
     return sizeof(task_t) + task_get_extra_size(flags) + ac*sizeof(access_t);
 }
@@ -532,9 +532,14 @@ __task_complete(
     {
         task_dep_info_t * dep = TASK_DEP_INFO(task);
         access_t * accesses = TASK_ACCESSES(task);
-        for (uint8_t i = 0 ; i < dep->ac ; ++i)
+        for (task_access_counter_t i = 0 ; i < dep->ac ; ++i)
         {
             access_t * access = accesses + i;
+
+            // detached access, not my responsibility to fulfill this dependency
+            if (access->mode & ACCESS_MODE_D)
+                continue ;
+
             for (access_t * succ_access : access->successors)
             {
                 task_t * succ = succ_access->task;

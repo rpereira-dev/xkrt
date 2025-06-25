@@ -455,9 +455,9 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
         case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
         case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
         {
-                  void * dst    = (      void *) instr->copy.D1.dst_device_addr;
-            const void * src    = (const void *) instr->copy.D1.src_device_addr;
-            const size_t size   = instr->copy.D1.size;
+                  void * dst    = (      void *) instr->copy_1D.dst_device_addr;
+            const void * src    = (const void *) instr->copy_1D.src_device_addr;
+            const size_t size   = instr->copy_1D.size;
             ZE_SAFE_CALL(
                 zeCommandListAppendMemoryCopy(
                     stream->ze.command.list,
@@ -476,14 +476,14 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
         case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
         case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
         {
-                  void * dst    = (      void *) instr->copy.D2.dst_device_view.addr;
-            const void * src    = (const void *) instr->copy.D2.src_device_view.addr;
+                  void * dst    = (      void *) instr->copy_2D.dst_device_view.addr;
+            const void * src    = (const void *) instr->copy_2D.src_device_view.addr;
 
-            const size_t dst_pitch = instr->copy.D2.dst_device_view.ld * instr->copy.D2.sizeof_type;
-            const size_t src_pitch = instr->copy.D2.src_device_view.ld * instr->copy.D2.sizeof_type;
+            const size_t dst_pitch = instr->copy_2D.dst_device_view.ld * instr->copy_2D.sizeof_type;
+            const size_t src_pitch = instr->copy_2D.src_device_view.ld * instr->copy_2D.sizeof_type;
 
-            const size_t width  = instr->copy.D2.m * instr->copy.D2.sizeof_type;
-            const size_t height = instr->copy.D2.n;
+            const size_t width  = instr->copy_2D.m * instr->copy_2D.sizeof_type;
+            const size_t height = instr->copy_2D.n;
 
             const uint32_t dst_slice_pitch = 0;
             const ze_copy_region_t dst_region = {
@@ -568,50 +568,61 @@ XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
-
+    xkrt_stream_instruction_counter_t a,
+    xkrt_stream_instruction_counter_t b
 ) {
     assert(istream);
 
     xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
+    int r = 0;
 
-    switch (instr->type)
+    for (xkrt_stream_instruction_counter_t idx = a ; idx < b ; ++idx)
     {
-        case (XKRT_STREAM_INSTR_TYPE_KERN):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
-        {
-            ze_result_t res;
+        xkrt_stream_instruction_t * instr = istream->pending.instr + idx;
+        ze_event_handle_t event = stream->ze.events.list[idx];
 
-            /* poll event */
-            for (int i = 0 ; i < 16 ; ++i)
+        assert(instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ ||
+                instr->type == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
+
+        switch (instr->type)
+        {
+            case (XKRT_STREAM_INSTR_TYPE_KERN):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
+            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
             {
-                res = zeEventQueryStatus(stream->ze.events.list[idx]);
-                if (res == ZE_RESULT_NOT_READY)
+                ze_result_t res;
+
+                /* poll event */
+                for (int i = 0 ; i < 4 ; ++i)
                 {
-                //    sched_yield();
+                    res = zeEventQueryStatus(event);
+                    if (res == ZE_RESULT_NOT_READY)
+                    {
+                        sched_yield();
+                    }
+                    else if (res == ZE_RESULT_SUCCESS)
+                    {
+                        istream->complete_instruction(idx);
+                        goto next_instr;
+                    }
+                    else
+                        ZE_SAFE_CALL(res);
                 }
-                else if (res == ZE_RESULT_SUCCESS)
-                    return 0;
-                else
-                    ZE_SAFE_CALL(res);
+                r = EINPROGRESS;
+                break ;
             }
 
-            return EINPROGRESS;
-        }
-
-        default:
-            LOGGER_FATAL("Wrong instruction");
+            default:
+                LOGGER_FATAL("Wrong instruction");
     }
 
-    return EINPROGRESS;
+    return r;
 }
 
 # if 1

@@ -81,8 +81,13 @@ extern "C" {
         size_t sizeof_type
     );
 
-    /* Submit a task that reads Region(storage, m, n, addr, ld, sizeof_type) onto the host */
-    void xkrt_coherency_host_async(
+    /* Submit tasks that reads Region(storage, m, n, addr, ld, sizeof_type) onto the host */
+    void xkrt_coherent1D_async(
+        xkrt_runtime_t * runtime,
+        void * addr, size_t size
+    );
+
+    void xkrt_coherent2D_async(
         xkrt_runtime_t * runtime,
         matrix_storage_t storage,
         void * addr, size_t ld,
@@ -91,7 +96,7 @@ extern "C" {
     );
 
     /* Allocate incoherent memory replicates onto the passed device */
-    void xkrt_coherency_allocate_2D(
+    void xkrt_coherent_allocate_2D(
         xkrt_runtime_t * runtime,
         xkrt_device_global_id_t device_global_id,
         matrix_storage_t storage,
@@ -104,51 +109,9 @@ extern "C" {
     // DISTRIBUTE //
     ////////////////
 
-    // DISTRIBUTION //
-    typedef enum    xkrt_distribution_type_t
-    {
-        XKRT_DISTRIBUTION_TYPE_CYCLIC2D,
-        XKRT_DISTRIBUTION_TYPE_CYCLIC2DBLOCK,
-    }               xkrt_distribution_type_t;
-
-    typedef struct  xkrt_distribution_t
-    {
-        xkrt_distribution_type_t type;
-        size_t count;
-        size_t m, n;
-        size_t mb, nb;
-        size_t mt, nt;
-
-        union {
-
-            // for XKRT_DISTRIBUTION_TYPE_CYCLIC2D
-            // struct { };
-
-            // for XKRT_DISTRIBUTION_TYPE_CYCLIC2DBLOCK
-            struct {
-                size_t blkm, blkn;
-                size_t gm, gn;
-            };
-        };
-    }               xkrt_distribution_t;
-
-    xkrt_device_global_id_t xkrt_distribution_get(
-        xkrt_distribution_t * d,
-        size_t tm, size_t tn
-    );
-
-    void
-    xkrt_distribution_init(
-        xkrt_distribution_t * d,
-        xkrt_distribution_type_t type,
-        size_t count,
-        size_t m, size_t n,
-        size_t mb, size_t nb
-    );
-
     // DISTRIBUTE //
 
-    void xkrt_distribute_async(
+    void xkrt_distribute2D_async(
         xkrt_runtime_t * runtime,
         xkrt_distribution_type_t type,
         matrix_storage_t storage,

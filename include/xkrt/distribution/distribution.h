@@ -3,7 +3,6 @@
 **
 ** Contributors :
 ** Thierry Gautier, thierry.gautier@inrialpes.fr
-** Joao Lima joao.lima@inf.ufsm.br
 ** Romain PEREIRA, romain.pereira@inria.fr + rpereira@anl.gov
 **
 ** This software is a computer program whose purpose is to execute
@@ -36,30 +35,86 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __STREAM_INSTRUCTION_TYPE_H__
-# define __STREAM_INSTRUCTION_TYPE_H__
+#ifndef __XKRT_DISTRIBUTION_H__
+# define __XKRT_DISTRIBUTION_H__
 
-typedef enum    xkrt_stream_instruction_type_t
+# include <xkrt/consts.h>
+# include <stdlib.h>
+
+// DISTRIBUTION //
+typedef enum    xkrt_distribution_type_t
 {
-    XKRT_STREAM_INSTR_TYPE_KERN         = 0,
+    XKRT_DISTRIBUTION_TYPE_CYCLIC1D,
+    XKRT_DISTRIBUTION_TYPE_CYCLIC2D,
+    XKRT_DISTRIBUTION_TYPE_CYCLIC2DBLOCK,
+}               xkrt_distribution_type_t;
 
-    XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D  = 1,
-    XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D  = 2,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D  = 3,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D  = 4,
+typedef struct  xkrt_distribution_t
+{
+    xkrt_distribution_type_t type;
+    size_t count;       // 1D, 2D
+    union {
+        size_t size;    // 1D
+        size_t m;       // 2D
+    };
+    size_t n;           // 2D
 
-    XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D  = 5,
-    XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D  = 6,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D  = 7,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D  = 8,
+    union {
+        size_t bs;      // 1D
+        size_t mb;      // 2D
+    };
+    size_t nb;          // 2D
 
-    XKRT_STREAM_INSTR_TYPE_FD_READ      = 9,
-    XKRT_STREAM_INSTR_TYPE_FD_WRITE     = 10,
+    union {
+        size_t t;       // 1D
+        size_t mt;      // 2D
+    };
+    size_t nt;          // 2D
 
-    XKRT_STREAM_INSTR_TYPE_MAX          = 11
+    union {
 
-}               xkrt_stream_instruction_type_t;
+        // XKRT_DISTRIBUTION_TYPE_CYCLIC1D
+        // struct { };
 
-const char * xkrt_stream_instruction_type_to_str(xkrt_stream_instruction_type_t type);
+        // XKRT_DISTRIBUTION_TYPE_CYCLIC2D
+        // struct { };
 
-#endif /* __STREAM_INSTRUCTION_H__ */
+        // XKRT_DISTRIBUTION_TYPE_CYCLIC2DBLOCK
+        struct {
+            size_t blkm, blkn;
+            size_t gm, gn;
+        };
+    };
+}               xkrt_distribution_t;
+
+extern "C"
+xkrt_device_global_id_t xkrt_distribution1D_get(
+    xkrt_distribution_t * d, size_t t
+);
+
+extern "C"
+xkrt_device_global_id_t xkrt_distribution2D_get(
+    xkrt_distribution_t * d,
+    size_t tm, size_t tn
+);
+
+extern "C"
+void
+xkrt_distribution1D_init(
+    xkrt_distribution_t * d,
+    xkrt_distribution_type_t type,
+    size_t count,
+    size_t size, size_t bs
+);
+
+extern "C"
+void
+xkrt_distribution2D_init(
+    xkrt_distribution_t * d,
+    xkrt_distribution_type_t type,
+    size_t count,
+    size_t m, size_t n,
+    size_t mb, size_t nb
+);
+
+#endif /* __XKRT_DISTRIBUTION_H__ */

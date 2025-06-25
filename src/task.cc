@@ -183,26 +183,60 @@ xkrt_runtime_t::task_submit(
 }
 
 // spawn an independent task
-constexpr task_flag_bitfield_t host_capture_task_flags = TASK_FLAG_ZERO;
-constexpr size_t host_capture_task_size                = task_compute_size(host_capture_task_flags, 0);
-
-inline
-static task_t *
+template <task_access_counter_t ac>
+inline static
+task_t *
 xkrt_team_task_capture_create(
     xkrt_runtime_t * runtime,
+    const std::function<void(task_t *, access_t *)> & set_accesses,
     const std::function<void(task_t *)> & f,
     xkrt_thread_t * tls
 ) {
-    task_t * task = tls->allocate_task(host_capture_task_size + sizeof(f));
-    new (task) task_t(runtime->formats.host_capture, host_capture_task_flags);
+    assert(f);
+    assert(ac == 0 || set_accesses);
 
-    std::function<void(task_t *)> * fcpy = (std::function<void(task_t *)> *) TASK_ARGS(task, host_capture_task_size);
+    constexpr task_flag_bitfield_t flags = (ac == 0) ? TASK_FLAG_ZERO : TASK_FLAG_DEPENDENT;
+    constexpr size_t size = task_compute_size(flags, ac);
+
+    task_t * task = tls->allocate_task(size + sizeof(f));
+    new (task) task_t(runtime->formats.host_capture, flags);
+
+    std::function<void(task_t *)> * fcpy = (std::function<void(task_t *)> *) TASK_ARGS(task, size);
     new (fcpy) std::function<void(task_t *)>(f);
+
+    if (ac)
+    {
+        task_dep_info_t * dep = TASK_DEP_INFO(task);
+        new (dep) task_dep_info_t(ac);
+
+        access_t * accesses = TASK_ACCESSES(task, flags);
+        set_accesses(task, accesses);
+        tls->resolve<ac>(task, accesses);
+    }
+
+    # ifndef NDEBUG
+    snprintf(task->label, sizeof(task->label), "capture");
+    # endif
 
     return task;
 }
 
 // spawn on some thread of the team
+template <task_access_counter_t ac>
+void
+xkrt_runtime_t::team_task_spawn(
+    xkrt_team_t * team,
+    const std::function<void(task_t *, access_t *)> & set_accesses,
+    const std::function<void(task_t *)> & f
+) {
+    assert(team->priv.threads);
+    assert(team->priv.nthreads);
+
+    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    task_t * task = xkrt_team_task_capture_create<ac>(this, set_accesses, f, tls);
+    tls->commit(task, xkrt_team_task_enqueue, this, team);
+}
+
 void
 xkrt_runtime_t::team_task_spawn(
     xkrt_team_t * team,
@@ -212,26 +246,51 @@ xkrt_runtime_t::team_task_spawn(
     assert(team->priv.nthreads);
 
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
-    task_t * task = xkrt_team_task_capture_create(this, f, tls);
+    task_t * task = xkrt_team_task_capture_create<0>(this, nullptr, f, tls);
     tls->commit(task, xkrt_team_task_enqueue, this, team);
 }
 
 // spawn on currently executing thread
+template <task_access_counter_t ac>
+void
+xkrt_runtime_t::task_spawn(
+    const std::function<void(task_t *, access_t *)> & set_accesses,
+    const std::function<void(task_t *)> & f
+) {
+    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    task_t * task = xkrt_team_task_capture_create<ac>(this, set_accesses, f, tls);
+    tls->commit(task, xkrt_team_thread_task_enqueue, this, tls->team, tls);
+}
+
 void
 xkrt_runtime_t::task_spawn(
     const std::function<void(task_t *)> & f
 ) {
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
-    task_t * task = xkrt_team_task_capture_create(this, f, tls);
+    task_t * task = xkrt_team_task_capture_create<0>(this, nullptr, f, tls);
     tls->commit(task, xkrt_team_thread_task_enqueue, this, tls->team, tls);
 }
+
+// instantiate tmeplated spawn methods
+# define INSTANCE(X)                                                                                                                                            \
+    template void xkrt_runtime_t::task_spawn<X>(const std::function<void(task_t *, access_t *)> &, const std::function<void(task_t *)> &);                      \
+    template void xkrt_runtime_t::team_task_spawn<X>(xkrt_team_t *, const std::function<void(task_t *, access_t *)> &, const std::function<void(task_t *)> &)
+
+INSTANCE(1);
+INSTANCE(2);
+INSTANCE(3);
+INSTANCE(4);
+INSTANCE(5);
+INSTANCE(6);
+
+# undef INSTANCE
 
 static void
 body_host_capture(task_t * task)
 {
     assert(task);
 
-    std::function<void(task_t *)> * f = (std::function<void(task_t *)> *) TASK_ARGS(task, host_capture_task_size);
+    std::function<void(task_t *)> * f = (std::function<void(task_t *)> *) TASK_ARGS(task);
     (*f)(task);
 }
 

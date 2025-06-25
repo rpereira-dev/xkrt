@@ -42,131 +42,55 @@
 
 # include <math.h>
 
-//////////////////
-// DISTRIBUTION //
-//////////////////
-
-extern "C"
-void
-xkrt_distribution_init(
-    xkrt_distribution_t * d,
-    xkrt_distribution_type_t type,
-    size_t count,
-    size_t m, size_t n,
-    size_t mb, size_t nb
-) {
-    assert(count);
-
-    d->type  = type;
-    d->count = count;
-    d->m     = m;
-    d->n     = n;
-    d->mb    = mb;
-    d->nb    = nb;
-    d->mt = NUM_OF_TILES(m, mb);
-    d->nt = NUM_OF_TILES(n, nb);
-
-    switch (type)
-    {
-        case (XKRT_DISTRIBUTION_TYPE_CYCLIC2D):
-        {
-            // nothing to do
-            break ;
-        }
-
-        case (XKRT_DISTRIBUTION_TYPE_CYCLIC2DBLOCK):
-        {
-
-            /* find the most square decomposition of count in d->gm x d->gn */
-            d->blkm = 1;
-            d->blkn = 1;
-            d->gm = (size_t) sqrt((double) count);
-            d->gn = d->gm;
-            if (d->gm == 0)
-            {
-                d->gm = 1;
-                d->gn = count;
-            }
-            else
-            {
-                size_t g;
-                for (g = d->gm + 1; g > 0; --g)
-                    if (count % g == 0)
-                        break;
-
-                # pragma message(TODO "Why this inverts with the previous case ?")
-                if (g == 0)
-                {
-                    d->gm = count; // = 1
-                    d->gn = 1;     // = count
-                }
-                else
-                {
-                    d->gm = g;
-                    d->gn = count / g;
-                }
-            }
-
-            d->blkm = d->blkm;
-            d->blkn = d->blkn;
-            d->gm   = d->gm;
-            d->gn   = d->gn;
-
-            break ;
-        }
-
-        default:
-        LOGGER_FATAL("Not implemented");
-    }
-}
-
-extern "C"
-xkrt_device_global_id_t
-xkrt_distribution_get(
-    xkrt_distribution_t * d,
-    size_t tm, size_t tn
-) {
-    assert(tm < d->mt);
-    assert(tn < d->nt);
-
-    switch (d->type)
-    {
-        /**
-         * example on 4 gpus
-         *  1 2 3 4
-         *  1 2 3 4
-         *  1 2 3 4
-         *  1 2 3 4
-         */
-        case (XKRT_DISTRIBUTION_TYPE_CYCLIC2D):
-            return 1 + (xkrt_device_global_id_t) ((tm * d->nt + tn) % d->count);
-
-        /**
-         * example on 4 gpus
-         *  1 2 1 2
-         *  3 4 3 4
-         *  1 2 1 2
-         *  3 4 3 4
-         */
-        case (XKRT_DISTRIBUTION_TYPE_CYCLIC2DBLOCK):
-            return 1 + (xkrt_device_global_id_t) (
-                    (
-                     ((tm / d->blkm) % d->gm) * d->gn +
-                      (tn / d->blkn) % d->gn)
-                        % d->count
-                    )
-                ;
-        default:
-            LOGGER_FATAL("Not implemented");
-    }
-}
-
 ////////////////
 // DISTRIBUTE //
 ////////////////
 
 static inline void
-xkrt_distribute_submit(
+xkrt_distribute1D_submit(
+    xkrt_runtime_t * runtime,
+    void * ptr, size_t size,
+    size_t bs,
+    size_t h,
+    size_t t,
+    xkrt_device_global_id_t device_global_id
+) {
+    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    assert(thread);
+
+    # define AC 1
+    constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT | TASK_FLAG_DEVICE;
+    constexpr size_t task_size = task_compute_size(flags, AC);
+
+    task_t * task = thread->allocate_task(task_size);
+    new(task) task_t(TASK_FORMAT_NULL, flags);
+
+    task_dep_info_t * dep = TASK_DEP_INFO(task);
+    new (dep) task_dep_info_t(AC);
+
+    task_dev_info_t * dev = TASK_DEV_INFO(task);
+    new (dev) task_dev_info_t(device_global_id, UNSPECIFIED_TASK_ACCESS);
+
+    const uintptr_t p = (const uintptr_t) ptr;
+    access_t * accesses = TASK_ACCESSES(task);
+    {
+        const uintptr_t x  = p + t * bs;
+        const uintptr_t x0 = MAX(x-(ssize_t)h, 0);
+        const uintptr_t x1 = MIN(x+bs+h, p+size);
+        new(accesses + 0) access_t(task, x0, x1, ACCESS_MODE_R);
+    }
+    thread->resolve<AC>(task, accesses);
+    # undef AC
+
+    #ifndef NDEBUG
+    snprintf(task->label, sizeof(task->label), "distribute_cyclic_1d_async");
+    #endif /* NDEBUG */
+
+    runtime->task_commit(task);
+}
+
+static inline void
+xkrt_distribute2D_submit(
     xkrt_runtime_t * runtime,
     matrix_storage_t storage,
     void * ptr, size_t ld,
@@ -203,7 +127,7 @@ xkrt_distribute_submit(
         const ssize_t y1 = MIN(y+nb+hy, n);
         const  size_t sx = x1 - x0;
         const  size_t sy = y1 - y0;
-        new(accesses + 0) access_t(task, storage, ptr, ld, x0, y0, sx, sy, sizeof_type, ACCESS_MODE_RW);
+        new(accesses + 0) access_t(task, storage, ptr, ld, x0, y0, sx, sy, sizeof_type, ACCESS_MODE_R);
     }
     thread->resolve<AC>(task, accesses);
     # undef AC
@@ -217,7 +141,7 @@ xkrt_distribute_submit(
 
 extern "C"
 void
-xkrt_distribute_async(
+xkrt_distribute2D_async(
     xkrt_runtime_t * runtime,
     xkrt_distribution_type_t type,
     matrix_storage_t storage,
@@ -227,13 +151,58 @@ xkrt_distribute_async(
     size_t sizeof_type,
     size_t hx, size_t hy
 ) {
-    const int ngpus = runtime->drivers.devices.n - 1;
+    const int ngpus = runtime->get_ndevices() - 1;
     assert(ngpus);
 
     xkrt_distribution_t d;
-    xkrt_distribution_init(&d, type, ngpus, m, n, mb, nb);
+    xkrt_distribution2D_init(&d, type, ngpus, m, n, mb, nb);
 
     for (size_t tm = 0; tm < d.mt; ++tm)
         for (size_t tn = 0; tn < d.nt; ++tn)
-            xkrt_distribute_submit(runtime, storage, ptr, ld, m, n, mb, nb, sizeof_type, hx, hy, tm, tn, xkrt_distribution_get(&d, tm, tn));
+            xkrt_distribute2D_submit(runtime, storage, ptr, ld,
+                    m, n, mb, nb, sizeof_type, hx, hy, tm, tn,
+                    xkrt_distribution2D_get(&d, tm, tn));
+}
+
+void
+xkrt_runtime_t::distribute_async(
+    xkrt_distribution_type_t type,
+    matrix_storage_t storage,
+    void * ptr, size_t ld,
+    size_t m, size_t n,
+    size_t mb, size_t nb,
+    size_t sizeof_type,
+    size_t hx, size_t hy
+) {
+    xkrt_distribute2D_async(this, type, storage, ptr, ld, m, n, mb, nb, sizeof_type, hx, hy);
+}
+
+void
+xkrt_distribute1D_async(
+    xkrt_runtime_t * runtime,
+    xkrt_distribution_type_t type,
+    void * ptr, size_t size,
+    size_t bs,
+    size_t h
+) {
+    assert(type == XKRT_DISTRIBUTION_TYPE_CYCLIC1D);
+
+    const int ngpus = runtime->get_ndevices() - 1;
+    assert(ngpus);
+
+    xkrt_distribution_t d;
+    xkrt_distribution1D_init(&d, type, ngpus, size, bs);
+
+    for (size_t t = 0; t < d.t; ++t)
+        xkrt_distribute1D_submit(runtime, ptr, size, bs, h, t, xkrt_distribution1D_get(&d, t));
+}
+
+void
+xkrt_runtime_t::distribute_async(
+    xkrt_distribution_type_t type,
+    void * ptr, size_t size,
+    size_t bs,
+    size_t h
+) {
+    xkrt_distribute1D_async(this, type, ptr, size, bs, h);
 }

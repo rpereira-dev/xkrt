@@ -36,30 +36,51 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __STREAM_INSTRUCTION_TYPE_H__
-# define __STREAM_INSTRUCTION_TYPE_H__
+#ifndef __DRIVER_HOST_H__
+# define __DRIVER_HOST_H__
 
-typedef enum    xkrt_stream_instruction_type_t
+# include <atomic>
+
+# include <xkrt/driver/driver.h>
+# include <xkrt/driver/stream.h>
+
+# include <linux/io_uring.h>
+
+typedef std::atomic<uint8_t> xkrt_stream_host_event_t;
+
+typedef struct  xkrt_stream_host_t
 {
-    XKRT_STREAM_INSTR_TYPE_KERN         = 0,
+    xkrt_stream_t super;
 
-    XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D  = 1,
-    XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D  = 2,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D  = 3,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D  = 4,
+    /* async i/o */
+    struct {
 
-    XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D  = 5,
-    XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D  = 6,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D  = 7,
-    XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D  = 8,
+        /* io_uring file desc */
+        int fd;
 
-    XKRT_STREAM_INSTR_TYPE_FD_READ      = 9,
-    XKRT_STREAM_INSTR_TYPE_FD_WRITE     = 10,
+        /* submission queue */
+        unsigned char * sq_ptr;
+        unsigned char * sq_tail;
+        unsigned char * sq_mask;
+        unsigned char * sq_array;
 
-    XKRT_STREAM_INSTR_TYPE_MAX          = 11
+        struct io_uring_sqe * sqes;
 
-}               xkrt_stream_instruction_type_t;
+        /* completion queue */
+        unsigned char * cq_ptr;
+        unsigned char * cq_head;
+        unsigned char * cq_tail;
+        unsigned char * cq_mask;
+        unsigned char * cq_array;
 
-const char * xkrt_stream_instruction_type_to_str(xkrt_stream_instruction_type_t type);
+        struct io_uring_cqe * cqes;
 
-#endif /* __STREAM_INSTRUCTION_H__ */
+    } io_uring;
+}               xkrt_stream_host_t;
+
+typedef struct  xkrt_driver_host_t
+{
+    xkrt_driver_t super;
+}               xkrt_driver_host_t;
+
+#endif /* __DRIVER_HOST_H__ */

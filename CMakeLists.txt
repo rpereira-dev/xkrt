@@ -79,10 +79,12 @@ add_custom_target(always_generate_files ALL DEPENDS always-run)
 SET(SOURCE_FILES
     ${CMAKE_SOURCE_DIR}/src/conf/conf.cc
     ${CMAKE_SOURCE_DIR}/src/debug/cairo.cc
+    ${CMAKE_SOURCE_DIR}/src/distribution/distribution.cc
     ${CMAKE_SOURCE_DIR}/src/driver.cc
     ${CMAKE_SOURCE_DIR}/src/driver/device.cc
     ${CMAKE_SOURCE_DIR}/src/driver/driver.cc
     ${CMAKE_SOURCE_DIR}/src/driver/stream.cc
+    ${CMAKE_SOURCE_DIR}/src/file/readwrite.cc
     ${CMAKE_SOURCE_DIR}/src/logger/bits-to-str.cc
     ${CMAKE_SOURCE_DIR}/src/logger/logger.cc
     ${CMAKE_SOURCE_DIR}/src/logger/metric.cc

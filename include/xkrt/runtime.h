@@ -39,6 +39,7 @@
 # define __XKRT_RUNTIME_H__
 
 # include <xkrt/conf/conf.h>
+# include <xkrt/distribution/distribution.h>
 # include <xkrt/driver/driver.h>
 # include <xkrt/thread/thread.h>
 # include <xkrt/memory/access/coherency-controller.hpp>
@@ -74,6 +75,8 @@ typedef struct  xkrt_runtime_t
         task_format_id_t memory_touch_async;
         task_format_id_t memory_register_async;
         task_format_id_t memory_unregister_async;
+        task_format_id_t file_read_async;
+        task_format_id_t file_write_async;
     } formats;
 
     /* user conf */
@@ -91,11 +94,11 @@ typedef struct  xkrt_runtime_t
     hwloc_topology_t topology;
 
     //////////////////////////////////////////////////////////////////////////////////////////////
-    // UTILITIES FOR THE MEMORY COHERENCY TREE - THIS SHOULD GTFO AND BE ABSTRACTED IN THE TREE //
+    // PUBLIC INTERFACES //
     //////////////////////////////////////////////////////////////////////////////////////////////
-    /// It currently only serves as a glue between the tree 'xkrt_device_global_id_t' representation
-    /// and the runtime 'xkrt_device_t' structures
-    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    /* deallocate all memory replicates and tasks */
+    void reset(void);
 
     ////////////////////
     // DATA MOVEMENTS //
@@ -122,6 +125,72 @@ typedef struct  xkrt_runtime_t
         const memory_replicate_view_t & src_device_view,
         const xkrt_callback_t         & callback
     );
+
+    /* spawn tasks to make the host replicate coherent */
+    void coherent_async(void * ptr, size_t size);
+    void coherent_async(matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
+
+    /* distribute memory across all devices */
+    void distribute_async(
+        xkrt_distribution_type_t type,
+        void * ptr, size_t size,
+        size_t nb,
+        size_t h
+    );
+
+    void distribute_async(
+        xkrt_distribution_type_t type,
+        matrix_storage_t storage,
+        void * ptr, size_t ld,
+        size_t m, size_t n,
+        size_t mb, size_t nb,
+        size_t sizeof_type,
+        size_t hx, size_t hy
+    );
+
+    /////////////////////
+    // I/O FILESYSTEM //
+    /////////////////////
+
+    /**
+     *  Create a task that reads 'n' bytes from the file descriptor 'fd' ,
+     *  and write to the 'buffer' memory.
+     *
+     *  Task' access is `write: Interval(buffer, n)`
+     *
+     *  Dependencies may be released early if nchunks > 1
+     *  Example:
+     *      if nchunks == 1, then dependencies are released once 'n' bytes got read
+     *      if nchunks == 2, then dependencies are released twice, on
+     *          - Interval(buffer      , n/2) - once it has been read
+     *          - Interval(buffer + n/2, n/2) - once it has been read
+     */
+    int file_read_async(int fd, void * buffer, size_t n, unsigned int nchunks);
+    int file_write_async(int fd, void * buffer, size_t n, unsigned int nchunks);
+
+    inline void file_foreach_chunk(
+        void * buffer,
+        const size_t total_size,
+        size_t nchunks,
+        const std::function<void(uintptr_t, uintptr_t)> & func)
+    {
+        // compute number of instructions to spawn
+        if (total_size < nchunks)
+            nchunks = (unsigned int) total_size;
+
+        // compute chunk size
+        const size_t chunksize = total_size / nchunks;
+        assert(chunksize > 0);
+
+        for (std::size_t i = 0; i < nchunks; ++i) {
+            const uintptr_t a = reinterpret_cast<uintptr_t>(static_cast<char*>(buffer) + i * chunksize);
+            const uintptr_t b = reinterpret_cast<uintptr_t>(
+                (i == nchunks - 1)
+                    ? static_cast<char*>(buffer) + total_size
+                    : static_cast<char*>(buffer) + (i + 1) * chunksize);
+            func(a, b);
+        }
+    }
 
     ////////////
     // MEMORY //
@@ -196,6 +265,11 @@ typedef struct  xkrt_runtime_t
     int task_schedule(void);
 
     /* spawn a task in the currently executing thread team */
+    template <task_access_counter_t ac>
+    void task_spawn(
+        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const std::function<void(task_t*)> & f
+    );
     void task_spawn(const std::function<void(task_t*)> & f);
 
     ///////////////
@@ -228,6 +302,13 @@ typedef struct  xkrt_runtime_t
     void team_parallel_for(xkrt_team_t * team, xkrt_team_parallel_for_func_t func);
 
     /* spawn a task in the passed team */
+    template <task_access_counter_t ac>
+    void team_task_spawn(
+        xkrt_team_t * team,
+        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const std::function<void(task_t *)> & f
+    );
+
     void team_task_spawn(xkrt_team_t * team, const std::function<void(task_t*)> & f);
 
     /* retrieve the team of thread of the specific driver */
@@ -293,6 +374,9 @@ void xkrt_task_host_capture_register_format(xkrt_runtime_t * runtime);
 
 /* register v2 format */
 void xkrt_memory_async_register_format(xkrt_runtime_t * runtime);
+
+/* file async format */
+void xkrt_file_async_register_format(xkrt_runtime_t * runtime);
 
 /* Main entry thread created per device */
 void * xkrt_device_thread_main(xkrt_team_t * team, xkrt_thread_t * thread);

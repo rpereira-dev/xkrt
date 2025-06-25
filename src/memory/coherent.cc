@@ -69,7 +69,7 @@ typedef struct alignas(CACHE_LINE_SIZE) args_t
 
 extern "C"
 void
-xkrt_coherency_host_async(
+xkrt_coherent2D_async(
     xkrt_runtime_t * runtime,
     matrix_storage_t storage,
     void * ptr, size_t ld,
@@ -194,10 +194,19 @@ xkrt_coherency_host_async(
     # endif /* single copy vs one per partite */
 }
 
+extern "C"
+void
+xkrt_coherent1D_async(
+    xkrt_runtime_t * runtime,
+    void * ptr, size_t size
+) {
+    LOGGER_FATAL("Impl me");
+}
+
 /* Allocate incoherent memory replicates onto the passed device */
 extern "C"
 void
-xkrt_coherency_allocate_2D(
+xkrt_coherent_allocate_2D(
     xkrt_runtime_t * runtime,
     xkrt_device_global_id_t device_global_id,
     matrix_storage_t storage,
@@ -215,4 +224,21 @@ xkrt_coherency_allocate_2D(
     access_t access(NULL, storage, ptr, ld, m, n, sizeof_type, ACCESS_MODE_V);
     BLASMemoryTree * memtree = (BLASMemoryTree *) task_get_memory_controller(runtime, thread->current_task, &access);
     memtree->allocate_to_device(&access, device_global_id);
+}
+
+void
+xkrt_runtime_t::coherent_async(
+    void * ptr, size_t size
+) {
+    xkrt_coherent1D_async(this, ptr, size);
+}
+
+void
+xkrt_runtime_t::coherent_async(
+    matrix_storage_t storage,
+    void * ptr, size_t ld,
+    size_t m, size_t n,
+    size_t sizeof_type
+) {
+    xkrt_coherent2D_async(this, storage, ptr, ld, m, n, sizeof_type);
 }
