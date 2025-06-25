@@ -299,19 +299,6 @@ typedef struct  xkrt_thread_t
                 task_dependency_resolve(this->current_task, accesses + i);
         }
 
-        # define __Thread_task_execute(T, t, F, ...)                                                \
-            do {                                                                                    \
-                assert(T && t);                                                                     \
-                task_format_t * format = runtime->formats.list.list + t->fmtid;                     \
-                assert(format->f[TASK_FORMAT_TARGET_HOST]);                                         \
-                task_t * current = T->current_task;                                                 \
-                T->current_task = t;                                                                \
-                void (*f)(task_t *) = (void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST];      \
-                f(t);                                                                               \
-                __task_executed(t, F, __VA_ARGS__);                                                 \
-                T->current_task = current;                                                          \
-            } while (0)
-
         template <typename... Args>
         inline void
         commit(

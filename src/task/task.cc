@@ -75,7 +75,7 @@ task_get_memory_controller(
             assert(access->host_view.ld == SIZE_MAX);
             if (dom->mccs.interval == NULL)
             {
-                mcc = new BLASMemoryTree(
+                dom->mccs.interval = new BLASMemoryTree(
                     runtime,
                     SIZE_MAX,
                     1,

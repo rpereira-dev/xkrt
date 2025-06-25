@@ -499,60 +499,6 @@ __task_ready(
     F(std::forward<Args>(args)..., task);
 }
 
-/* mark the task as completed, and call F(..., succ) for each of its successors
- * 'succ' that are now ready */
-template <typename... Args>
-static inline void
-__task_complete(
-    task_t * task,
-    void (*F)(Args..., task_t *),
-    Args... args
-) {
-    task->parent->cc.fetch_sub(1, std::memory_order_relaxed);
-
-    assert(
-        task->state.value == TASK_STATE_DATA_FETCHED ||
-        task->state.value == TASK_STATE_READY
-    );
-    if (task->flags & (TASK_FLAG_DETACHABLE | TASK_FLAG_DEPENDENT))
-    {
-        assert(
-            ((task->flags & TASK_FLAG_DEPENDENT)  && (TASK_DEP_INFO(task)->wc.load() == 0)) ||
-            ((task->flags & TASK_FLAG_DETACHABLE) && (TASK_DET_INFO(task)->wc.load() == 2))
-        );
-    }
-    SPINLOCK_LOCK(task->state.lock);
-    {
-        task->state.value = TASK_STATE_COMPLETED;
-        LOGGER_DEBUG_TASK_STATE(task);
-    }
-    SPINLOCK_UNLOCK(task->state.lock);
-    assert(task->parent);
-    if (task->flags & TASK_FLAG_DEPENDENT)
-    {
-        task_dep_info_t * dep = TASK_DEP_INFO(task);
-        access_t * accesses = TASK_ACCESSES(task);
-        for (task_access_counter_t i = 0 ; i < dep->ac ; ++i)
-        {
-            access_t * access = accesses + i;
-
-            // detached access, not my responsibility to fulfill this dependency
-            if (access->mode & ACCESS_MODE_D)
-                continue ;
-
-            for (access_t * succ_access : access->successors)
-            {
-                task_t * succ = succ_access->task;
-                assert(succ->flags & TASK_FLAG_DEPENDENT);
-                task_dep_info_t * sdep = TASK_DEP_INFO(succ);
-                if (sdep->wc.fetch_sub(1, std::memory_order_seq_cst) == 1)
-                    __task_ready(succ, F, args...);
-            }
-        }
-    }
-}
-
-
 /* commit the task and call F(args) if it is now ready */
 template <typename... Args>
 static inline void
@@ -606,36 +552,6 @@ __task_fetched(
         LOGGER_DEBUG_TASK_STATE(task);
         F(std::forward<Args>(args)..., task);
     }
-}
-
-/* decrease detachable ref counter by 1, and call F(..., succ) foreach task
- * 'succ' that became ready */
-template <typename... Args>
-static inline void
-__task_detachable_post(
-    task_t * task,
-    void (*F)(Args..., task_t *),
-    Args... args
-) {
-    assert(task->flags & TASK_FLAG_DETACHABLE);
-    task_det_info_t * det = TASK_DET_INFO(task);
-    if (det->wc.fetch_add(1, std::memory_order_relaxed) == 1)
-        __task_complete(task, F, args...);
-}
-
-/* mark the task as 'executed' and call F(..., succ) for each task 'succ' that
- * became ready */
-template <typename... Args>
-static inline void
-__task_executed(
-    task_t * task,
-    void (*F)(Args..., task_t *),
-    Args... args
-) {
-    if (task->flags & TASK_FLAG_DETACHABLE)
-        __task_detachable_post(task, F, args...);
-    else
-        __task_complete(task, F, args...);
 }
 
 # endif /* __XKRT_TASK_HPP__ */

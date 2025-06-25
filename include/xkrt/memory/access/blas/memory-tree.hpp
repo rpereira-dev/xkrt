@@ -922,13 +922,15 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         }
 
         static inline void
-        fetch_callback_task(
+        fetch_callback_access(
             xkrt_runtime_t * runtime,
             fetch_t * fetch,
-            task_t * task
+            access_t * access
         ) {
-            LOGGER_DEBUG("task `%s` fetched `%p`", task->label, (void *) (fetch->dst_chunk ? fetch->dst_chunk->ptr : NULL));
-            __task_fetched(1, task, xkrt_device_task_submit, runtime, fetch->dst_device_global_id);
+            assert(access->task);
+            LOGGER_DEBUG("task `%s` fetched `%p`", access->task->label, (void *) (fetch->dst_chunk ? fetch->dst_chunk->ptr : NULL));
+            access->state = ACCESS_STATE_FETCHED;
+            __task_fetched(1, access->task, xkrt_device_task_submit, runtime, fetch->dst_device_global_id);
         }
 
         static inline fetch_list_t *
@@ -948,8 +950,8 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             xkrt_runtime_t * runtime = (xkrt_runtime_t *) args[0];
             assert(runtime);
 
-            task_t * task = (task_t *) args[1];
-            assert(task);
+            access_t * access = (access_t *) args[1];
+            assert(access);
 
             fetch_list_t * list = (fetch_list_t *) args[2];
             assert(list);
@@ -965,7 +967,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             if (fetch->dst_chunk)
                 LOGGER_DEBUG("Fetch completed for allocation `%p`", (void *) fetch->dst_chunk->ptr);
 
-            fetch_callback_task(runtime, fetch, task);
+            fetch_callback_access(runtime, fetch, access);
 
             /* if fetched to a device */
             if (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID)
@@ -985,8 +987,8 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                 tree->unlock();
 
                 /* callback to release awaiting tasks */
-                for (access_t * & access : search.awaiting.accesses)
-                    fetch_callback_task(runtime, fetch, access->task);
+                for (access_t * & access_awaiting : search.awaiting.accesses)
+                    fetch_callback_access(runtime, fetch, access_awaiting);
 
                 /* callback to forward the data to other devices */
                 task_wait_counter_type_t nforwards = (task_wait_counter_type_t) search.awaiting.forwards.size();
@@ -1670,7 +1672,7 @@ next_view:
             xkrt_callback_t callback;
             callback.func = fetch_callback;
             callback.args[0] = this->runtime;
-            callback.args[1] = access->task;
+            callback.args[1] = access;
             callback.args[2] = list;
             callback.args[3] = (void *) i;
 
@@ -1768,11 +1770,20 @@ next_view:
             access_t * access,
             xkrt_device_global_id_t device_global_id
         ) {
+            if (access->state == ACCESS_STATE_FETCHING || access->state == ACCESS_STATE_FETCHED)
+                return ;
+            assert(access->state == ACCESS_STATE_INIT);
+            access->state = ACCESS_STATE_FETCHING;
+
+            LOGGER_DEBUG("Fetching an access for task `%s`",
+                    access->task ? access->task->label : "(null)");
+
             // no need to fetch unified memory
             if (access->scope == ACCESS_SCOPE_UNIFIED)
             {
                 access->device_view.addr = access->host_view.begin_addr();
                 access->device_view.ld   = access->host_view.ld;
+                access->state            = ACCESS_STATE_FETCHED;
                 return ;
             }
 

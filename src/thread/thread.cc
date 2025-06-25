@@ -416,17 +416,6 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
         team_barrier_fetch(team, 1);
 }
 
-static inline void
-run(
-    xkrt_runtime_t * runtime,
-    xkrt_team_t * team,
-    xkrt_thread_t * thread,
-    task_t * task
-) {
-    assert(thread == xkrt_thread_t::get_tls());
-    __Thread_task_execute(thread, task, xkrt_team_thread_task_enqueue, runtime, team, thread);
-}
-
 /* Return the 'i-th' victim to steal for the thread 'tid' when there is 'n' threads in the tree */
 static inline int
 get_ith_victim(int tid, int i, int n)
@@ -472,7 +461,7 @@ worksteal(
         task_t * task = (victim_tid == tid) ? victim->deque.pop() : victim->deque.steal();
         if (task)
         {
-            run(runtime, team, thread, task);
+            runtime->task_run(team, thread, task);
             return 1;
         }
     }

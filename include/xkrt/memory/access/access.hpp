@@ -281,9 +281,24 @@ typedef enum    access_type_t : uint8_t
     ACCESS_TYPE_MAX         = 4,
 }               access_type_t;
 
+/* access state */
+typedef enum    access_state_t : uint8_t
+{
+    ACCESS_STATE_INIT,
+    ACCESS_STATE_FETCHING,
+    ACCESS_STATE_FETCHED
+}               access_state_t;
+
 class access_t
 {
     public:
+
+        ///////////////
+        // the state //
+        ///////////////
+
+        /* the access state */
+        access_state_t state;
 
         //////////////
         // the mode //
@@ -373,6 +388,7 @@ class access_t
             access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
             access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
         ) :
+            state(ACCESS_STATE_INIT),
             mode(mode),
             concurrency(concurrency),
             scope(scope),
@@ -443,6 +459,7 @@ class access_t
             access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
             access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
         ) :
+            state(ACCESS_STATE_INIT),
             mode(mode),
             concurrency(concurrency),
             scope(scope),
@@ -490,6 +507,7 @@ class access_t
             access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
             access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
         ) :
+            state(ACCESS_STATE_INIT),
             mode(mode),
             concurrency(concurrency),
             scope(scope),
@@ -542,6 +560,7 @@ class access_t
             access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
             access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
         ) :
+            state(ACCESS_STATE_INIT),
             mode(mode),
             concurrency(concurrency),
             scope(scope),

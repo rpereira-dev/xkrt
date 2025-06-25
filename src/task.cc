@@ -52,9 +52,154 @@
 # include <cstring>
 # include <cerrno>
 
-//////////////////
-// TASK HELPERS //
-//////////////////
+static inline xkrt_device_global_id_t
+__task_device(
+    task_t * task
+) {
+    // if that task must execute on a device
+    if (task->flags & TASK_FLAG_DEVICE)
+    {
+        task_dev_info_t * dev = TASK_DEV_INFO(task);
+        assert(dev);
+
+        // if it has a targeted device set, return it
+        if (dev->targeted_device_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
+            return dev->targeted_device_id;
+
+        // if it has an OCR, we may already know which device will own most
+        // bytes once all predecessor tasks finished their execution, but its
+        // not trivial to implement at that point. So it is not supported yet.
+        // This should:
+        //  - for each access of the task
+        //      - get predecessor writers
+        //      - get place of execution of writers
+        //      - if they are all known,
+        //          - return the device with most bytes written
+        //      - else
+        //          - if amongst known devices, one owns more than half of the bytes,
+        //              - return this device
+        //          - else
+        //              - we dont know yet, return UNSPECIFIED_DEVICE
+        if (dev->ocr_access_index)
+        {
+            # pragma message(TODO "See file and comment: implement pre-fetching for tasks with OCR")
+        }
+
+        // could not find the device to execute
+        return UNSPECIFIED_DEVICE_GLOBAL_ID;
+    }
+    // else, it executes on the host
+    else
+        return HOST_DEVICE_GLOBAL_ID;
+}
+
+/**
+ *  - transition the task to completed
+ *  - initiate memory prefetching for successors whose place of execution is known
+ *  - enqueue all ready successors
+ */
+static inline void
+__task_complete(
+    xkrt_runtime_t * runtime,
+    task_t * task
+) {
+    task->parent->cc.fetch_sub(1, std::memory_order_relaxed);
+
+    assert(
+        task->state.value == TASK_STATE_DATA_FETCHED ||
+        task->state.value == TASK_STATE_READY
+    );
+    if (task->flags & (TASK_FLAG_DETACHABLE | TASK_FLAG_DEPENDENT))
+    {
+        assert(
+            ((task->flags & TASK_FLAG_DEPENDENT)  && (TASK_DEP_INFO(task)->wc.load() == 0)) ||
+            ((task->flags & TASK_FLAG_DETACHABLE) && (TASK_DET_INFO(task)->wc.load() == 2))
+        );
+    }
+    SPINLOCK_LOCK(task->state.lock);
+    {
+        task->state.value = TASK_STATE_COMPLETED;
+        LOGGER_DEBUG_TASK_STATE(task);
+    }
+    SPINLOCK_UNLOCK(task->state.lock);
+    assert(task->parent);
+    if (task->flags & TASK_FLAG_DEPENDENT)
+    {
+        task_dep_info_t * dep = TASK_DEP_INFO(task);
+        access_t * accesses = TASK_ACCESSES(task);
+        for (task_access_counter_t i = 0 ; i < dep->ac ; ++i)
+        {
+            access_t * access = accesses + i;
+
+            // detached access, not my responsibility to fulfill this dependency
+            if (access->mode & ACCESS_MODE_D)
+                continue ;
+
+            for (access_t * succ_access : access->successors)
+            {
+                assert(succ_access->state == ACCESS_STATE_FETCHING);
+
+                // get successor task
+                task_t * succ = succ_access->task;
+
+                ////////////////////////
+                // MEMORY PREFETCHING //
+                ////////////////////////
+                // if the pred access wrote memory
+                if (access->mode & ACCESS_MODE_W)
+                {
+                    // if device is known
+                    const xkrt_device_global_id_t device_global_id = __task_device(succ);
+                    if (device_global_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
+                    {
+                        // can prefetch memory
+                        MemoryCoherencyController * mcc = task_get_memory_controller(
+                                runtime, succ->parent, succ_access);
+                        if (mcc)
+                            mcc->fetch(access, device_global_id);
+                    }
+                }
+
+                //////////////////////////////////
+                // RELEASE TASK DEPENPENDENCIES //
+                //////////////////////////////////
+
+                assert(succ->flags & TASK_FLAG_DEPENDENT);
+                task_dep_info_t * sdep = TASK_DEP_INFO(succ);
+
+                // task may be ready now
+                if (sdep->wc.fetch_sub(1, std::memory_order_seq_cst) == 1)
+                    __task_ready(succ, xkrt_runtime_submit_task, runtime);
+            }
+        }
+    }
+    XKRT_STATS_INCR(runtime->stats.tasks[task->fmtid].completed, 1);
+}
+
+/* decrease detachable ref counter by 1, and call F(..., succ) foreach task
+ * 'succ' that became ready */
+static inline void
+__task_detachable_post(
+    xkrt_runtime_t * runtime,
+    task_t * task
+) {
+    assert(task->flags & TASK_FLAG_DETACHABLE);
+    task_det_info_t * det = TASK_DET_INFO(task);
+    if (det->wc.fetch_add(1, std::memory_order_relaxed) == 1)
+        __task_complete(runtime, task);
+}
+
+/* transition the task to the state 'executed' - and eventually to 'completed' or 'detached' */
+static inline void
+__task_executed(
+    xkrt_runtime_t * runtime,
+    task_t * task
+) {
+    if (task->flags & TASK_FLAG_DETACHABLE)
+        __task_detachable_post(runtime, task);
+    else
+        __task_complete(runtime, task);
+}
 
 static void
 xkrt_device_task_executed_callback(
@@ -66,7 +211,7 @@ xkrt_device_task_executed_callback(
     task_t * task = (task_t *) args[1];
     assert(task);
 
-    __task_executed(task, xkrt_runtime_submit_task, runtime);
+    __task_executed(runtime, task);
 }
 
 /**
@@ -89,7 +234,7 @@ xkrt_device_task_execute(
     /* running an empty task */
     if (task->fmtid == TASK_FORMAT_NULL)
     {
-        __task_executed(task, xkrt_runtime_submit_task, runtime);
+        __task_executed(runtime, task);
     }
     else if (device)
     {
@@ -168,7 +313,7 @@ run_host_task:
         }
         /* else, it executed entirely */
         else
-            __task_executed(task, xkrt_runtime_submit_task, runtime);
+            __task_executed(runtime, task);
     }
 }
 
@@ -329,7 +474,7 @@ xkrt_runtime_t::task_detachable_post(task_t * task)
 {
     assert(task);
     assert(task->flags & TASK_FLAG_DETACHABLE);
-    __task_detachable_post(task, xkrt_runtime_submit_task, this);
+    __task_detachable_post(this, task);
 }
 
 void
@@ -338,8 +483,30 @@ xkrt_runtime_t::task_complete(task_t * task)
     assert(task);
     assert(!(task->flags & TASK_FLAG_DETACHABLE));
 
-    __task_complete(task, xkrt_runtime_submit_task, this);
-    XKRT_STATS_INCR(this->stats.tasks[task->fmtid].completed, 1);
+    __task_complete(this, task);
+}
+
+void
+xkrt_runtime_t::task_run(
+    xkrt_team_t * team,
+    xkrt_thread_t * thread,
+    task_t * task
+) {
+    assert(team);
+    assert(thread);
+    assert(task);
+
+    assert(thread == xkrt_thread_t::get_tls());
+    assert(task->fmtid);
+
+    task_format_t * format = this->formats.list.list + task->fmtid;
+    assert(format->f[TASK_FORMAT_TARGET_HOST]);
+    task_t * current = thread->current_task;
+    thread->current_task = task;
+    void (*f)(task_t *) = (void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST];
+    f(task);
+    __task_executed(this, task);
+    thread->current_task = current;
 }
 
 /////////////////////
