@@ -203,6 +203,8 @@ xkrt_coherent1D_async(
     xkrt_runtime_t * runtime,
     void * ptr, size_t size
 ) {
+    LOGGER_FATAL("Coherent async 1D is broken, fix me");
+
     xkrt_thread_t * thread = xkrt_thread_t::get_tls();
     assert(thread);
 

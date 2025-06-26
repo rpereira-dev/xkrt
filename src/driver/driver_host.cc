@@ -331,9 +331,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
-    xkrt_stream_t * istream,
-    xkrt_stream_instruction_counter_t a,
-    xkrt_stream_instruction_counter_t b
+    xkrt_stream_t * istream
 ) {
     assert(istream);
 
@@ -391,8 +389,8 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     xkrt_stream_instruction_counter_t capacity
 ) {
     (void)idevice;
-    (void) type;
-    (void) capacity;
+    (void)type;
+    (void)capacity;
 
     assert(type == XKRT_STREAM_TYPE_FD_READ || type == XKRT_STREAM_TYPE_FD_WRITE);
 

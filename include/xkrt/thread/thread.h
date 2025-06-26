@@ -198,7 +198,7 @@ typedef struct  xkrt_thread_t
         struct {
             pthread_mutex_t lock;
             pthread_cond_t  cond;
-            volatile bool   sleeping;
+            volatile bool sleeping;
         } sleep;
 
         struct {
@@ -272,8 +272,47 @@ typedef struct  xkrt_thread_t
         }
 
     public:
-        void pause(void);
-        void wakeup(void);
+
+
+        /* pause the thread until 'test' returns false */
+        template<typename Func>
+        inline void
+        pause(Func && test)
+        {
+            // poll a few time before actually taking the lock
+            for (int i = 0 ; i < 16 ; ++i)
+            {
+                if (!test())
+                    return ;
+            }
+
+            pthread_mutex_lock(&this->sleep.lock);
+            {
+                while (test())
+                {
+                    this->sleep.sleeping = true;
+                    // LOGGER_DEBUG("Sleeping thread");
+                    pthread_cond_wait(&this->sleep.cond, &this->sleep.lock);
+                }
+            }
+            pthread_mutex_unlock(&this->sleep.lock);
+        }
+
+        inline void
+        wakeup(void)
+        {
+            pthread_mutex_lock(&this->sleep.lock);
+            {
+                if (this->sleep.sleeping)
+                {
+                    this->sleep.sleeping = false;
+                    // LOGGER_DEBUG("Waking up thread");
+                    pthread_cond_signal(&this->sleep.cond);
+                }
+            }
+            pthread_mutex_unlock(&this->sleep.lock);
+        }
+
         void warmup(void);
         task_t * allocate_task(const size_t size);
         void deallocate_all_tasks(void);

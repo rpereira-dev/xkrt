@@ -123,23 +123,37 @@ xkrt_device_thread_main_loop(
 ) {
     assert(thread == xkrt_thread_t::get_tls());
 
+    task_t * task = NULL;
+
     while (device->state == XKRT_DEVICE_STATE_COMMIT)
     {
-        task_t * task;
-        while ((task = thread->deque.pop()) == NULL &&
-                device->offloader_streams_are_empty(device_tid, XKRT_STREAM_TYPE_ALL) &&
-                device->state == XKRT_DEVICE_STATE_COMMIT)
-            thread->pause();
+        ///////////////////////////////////////////////////////////////////////////////////
+        // sleep until a task or an instruction is ready, or until the runtime must stop
+        ///////////////////////////////////////////////////////////////////////////////////
+        auto test = [&] (void) {
+            if (task)                                                                   return false;
+            if ((task = thread->deque.pop()) != NULL)                                   return false;
+            if (!device->offloader_streams_are_empty(device_tid, XKRT_STREAM_TYPE_ALL)) return false;
+            if (device->state != XKRT_DEVICE_STATE_COMMIT)                              return false;
+            return true;
+        };
+        thread->pause(test);
 
+        // if the runtime must stop, break
         if (device->state != XKRT_DEVICE_STATE_COMMIT)
         {
             assert(device->state == XKRT_DEVICE_STATE_STOP);
             break ;
         }
 
+        // if there is a task, run it
         if (task)
+        {
             xkrt_device_prepare_task(runtime, device, device->global_id, task);
+            task = NULL;
+        }
 
+        // is there are instructions to proress, progress them
         if (!device->offloader_streams_are_empty(device_tid, XKRT_STREAM_TYPE_ALL))
             device->offloader_poll(device_tid);
     }
@@ -359,14 +373,11 @@ xkrt_team_task_enqueue(
             continue ;
 
         // assign it the task
-        thread->deque.push(task);
-        thread->wakeup();
-        return ;
+        return xkrt_team_thread_task_enqueue(runtime, team, thread, task);
     }
 
     // all threads are working, assigning on the first random one
     xkrt_thread_t * thread = team->priv.threads + start;
-    thread->deque.push(task);
-    thread->wakeup();
+    return xkrt_team_thread_task_enqueue(runtime, team, thread, task);
 }
 

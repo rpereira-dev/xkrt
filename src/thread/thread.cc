@@ -74,33 +74,6 @@ xkrt_thread_t::get_tls(void)
 }
 
 void
-xkrt_thread_t::pause(void)
-{
-    assert(pthread_self() == this->pthread);
-    pthread_mutex_lock(&this->sleep.lock);
-    {
-        this->sleep.sleeping = true;
-        while (this->sleep.sleeping)
-        {
-            pthread_cond_wait(&this->sleep.cond, &this->sleep.lock);
-        }
-    }
-    pthread_mutex_unlock(&this->sleep.lock);
-}
-
-void
-xkrt_thread_t::wakeup(void)
-{
-    pthread_mutex_lock(&this->sleep.lock);
-    if (this->sleep.sleeping)
-    {
-        this->sleep.sleeping = false;
-        pthread_cond_signal(&this->sleep.cond);
-    }
-    pthread_mutex_unlock(&this->sleep.lock);
-}
-
-void
 xkrt_thread_t::warmup(void)
 {
     // touches every pages to avoid minor page faults later during the execution
