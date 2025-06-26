@@ -555,8 +555,8 @@ main(void)
     initialize(grid1, grid2);
 
     // Create tasks to distribute memory
-    xkrt_distribute_async(&runtime, XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid1, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
-    xkrt_distribute_async(&runtime, XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid2, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
+    xkrt_distribute2D_async(&runtime, XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid1, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
+    xkrt_distribute2D_async(&runtime, XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid2, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
 
     uint64_t t0 = xkrt_get_nanotime();
 

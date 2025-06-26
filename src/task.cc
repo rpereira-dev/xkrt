@@ -137,26 +137,29 @@ __task_complete(
 
             for (access_t * succ_access : access->successors)
             {
-                assert(succ_access->state == ACCESS_STATE_FETCHING);
-
                 // get successor task
                 task_t * succ = succ_access->task;
 
                 ////////////////////////
                 // MEMORY PREFETCHING //
                 ////////////////////////
-                // if the pred access wrote memory
-                if (access->mode & ACCESS_MODE_W)
+
+                // if the succ access is not being fetched, or got fetched already
+                if (succ_access->state == ACCESS_STATE_INIT)
                 {
-                    // if device is known
-                    const xkrt_device_global_id_t device_global_id = __task_device(succ);
-                    if (device_global_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
+                    // if the pred access wrote memory
+                    if (access->mode & ACCESS_MODE_W)
                     {
-                        // can prefetch memory
-                        MemoryCoherencyController * mcc = task_get_memory_controller(
-                                runtime, succ->parent, succ_access);
-                        if (mcc)
-                            mcc->fetch(access, device_global_id);
+                        // if device is known
+                        const xkrt_device_global_id_t device_global_id = __task_device(succ);
+                        if (device_global_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
+                        {
+                            // can prefetch memory
+                            MemoryCoherencyController * mcc = task_get_memory_controller(
+                                    runtime, succ->parent, succ_access);
+                            if (mcc)
+                                mcc->fetch(access, device_global_id);
+                        }
                     }
                 }
 

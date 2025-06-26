@@ -784,15 +784,15 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
 ) {
     assert(istream);
 
-    xkrt_stream_cu_t * stream = (xkrt_stream_cu_t *) istream;
     int r = 0;
 
-    istream->pending.iterate([] (xkrt_stream_instruction_counter_t p) {
+    istream->pending.iterate([&] (xkrt_stream_instruction_counter_t p) {
 
         xkrt_stream_instruction_t * instr = istream->pending.instr + p;
         if (instr->completed)
             return true;
 
+        xkrt_stream_cu_t * stream = (xkrt_stream_cu_t *) istream;
         CUevent event = stream->cu.events.buffer[p];
 
         switch (instr->type)
