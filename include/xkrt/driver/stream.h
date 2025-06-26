@@ -89,6 +89,12 @@ class xkrt_stream_instruction_queue_t
         {
             const xkrt_stream_instruction_counter_t a = this->pos.r;
             const xkrt_stream_instruction_counter_t b = this->pos.w;
+
+            assert(a >= 0);
+            assert(b >= 0);
+            assert(a < this->capacity);
+            assert(b < this->capacity);
+
             if (a <= b) {
                 for (xkrt_stream_instruction_counter_t i = a; i < b; ++i)
                     if (!process(i)) return i;
