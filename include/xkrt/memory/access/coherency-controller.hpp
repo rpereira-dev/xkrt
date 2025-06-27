@@ -37,14 +37,35 @@
 #ifndef __COHERENCY_CONTROLLER_HPP__
 # define __COHERENCY_CONTROLLER_HPP__
 
+# include <atomic>
 # include <xkrt/consts.h>
 # include <xkrt/memory/access/access.hpp>
 
 class MemoryCoherencyController {
 
+    private:
+        std::atomic<int> _rc;
+
+    public:
+        MemoryCoherencyController() : _rc(1) {}
+        virtual ~MemoryCoherencyController() {}
+
     public:
 
-        virtual ~MemoryCoherencyController() {}
+        void
+        ref(void)
+        {
+            _rc.fetch_add(1, std::memory_order_relaxed);
+        }
+
+        void
+        unref(void)
+        {
+            if (_rc.fetch_sub(1, std::memory_order_relaxed) == 1)
+                delete this;
+        }
+
+    public:
 
         /* returns a bitfield of devices that owns the most bytes of the given access */
         virtual xkrt_device_global_id_bitfield_t who_owns(access_t * access) = 0;

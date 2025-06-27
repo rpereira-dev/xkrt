@@ -967,86 +967,91 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             if (fetch->dst_chunk)
                 LOGGER_DEBUG("Fetch completed for allocation `%p`", (void *) fetch->dst_chunk->ptr);
 
-            fetch_callback_access(runtime, fetch, access);
-
-            /* if fetched to a device */
-            if (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID)
+            // avoid early deletion if a 'reset' is called before returning from this
+            tree->ref();
             {
-                /* `fetch->dst_chunk` is the memory allocated chunk on which the data had been fetched.
-                 * Search in the tree for awaiting tasks and forwards */
-                assert(fetch->dst_chunk);
+                fetch_callback_access(runtime, fetch, access);
 
-                /* retrieve awaiting tasks */
-                Search search(fetch->dst_device_global_id);
-                search.prepare_search_awaiting(fetch->dst_chunk);
-                tree->lock();
+                /* if fetched to a device */
+                if (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID)
                 {
-                    tree->intersect(search, fetch->rects[0]);
-                    tree->intersect(search, fetch->rects[1]);
-                }
-                tree->unlock();
+                    /* `fetch->dst_chunk` is the memory allocated chunk on which the data had been fetched.
+                     * Search in the tree for awaiting tasks and forwards */
+                    assert(fetch->dst_chunk);
 
-                /* callback to release awaiting tasks */
-                for (access_t * & access_awaiting : search.awaiting.accesses)
-                    fetch_callback_access(runtime, fetch, access_awaiting);
-
-                /* callback to forward the data to other devices */
-                task_wait_counter_type_t nforwards = (task_wait_counter_type_t) search.awaiting.forwards.size();
-                if (nforwards)
-                {
-                    fetch_list_t * forward_list = fetch_list_new(tree, nforwards);
-
-                    # pragma message(TODO "Forwards consecutive in memory should be merged")
-                    for (size_t i = 0 ; i < nforwards ; ++i)
+                    /* retrieve awaiting tasks */
+                    Search search(fetch->dst_device_global_id);
+                    search.prepare_search_awaiting(fetch->dst_chunk);
+                    tree->lock();
                     {
-                        MemoryForward & forward = search.awaiting.forwards[i];
+                        tree->intersect(search, fetch->rects[0]);
+                        tree->intersect(search, fetch->rects[1]);
+                    }
+                    tree->unlock();
 
-                        assert(forward.access);
-                        assert(forward.chunk);
+                    /* callback to release awaiting tasks */
+                    for (access_t * & access_awaiting : search.awaiting.accesses)
+                        fetch_callback_access(runtime, fetch, access_awaiting);
 
-                        fetch_t * forward_fetch = forward_list->prepare_next_fetch();
-                        assert(fetch);
-                        assert(i == forward_list->n - 1);
-                        forward_list->fetching();
+                    /* callback to forward the data to other devices */
+                    task_wait_counter_type_t nforwards = (task_wait_counter_type_t) search.awaiting.forwards.size();
+                    if (nforwards)
+                    {
+                        fetch_list_t * forward_list = fetch_list_new(tree, nforwards);
 
-                        // upcoming copy only needs m, n, sizeof_type
-                        matrix_from_rect(forward_fetch->host_view, forward.dst_hyperrect, tree->ld, tree->sizeof_type);
+                        # pragma message(TODO "Forwards consecutive in memory should be merged")
+                        for (size_t i = 0 ; i < nforwards ; ++i)
+                        {
+                            MemoryForward & forward = search.awaiting.forwards[i];
 
-                        // the chunk to use
-                        forward_fetch->dst_chunk = forward.chunk;
+                            assert(forward.access);
+                            assert(forward.chunk);
 
-                        // the dst device to forward to
-                        forward_fetch->dst_device_global_id = forward.device_global_id;
+                            fetch_t * forward_fetch = forward_list->prepare_next_fetch();
+                            assert(fetch);
+                            assert(i == forward_list->n - 1);
+                            forward_list->fetching();
 
-                        // the forward dst view - memory region where to forward the data
-                        forward_fetch->dst_view = forward.device_view;
+                            // upcoming copy only needs m, n, sizeof_type
+                            matrix_from_rect(forward_fetch->host_view, forward.dst_hyperrect, tree->ld, tree->sizeof_type);
 
-                        // only 1 rect representing the forward view
-                        forward_fetch->rects[0] = forward.dst_hyperrect;
+                            // the chunk to use
+                            forward_fetch->dst_chunk = forward.chunk;
 
-                        // the just-fetched 'dst' is the new 'src'
-                        forward_fetch->src_device_global_id = fetch->dst_device_global_id;
+                            // the dst device to forward to
+                            forward_fetch->dst_device_global_id = forward.device_global_id;
 
-                        // this fetch maybe got a larger region than the one to forward, for instance
-                        //      fetch->dst = [                                                      ]
-                        //  while maybe
-                        //    forward->dst =                    [                   ]
-                        // in such case, we only need to forward the sub-region.
-                        //
-                        // the just-fetched 'dst' is the new 'src' - offset it to the begining of the forward view
-                        assert(fetch->host_view.begin_addr() <= forward_fetch->host_view.begin_addr());
-                        const size_t offset = forward_fetch->host_view.begin_addr() - fetch->host_view.begin_addr();
-                        new (&forward_fetch->src_view) memory_replicate_view_t(fetch->dst_view.addr + offset, fetch->dst_view.ld);
+                            // the forward dst view - memory region where to forward the data
+                            forward_fetch->dst_view = forward.device_view;
 
-                        // can launch the forward already
-                        tree->fetch_list_launch_ith(forward.access, forward_list, i);
+                            // only 1 rect representing the forward view
+                            forward_fetch->rects[0] = forward.dst_hyperrect;
 
-                        // no need to reduce the list, we already have only 1 copy per dst device
+                            // the just-fetched 'dst' is the new 'src'
+                            forward_fetch->src_device_global_id = fetch->dst_device_global_id;
+
+                            // this fetch maybe got a larger region than the one to forward, for instance
+                            //      fetch->dst = [                                                      ]
+                            //  while maybe
+                            //    forward->dst =                    [                   ]
+                            // in such case, we only need to forward the sub-region.
+                            //
+                            // the just-fetched 'dst' is the new 'src' - offset it to the begining of the forward view
+                            assert(fetch->host_view.begin_addr() <= forward_fetch->host_view.begin_addr());
+                            const size_t offset = forward_fetch->host_view.begin_addr() - fetch->host_view.begin_addr();
+                            new (&forward_fetch->src_view) memory_replicate_view_t(fetch->dst_view.addr + offset, fetch->dst_view.ld);
+
+                            // can launch the forward already
+                            tree->fetch_list_launch_ith(forward.access, forward_list, i);
+
+                            // no need to reduce the list, we already have only 1 copy per dst device
+                        }
                     }
                 }
-            }
 
-            list->fetched();
+                list->fetched();
+            }
+            tree->unref();
         }
 
         ////////////////////////////////////////////////////////////
@@ -1789,6 +1794,7 @@ next_view:
         ) {
             if (access->state == ACCESS_STATE_FETCHING || access->state == ACCESS_STATE_FETCHED)
                 return ;
+
             assert(access->state == ACCESS_STATE_INIT);
             access->state = ACCESS_STATE_FETCHING;
 
