@@ -65,7 +65,7 @@ class xkrt_stream_instruction_queue_t
         int
         is_full(void) const
         {
-            return (this->pos.w - this->pos.r == this->capacity);
+            return (this->pos.w  == this->pos.r - 1);
         }
 
         int
@@ -77,7 +77,34 @@ class xkrt_stream_instruction_queue_t
         xkrt_stream_instruction_counter_t
         size(void) const
         {
-            return (this->pos.w - this->pos.r);
+            if (this->pos.r <= this->pos.w)
+                return (this->pos.w - this->pos.r);
+            else
+                return this->capacity - this->pos.r + this->pos.w;
+        }
+
+        template<typename Func>
+        xkrt_stream_instruction_counter_t
+        iterate(Func && process)
+        {
+            const xkrt_stream_instruction_counter_t a = this->pos.r;
+            const xkrt_stream_instruction_counter_t b = this->pos.w;
+
+            assert(a >= 0);
+            assert(b >= 0);
+            assert(a < this->capacity);
+            assert(b < this->capacity);
+
+            if (a <= b) {
+                for (xkrt_stream_instruction_counter_t i = a; i < b; ++i)
+                    if (!process(i)) return i;
+            } else {
+                for (xkrt_stream_instruction_counter_t i = a; i < capacity; ++i)
+                    if (!process(i)) return i;
+                for (xkrt_stream_instruction_counter_t i = 0; i < b; ++i)
+                    if (!process(i)) return i;
+            }
+            return b;
         }
 };
 
@@ -111,7 +138,7 @@ class xkrt_stream_t : public Lockable
         int (*f_instruction_launch)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx);
 
         /* progrtream instruction */
-        int (*f_instructions_progress)(xkrt_stream_t * stream, xkrt_stream_instruction_counter_t a, xkrt_stream_instruction_counter_t b);
+        int (*f_instructions_progress)(xkrt_stream_t * stream);
 
         /* wait  instructions completion on a stream */
         int (*f_instructions_wait)(xkrt_stream_t * stream);
@@ -159,7 +186,7 @@ void xkrt_stream_init(
     xkrt_stream_type_t type,
     xkrt_stream_instruction_counter_t capacity,
     int (*f_instruction_launch)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx),
-    int (*f_instructions_progress)(xkrt_stream_t * stream, xkrt_stream_instruction_counter_t a, xkrt_stream_instruction_counter_t b),
+    int (*f_instructions_progress)(xkrt_stream_t * stream),
     int (*f_instructions_wait)(xkrt_stream_t * stream)
 );
 

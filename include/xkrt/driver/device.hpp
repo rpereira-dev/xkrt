@@ -439,16 +439,6 @@ typedef struct  xkrt_device_t
     /* the next thread to receive a task */
     std::atomic<uint8_t> thread_next;
 
-    /* push a task to a thread of the device */
-    void push(task_t * const & task)
-    {
-        assert(this->nthreads <= XKRT_MAX_THREADS_PER_DEVICE);
-        uint8_t tid = this->thread_next.fetch_add(1, std::memory_order_relaxed) % this->nthreads;
-        xkrt_thread_t * thread = this->threads[tid];
-        thread->deque.push(task);
-        thread->wakeup();
-    }
-
 }               xkrt_device_t;
 
 #endif /* __XKRT_DEVICE_HPP__ */

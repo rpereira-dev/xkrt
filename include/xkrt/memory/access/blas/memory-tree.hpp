@@ -922,13 +922,15 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         }
 
         static inline void
-        fetch_callback_task(
+        fetch_callback_access(
             xkrt_runtime_t * runtime,
             fetch_t * fetch,
-            task_t * task
+            access_t * access
         ) {
-            LOGGER_DEBUG("task `%s` fetched `%p`", task->label, (void *) (fetch->dst_chunk ? fetch->dst_chunk->ptr : NULL));
-            __task_fetched(1, task, xkrt_device_task_submit, runtime, fetch->dst_device_global_id);
+            assert(access->task);
+            LOGGER_DEBUG("task `%s` fetched `%p`", access->task->label, (void *) (fetch->dst_chunk ? fetch->dst_chunk->ptr : NULL));
+            access->state = ACCESS_STATE_FETCHED;
+            __task_fetched(1, access->task, xkrt_device_task_submit, runtime, fetch->dst_device_global_id);
         }
 
         static inline fetch_list_t *
@@ -948,8 +950,8 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             xkrt_runtime_t * runtime = (xkrt_runtime_t *) args[0];
             assert(runtime);
 
-            task_t * task = (task_t *) args[1];
-            assert(task);
+            access_t * access = (access_t *) args[1];
+            assert(access);
 
             fetch_list_t * list = (fetch_list_t *) args[2];
             assert(list);
@@ -965,86 +967,91 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             if (fetch->dst_chunk)
                 LOGGER_DEBUG("Fetch completed for allocation `%p`", (void *) fetch->dst_chunk->ptr);
 
-            fetch_callback_task(runtime, fetch, task);
-
-            /* if fetched to a device */
-            if (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID)
+            // avoid early deletion if a 'reset' is called before returning from this
+            tree->ref();
             {
-                /* `fetch->dst_chunk` is the memory allocated chunk on which the data had been fetched.
-                 * Search in the tree for awaiting tasks and forwards */
-                assert(fetch->dst_chunk);
+                fetch_callback_access(runtime, fetch, access);
 
-                /* retrieve awaiting tasks */
-                Search search(fetch->dst_device_global_id);
-                search.prepare_search_awaiting(fetch->dst_chunk);
-                tree->lock();
+                /* if fetched to a device */
+                if (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID)
                 {
-                    tree->intersect(search, fetch->rects[0]);
-                    tree->intersect(search, fetch->rects[1]);
-                }
-                tree->unlock();
+                    /* `fetch->dst_chunk` is the memory allocated chunk on which the data had been fetched.
+                     * Search in the tree for awaiting tasks and forwards */
+                    assert(fetch->dst_chunk);
 
-                /* callback to release awaiting tasks */
-                for (access_t * & access : search.awaiting.accesses)
-                    fetch_callback_task(runtime, fetch, access->task);
-
-                /* callback to forward the data to other devices */
-                task_wait_counter_type_t nforwards = (task_wait_counter_type_t) search.awaiting.forwards.size();
-                if (nforwards)
-                {
-                    fetch_list_t * forward_list = fetch_list_new(tree, nforwards);
-
-                    # pragma message(TODO "Forwards consecutive in memory should be merged")
-                    for (size_t i = 0 ; i < nforwards ; ++i)
+                    /* retrieve awaiting tasks */
+                    Search search(fetch->dst_device_global_id);
+                    search.prepare_search_awaiting(fetch->dst_chunk);
+                    tree->lock();
                     {
-                        MemoryForward & forward = search.awaiting.forwards[i];
+                        tree->intersect(search, fetch->rects[0]);
+                        tree->intersect(search, fetch->rects[1]);
+                    }
+                    tree->unlock();
 
-                        assert(forward.access);
-                        assert(forward.chunk);
+                    /* callback to release awaiting tasks */
+                    for (access_t * & access_awaiting : search.awaiting.accesses)
+                        fetch_callback_access(runtime, fetch, access_awaiting);
 
-                        fetch_t * forward_fetch = forward_list->prepare_next_fetch();
-                        assert(fetch);
-                        assert(i == forward_list->n - 1);
-                        forward_list->fetching();
+                    /* callback to forward the data to other devices */
+                    task_wait_counter_type_t nforwards = (task_wait_counter_type_t) search.awaiting.forwards.size();
+                    if (nforwards)
+                    {
+                        fetch_list_t * forward_list = fetch_list_new(tree, nforwards);
 
-                        // upcoming copy only needs m, n, sizeof_type
-                        matrix_from_rect(forward_fetch->host_view, forward.dst_hyperrect, tree->ld, tree->sizeof_type);
+                        # pragma message(TODO "Forwards consecutive in memory should be merged")
+                        for (size_t i = 0 ; i < nforwards ; ++i)
+                        {
+                            MemoryForward & forward = search.awaiting.forwards[i];
 
-                        // the chunk to use
-                        forward_fetch->dst_chunk = forward.chunk;
+                            assert(forward.access);
+                            assert(forward.chunk);
 
-                        // the dst device to forward to
-                        forward_fetch->dst_device_global_id = forward.device_global_id;
+                            fetch_t * forward_fetch = forward_list->prepare_next_fetch();
+                            assert(fetch);
+                            assert(i == forward_list->n - 1);
+                            forward_list->fetching();
 
-                        // the forward dst view - memory region where to forward the data
-                        forward_fetch->dst_view = forward.device_view;
+                            // upcoming copy only needs m, n, sizeof_type
+                            matrix_from_rect(forward_fetch->host_view, forward.dst_hyperrect, tree->ld, tree->sizeof_type);
 
-                        // only 1 rect representing the forward view
-                        forward_fetch->rects[0] = forward.dst_hyperrect;
+                            // the chunk to use
+                            forward_fetch->dst_chunk = forward.chunk;
 
-                        // the just-fetched 'dst' is the new 'src'
-                        forward_fetch->src_device_global_id = fetch->dst_device_global_id;
+                            // the dst device to forward to
+                            forward_fetch->dst_device_global_id = forward.device_global_id;
 
-                        // this fetch maybe got a larger region than the one to forward, for instance
-                        //      fetch->dst = [                                                      ]
-                        //  while maybe
-                        //    forward->dst =                    [                   ]
-                        // in such case, we only need to forward the sub-region.
-                        //
-                        // the just-fetched 'dst' is the new 'src' - offset it to the begining of the forward view
-                        assert(fetch->host_view.begin_addr() <= forward_fetch->host_view.begin_addr());
-                        const size_t offset = forward_fetch->host_view.begin_addr() - fetch->host_view.begin_addr();
-                        new (&forward_fetch->src_view) memory_replicate_view_t(fetch->dst_view.addr + offset, fetch->dst_view.ld);
+                            // the forward dst view - memory region where to forward the data
+                            forward_fetch->dst_view = forward.device_view;
 
-                        // can launch the forward already
-                        tree->fetch_list_launch_ith(forward.access, forward_list, i);
+                            // only 1 rect representing the forward view
+                            forward_fetch->rects[0] = forward.dst_hyperrect;
 
-                        // no need to reduce the list, we already have only 1 copy per dst device
+                            // the just-fetched 'dst' is the new 'src'
+                            forward_fetch->src_device_global_id = fetch->dst_device_global_id;
+
+                            // this fetch maybe got a larger region than the one to forward, for instance
+                            //      fetch->dst = [                                                      ]
+                            //  while maybe
+                            //    forward->dst =                    [                   ]
+                            // in such case, we only need to forward the sub-region.
+                            //
+                            // the just-fetched 'dst' is the new 'src' - offset it to the begining of the forward view
+                            assert(fetch->host_view.begin_addr() <= forward_fetch->host_view.begin_addr());
+                            const size_t offset = forward_fetch->host_view.begin_addr() - fetch->host_view.begin_addr();
+                            new (&forward_fetch->src_view) memory_replicate_view_t(fetch->dst_view.addr + offset, fetch->dst_view.ld);
+
+                            // can launch the forward already
+                            tree->fetch_list_launch_ith(forward.access, forward_list, i);
+
+                            // no need to reduce the list, we already have only 1 copy per dst device
+                        }
                     }
                 }
-            }
 
-            list->fetched();
+                list->fetched();
+            }
+            tree->unref();
         }
 
         ////////////////////////////////////////////////////////////
@@ -1670,7 +1677,7 @@ next_view:
             xkrt_callback_t callback;
             callback.func = fetch_callback;
             callback.args[0] = this->runtime;
-            callback.args[1] = access->task;
+            callback.args[1] = access;
             callback.args[2] = list;
             callback.args[3] = (void *) i;
 
@@ -1679,15 +1686,32 @@ next_view:
             xkrt_device_global_id_t device_global_id = (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID) ? fetch->dst_device_global_id : fetch->src_device_global_id;
 
             /* launch asynchronous copy */
-            this->runtime->copy(
-                device_global_id,
-                fetch->host_view,
-                fetch->dst_device_global_id,
-                fetch->dst_view,
-                fetch->src_device_global_id,
-                fetch->src_view,
-                callback
-            );
+            if (access->type == ACCESS_TYPE_INTERVAL)
+            {
+                assert(fetch->host_view.n == 1);
+                assert(fetch->host_view.sizeof_type == 1);
+                this->runtime->copy(
+                    device_global_id,
+                    (size_t) fetch->host_view.m,
+                    fetch->dst_device_global_id,
+                    (uintptr_t) fetch->dst_view.addr,
+                    fetch->src_device_global_id,
+                    (uintptr_t) fetch->src_view.addr,
+                    callback
+                );
+            }
+            else
+            {
+                this->runtime->copy(
+                    device_global_id,
+                    fetch->host_view,
+                    fetch->dst_device_global_id,
+                    fetch->dst_view,
+                    fetch->src_device_global_id,
+                    fetch->src_view,
+                    callback
+                );
+            }
         }
 
         inline void
@@ -1768,11 +1792,21 @@ next_view:
             access_t * access,
             xkrt_device_global_id_t device_global_id
         ) {
+            if (access->state == ACCESS_STATE_FETCHING || access->state == ACCESS_STATE_FETCHED)
+                return ;
+
+            assert(access->state == ACCESS_STATE_INIT);
+            access->state = ACCESS_STATE_FETCHING;
+
+            LOGGER_DEBUG("Fetching an access for task `%s`",
+                    access->task ? access->task->label : "(null)");
+
             // no need to fetch unified memory
             if (access->scope == ACCESS_SCOPE_UNIFIED)
             {
                 access->device_view.addr = access->host_view.begin_addr();
                 access->device_view.ld   = access->host_view.ld;
+                access->state            = ACCESS_STATE_FETCHED;
                 return ;
             }
 

@@ -126,6 +126,10 @@ typedef struct  xkrt_runtime_t
         const xkrt_callback_t         & callback
     );
 
+    /* synchronous allocation of a device incoherent replicate */
+    void incoherent_allocate(xkrt_device_global_id_t device_global_id, void * ptr, size_t size);
+    void incoherent_allocate(xkrt_device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
+
     /* spawn tasks to make the host replicate coherent */
     void coherent_async(void * ptr, size_t size);
     void coherent_async(matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
@@ -271,6 +275,10 @@ typedef struct  xkrt_runtime_t
         const std::function<void(task_t*)> & f
     );
     void task_spawn(const std::function<void(task_t*)> & f);
+
+    /* run a task on the given team, using its host routine
+     * (do not use unless you know what you are doing, you may want `task_spawn` instead) */
+    void task_run(xkrt_team_t * team, xkrt_thread_t * thread, task_t * task);
 
     ///////////////
     // THREADING //

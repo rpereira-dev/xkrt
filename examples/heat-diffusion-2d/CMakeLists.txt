@@ -16,6 +16,17 @@ SET(HEAT_CUDA_KERNELS_SOURCE_FILES
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
+option(USE_CUDA "Enable the compilation of cuda kernels" ON)
+option(USE_ZE "Enable the compilation of ze kernels" OFF)
+option(USE_SYCL "Enable the compilation of SYCL and set its interop with Level Zero driver" OFF)
+
+###############
+# C++ version #
+###############
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)  # Optional: disables compiler-specific extensions
+
 ########
 # HEAT #
 ########
@@ -35,7 +46,6 @@ include_directories("${XKRT_INCLUDE_DIRS}")
 target_link_libraries(${HEAT_NAME} PRIVATE ${XKRT_LIBRARIES})
 
 # Cuda kernels
-option(USE_CUDA "Enable the compilation of cuda kernels" ON)
 if (USE_CUDA)
 
     find_package(CUDA_DRIVER REQUIRED)
@@ -53,7 +63,6 @@ if (USE_CUDA)
 endif()
 
 # Level Zero
-option(USE_ZE "Enable the compilation of ze kernels" ON)
 if (USE_ZE)
     find_package(ZE REQUIRED)
     include_directories("${ZE_INCLUDE_DIRS}")
@@ -61,7 +70,6 @@ if (USE_ZE)
 endif()
 
 # SYCL
-option(USE_SYCL "Enable the compilation of SYCL and set its interop with Level Zero driver" ON)
 if (USE_SYCL)
     find_package(SYCL REQUIRED)
     include_directories(${SYCL_INCLUDE_DIRS})

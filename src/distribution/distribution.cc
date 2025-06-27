@@ -206,7 +206,7 @@ xkrt_distribution1D_get(
          *  1 2 3 4 1 2 3
          */
         case (XKRT_DISTRIBUTION_TYPE_CYCLIC1D):
-            return 1 + (xkrt_device_global_id_t) (d->t % d->count);
+            return 1 + (xkrt_device_global_id_t) (t % d->count);
 
         default:
             LOGGER_FATAL("Not implemented");

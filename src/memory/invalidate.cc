@@ -77,21 +77,48 @@ xkrt_coherency_reset(xkrt_runtime_t * runtime)
     task_dom_info_t * dom = TASK_DOM_INFO(thread->current_task);
     assert(dom);
 
-    // delete memory controllers
+    ///////////////////////////////
+    // delete memory controllers //
+    ///////////////////////////////
+
+    // not deleting, instead using unref, as some threads may still be
+    // accessing objects
+
+    // if (dom->mccs.point)
+    // {
+    //     dom->deps.point->unref();
+    //     dom->deps.point = NULL;
+    // }
+
+    if (dom->mccs.interval)
+    {
+        dom->mccs.interval->unref();
+        dom->mccs.interval = NULL;
+    }
+
     for (auto mcc : dom->mccs.blas)
-        delete mcc;
+        mcc->unref();
     dom->mccs.blas.clear();
 
-    // delete deps domain
+    ///////////////////////////////
+    // delete deps domain        //
+    ///////////////////////////////
+
+    if (dom->deps.point)
+    {
+        delete dom->deps.point;
+        dom->deps.point = NULL;
+    }
+
+    if (dom->deps.interval)
+    {
+        delete dom->deps.interval;
+        dom->deps.interval = NULL;
+    }
+
     for (auto dep : dom->deps.blas)
         delete dep;
     dom->deps.blas.clear();
-
-    if (dom->deps.interval)
-        delete dom->deps.interval;
-
-    if (dom->deps.point)
-        delete dom->deps.point;
 
     // deallocate all device memory
     xkrt_memory_deallocate_all(runtime);

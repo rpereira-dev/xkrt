@@ -74,33 +74,6 @@ xkrt_thread_t::get_tls(void)
 }
 
 void
-xkrt_thread_t::pause(void)
-{
-    assert(pthread_self() == this->pthread);
-    pthread_mutex_lock(&this->sleep.lock);
-    {
-        this->sleep.sleeping = true;
-        while (this->sleep.sleeping)
-        {
-            pthread_cond_wait(&this->sleep.cond, &this->sleep.lock);
-        }
-    }
-    pthread_mutex_unlock(&this->sleep.lock);
-}
-
-void
-xkrt_thread_t::wakeup(void)
-{
-    pthread_mutex_lock(&this->sleep.lock);
-    if (this->sleep.sleeping)
-    {
-        this->sleep.sleeping = false;
-        pthread_cond_signal(&this->sleep.cond);
-    }
-    pthread_mutex_unlock(&this->sleep.lock);
-}
-
-void
 xkrt_thread_t::warmup(void)
 {
     // touches every pages to avoid minor page faults later during the execution
@@ -416,17 +389,6 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
         team_barrier_fetch(team, 1);
 }
 
-static inline void
-run(
-    xkrt_runtime_t * runtime,
-    xkrt_team_t * team,
-    xkrt_thread_t * thread,
-    task_t * task
-) {
-    assert(thread == xkrt_thread_t::get_tls());
-    __Thread_task_execute(thread, task, xkrt_team_thread_task_enqueue, runtime, team, thread);
-}
-
 /* Return the 'i-th' victim to steal for the thread 'tid' when there is 'n' threads in the tree */
 static inline int
 get_ith_victim(int tid, int i, int n)
@@ -472,7 +434,7 @@ worksteal(
         task_t * task = (victim_tid == tid) ? victim->deque.pop() : victim->deque.steal();
         if (task)
         {
-            run(runtime, team, thread, task);
+            runtime->task_run(team, thread, task);
             return 1;
         }
     }

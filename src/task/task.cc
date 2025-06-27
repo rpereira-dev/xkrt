@@ -81,8 +81,12 @@ task_get_memory_controller(
                     1,
                     runtime->conf.merge_transfers
                 );
+                dom->mccs.interval = mcc;
+                LOGGER_DEBUG("Created new `ACCESS_TYPE_INTERVAL` memory coherency controller");
             }
-            mcc = dom->mccs.interval;
+            else
+                mcc = dom->mccs.interval;
+
             break ;
         }
 
@@ -107,7 +111,7 @@ task_get_memory_controller(
                 access->host_view.sizeof_type,
                 runtime->conf.merge_transfers
             );
-            dom->mccs.blas.push_back(mcc);
+            dom->mccs.blas.push_back((MemoryCoherencyController *) mcc);
 
             # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
             /* insert regions that represents registered memory segment, to

@@ -97,7 +97,7 @@ xkrt_stream_init(
     xkrt_stream_type_t type,
     xkrt_stream_instruction_counter_t capacity,
     int (*f_stream_instruction_launch)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx),
-    int (*f_stream_instructions_progress)(xkrt_stream_t * stream, xkrt_stream_instruction_counter_t a, xkrt_stream_instruction_counter_t b),
+    int (*f_stream_instructions_progress)(xkrt_stream_t * stream),
     int (*f_stream_instructions_wait)(xkrt_stream_t * stream)
 ) {
     stream->type = type;
@@ -145,8 +145,8 @@ xkrt_stream_t::instruction_new(
     if (this->ready.is_full())
         return NULL;
 
-    const xkrt_stream_instruction_counter_t w = this->ready.pos.w % this->ready.capacity;
-    xkrt_stream_instruction_t * instr = this->ready.instr + w;
+    assert(this->ready.pos.w >= 0 && this->ready.pos.w < this->ready.capacity);
+    xkrt_stream_instruction_t * instr = this->ready.instr + this->ready.pos.w;
     instr->type = itype;
     instr->callback = callback;
     instr->completed = false;
@@ -158,8 +158,9 @@ int
 xkrt_stream_t::commit(xkrt_stream_instruction_t * instr)
 {
     assert(instr);
+    assert(!this->ready.is_full());
 
-    ++this->ready.pos.w;
+    this->ready.pos.w = (this->ready.pos.w + 1) % this->ready.capacity;
     XKRT_STATS_INCR(this->stats.instructions[instr->type].commited, 1);
 
     LOGGER_DEBUG(
@@ -178,27 +179,35 @@ int
 xkrt_stream_t::launch_ready_instructions(void)
 {
     assert(this->f_instruction_launch);
-    assert(this->ready.pos.r <= this->ready.pos.w);
+    if (this->ready.is_empty())
+        return 0;
 
-    /* launch every ready instructions */
     int err = 0;
-    while (!this->ready.is_empty())
-    {
-        /* retrieve the next instruction to launch at index 'p' */
-        xkrt_stream_instruction_counter_t p = this->ready.pos.r % this->ready.capacity;
 
+    /* for each ready instruction */
+    const xkrt_stream_instruction_counter_t p = this->ready.iterate([this, &err] (xkrt_stream_instruction_counter_t p) {
+
+        /* if the pending queue is full, we cannot start more instructions */
+        if (this->pending.is_full())
+            return false;
+
+        /* retrieve it */
         xkrt_stream_instruction_t * instr = this->ready.instr + p;
         assert(instr);
 
         LOGGER_DEBUG(
-            "Decoding instruction `%s` on stream %p of type `%s`",
+            "Decoding instruction `%s` on stream %p of type `%s` - p=%u, r=%u, w=%u",
             xkrt_stream_instruction_type_to_str(instr->type),
             this,
-            xkrt_stream_type_to_str(this->type)
+            xkrt_stream_type_to_str(this->type),
+            p,
+            this->ready.pos.r,
+            this->ready.pos.w
         );
 
         switch (instr->type)
         {
+            /* kernel instructions are launched by the instruction itself, not the driver */
             case (XKRT_STREAM_INSTR_TYPE_KERN):
             {
                 err = EINPROGRESS;
@@ -213,6 +222,7 @@ xkrt_stream_t::launch_ready_instructions(void)
                 break ;
             }
 
+            /* launch instruction */
             case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
             case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
             case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
@@ -228,6 +238,7 @@ xkrt_stream_t::launch_ready_instructions(void)
             }
         }
 
+        /* retrieve error code */
         switch (err)
         {
             case (0):
@@ -236,19 +247,17 @@ xkrt_stream_t::launch_ready_instructions(void)
                 break ;
             }
 
+            /* if in progress, move from the ready to the pending queue */
             case (EINPROGRESS):
             {
-                /* recopy op in pending op if still progressing */
-
-                /* the pending queue must not be full */
+                /* the pending queue must not be full at that point */
                 assert(!this->pending.is_full());
-                const xkrt_stream_instruction_counter_t wp = this->pending.pos.w % this->pending.capacity;
-                ++this->pending.pos.w;
-                writemem_barrier();
+                const xkrt_stream_instruction_counter_t wp = this->pending.pos.w;
+                this->pending.pos.w = (this->pending.pos.w + 1) % this->pending.capacity;
 
                 memcpy(
                     this->pending.instr + wp,
-                    this->ready.instr + p,
+                    this->ready.instr   + p,
                     sizeof(xkrt_stream_instruction_t)
                 );
 
@@ -268,9 +277,19 @@ xkrt_stream_t::launch_ready_instructions(void)
             }
         }
 
-        ++this->ready.pos.r;
+        /* continue */
+        LOGGER_DEBUG("(loop) ready.is_empty() = %d, pending.is_empty() = %d", this->ready.is_empty(), this->pending.is_empty());
+        return true;
 
-    } /* while (!this->ready.is_empty()) */
+    }); /* RING_ITERATE */
+
+    // this barrier ensures that the threads that owns the stream correctly
+    // sees the 'ready' stream empty but not the 'pending' - else it would go
+    // to sleep even though there is pending instructions
+    writemem_barrier();
+    this->ready.pos.r = p;
+
+    LOGGER_DEBUG("ready.is_empty() = %d, pending.is_empty() = %d", this->ready.is_empty(), this->pending.is_empty());
 
     return err;
 }
@@ -325,21 +344,19 @@ xkrt_stream_t::complete_instruction(xkrt_stream_instruction_t * instr)
 
 // complete all instructions to 'ok_p'
 void
-xkrt_stream_t::complete_instructions(const xkrt_stream_instruction_counter_t ok_p)
+xkrt_stream_t::complete_instructions(const xkrt_stream_instruction_counter_t p)
 {
-    assert(this->pending.pos.r < ok_p);
-    assert(ok_p <= this->pending.pos.w);
-    for (xkrt_stream_instruction_counter_t p = this->pending.pos.r ; p < ok_p ; ++p)
-        __complete_instruction_internal<false>(this, p % this->pending.capacity);
-    this->pending.pos.r = ok_p;
+    this->pending.iterate([this] (xkrt_stream_instruction_counter_t p) {
+        __complete_instruction_internal<false>(this, p);
+        return true;
+    });
+    this->pending.pos.r = p;
 }
 
 void
 xkrt_stream_t::wait_pending_instructions(void)
 {
-    assert(this->pending.pos.r <= this->pending.pos.w);
-
-    if (this->pending.pos.r < this->pending.pos.w)
+    if (!this->pending.is_empty())
     {
         this->f_instructions_wait(this);
         this->complete_instructions(this->pending.pos.w);
@@ -349,25 +366,26 @@ xkrt_stream_t::wait_pending_instructions(void)
 int
 xkrt_stream_t::progress_pending_instructions(void)
 {
-    // LOGGER_DEBUG("Progressing pending instructions of stream %p of type `%s` (%d pending)",
-    //         this, xkrt_stream_type_to_str(this->type), this->pending.size());
-
-    assert(this->pending.pos.r <= this->pending.pos.w);
     assert(this->f_instructions_progress);
 
-    // empty stream
-    if (this->pending.pos.r == this->pending.pos.w)
+    if (this->pending.is_empty())
         return 0;
 
+    LOGGER_DEBUG("Progressing pending instructions of stream %p of type `%s` (%d pending)",
+            this, xkrt_stream_type_to_str(this->type), this->pending.size());
+
     // ask for progression of the given instructions
-    const xkrt_stream_instruction_counter_t a = this->pending.pos.r % this->pending.capacity;
-    const xkrt_stream_instruction_counter_t b = this->pending.pos.w % this->pending.capacity;
-    const int                               r = this->f_instructions_progress(this, a, b);
+    const int r = this->f_instructions_progress(this);
 
     // move reading position to first uncompleted instr
-    xkrt_stream_instruction_counter_t i = a;
-    for ( ; i < b && this->pending.instr[i].completed ; ++i);
-    this->pending.pos.r = i;
+    xkrt_stream_instruction_counter_t i = this->pending.pos.r;
+    const xkrt_stream_instruction_counter_t p = this->pending.iterate([this] (xkrt_stream_instruction_counter_t p) {
+        return (this->pending.instr[p].completed) ? true : false;
+    });
+    this->pending.pos.r = p;
+
+    LOGGER_DEBUG("Progressed pending instructions of stream %p of type `%s` (%d pending)",
+            this, xkrt_stream_type_to_str(this->type), this->pending.size());
 
     // return err code
     return r;

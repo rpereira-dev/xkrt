@@ -780,22 +780,20 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
-    xkrt_stream_t * istream,
-    xkrt_stream_instruction_counter_t a,
-    xkrt_stream_instruction_counter_t b
+    xkrt_stream_t * istream
 ) {
     assert(istream);
 
-    xkrt_stream_cu_t * stream = (xkrt_stream_cu_t *) istream;
     int r = 0;
 
-    for (xkrt_stream_instruction_counter_t idx = a ; idx < b ; ++idx)
-    {
-        xkrt_stream_instruction_t * instr = istream->pending.instr + idx;
-        if (instr->completed)
-            continue ;
+    istream->pending.iterate([&] (xkrt_stream_instruction_counter_t p) {
 
-        CUevent event = stream->cu.events.buffer[idx];
+        xkrt_stream_instruction_t * instr = istream->pending.instr + p;
+        if (instr->completed)
+            return true;
+
+        xkrt_stream_cu_t * stream = (xkrt_stream_cu_t *) istream;
+        CUevent event = stream->cu.events.buffer[p];
 
         switch (instr->type)
         {
@@ -809,32 +807,21 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
             case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
             case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
             {
-                /* poll events */
-                for (int i = 0 ; i < 4 ; ++i)
-                {
-                    CUresult res = cuEventQuery(event);
-                    if (res == CUDA_ERROR_NOT_READY)
-                        sched_yield();
-                    else if (res == CUDA_SUCCESS)
-                    {
-                        istream->complete_instruction(idx);
-                        goto next_instr;
-                    }
-                    else
-                        LOGGER_FATAL("Error querying event");
-                }
-                r = EINPROGRESS;
+                CUresult res = cuEventQuery(event);
+                if (res == CUDA_ERROR_NOT_READY)
+                    r = EINPROGRESS;
+                else if (res == CUDA_SUCCESS)
+                    istream->complete_instruction(p);
+                else
+                    LOGGER_FATAL("Error querying event");
                 break ;
             }
 
             default:
                 LOGGER_FATAL("Wrong instruction");
         }
-
-        next_instr:
-            continue ;
-
-    }
+        return true;
+    });
 
     return r;
 }
