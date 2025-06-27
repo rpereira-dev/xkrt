@@ -150,11 +150,11 @@ __task_complete(
                     // if the pred access wrote memory
                     if (access->mode & ACCESS_MODE_W)
                     {
-                        // if device is known
+                        // if successor device can already be known
                         const xkrt_device_global_id_t device_global_id = __task_device(succ);
                         if (device_global_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
                         {
-                            // can prefetch memory
+                            // then we can prefetch memory
                             MemoryCoherencyController * mcc = task_get_memory_controller(
                                     runtime, succ->parent, succ_access);
                             if (mcc)
