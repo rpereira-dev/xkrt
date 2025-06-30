@@ -250,9 +250,6 @@ typedef struct  xkrt_runtime_t
     // TASKING //
     /////////////
 
-    /* Enqueue a ready task to the given device */
-    void task_submit(const xkrt_device_global_id_t device_global_id, task_t * task);
-
     /* Commit a task - so it may be schedule from now once its dependences completed */
     void task_commit(task_t * task);
 
@@ -268,16 +265,122 @@ typedef struct  xkrt_runtime_t
     /* schedule a ready task, and return 1 if one task was found, 0 otherwise */
     int task_schedule(void);
 
-    /* spawn a task in the currently executing thread team */
-    template <task_access_counter_t ac>
-    void task_spawn(
+    /* enqueue a task to the given thread */
+    void task_thread_enqueue(xkrt_thread_t * thread, task_t * task);
+    static inline void
+    task_thread_enqueue(xkrt_runtime_t * runtime, xkrt_thread_t * thread, task_t * task)
+    {
+        runtime->task_thread_enqueue(thread, task);
+    }
+
+    /* enqueue a task to the given team */
+    void task_team_enqueue(xkrt_team_t * team, task_t * task);
+    static inline void
+    task_team_enqueue(xkrt_runtime_t * runtime, xkrt_team_t * team, task_t * task)
+    {
+        return runtime->task_team_enqueue(team, task);
+    }
+
+    /* duplicate a moldable task (do not use unless you know what you're doing) */
+    task_t * task_dup(const task_t * task);
+
+    /* instanciate a new task (do not use unless you know what you're doing,
+     * you may want to use `task_spawn` instead) */
+    template <task_access_counter_t ac, bool has_set_accesses, bool has_split_condition>
+    inline task_t *
+    task_instanciate(
         const std::function<void(task_t *, access_t *)> & set_accesses,
-        const std::function<void(task_t*)> & f
-    );
-    void task_spawn(const std::function<void(task_t*)> & f);
+        const std::function<bool(task_t *, access_t *)> & split_condition,
+        const std::function<void(task_t *)> & f
+    ) {
+        static_assert(ac == 0 || has_set_accesses);     // must have both or none
+        static_assert(!has_split_condition || ac > 0);  // cannot split if task has no accesses
+
+        assert(has_set_accesses    == (set_accesses    != nullptr));
+        assert(has_split_condition == (split_condition != nullptr));
+
+        // retrieve tls
+        xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+
+        // create the task
+        constexpr task_flag_bitfield_t flags = (ac == 0) ? TASK_FLAG_ZERO : (has_split_condition) ? (TASK_FLAG_DEPENDENT | TASK_FLAG_MOLDABLE) : TASK_FLAG_DEPENDENT;
+        constexpr size_t size = task_compute_size(flags, ac);
+
+        task_t * task = tls->allocate_task(size + sizeof(f));
+        new (task) task_t(this->formats.host_capture, flags);
+
+        std::function<void(task_t *)> * fcpy = (std::function<void(task_t *)> *) TASK_ARGS(task, size);
+        new (fcpy) std::function<void(task_t *)>(f);
+
+        if (ac)
+        {
+            task_dep_info_t * dep = TASK_DEP_INFO(task);
+            new (dep) task_dep_info_t(ac);
+
+            access_t * accesses = TASK_ACCESSES(task, flags);
+            set_accesses(task, accesses);
+            tls->resolve<ac>(task, accesses);
+        }
+
+        if (split_condition)
+        {
+            task_mol_info_t * mol = TASK_MOL_INFO(task);
+            new (mol) task_mol_info_t(split_condition);
+        }
+
+        # ifndef NDEBUG
+        snprintf(task->label, sizeof(task->label), "capture");
+        # endif
+
+        return task;
+    }
+
+    /* spawn a task in the currently executing thread team */
+    template <task_access_counter_t ac, bool has_set_accesses, bool has_split_condition>
+    inline void
+    task_spawn(
+        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const std::function<bool(task_t *, access_t *)> & split_condition,
+        const std::function<void(task_t *)> & f
+    ) {
+        // create the task
+        task_t * task = this->task_instanciate<ac, has_set_accesses, has_split_condition>(set_accesses, split_condition, f);
+        assert(task);
+
+        // commit the task
+        xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+        tls->commit(task, task_thread_enqueue, this, tls);
+    }
+
+    template <task_access_counter_t ac>
+    inline void
+    task_spawn(
+        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const std::function<bool(task_t *, access_t *)> & split_condition,
+        const std::function<void(task_t *)> & f
+    ) {
+        return this->task_spawn<ac, true, true>(set_accesses, split_condition, f);
+    }
+
+    template <task_access_counter_t ac>
+    inline void
+    task_spawn(
+        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const std::function<void(task_t *)> & f
+    ) {
+        this->task_spawn<ac, true, false>(set_accesses, nullptr, f);
+    }
+
+    inline void
+    task_spawn(
+        const std::function<void(task_t *)> & f
+    ) {
+        this->task_spawn<0, false, false>(nullptr, nullptr, f);
+    }
 
     /* run a task on the given team, using its host routine
-     * (do not use unless you know what you are doing, you may want `task_spawn` instead) */
+     * (do not use unless you know what you are doing, you may want
+     * `task_spawn` instead) */
     void task_run(xkrt_team_t * team, xkrt_thread_t * thread, task_t * task);
 
     ///////////////
@@ -309,15 +412,51 @@ typedef struct  xkrt_runtime_t
     /* blocking parallel_for region */
     void team_parallel_for(xkrt_team_t * team, xkrt_team_parallel_for_func_t func);
 
-    /* spawn a task in the passed team */
+    template <task_access_counter_t ac, bool has_set_accesses, bool has_split_condition>
+    inline void
+    team_task_spawn(
+        xkrt_team_t * team,
+        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const std::function<bool(task_t *, access_t *)> & split_condition,
+        const std::function<void(task_t *)> & f
+    ) {
+        // create the task
+        task_t * task = task_instanciate<ac, has_set_accesses, has_split_condition>(set_accesses, split_condition, f);
+        assert(task);
+
+        // commit the task
+        xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+        tls->commit(task, task_team_enqueue, this, team);
+    }
+
     template <task_access_counter_t ac>
-    void team_task_spawn(
+    inline void
+    team_task_spawn(
+        xkrt_team_t * team,
+        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const std::function<bool(task_t *, access_t *)> & split_condition,
+        const std::function<void(task_t *)> & f
+    ) {
+        return this->team_task_spawn<ac, true, true>(team, set_accesses, split_condition, f);
+    }
+
+    template <task_access_counter_t ac>
+    inline void
+    team_task_spawn(
         xkrt_team_t * team,
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<void(task_t *)> & f
-    );
+    ) {
+        this->team_task_spawn<ac, true, false>(team, set_accesses, nullptr, f);
+    }
 
-    void team_task_spawn(xkrt_team_t * team, const std::function<void(task_t*)> & f);
+    inline void
+    team_task_spawn(
+        xkrt_team_t * team,
+        const std::function<void(task_t *)> & f
+    ) {
+        this->team_task_spawn<0, false, false>(team, nullptr, nullptr, f);
+    }
 
     /* retrieve the team of thread of the specific driver */
     xkrt_team_t * team_get(const xkrt_driver_type_t type);
@@ -347,12 +486,6 @@ typedef struct  xkrt_runtime_t
 
     /* get number of commited devices */
     unsigned int get_ndevices(void);
-
-    //////////////////////////////////////
-    // linked list for freeing on crash //
-    //////////////////////////////////////
-    struct xkrt_runtime_t * prev;
-    struct xkrt_runtime_t * next;
 
      # if XKRT_SUPPORT_STATS
      struct {
@@ -399,19 +532,6 @@ void xkrt_drivers_deinit(xkrt_runtime_t * runtime);
 void xkrt_device_task_execute(
     xkrt_runtime_t * runtime,
     xkrt_device_t * device,
-    task_t * task
-);
-
-/* enqueue the task in the thread of the team */
-void xkrt_team_thread_task_enqueue(xkrt_runtime_t * runtime, xkrt_team_t * team, xkrt_thread_t * thread, task_t * task);
-
-/* enqueue the task to a random thread of the team */
-void xkrt_team_task_enqueue(xkrt_runtime_t * runtime, xkrt_team_t * team, task_t * task);
-
-/* submit a task to the given device */
-void xkrt_device_task_submit(
-    xkrt_runtime_t * runtime,
-    xkrt_device_global_id_t device_global_id,
     task_t * task
 );
 

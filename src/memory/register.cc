@@ -179,7 +179,7 @@ memory_op_async(
         tls->resolve<AC>(task, accesses);
 
         // commit task
-        tls->commit(task, xkrt_team_task_enqueue, runtime, team);
+        tls->commit(task, xkrt_runtime_t::task_team_enqueue, runtime, team);
     }
 
     return 0;

@@ -506,8 +506,8 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
         if (instr->completed)
             return true;
 
-        sycl::event * e = stream->sycl.events.buffer + p;
         xkrt_stream_sycl_t * stream = (xkrt_stream_sycl_t *) istream;
+        sycl::event * e = stream->sycl.events.buffer + p;
 
         switch (instr->type)
         {

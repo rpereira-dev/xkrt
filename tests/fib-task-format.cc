@@ -3,7 +3,7 @@
 /*   fib-task-format.cc                                           .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/03/04 05:42:49 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/09 03:47:14 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/06/30 17:55:00 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -70,7 +70,7 @@ fib(int n, int depth = 0)
             args->n     = n - 1;
             args->depth = depth + 1;
 
-            thread->commit(task, xkrt_team_thread_task_enqueue, &runtime, thread->team, thread);
+            thread->commit(task, xkrt_runtime_t::task_thread_enqueue, &runtime, thread);
         }
 
         // shared(fn2) firstprivate(n, depth)
@@ -83,7 +83,7 @@ fib(int n, int depth = 0)
             args->n     = n - 2;
             args->depth = depth + 1;
 
-            thread->commit(task, xkrt_team_thread_task_enqueue, &runtime, thread->team, thread);
+            thread->commit(task, xkrt_runtime_t::task_thread_enqueue, &runtime, thread);
         }
 
         runtime.task_wait();

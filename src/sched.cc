@@ -83,14 +83,70 @@ xkrt_device_prepare_task(
         /* if there is at least one access */
         if (dep->ac > 0)
         {
+            /* retrieve accesses */
+            access_t * accesses = TASK_ACCESSES(task);
+
+            /////////////////////////
+            // MOLDABLE TASK SPLIT //
+            /////////////////////////
+
+            /* if the task is moldable */
+            if (task->flags & TASK_FLAG_MOLDABLE)
+            {
+                /* check split condition, and split, or execute normally */
+                task_mol_info_t * mol = TASK_MOL_INFO(task);
+                assert(mol->split_condition);
+                if (mol->split_condition(task, accesses))
+                {
+                    // right now, all task accesses must have the same type
+                    const access_type_t type = (accesses + 0)->type;
+
+                    # ifndef NDEBUG
+                    for (task_access_counter_t i = 1 ; i < dep->ac ; ++i)
+                        assert(type == (accesses + i)->type);
+                    # endif /* atm, only support moldable tasks with accesses of same type */
+
+                    switch (type)
+                    {
+                        case (ACCESS_TYPE_INTERVAL):
+                        {
+                            // dupplicate the task
+                            task_t * dup_task = runtime->task_dup(task);
+                            assert(dup_task);
+
+                            // split access
+                            access_t * dup_accesses = TASK_ACCESSES(dup_task);
+                            assert(dup_accesses);
+                            for (task_access_counter_t i = 0 ; i < dep->ac ; ++i)
+                                access_t::split(accesses + i, dup_accesses + i, ACCESS_SPLIT_MODE_HALVES);
+
+                            // submit the dup task
+                            xkrt_runtime_submit_task(runtime, dup_task);
+                            break ;
+                        }
+
+                        default:
+                            LOGGER_FATAL("Not supported");
+                    }
+
+                    LOGGER_FATAL("IMPL access->split_mode constructor");
+
+                    // resubmit the original task, whose accesses got shrinked
+                    return xkrt_runtime_submit_task(runtime, task);
+                }
+            }
+
+            ////////////////////
+            // FETCH ACCESSES //
+            ////////////////////
+
             /* increase task 'fetching' counter so it does not get ready early
              * (eg before we processed all accesses bellow) */
             __task_fetching(1, task);
 
             /* for each access */
             assert(dep->ac <= TASK_MAX_ACCESSES);
-            access_t * accesses = TASK_ACCESSES(task);
-            for (int i = 0 ; i < dep->ac ; ++i)
+            for (task_access_counter_t i = 0 ; i < dep->ac ; ++i)
             {
                 access_t * access = accesses + i;
                 if (access->mode & ACCESS_MODE_V)
@@ -340,26 +396,19 @@ xkrt_device_thread_main(
 }
 
 void
-xkrt_team_thread_task_enqueue(
-    xkrt_runtime_t * runtime,
-    xkrt_team_t * team,
+xkrt_runtime_t::task_thread_enqueue(
     xkrt_thread_t * thread,
     task_t * task
 ) {
-    (void) runtime;
-    (void) team;
     thread->deque.push(task);
     thread->wakeup();
 }
 
 void
-xkrt_team_task_enqueue(
-    xkrt_runtime_t * runtime,
+xkrt_runtime_t::task_team_enqueue(
     xkrt_team_t * team,
     task_t * task
 ) {
-    (void) runtime;
-
     // start at a random thread
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
     int start = tls->rng() % team->priv.nthreads;
@@ -373,11 +422,11 @@ xkrt_team_task_enqueue(
             continue ;
 
         // assign it the task
-        return xkrt_team_thread_task_enqueue(runtime, team, thread, task);
+        return this->task_thread_enqueue(thread, task);
     }
 
     // all threads are working, assigning on the first random one
     xkrt_thread_t * thread = team->priv.threads + start;
-    return xkrt_team_thread_task_enqueue(runtime, team, thread, task);
+    return this->task_thread_enqueue(thread, task);
 }
 

@@ -77,6 +77,7 @@ add_custom_target(always_generate_files ALL DEPENDS always-run)
 ########
 
 SET(SOURCE_FILES
+    ${CMAKE_SOURCE_DIR}/src/memory/access.cc
     ${CMAKE_SOURCE_DIR}/src/conf/conf.cc
     ${CMAKE_SOURCE_DIR}/src/debug/cairo.cc
     ${CMAKE_SOURCE_DIR}/src/distribution/distribution.cc
@@ -93,8 +94,8 @@ SET(SOURCE_FILES
     ${CMAKE_SOURCE_DIR}/src/memory/copy.cc
     ${CMAKE_SOURCE_DIR}/src/memory/distribute.cc
     ${CMAKE_SOURCE_DIR}/src/memory/invalidate.cc
-    ${CMAKE_SOURCE_DIR}/src/memory/register.cc
     ${CMAKE_SOURCE_DIR}/src/memory/register-legacy.cc
+    ${CMAKE_SOURCE_DIR}/src/memory/register.cc
     ${CMAKE_SOURCE_DIR}/src/memory/replicate.cc
     ${CMAKE_SOURCE_DIR}/src/power.cc
     ${CMAKE_SOURCE_DIR}/src/runtime.cc

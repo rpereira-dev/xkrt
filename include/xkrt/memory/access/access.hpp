@@ -62,7 +62,6 @@ struct task_t;
 using Segment   = KHyperrect<1>;
 using Rect      = KHyperrect<2>;
 
-
 static inline void
 interval_to_rects(
     INTERVAL_TYPE_T      a,
@@ -289,6 +288,17 @@ typedef enum    access_state_t : uint8_t
     ACCESS_STATE_FETCHED
 }               access_state_t;
 
+/* split mode */
+typedef enum    access_split_mode_t
+{
+    ACCESS_SPLIT_MODE_NO_SPLIT,
+    ACCESS_SPLIT_MODE_HALVES,
+    ACCESS_SPLIT_MODE_HALVES_HORIZONTAL,
+    ACCESS_SPLIT_MODE_HALVES_VERTICAL,
+    ACCESS_SPLIT_MODE_QUADRANT,
+    ACCESS_SPLIT_MODE_CUSTOM
+}               access_split_mode_t;
+
 class access_t
 {
     public:
@@ -322,6 +332,22 @@ class access_t
 
         union {
 
+            ///////////
+            // POINT //
+            ///////////
+
+            struct {
+                const void * point;
+            };
+
+            //////////////
+            // INTERVAL //
+            //////////////
+
+            struct {
+                Segment segment;
+            };
+
             ///////////////////
             // BLAS MATRICES //
             ///////////////////
@@ -333,23 +359,6 @@ class access_t
                  */
                 Rect rects[3];
             };
-
-            //////////////
-            // INTERVAL //
-            //////////////
-
-            struct {
-                Segment segment;
-            };
-
-            ///////////
-            // POINT //
-            ///////////
-
-            struct {
-                const void * point;
-            };
-
             // none
         };
 
@@ -374,6 +383,14 @@ class access_t
 
         /* device view of the access - set after fetching the data */
         memory_replicate_view_t device_view;
+
+    public:
+        /////////////
+        // methods //
+        /////////////
+
+        /** Shrink the passed access x to halves (x, y) */
+        static void split(access_t * x, access_t * y, access_split_mode_t mode = ACCESS_SPLIT_MODE_HALVES);
 
     public:
 

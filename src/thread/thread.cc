@@ -492,7 +492,7 @@ xkrt_runtime_t::task_wait(void)
     while (1)
     {
         // work steal
-        if (thread->team && schedule(this, thread->team, thread))
+        if (schedule(this, thread->team, thread))
         {
             backoff = initial_backoff;
             continue ;

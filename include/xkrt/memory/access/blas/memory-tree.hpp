@@ -930,7 +930,10 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             assert(access->task);
             LOGGER_DEBUG("task `%s` fetched `%p`", access->task->label, (void *) (fetch->dst_chunk ? fetch->dst_chunk->ptr : NULL));
             access->state = ACCESS_STATE_FETCHED;
-            __task_fetched(1, access->task, xkrt_device_task_submit, runtime, fetch->dst_device_global_id);
+
+            xkrt_device_t * device = runtime->device_get(fetch->dst_device_global_id);
+            assert(device);
+            __task_fetched(1, access->task, xkrt_device_task_execute, runtime, device);
         }
 
         static inline fetch_list_t *
