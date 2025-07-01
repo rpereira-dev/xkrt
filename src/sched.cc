@@ -249,18 +249,20 @@ xkrt_device_thread_main_loop(
 
     task_t * task = NULL;
 
+    auto test = [&] (void) {
+        if (task)                                                                   return false;
+        if ((task = thread->deque.pop()) != NULL)                                   return false;
+        if (!device->offloader_streams_are_empty(device_tid, XKRT_STREAM_TYPE_ALL)) return false;
+        if (device->state != XKRT_DEVICE_STATE_COMMIT)                              return false;
+        return true;
+    };
+
     while (device->state == XKRT_DEVICE_STATE_COMMIT)
     {
         ///////////////////////////////////////////////////////////////////////////////////
         // sleep until a task or an instruction is ready, or until the runtime must stop
         ///////////////////////////////////////////////////////////////////////////////////
-        auto test = [&] (void) {
-            if (task)                                                                   return false;
-            if ((task = thread->deque.pop()) != NULL)                                   return false;
-            if (!device->offloader_streams_are_empty(device_tid, XKRT_STREAM_TYPE_ALL)) return false;
-            if (device->state != XKRT_DEVICE_STATE_COMMIT)                              return false;
-            return true;
-        };
+
         thread->pause(test);
 
         // if the runtime must stop, break
