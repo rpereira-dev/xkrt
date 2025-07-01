@@ -3,7 +3,7 @@
 /*   moldability.cc                                               .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/30 18:55:40 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/07/01 01:48:34 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -51,9 +51,10 @@ main(void)
         },
 
         // split condition
-        [] (task_t * task, access_t * accesses) {
+        [&size] (task_t * task, access_t * accesses) {
             const access_t * access = accesses + 0;
-            return access->segment[0].length() >= size / 16;
+            // return access->segment[0].length() >= size / 16;
+            return access->segment[0].length() == size;
         },
 
         // routine

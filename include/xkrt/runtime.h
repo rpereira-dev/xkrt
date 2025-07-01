@@ -304,12 +304,13 @@ typedef struct  xkrt_runtime_t
 
         // create the task
         constexpr task_flag_bitfield_t flags = (ac == 0) ? TASK_FLAG_ZERO : (has_split_condition) ? (TASK_FLAG_DEPENDENT | TASK_FLAG_MOLDABLE) : TASK_FLAG_DEPENDENT;
-        constexpr size_t size = task_compute_size(flags, ac);
+        constexpr size_t task_size = task_compute_size(flags, ac);
+        constexpr size_t args_size = sizeof(f);
 
-        task_t * task = tls->allocate_task(size + sizeof(f));
+        task_t * task = tls->allocate_task(task_size + args_size);
         new (task) task_t(this->formats.host_capture, flags);
 
-        std::function<void(task_t *)> * fcpy = (std::function<void(task_t *)> *) TASK_ARGS(task, size);
+        std::function<void(task_t *)> * fcpy = (std::function<void(task_t *)> *) TASK_ARGS(task, task_size);
         new (fcpy) std::function<void(task_t *)>(f);
 
         if (ac)
@@ -325,7 +326,7 @@ typedef struct  xkrt_runtime_t
         if (split_condition)
         {
             task_mol_info_t * mol = TASK_MOL_INFO(task);
-            new (mol) task_mol_info_t(split_condition);
+            new (mol) task_mol_info_t(split_condition, args_size);
         }
 
         # ifndef NDEBUG

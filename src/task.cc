@@ -398,15 +398,22 @@ xkrt_runtime_t::task_dup(
 ) {
     assert(task->flags & TASK_FLAG_MOLDABLE);
 
+    task_mol_info_t * mol = TASK_MOL_INFO(task);
+    assert(mol);
+
+    const size_t args_size = mol->args_size;
+    const size_t task_size = TASK_SIZE(task);
+
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    task_t * dup = tls->allocate_task(task_size + args_size);
+    assert(dup);
 
-    const size_t size = TASK_SIZE(task);
-    task_t * dup = tls->allocate_task(size);
+    // TODO: probably not C++ standard, but should work ?
+    memcpy(dup, task, task_size + args_size);
 
-    // TODO: probably not C++ standard, but may work
-    memcpy(dup, task, size);
-
-    LOGGER_FATAL("Impl me, gotta dup ALL MEMORY ; maybe not args, TASK_ARGS should return the correct ARGS to the user... Maybe store it in the mol info");
+    # ifndef NDEBUG
+    snprintf(dup->label, sizeof(dup->label), "%s-dup", task->label);
+    # endif
 
     return dup;
 }

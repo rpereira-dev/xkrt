@@ -421,33 +421,40 @@ worksteal(
     xkrt_team_t * team,
     xkrt_thread_t * thread
 ) {
-    const int n = team->priv.nthreads;
-    const int tid = thread->tid;
-
-    for (int i = 0 ; i < n ; ++i)
+    // if the thread is executing within a team, do hierarchical workstealing
+    if (team)
     {
-        const int victim_tid = get_ith_victim(tid, i, n);
-        xkrt_thread_t * victim = team->priv.threads + victim_tid;
-        if (victim->state != XKRT_THREAD_INITIALIZED)
-            continue ;
+        const int n = team->priv.nthreads;
+        const int tid = thread->tid;
 
-        task_t * task = (victim_tid == tid) ? victim->deque.pop() : victim->deque.steal();
-        if (task)
+        for (int i = 0 ; i < n ; ++i)
         {
-            runtime->task_run(team, thread, task);
-            return 1;
+            const int victim_tid = get_ith_victim(tid, i, n);
+            xkrt_thread_t * victim = team->priv.threads + victim_tid;
+            if (victim->state != XKRT_THREAD_INITIALIZED)
+                continue ;
+
+            task_t * task = (victim_tid == tid) ? victim->deque.pop() : victim->deque.steal();
+            if (task)
+            {
+                runtime->task_run(team, thread, task);
+                return 1;
+            }
         }
     }
-    return 0;
-}
+    // else, schedule that thread tasks only
+    else
+    {
+        task_t * task = thread->deque.pop();
+        if (task)
+        {
+            runtime->task_run(NULL, thread, task);
+            return 1;
+        }
 
-static inline int
-schedule(
-    xkrt_runtime_t * runtime,
-    xkrt_team_t * team,
-    xkrt_thread_t * thread
-) {
-    return worksteal(runtime, team, thread);
+    }
+
+    return 0;
 }
 
 void
@@ -492,7 +499,7 @@ xkrt_runtime_t::task_wait(void)
     while (1)
     {
         // work steal
-        if (schedule(this, thread->team, thread))
+        if (worksteal(this, thread->team, thread))
         {
             backoff = initial_backoff;
             continue ;
@@ -514,7 +521,7 @@ xkrt_runtime_t::task_wait(void)
 }
 
 // TODO : reimplement this using team's topology
-template<bool worksteal>
+template<bool ws>
 void
 xkrt_runtime_t::team_barrier(
     xkrt_team_t * team,
@@ -525,14 +532,14 @@ xkrt_runtime_t::team_barrier(
     if (team->priv.nthreads == 1)
         return ;
 
-    assert((worksteal && thread) || (!worksteal && !thread));
+    assert((ws && thread) || (!ws && !thread));
 
     int old_version = team->priv.barrier.version;
     if (team_barrier_fetch(team, 1))
     {
         while (old_version == team->priv.barrier.version)
         {
-            if (worksteal && schedule(this, team, thread))
+            if (ws && worksteal(this, team, thread))
                 continue ;
 
             pthread_mutex_lock(&team->priv.barrier.mtx);

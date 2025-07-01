@@ -37,10 +37,37 @@
 # include <xkrt/memory/access/access.hpp>
 # include <xkrt/logger/logger.h>
 
+bool
+access_t::intersects(
+    access_t * x,
+    access_t * y
+) {
+    assert(x->type == y->type);
+    switch (x->type)
+    {
+        case (ACCESS_TYPE_INTERVAL):
+            return x->segment.intersects(y->segment);
+
+        default:
+            LOGGER_FATAL("Not implemented");
+    }
+}
+
+bool
+access_t::conflicts(
+    access_t * x,
+    access_t * y
+) {
+    if (!(x->mode & ACCESS_MODE_W) & !(y->mode & ACCESS_MODE_W))
+        return false;
+    return access_t::intersects(x, y);
+}
+
 void
 access_t::split(
     access_t * x,
     access_t * y,
+    task_t * y_task,
     access_split_mode_t split_mode
 ) {
     switch (x->type)
@@ -57,7 +84,7 @@ access_t::split(
             const uintptr_t a = x->segment[0].a;
             const uintptr_t b = x->segment[0].b;
             const uintptr_t h = (b - a) / 2;
-            new (y) access_t(x->task, a + 0, a + h, x->mode, x->concurrency, x->scope);
+            new (y) access_t( y_task, a + 0, a + h, x->mode, x->concurrency, x->scope);
             new (x) access_t(x->task, a + h, b + 0, x->mode, x->concurrency, x->scope);
 
             break ;

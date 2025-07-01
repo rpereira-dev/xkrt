@@ -389,8 +389,19 @@ class access_t
         // methods //
         /////////////
 
+        /** return true if the two access intersects */
+        static bool intersects(access_t * x, access_t * y);
+
+        /** return true if the two accesses conflict */
+        static bool conflicts(access_t * x, access_t * y);
+
         /** Shrink the passed access x to halves (x, y) */
-        static void split(access_t * x, access_t * y, access_split_mode_t mode = ACCESS_SPLIT_MODE_HALVES);
+        static void split(
+            access_t * x,
+            access_t * y,
+            task_t * y_task,
+            access_split_mode_t mode = ACCESS_SPLIT_MODE_HALVES
+        );
 
     public:
 

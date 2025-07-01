@@ -62,6 +62,93 @@
 //  DEVICE PROGRESSION //
 /////////////////////////
 
+static inline void
+__task_moldable_split(
+    xkrt_runtime_t * runtime,
+    task_t * task,
+    access_t * accesses,
+    task_dep_info_t * dep,
+    task_mol_info_t * mol
+) {
+    // right now, all task accesses must have the same type
+    const access_type_t type = (accesses + 0)->type;
+
+    # ifndef NDEBUG
+    for (task_access_counter_t i = 1 ; i < dep->ac ; ++i)
+        assert(type == (accesses + i)->type);
+    # endif /* atm, only support moldable tasks with accesses of same type */
+
+    switch (type)
+    {
+        case (ACCESS_TYPE_INTERVAL):
+        {
+            // dupplicate the task
+            task_t * dup_task = runtime->task_dup(task);
+            assert(dup_task);
+
+            // split accesses and refine dependencies
+            access_t * dup_accesses = TASK_ACCESSES(dup_task);
+            assert(dup_accesses);
+
+            // for each access
+            for (task_access_counter_t i = 0 ; i < dep->ac ; ++i)
+            {
+                access_t * access     = accesses     + i;
+                access_t * dup_access = dup_accesses + i;
+
+                assert(access->task     == task);
+                assert(dup_access->task == task);
+                dup_access->task = dup_task;
+                assert(access->task     == task);
+                assert(dup_access->task == dup_task);
+
+                // split access
+                access_t::split(access, dup_access, dup_task, ACCESS_SPLIT_MODE_HALVES);
+
+                // for each original successor
+                for (access_t * succ_access : access->successors)
+                {
+                    // if new access conflicts
+                    if (access_t::conflicts(dup_access, succ_access))
+                    {
+                        // set a dependency
+                        __access_precedes(dup_access, succ_access);
+                    }
+                    else
+                    {
+                        // nothing to do
+                    }
+
+                    // if shrinked access still conflicts
+                    if (access_t::conflicts(access, succ_access))
+                    {
+                        // nothing to do, we recycle task and the access,
+                        // so the dependency is already set
+                    }
+                    else
+                    {
+                        // TODO: unset the dependency
+                        LOGGER_FATAL("TODO: should unref once the successor");
+                    }
+                }
+            }
+
+            // submit the dupplicated task
+            assert(dup_task->parent);
+            assert(dup_task->parent == task->parent);
+
+            # pragma message(TODO "This is quite ugly, can we have tasks go through a more regular transition path ? At that point, the dupplicated task is in the 'ready' state already, as its original task was ready")
+            ++dup_task->parent->cc;
+            xkrt_runtime_submit_task(runtime, dup_task);
+
+            break ;
+        }
+
+        default:
+            LOGGER_FATAL("Not supported");
+    }
+}
+
 inline void
 xkrt_device_prepare_task(
     xkrt_runtime_t * runtime,
@@ -90,50 +177,31 @@ xkrt_device_prepare_task(
             // MOLDABLE TASK SPLIT //
             /////////////////////////
 
+            // TODO : move that to another function
+
             /* if the task is moldable */
             if (task->flags & TASK_FLAG_MOLDABLE)
             {
                 /* check split condition, and split, or execute normally */
                 task_mol_info_t * mol = TASK_MOL_INFO(task);
                 assert(mol->split_condition);
+
+                /* if the moldable task must split */
                 if (mol->split_condition(task, accesses))
                 {
-                    // right now, all task accesses must have the same type
-                    const access_type_t type = (accesses + 0)->type;
-
-                    # ifndef NDEBUG
-                    for (task_access_counter_t i = 1 ; i < dep->ac ; ++i)
-                        assert(type == (accesses + i)->type);
-                    # endif /* atm, only support moldable tasks with accesses of same type */
-
-                    switch (type)
-                    {
-                        case (ACCESS_TYPE_INTERVAL):
-                        {
-                            // dupplicate the task
-                            task_t * dup_task = runtime->task_dup(task);
-                            assert(dup_task);
-
-                            // split access
-                            access_t * dup_accesses = TASK_ACCESSES(dup_task);
-                            assert(dup_accesses);
-                            for (task_access_counter_t i = 0 ; i < dep->ac ; ++i)
-                                access_t::split(accesses + i, dup_accesses + i, ACCESS_SPLIT_MODE_HALVES);
-
-                            // submit the dup task
-                            xkrt_runtime_submit_task(runtime, dup_task);
-                            break ;
-                        }
-
-                        default:
-                            LOGGER_FATAL("Not supported");
-                    }
-
-                    LOGGER_FATAL("IMPL access->split_mode constructor");
-
-                    // resubmit the original task, whose accesses got shrinked
+                    // shrink the moldable task, and resubmit the original task
+                    // whose accesses got shrinked
+                    __task_moldable_split(runtime, task, accesses, dep, mol);
                     return xkrt_runtime_submit_task(runtime, task);
                 }
+                else
+                {
+                    // mothing to do
+                }
+            }
+            else
+            {
+                // nothing to do
             }
 
             ////////////////////

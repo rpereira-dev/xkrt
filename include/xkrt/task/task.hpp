@@ -240,7 +240,17 @@ typedef struct  task_mol_info_t
     /* return true if that task should be split, false otherwise */
     const std::function<bool(task_t *, access_t *)> & split_condition;
 
-    task_mol_info_t(const std::function<bool(task_t *, access_t *)> & split_condition) : split_condition(split_condition) {}
+    /* the task args size */
+    const size_t args_size;
+
+    task_mol_info_t(
+        const std::function<bool(task_t *, access_t *)> & split_condition,
+        const size_t args_size = 0
+    ) :
+        split_condition(split_condition),
+        args_size(args_size)
+    {}
+
     ~task_mol_info_t() {}
 
 }               task_mol_info_t;
