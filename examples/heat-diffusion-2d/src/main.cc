@@ -131,13 +131,13 @@ maybe_export(int step, TYPE * grid)
             constexpr size_t args_size = sizeof(args_export_t);
 
             task_t * task = thread->allocate_task(task_size + args_size);
-            new(task) task_t(export_vtk_format_id, flags);
+            new (task) task_t(export_vtk_format_id, flags);
 
             task_dep_info_t * dep = TASK_DEP_INFO(task);
             new (dep) task_dep_info_t(AC);
 
             args_export_t * args = (args_export_t *) TASK_ARGS(task, task_size);
-            new(args) args_export_t(grid, frame);
+            new (args) args_export_t(grid, frame);
 
             # ifndef NDEBUG
             snprintf(task->label, sizeof(task->label), "export-vtk-%d", frame);
@@ -153,8 +153,8 @@ maybe_export(int step, TYPE * grid)
 
             # else
 
-            xkrt_coherency_host_async(&runtime, MATRIX_COLMAJOR, grid, LD, NX, NY, sizeof(TYPE));
-            xkrt_sync(&runtime);
+            runtime.coherent_async(MATRIX_COLMAJOR, grid, LD, NX, NY, sizeof(TYPE));
+            runtime.task_wait();
             export_to_vtk(frame, grid);
 
             # endif
@@ -182,7 +182,14 @@ typedef struct  args_t
 # include <xkrt/driver/driver-cu.h>
 # include <xkrt/logger/logger-cu.h>
 
-extern "C" void diffusion_cuda(cudaStream_t stream, TYPE * src, int ld_src, TYPE * dst, int ld_dst, int tile_x, int tile_y, int tsx, int tsy);
+extern "C"
+void diffusion_cuda(
+    cudaStream_t stream,
+    TYPE * src, int ld_src,
+    TYPE * dst, int ld_dst,
+    int tile_x, int tile_y,
+    int tsx, int tsy
+);
 
 static void
 body_cuda(
@@ -450,7 +457,7 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
     constexpr size_t args_size = sizeof(args_t);
 
     task_t * task = thread->allocate_task(task_size + args_size);
-    new(task) task_t(diffusion_format_id, flags);
+    new (task) task_t(diffusion_format_id, flags);
 
     task_dep_info_t * dep = TASK_DEP_INFO(task);
     new (dep) task_dep_info_t(AC);
@@ -460,7 +467,7 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
     new (dev) task_dev_info_t(UNSPECIFIED_DEVICE_GLOBAL_ID, ocr_access);
 
     args_t * args = (args_t *) TASK_ARGS(task, task_size);
-    new(args) args_t(src, dst, tile_x, tile_y);
+    new (args) args_t(src, dst, tile_x, tile_y);
 
     # ifndef NDEBUG
     snprintf(task->label, sizeof(task->label), "diffusion(%d, %d, s=%d)", tile_x, tile_y, step);
@@ -481,7 +488,7 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
         const ssize_t y1 = MIN(y+TSY+1, NY);
         const  size_t sx = x1 - x0;
         const  size_t sy = y1 - y0;
-        new(accesses + 0) access_t(task, MATRIX_COLMAJOR, src, LD, x0, y0, sx, sy, sizeof(TYPE), ACCESS_MODE_R);
+        new (accesses + 0) access_t(task, MATRIX_COLMAJOR, src, LD, x0, y0, sx, sy, sizeof(TYPE), ACCESS_MODE_R);
     }
     {
         const ssize_t x0 = MAX(x, 1);
@@ -490,7 +497,7 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
         const ssize_t y1 = MIN(y+TSY, NY-1);
         const  size_t sx = x1 - x0;
         const  size_t sy = y1 - y0;
-        new(accesses + 1) access_t(task, MATRIX_COLMAJOR, dst, LD, x0, y0, sx, sy, sizeof(TYPE), ACCESS_MODE_W);
+        new (accesses + 1) access_t(task, MATRIX_COLMAJOR, dst, LD, x0, y0, sx, sy, sizeof(TYPE), ACCESS_MODE_W);
     }
     thread->resolve<AC>(task, accesses);
     # undef AC
@@ -554,11 +561,12 @@ main(void)
     // Set initial conditions
     initialize(grid1, grid2);
 
-    // Create tasks to distribute memory
-    xkrt_distribute2D_async(&runtime, XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid1, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
-    xkrt_distribute2D_async(&runtime, XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid2, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
-
+    // run simulation
     uint64_t t0 = xkrt_get_nanotime();
+
+    // Distribute memory
+    runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid1, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
+    runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid2, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
 
     // Time stepping
     for (int step = 0; step < N_STEP; ++step)
@@ -578,8 +586,10 @@ main(void)
 
     uint64_t tf = xkrt_get_nanotime();
     LOGGER_WARN("Graph Creation Took %.2lf s", (tf-t0)/1e9);
+
     // Finish remaining tasks
-    xkrt_sync(&runtime);
+    runtime.task_wait();
+
     tf = xkrt_get_nanotime();
     LOGGER_WARN("Graph Execution Took %.2lf s", (tf-t0)/1e9);
 

@@ -146,6 +146,7 @@ __task_complete(
                 // MEMORY PREFETCHING //
                 ////////////////////////
 
+                # if 0
                 // if the succ access is not being fetched, or got fetched already
                 if (succ_access->state == ACCESS_STATE_INIT)
                 {
@@ -164,6 +165,7 @@ __task_complete(
                         }
                     }
                 }
+                # endif
 
                 //////////////////////////////////
                 // RELEASE TASK DEPENPENDENCIES //

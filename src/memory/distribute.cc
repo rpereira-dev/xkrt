@@ -75,7 +75,7 @@ xkrt_distribute1D_submit(
     # undef AC
 
     #ifndef NDEBUG
-    snprintf(task->label, sizeof(task->label), "distribute_cyclic_1d_async");
+    snprintf(task->label, sizeof(task->label), "distribute1d_async");
     #endif /* NDEBUG */
 
     runtime->task_commit(task);
@@ -125,7 +125,7 @@ xkrt_distribute2D_submit(
     # undef AC
 
     #ifndef NDEBUG
-    snprintf(task->label, sizeof(task->label), "distribute_cyclic_2d_async");
+    snprintf(task->label, sizeof(task->label), "distribute2D_async");
     #endif /* NDEBUG */
 
     runtime->task_commit(task);

@@ -116,10 +116,14 @@ diffusion_cuda_kernel(TYPE * src, int ld_src, TYPE * dst, int ld_dst, int tile_x
     // boundary conditions fixed
     if (i > 0 && i < NX - 1 && j > 0 && j < NY - 1)
     {
+        # if 1
         GRID(dst, li, lj, ld_dst) = GRID(src, li, lj, ld_src) + ALPHA * DT / (DX * DY) * (
                 (GRID(src, li+1,   lj, ld_src) - 2 * GRID(src, li, lj, ld_src) + GRID(src, li-1,   lj, ld_src)) / (DX * DX) +
                 (GRID(src,   li, lj+1, ld_src) - 2 * GRID(src, li, lj, ld_src) + GRID(src,   li, lj-1, ld_src)) / (DY * DY)
             );
+        # else
+        GRID(dst, li, lj, ld_dst) = (li * lj) % 100;
+        # endif
     }
 }
 
