@@ -105,7 +105,7 @@ typedef struct  xkrt_runtime_t
     ////////////////////
 
     /* Submit a copy instruction to a stream of the device */
-    void copy(
+    xkrt_stream_t * copy(
         const xkrt_device_global_id_t   device_global_id,
         const size_t                    size,
         const xkrt_device_global_id_t   dst_device_global_id,
@@ -116,7 +116,7 @@ typedef struct  xkrt_runtime_t
     );
 
     /* Submit a copy instruction to a stream of the device */
-    void copy(
+    xkrt_stream_t * copy(
         const xkrt_device_global_id_t   device_global_id,
         const memory_view_t           & host_view,
         const xkrt_device_global_id_t   dst_device_global_id,

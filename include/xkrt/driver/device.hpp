@@ -313,7 +313,8 @@ typedef struct  xkrt_device_t
 
     /* copy */
     template <typename HOST_VIEW_T, typename DEVICE_VIEW_T>
-    void offloader_stream_instruction_submit_copy(
+    xkrt_stream_t *
+    offloader_stream_instruction_submit_copy(
         const HOST_VIEW_T             & host_view,
         const xkrt_device_global_id_t   dst_device_global_id,
         const DEVICE_VIEW_T           & dst_device_view,
@@ -424,6 +425,8 @@ typedef struct  xkrt_device_t
 
         # undef IS_1D
         # undef IS_2D
+
+        return stream;
     }
 
     //////////////////////

@@ -179,8 +179,8 @@ typedef struct  xkrt_thread_t
         xkrt_device_global_id_t device_global_id;
 
         /* the thread deque */
-        // xkrt_deque_t<task_t *, 4096> deque;
-        NaiveQueue<task_t *> deque;
+        xkrt_deque_t<task_t *, 4096> deque;
+        // NaiveQueue<task_t *> deque;
 
         /* tasks stack */
         uint8_t * memory_stack_bottom;
