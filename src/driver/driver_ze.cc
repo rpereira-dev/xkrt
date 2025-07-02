@@ -560,6 +560,10 @@ XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
         case (XKRT_STREAM_TYPE_D2D):
             return 4;
 
+        case (XKRT_STREAM_TYPE_FD_READ):
+        case (XKRT_STREAM_TYPE_FD_WRITE):
+            return 0;
+
         default:
             return 1;
     }
@@ -598,7 +602,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
                 if (res == ZE_RESULT_NOT_READY)
                     r = EINPROGRESS;
                 else if (res == ZE_RESULT_SUCCESS)
-                    istream->complete_instruction(idx);
+                    istream->complete_instruction(p);
                 else
                     ZE_SAFE_CALL(res);
 
@@ -615,7 +619,6 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     return r;
 }
 
-# if 1
 template<typename T>
 static inline bool
 f_equals(
@@ -660,7 +663,6 @@ device_command_queue_group_next(
 
     return ordinal_with_least_queues;
 }
-# endif
 
 static xkrt_stream_t *
 XKRT_DRIVER_ENTRYPOINT(stream_create)(

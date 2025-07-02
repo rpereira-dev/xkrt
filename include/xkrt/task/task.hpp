@@ -605,7 +605,8 @@ __task_fetching(
     task_dep_info_t * dep = TASK_DEP_INFO(task);
     if (dep->wc.fetch_add(n, std::memory_order_seq_cst) == 0)
     {
-        assert(task->state.value == TASK_STATE_READY);
+        assert(task->state.value == TASK_STATE_READY ||
+                task->state.value == TASK_STATE_ALLOCATED);
         task->state.value = TASK_STATE_DATA_FETCHING;
         LOGGER_DEBUG_TASK_STATE(task);
     }
