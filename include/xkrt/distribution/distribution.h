@@ -104,7 +104,8 @@ xkrt_distribution1D_init(
     xkrt_distribution_t * d,
     xkrt_distribution_type_t type,
     size_t count,
-    size_t size, size_t bs
+    size_t size,
+    size_t bs
 );
 
 extern "C"

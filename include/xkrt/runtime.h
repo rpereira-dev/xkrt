@@ -134,7 +134,7 @@ typedef struct  xkrt_runtime_t
     void coherent_async(void * ptr, size_t size);
     void coherent_async(matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
-    /* distribute memory across all devices */
+    /* distribute memory segment across all devices */
     void distribute_async(
         xkrt_distribution_type_t type,
         void * ptr, size_t size,
@@ -142,6 +142,14 @@ typedef struct  xkrt_runtime_t
         size_t h
     );
 
+    /* distribute array of segment across all devices */
+    void distribute_async(
+        xkrt_distribution_type_t type,
+        void ** ptr, size_t chunk_size,
+        unsigned int n
+    );
+
+    /* distribute matrix across all devices */
     void distribute_async(
         xkrt_distribution_type_t type,
         matrix_storage_t storage,
