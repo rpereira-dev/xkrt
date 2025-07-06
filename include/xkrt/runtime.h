@@ -134,6 +134,31 @@ typedef struct  xkrt_runtime_t
     void coherent_async(void * ptr, size_t size);
     void coherent_async(matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
+    //////////////////
+    // DISTRIBUTION //
+    //////////////////
+
+    /* create a new distribution */
+    void distribution_init(
+        xkrt_distribution_t * distribution,
+        const xkrt_device_global_id_bitfield_t devices,
+        const xkrt_distribution_type_t type,
+        const matrix_order_t order,
+        const size_t ld,
+        const size_t m,  const size_t n,
+        const size_t mb, const size_t nb,
+        const size_t hx, const size_t hy
+    );
+
+    /* iterate on a distribution */
+    inline void
+    distribution_foreach(
+        const xkrt_distribution_t * distribution,
+        const std::function<void(const xkrt_device_global_id_t, const matrix_tile_t tile)> f
+    ) {
+        LOGGER_FATAL("TODO");
+    }
+
     /* distribute memory segment across all devices */
     void distribute_async(
         xkrt_distribution_type_t type,

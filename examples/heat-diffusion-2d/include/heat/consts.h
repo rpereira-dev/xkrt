@@ -69,10 +69,16 @@
 //      );
 
 /* Number of points per dimension in the grid */
-#  define NX (128)
+#  define NX (32)
 //#  define NX (32768+8192)
 //#  define NX (4096)
 #  define NY NX
+
+/* halo, only (1x1) supported yet */
+#  define HX 1
+#  define HY 1
+static_assert(HX == 1);
+static_assert(HY == 1);
 
 /* Size of a cell (m) */
 #  define DX (1.0f)

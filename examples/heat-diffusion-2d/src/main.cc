@@ -518,6 +518,9 @@ update(TYPE * src, TYPE * dst, int step)
     # else
     update_cpu(src, dst);
     # endif
+
+    if (step % (N_STEP / 10 + 1) == 0)
+        LOGGER_WARN("(graph creation) Progress: %.2lf%%", step / (double)N_STEP*100);
 }
 
 //////////
@@ -544,11 +547,11 @@ main(void)
     // Allocate memory for the temperature grids on the CPU
     const size_t s = sizeof(TYPE);
     # if 1
-    const uintptr_t alignon = NX * s;
+    const uintptr_t alignon = LD * s;
     const size_t size = 2 * (NX * NY * s + alignon);
     const uintptr_t mem = (uintptr_t) runtime.memory_host_allocate(0, size);
-    TYPE * grid1 = (TYPE *) (mem + (alignon - (mem % alignon)) + 0 * s * (NX * NY));
-    TYPE * grid2 = (TYPE *) (mem + (alignon - (mem % alignon)) + 1 * s * (NX * NY));
+    TYPE * grid1 = (TYPE *) (mem + (alignon - (mem % alignon)) + 0 * s * NX * NY);
+    TYPE * grid2 = (TYPE *) (mem + (alignon - (mem % alignon)) + 1 * s * NX * NY);
     assert((uintptr_t)grid1 % alignon == 0);
     assert((uintptr_t)grid1 + NX * NY * s < mem + size);
     assert((uintptr_t)grid2 % alignon == 0);
@@ -561,12 +564,38 @@ main(void)
     // Set initial conditions
     initialize(grid1, grid2);
 
+    // Setup grid distribution
+    xkrt_distribution_t distribution;
+    runtime.distribution_init(
+        &distribution, XKRT_DEVICES_MASK_ALL,
+        XKRT_DISTRIBUTION_TYPE_CYCLIC2D,
+        MATRIX_COLMAJOR, LD,
+        NX, NY,
+        TSX, TSY,
+        HX, HY
+    );
+
+    // preallocate device memory
+    runtime.distribution_foreach(
+        &distribution,
+        [&] (const xkrt_device_global_id_t device_global_id, const xkrt_distribution_tile_t tile) {
+            // preallocate grid1 and grid2
+            TYPE * grids[2] = {grid1, grid2};
+            for (int i = 0 ; i < 2 ; ++i)
+            {
+                runtime.incoherent_allocate(
+                    device_global_id,
+                    MATRIX_COLMAJOR,
+                    grids[i] + tile.offset,
+                    tile.ld,
+                    tile.m, tile.n
+                );
+            }
+        }
+    );
+
     // run simulation
     uint64_t t0 = xkrt_get_nanotime();
-
-    // Distribute memory
-    runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid1, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
-    runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid2, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
 
     // Time stepping
     for (int step = 0; step < N_STEP; ++step)
@@ -577,8 +606,6 @@ main(void)
 
         // Update
         update(src, dst, step);
-        if (step % (N_STEP / 10 + 1) == 0)
-            LOGGER_WARN("(graph creation) Progress: %.2lf%%", step / (double)N_STEP*100);
 
         // Export every other frames
         maybe_export(step, dst);
