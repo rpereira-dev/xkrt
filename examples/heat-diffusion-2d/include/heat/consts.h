@@ -49,7 +49,7 @@
 #  define N_STEP 1000
 
 /* Number of vtk images to generate */
-#  define N_VTK MIN(10, N_STEP)
+#  define N_VTK MIN(0, N_STEP)
 
 /* Thermal diffusivity */
 #  define ALPHA (1.11e-4f)
@@ -69,8 +69,8 @@
 //      );
 
 /* Number of points per dimension in the grid */
-#  define NX (128)
-//#  define NX (32768+8192)
+//#  define NX (32)
+#  define NX (32768)
 //#  define NX (4096)
 #  define NY NX
 

@@ -243,7 +243,7 @@ xkrt_device_task_execute(
     {
         __task_executed(runtime, task);
     }
-    else if (device)
+    else
     {
         /* retrieve task format */
         format = task_format_get(&(runtime->formats.list), task->fmtid);
@@ -269,58 +269,50 @@ xkrt_device_task_execute(
                 LOGGER_FATAL("Invalid device driver type");
         }
 
-        if (format->f[targetfmt] == NULL)
-            targetfmt = TASK_FORMAT_TARGET_HOST;
-
-        if (format->f[targetfmt] == NULL)
-            LOGGER_FATAL("task got scheduled but its format has no valid function");
-
-        /* running a host task */
-        if (targetfmt == TASK_FORMAT_TARGET_HOST)
+        /* if there is a body to execute */
+        if (format && format->f[targetfmt])
         {
-            goto run_host_task;
+            /* if its a device task */
+            if (device)
+            {
+                /* the task will complete in the callback called asynchronously on kernel completion */
+                xkrt_callback_t callback;
+                callback.func    = xkrt_device_task_executed_callback;
+                callback.args[0] = runtime;
+                callback.args[1] = task;
+                assert(XKRT_CALLBACK_ARGS_MAX >= 2);
+
+                /* submit kernel launch instruction */
+                device->offloader_stream_instruction_submit_kernel(
+                    (void (*)(void *, void *, xkrt_stream_instruction_counter_t)) format->f[targetfmt],
+                    task,
+                    callback
+                );
+            }
+            /* else if its a host task */
+            else
+            {
+                assert(format->f[TASK_FORMAT_TARGET_HOST]);
+                task_t * current = thread->current_task;
+                thread->current_task = task;
+                ((void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST])(task);
+                thread->current_task = current;
+
+                /* if the task yielded, requeue it */
+                if (task->flags & TASK_FLAG_REQUEUE)
+                {
+                    task->flags = task->flags & ~(TASK_FLAG_REQUEUE);
+                    runtime->task_thread_enqueue(thread, task);
+                }
+                /* else, it executed entirely */
+                else
+                    __task_executed(runtime, task);
+            }
         }
-        /* running a device task */
         else
         {
-            /* the task will complete in the callback called asynchronously on kernel completion */
-            xkrt_callback_t callback;
-            callback.func    = xkrt_device_task_executed_callback;
-            callback.args[0] = runtime;
-            callback.args[1] = task;
-            assert(XKRT_CALLBACK_ARGS_MAX >= 2);
-
-            /* submit kernel launch instruction */
-            device->offloader_stream_instruction_submit_kernel(
-                (void (*)(void *, void *, xkrt_stream_instruction_counter_t)) format->f[targetfmt],
-                task,
-                callback
-            );
+            LOGGER_DEBUG("Invalid task format for `%s`", task->label);
         }
-    }
-    else
-    {
-        /* retrieve task format */
-        format = task_format_get(&(runtime->formats.list), task->fmtid);
-        if (format)
-        {
-run_host_task:
-            assert(format->f[TASK_FORMAT_TARGET_HOST]);
-            task_t * current = thread->current_task;
-            thread->current_task = task;
-            ((void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST])(task);
-            thread->current_task = current;
-        }
-
-        /* if the task yielded, requeue it */
-        if (task->flags & TASK_FLAG_REQUEUE)
-        {
-            task->flags = task->flags & ~(TASK_FLAG_REQUEUE);
-            runtime->task_thread_enqueue(thread, task);
-        }
-        /* else, it executed entirely */
-        else
-            __task_executed(runtime, task);
     }
 }
 

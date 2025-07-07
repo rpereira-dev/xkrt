@@ -45,6 +45,11 @@ find_package(XKRT REQUIRED)
 include_directories("${XKRT_INCLUDE_DIRS}")
 target_link_libraries(${HEAT_NAME} PRIVATE ${XKRT_LIBRARIES})
 
+# Check that at least one option is ON
+if(NOT (USE_CUDA OR USE_SYCL OR USE_ZE))
+    message(FATAL_ERROR "At least one of USE_CUDA, USE_SYCL, or USE_ZE must be enabled.")
+endif()
+
 # Cuda kernels
 if (USE_CUDA)
 

@@ -117,7 +117,7 @@ maybe_export(int step, TYPE * grid)
 {
     if (N_VTK)
     {
-        if (step % (N_STEP / N_VTK) == 0)
+        if ((step + 1) % (N_STEP / N_VTK) == 0)
         {
             int frame = step / (N_STEP / N_VTK);
 
@@ -145,7 +145,7 @@ maybe_export(int step, TYPE * grid)
 
             static_assert(AC <= TASK_MAX_ACCESSES);
             access_t * accesses = TASK_ACCESSES(task, flags);
-            new(accesses + 0) access_t(task, MATRIX_COLMAJOR, grid, LD, 1, 1, NX-2, NY-2, sizeof(TYPE), ACCESS_MODE_R);
+            new(accesses + 0) access_t(task, MATRIX_COLMAJOR, grid, LD, 0, 0, NX, NY, sizeof(TYPE), ACCESS_MODE_R);
             thread->resolve<AC>(task, accesses);
             # undef AC
 
@@ -154,8 +154,8 @@ maybe_export(int step, TYPE * grid)
             # else
 
             runtime.coherent_async(MATRIX_COLMAJOR, grid, LD, NX, NY, sizeof(TYPE));
-            runtime.task_wait();
-            export_to_vtk(frame, grid);
+            // runtime.task_wait();
+            // export_to_vtk(frame, grid);
 
             # endif
         }
@@ -446,7 +446,7 @@ initialize(TYPE * grid1, TYPE * grid2)
 
 /* Submit a tile */
 static void
-update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
+update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step, unsigned int ngpus)
 {
     xkrt_thread_t * thread = xkrt_thread_t::get_tls();
     assert(thread);
@@ -507,14 +507,14 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
 
 /* Simulate 1 time step */
 static void
-update(TYPE * src, TYPE * dst, int step)
+update(TYPE * src, TYPE * dst, int step, unsigned int ngpus)
 {
     # if 1
     const int ntx = NUM_OF_TILES(NX, TSX);
     const int nty = NUM_OF_TILES(NY, TSY);
     for (int tile_x = 0; tile_x < ntx; ++tile_x)
         for (int tile_y = 0; tile_y < nty; ++tile_y)
-            update_tile(src, dst, tile_x, tile_y, step);
+            update_tile(src, dst, tile_x, tile_y, step, ngpus);
     # else
     update_cpu(src, dst);
     # endif
@@ -561,12 +561,14 @@ main(void)
     // Set initial conditions
     initialize(grid1, grid2);
 
-    // run simulation
-    uint64_t t0 = xkrt_get_nanotime();
-
     // Distribute memory
     runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid1, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
     runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid2, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
+
+    runtime.task_wait();
+
+    // run simulation
+    uint64_t t0 = xkrt_get_nanotime();
 
     // Time stepping
     for (int step = 0; step < N_STEP; ++step)
@@ -576,7 +578,7 @@ main(void)
         TYPE * dst = (step % 2 == 0) ? grid2 : grid1;
 
         // Update
-        update(src, dst, step);
+        update(src, dst, step, ngpus);
         if (step % (N_STEP / 10 + 1) == 0)
             LOGGER_WARN("(graph creation) Progress: %.2lf%%", step / (double)N_STEP*100);
 
