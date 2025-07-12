@@ -196,7 +196,7 @@ team_create_get_place(
 
                     // get linux cpuset
                     int logical_index = tid;
-                    hwloc_obj_t pu = hwloc_get_obj_by_type(runtime->topology, HWLOC_OBJ_PU, logical_index);
+                    hwloc_obj_t pu = hwloc_get_obj_by_type(runtime->topology, HWLOC_OBJ_CORE, logical_index);
                     int os_cpu = pu->os_index;
                     CPU_ZERO(place);
                     CPU_SET(os_cpu, place);
@@ -251,6 +251,8 @@ team_create_recursive(void * vargs)
             // args are allocated on the stack, no need to free
             // but we have to reset previous TLS
             xkrt_thread_t::pop_tls();
+
+            // reset cpu set
         }
         else
         {
@@ -351,7 +353,7 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
     }
     else
     {
-        team->priv.barrier.n.store(team->priv.nthreads, std::memory_order_seq_cst);
+        team->priv.barrier.n.store(team->priv.nthreads + 0, std::memory_order_seq_cst);
     }
 
     // fork threads
@@ -379,12 +381,17 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
                 .to = team->priv.nthreads - 1
             };
 
+            # pragma message(TODO "What is the expected behavior of openmp parallel regions ? should the master thread reset its affinity after each parallel region ? Currently, xkaapi does not")
+
+            // move thread before running
+            xkrt_runtime_t::thread_setaffinity(place);
+
             // recursively spawn other threads and run the routine
             team_create_recursive(&args);
         }
     }
 
-    // if master thread is not member of the team, the barrier may not be released
+    // if master thread is not member of the team, the barrier may now be released
     if (!team->desc.master_is_member)
         team_barrier_fetch(team, 1);
 }
@@ -557,6 +564,32 @@ xkrt_runtime_t::team_barrier(
 template void xkrt_runtime_t::team_barrier<true>(xkrt_team_t * team, xkrt_thread_t * thread);
 template void xkrt_runtime_t::team_barrier<false>(xkrt_team_t * team, xkrt_thread_t * thread);
 
+static inline void
+xkrt_team_parallel_for_run_f(
+    xkrt_team_t * team,
+    xkrt_thread_t * thread,
+    xkrt_team_parallel_for_func_t f
+) {
+    ++thread->parallel_for.index;
+    f(team, thread);
+
+    // last thread to complete wakes up the master
+    if (team->priv.parallel_for.pending.fetch_sub(1, std::memory_order_seq_cst) - 1 == 0)
+    {
+        // wakeup the master thread
+        team->priv.parallel_for.completed = 1;
+        syscall(
+                SYS_futex,
+                &team->priv.parallel_for.completed, // uint32_t *uaddr
+                FUTEX_WAKE,                         // int futex_op
+                INT_MAX,                            // uint32_t val
+                NULL,                               // const struct timespec *timeout | uint32_t val2
+                NULL,                               // uint32_t *uaddr2
+                NULL                                // uint32_t val3
+        );
+    }
+}
+
 void
 xkrt_runtime_t::team_parallel_for(
     xkrt_team_t * team,
@@ -590,12 +623,35 @@ xkrt_runtime_t::team_parallel_for(
 
     if (f)
     {
-        // busy waiting a bit before sleeping
-        for (int i = 0 ; i < 16 ; ++i)
-            if ((volatile uint32_t) team->priv.parallel_for.completed == 1)
-                return ;
+        // if master is member, run the routine
+        if (team->desc.master_is_member)
+        {
+            // retrieve team's tls of the master
+            constexpr int tid = 0;
+            xkrt_thread_t * tls = team->priv.threads + tid;
+            assert(tls);
 
-        // wait until they executed
+            // set the TLS
+            xkrt_thread_t::push_tls(tls);
+
+            // run
+            xkrt_team_parallel_for_run_f(team, tls, f);
+
+            // pop the TLS
+            xkrt_thread_t::pop_tls();
+        }
+        // else busy wait a bit before sleeping
+        else
+        {
+            for (int i = 0 ; i < 16 ; ++i)
+            {
+                if ((volatile uint32_t) team->priv.parallel_for.completed == 1)
+                    return ;
+                mem_pause();
+            }
+        }
+
+        // wait until all executed
         while ((volatile uint32_t) team->priv.parallel_for.completed == 0)
         {
             syscall(
@@ -616,6 +672,9 @@ xkrt_team_parallel_for_main(
     xkrt_team_t * team,
     xkrt_thread_t * thread
 ) {
+    if (team->desc.master_is_member && thread->tid == 0)
+        return NULL;
+
     while (1)
     {
         // keep executing functions until all got executed
@@ -625,30 +684,16 @@ parallel_for_run:
             xkrt_team_parallel_for_func_t f = team->priv.parallel_for.f[thread->parallel_for.index % XKRT_TEAM_PARALLEL_FOR_MAX_FUNC];
             if (f == nullptr)
                 return NULL;
-            ++thread->parallel_for.index;
-            f(team, thread);
-
-            // last thread to complete wakes up the master
-            if (team->priv.parallel_for.pending.fetch_sub(1, std::memory_order_seq_cst) - 1 == 0)
-            {
-                // wakeup the master thread
-                team->priv.parallel_for.completed = 1;
-                syscall(
-                    SYS_futex,
-                    &team->priv.parallel_for.completed, // uint32_t *uaddr
-                    FUTEX_WAKE,                         // int futex_op
-                    INT_MAX,                            // uint32_t val
-                    NULL,                               // const struct timespec *timeout | uint32_t val2
-                    NULL,                               // uint32_t *uaddr2
-                    NULL                                // uint32_t val3
-                );
-            }
+            xkrt_team_parallel_for_run_f(team, thread, f);
         }
 
-        // some polling before sleeping for real
+        // some polling before sleeping
         for (int i = 0 ; i < 16 ; ++i)
+        {
             if (thread->parallel_for.index < (volatile uint32_t) team->priv.parallel_for.index)
                 goto parallel_for_run;
+            mem_pause();
+        }
 
         // keep sleeping until there is functions to execute, or until the master is joining
         while (thread->parallel_for.index >= (volatile uint32_t) team->priv.parallel_for.index)
