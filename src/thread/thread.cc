@@ -38,6 +38,7 @@
 
 # include <xkrt/thread/thread.h>
 # include <xkrt/runtime.h>
+# include <xkrt/logger/logger-hwloc.h>
 
 # include <cassert>
 # include <cstring>
@@ -189,17 +190,33 @@ team_create_get_place(
                     return ;
                 }
 
+                case (XKRT_TEAM_BINDING_PLACES_HYPERTHREAD):
                 case (XKRT_TEAM_BINDING_PLACES_CORE):
+                case (XKRT_TEAM_BINDING_PLACES_L1):
+                case (XKRT_TEAM_BINDING_PLACES_L2):
+                case (XKRT_TEAM_BINDING_PLACES_L3):
+                case (XKRT_TEAM_BINDING_PLACES_NUMA):
+                case (XKRT_TEAM_BINDING_PLACES_SOCKET):
+                case (XKRT_TEAM_BINDING_PLACES_MACHINE):
                 {
+                    hwloc_obj_type_t type =
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_HYPERTHREAD) ? HWLOC_OBJ_PU          :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_CORE)        ? HWLOC_OBJ_CORE        :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L1)          ? HWLOC_OBJ_L1CACHE     :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L2)          ? HWLOC_OBJ_L2CACHE     :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L3)          ? HWLOC_OBJ_L3CACHE     :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_NUMA)        ? HWLOC_OBJ_NUMANODE    :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_MACHINE)     ? HWLOC_OBJ_MACHINE     :
+                        HWLOC_OBJ_CORE;
+                    ;
+
                     // this is a host thread
                     *device_global_id = HOST_DEVICE_GLOBAL_ID;
 
                     // get linux cpuset
                     int logical_index = tid;
-                    hwloc_obj_t pu = hwloc_get_obj_by_type(runtime->topology, HWLOC_OBJ_CORE, logical_index);
-                    int os_cpu = pu->os_index;
-                    CPU_ZERO(place);
-                    CPU_SET(os_cpu, place);
+                    hwloc_obj_t obj = hwloc_get_obj_by_type(runtime->topology, type, logical_index);
+                    HWLOC_SAFE_CALL(hwloc_cpuset_to_glibc_sched_affinity(runtime->topology, obj->cpuset, place, sizeof(cpu_set_t)));
 
                     return ;
                 }
@@ -323,7 +340,7 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
     assert(
         (team->desc.binding.mode == XKRT_TEAM_BINDING_MODE_COMPACT && team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_DEVICE   && team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_NONE)                                                                    ||
         (team->desc.binding.mode == XKRT_TEAM_BINDING_MODE_COMPACT && team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_DEVICE   && team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_EXCLUDE_HOST)                                                            ||
-        (team->desc.binding.mode == XKRT_TEAM_BINDING_MODE_COMPACT && team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_CORE     && team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_NONE)                                                                    ||
+        (team->desc.binding.mode == XKRT_TEAM_BINDING_MODE_COMPACT && team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_NONE)                                                                    ||
         (team->desc.binding.mode == XKRT_TEAM_BINDING_MODE_COMPACT && team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_EXPLICIT && team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_NONE && team->desc.binding.places_list && team->desc.binding.nplaces)
     );
 
