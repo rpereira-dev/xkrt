@@ -63,7 +63,7 @@ body_memory_async(task_t * task)
 {
     assert(task);
 
-    constexpr int AC = (T == TOUCH) ? 1 : 2;
+    constexpr task_access_counter_t AC = (T == TOUCH) ? 1 : 2;
     constexpr size_t task_size = task_compute_size(flags, AC);
 
     memory_op_async_args_t * args = (memory_op_async_args_t *) TASK_ARGS(task, task_size);
@@ -97,7 +97,7 @@ memory_op_async(
 ) {
     assert(n > 0);
 
-    constexpr int AC = (T == TOUCH) ? 1 : 2;
+    constexpr task_access_counter_t AC = (T == TOUCH) ? 1 : 2;
     constexpr size_t task_size = task_compute_size(flags, AC);
 
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();

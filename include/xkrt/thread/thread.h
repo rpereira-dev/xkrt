@@ -324,9 +324,15 @@ typedef struct  xkrt_thread_t
     public:
 
         /** Find conflicts and insert accesses in the dependency tree */
-        template <int AC>
+        template <task_access_counter_t AC>
         inline void
         resolve(task_t * task, access_t * accesses)
+        {
+            return this->resolve(task, accesses, AC);
+        }
+
+        inline void
+        resolve(task_t * task, access_t * accesses, task_access_counter_t AC)
         {
             (void) task;
             assert(task->flags & TASK_FLAG_DEPENDENT);

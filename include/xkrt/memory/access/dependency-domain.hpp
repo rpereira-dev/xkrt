@@ -57,7 +57,7 @@ class DependencyDomain
 
     public:
 
-        template<int AC>
+        template<task_access_counter_t AC>
         inline void
         link(access_t * accesses)
         {
@@ -65,7 +65,7 @@ class DependencyDomain
                 this->link(accesses + i);
         }
 
-        template<int AC>
+        template<task_access_counter_t AC>
         inline void
         put(access_t * accesses)
         {
@@ -73,7 +73,7 @@ class DependencyDomain
                 this->put(accesses + i);
         }
 
-        template<int AC>
+        template<task_access_counter_t AC>
         inline void
         resolve(access_t * accesses)
         {

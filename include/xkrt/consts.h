@@ -39,6 +39,7 @@
 # define __CONSTS_H__
 
 #  include <stdint.h>
+#  include <atomic>
 
 /* maximum number of devices in total */
 # define XKRT_DEVICES_MAX (16)
@@ -69,5 +70,13 @@ static_assert(XKRT_DEVICES_MAX <= sizeof(xkrt_device_global_id_bitfield_t)*8);
 
 /* maximum number of memory per thread */
 # define THREAD_MAX_MEMORY ((size_t)2*1024*1024*1024)
+
+typedef uint8_t task_wait_counter_type_t;
+typedef std::atomic<task_wait_counter_type_t> task_wait_counter_t;
+
+typedef uint8_t task_access_counter_t;
+# define UNSPECIFIED_TASK_ACCESS ((task_access_counter_t)-1)
+# define TASK_MAX_ACCESSES (5)
+static_assert(TASK_MAX_ACCESSES < (1 << 8*sizeof(task_access_counter_t)));
 
 #endif /* __CONSTS_H__ */

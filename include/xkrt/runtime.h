@@ -258,7 +258,8 @@ typedef struct  xkrt_runtime_t
     // TASKING //
     /////////////
 
-    /* Commit a task - so it may be schedule from now once its dependences completed */
+    /* Commit a task - so it may be schedule from now once its dependences
+     * completed. The task will be pushed to a device team */
     void task_commit(task_t * task);
 
     /* Notify once a detachable task */

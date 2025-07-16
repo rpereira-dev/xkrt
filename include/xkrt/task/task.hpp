@@ -162,14 +162,6 @@ typedef struct  task_t
 
 }               task_t;
 
-typedef uint8_t task_wait_counter_type_t;
-typedef std::atomic<task_wait_counter_type_t> task_wait_counter_t;
-
-typedef uint8_t task_access_counter_t;
-# define UNSPECIFIED_TASK_ACCESS ((task_access_counter_t)-1)
-# define TASK_MAX_ACCESSES (5)
-static_assert(TASK_MAX_ACCESSES < (1 << 8*sizeof(task_access_counter_t)));
-
 /* task dependencies infos */
 typedef struct  task_dep_info_t
 {

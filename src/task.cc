@@ -417,23 +417,19 @@ xkrt_runtime_t::task_dup(
 /////////////////////
 
 static inline void
-__device_push_task(xkrt_runtime_t * runtime, task_t * task, xkrt_device_t * device)
-{
-    uint8_t tid = device->thread_next.fetch_add(1, std::memory_order_relaxed) % device->nthreads;
-    xkrt_thread_t * thread = device->threads[tid];
-    runtime->task_thread_enqueue(thread, task);
-}
-
-static inline void
 xkrt_runtime_submit_task_host(xkrt_runtime_t * runtime, task_t * task)
 {
-    xkrt_driver_t * driver = runtime->drivers.list[XKRT_DRIVER_TYPE_HOST];
-    assert(driver->ndevices_commited == 1);
+    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    assert(tls);
 
-    xkrt_device_t * device = driver->devices[0];
-    assert(device);
-
-    __device_push_task(runtime, task, device);
+    xkrt_team_t * team = tls->team;
+    if (team == NULL)
+    {
+        xkrt_driver_t * driver = runtime->drivers.list[XKRT_DRIVER_TYPE_HOST];
+        assert(driver->ndevices_commited == 1);
+        team = &driver->team;
+    }
+    runtime->task_team_enqueue(team, task);
 }
 
 void
@@ -501,7 +497,9 @@ xkrt_runtime_submit_task_device(xkrt_runtime_t * runtime, task_t * task)
     LOGGER_DEBUG("Enqueuing task `%s` to device %d", task->label, device_id);
 
     /* push a task to a thread of the device */
-    __device_push_task(runtime, task, device);
+    uint8_t tid = device->thread_next.fetch_add(1, std::memory_order_relaxed) % device->nthreads;
+    xkrt_thread_t * thread = device->threads[tid];
+    runtime->task_thread_enqueue(thread, task);
 }
 
 void

@@ -50,6 +50,14 @@ typedef enum    access_mode_t : int
                                         // the access itself
 }               access_mode_t;
 
+inline access_mode_t &
+operator|=(access_mode_t & lhs, access_mode_t rhs) {
+    lhs = static_cast<access_mode_t>(
+        static_cast<int>(lhs) | static_cast<int>(rhs)
+    );
+    return lhs;
+}
+
 typedef enum    access_concurrency_t
 {
     ACCESS_CONCURRENCY_SEQUENTIAL  = 0b00000001,
