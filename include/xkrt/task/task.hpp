@@ -197,10 +197,10 @@ typedef struct  task_dev_info_t
 
     /* execute on the device that owns a copy of the access at accesses[ocr_access_index]
      * If 'UNSPECIFIED_TASK_ACCESS', leave the decision to the scheduler */
-    uint8_t ocr_access_index;
+    task_access_counter_t ocr_access_index;
 
     /* constructor */
-    task_dev_info_t(xkrt_device_global_id_t target, uint8_t ocr)
+    task_dev_info_t(xkrt_device_global_id_t target, task_access_counter_t ocr)
         : targeted_device_id(target), ocr_access_index(ocr) {}
 
 }               task_dev_info_t;

@@ -429,10 +429,6 @@ class access_t
         {
             /* clear preallocated empty successors */
             successors.clear();
-
-            /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
-            assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL ||
-                    concurrency == ACCESS_CONCURRENCY_COMMUTATIVE);
         }
 
         //////////////////////////////////////////////////////////////////////
