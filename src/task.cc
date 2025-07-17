@@ -422,14 +422,16 @@ xkrt_runtime_submit_task_host(xkrt_runtime_t * runtime, task_t * task)
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
     assert(tls);
 
-    xkrt_team_t * team = tls->team;
-    if (team == NULL)
+    if (tls->team == NULL)
     {
         xkrt_driver_t * driver = runtime->drivers.list[XKRT_DRIVER_TYPE_HOST];
         assert(driver->ndevices_commited == 1);
-        team = &driver->team;
+        runtime->task_team_enqueue(&driver->team, task);
     }
-    runtime->task_team_enqueue(team, task);
+    else
+    {
+        runtime->task_thread_enqueue(tls, task);
+    }
 }
 
 void
