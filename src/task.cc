@@ -272,27 +272,9 @@ xkrt_device_task_execute(
         /* if there is a body to execute */
         if (format && format->f[targetfmt])
         {
-            /* if its a device task */
-            if (device)
+            /* if its a host task */
+            if (targetfmt == TASK_FORMAT_TARGET_HOST)
             {
-                /* the task will complete in the callback called asynchronously on kernel completion */
-                xkrt_callback_t callback;
-                callback.func    = xkrt_device_task_executed_callback;
-                callback.args[0] = runtime;
-                callback.args[1] = task;
-                assert(XKRT_CALLBACK_ARGS_MAX >= 2);
-
-                /* submit kernel launch instruction */
-                device->offloader_stream_instruction_submit_kernel(
-                    (void (*)(void *, void *, xkrt_stream_instruction_counter_t)) format->f[targetfmt],
-                    task,
-                    callback
-                );
-            }
-            /* else if its a host task */
-            else
-            {
-                assert(format->f[TASK_FORMAT_TARGET_HOST]);
                 task_t * current = thread->current_task;
                 thread->current_task = task;
                 ((void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST])(task);
@@ -307,6 +289,23 @@ xkrt_device_task_execute(
                 /* else, it executed entirely */
                 else
                     __task_executed(runtime, task);
+            }
+            /* else, if its a device task */
+            else
+            {
+                /* the task will complete in the callback called asynchronously on kernel completion */
+                xkrt_callback_t callback;
+                callback.func    = xkrt_device_task_executed_callback;
+                callback.args[0] = runtime;
+                callback.args[1] = task;
+                assert(XKRT_CALLBACK_ARGS_MAX >= 2);
+
+                /* submit kernel launch instruction */
+                device->offloader_stream_instruction_submit_kernel(
+                    (void (*)(void *, void *, xkrt_stream_instruction_counter_t)) format->f[targetfmt],
+                    task,
+                    callback
+                );
             }
         }
         else
@@ -417,8 +416,10 @@ xkrt_runtime_t::task_dup(
 /////////////////////
 
 static inline void
-xkrt_runtime_submit_task_host(xkrt_runtime_t * runtime, task_t * task)
-{
+submit_task_host(
+    xkrt_runtime_t * runtime,
+    task_t * task
+) {
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
     assert(tls);
 
@@ -434,9 +435,11 @@ xkrt_runtime_submit_task_host(xkrt_runtime_t * runtime, task_t * task)
     }
 }
 
-void
-xkrt_runtime_submit_task_device(xkrt_runtime_t * runtime, task_t * task)
-{
+static inline void
+submit_task_device(
+    xkrt_runtime_t * runtime,
+    task_t * task
+) {
     // task must be a device task
     assert(task->flags & TASK_FLAG_DEVICE);
     task_dev_info_t * dev = TASK_DEV_INFO(task);
@@ -490,7 +493,7 @@ xkrt_runtime_submit_task_device(xkrt_runtime_t * runtime, task_t * task)
 
     // only coherent async are supported onto the host device yet
     if (device_id == HOST_DEVICE_GLOBAL_ID)
-        return xkrt_runtime_submit_task_host(runtime, task);
+        return submit_task_host(runtime, task);
 
     assert((device_id >= 0 && device_id < runtime->drivers.devices.n));
     device = runtime->drivers.devices.list[device_id];
@@ -509,7 +512,13 @@ xkrt_runtime_submit_task(xkrt_runtime_t * runtime, task_t * task)
 {
     assert(task->state.value == TASK_STATE_READY);
     if (task->flags & TASK_FLAG_DEVICE)
-        xkrt_runtime_submit_task_device(runtime, task);
+        submit_task_device(runtime, task);
     else
-        xkrt_runtime_submit_task_host(runtime, task);
+        submit_task_host(runtime, task);
+}
+
+void
+xkrt_runtime_t::task_enqueue(task_t * task)
+{
+    xkrt_runtime_submit_task(this, task);
 }

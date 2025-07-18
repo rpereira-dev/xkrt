@@ -505,6 +505,9 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                 .depth   = 1
             };
 
+            if (src_region.width != src_pitch || dst_region.width != dst_pitch)
+                LOGGER_FATAL("memcpy2D not working on intel max gpu series zzzzzzzzzz....");
+
             ZE_SAFE_CALL(
                 zeCommandListAppendMemoryCopyRegion(
                     stream->ze.command.list,

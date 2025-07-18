@@ -274,10 +274,20 @@ typedef struct  xkrt_runtime_t
     /* schedule a ready task, and return 1 if one task was found, 0 otherwise */
     int task_schedule(void);
 
+    /* enqueue a task to :
+     *  - the current thread if its within a team
+     *  - or the host driver team if the current thread has no team
+     */
+    void task_enqueue(task_t * task);
+    static inline void
+    task_enqueue(xkrt_runtime_t * runtime, task_t * task)
+    {
+        runtime->task_enqueue(task);
+    }
+
     /* enqueue a task to the given thread */
     void task_thread_enqueue(xkrt_thread_t * thread, task_t * task);
-    static inline void
-    task_thread_enqueue(xkrt_runtime_t * runtime, xkrt_thread_t * thread, task_t * task)
+    static inline void task_thread_enqueue(xkrt_runtime_t * runtime, xkrt_thread_t * thread, task_t * task)
     {
         runtime->task_thread_enqueue(thread, task);
     }
@@ -359,7 +369,7 @@ typedef struct  xkrt_runtime_t
 
         // commit the task
         xkrt_thread_t * tls = xkrt_thread_t::get_tls();
-        tls->commit(task, task_thread_enqueue, this, tls);
+        tls->commit(task, task_enqueue, this);
     }
 
     template <task_access_counter_t ac>

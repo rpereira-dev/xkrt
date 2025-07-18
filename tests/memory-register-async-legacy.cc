@@ -26,6 +26,7 @@ main(void)
     assert(xkrt_init(&runtime) == 0);
     ptr = malloc(size);
     xkrt_memory_register_async(&runtime, ptr, size);
+    runtime.task_wait();
     assert(xkrt_deinit(&runtime) == 0);
 
     return 0;

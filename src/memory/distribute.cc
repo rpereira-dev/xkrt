@@ -219,7 +219,6 @@ xkrt_distribute1D_array_async(
     xkrt_distribution_t d;
     xkrt_distribution1D_init(&d, type, ngpus, n * chunk_size, chunk_size);
 
-    constexpr size_t h = 0;
     for (size_t t = 0; t < d.t; ++t)
     {
         const uintptr_t x1 = (const uintptr_t) ptr[t];

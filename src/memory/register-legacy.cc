@@ -134,20 +134,12 @@ extern "C"
 size_t
 xkrt_memory_register_async(xkrt_runtime_t * runtime, void * ptr, size_t size)
 {
-    xkrt_driver_t * driver = runtime->driver_get(XKRT_DRIVER_TYPE_HOST);
-    assert(driver);
-
-    xkrt_team_t * team = &driver->team;
-
     // TODO : could be optimized using a custom format for register tasks
-    runtime->team_task_spawn(
-        team,
+    runtime->task_spawn(
         [runtime, ptr, size] (task_t * task) {
-            (void) task;
             xkrt_memory_register(runtime, ptr, size);
         }
     );
-
     return 0;
 }
 
@@ -155,14 +147,8 @@ extern "C"
 int
 xkrt_memory_unregister_async(xkrt_runtime_t * runtime, void * ptr, size_t size)
 {
-    xkrt_driver_t * driver = runtime->driver_get(XKRT_DRIVER_TYPE_HOST);
-    assert(driver);
-
-    xkrt_team_t * team = &driver->team;
-
     // TODO : could be optimized using a custom format for unregister tasks
-    runtime->team_task_spawn(
-        team,
+    runtime->task_spawn(
         [runtime, ptr, size] (task_t * task) {
             (void) task;
             xkrt_memory_unregister(runtime, ptr, size);

@@ -125,7 +125,7 @@ xkrt_runtime_stats_device_report(device_stats_t * stats)
     LOGGER_WARN("  Streams");
     for (int stype = 0 ; stype < XKRT_STREAM_TYPE_ALL ; ++stype)
     {
-        # if 1
+        # if 0
         xkrt_metric_byte(buffer, sizeof(buffer), stats->streams[stype].transfered.load());
         LOGGER_WARN("    `%4s` - with %2lu streams - transfered %s", xkrt_stream_type_to_str((xkrt_stream_type_t) stype), stats->streams[stype].n.load(), buffer);
         # else
