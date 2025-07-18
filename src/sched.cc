@@ -471,7 +471,13 @@ xkrt_runtime_t::task_thread_enqueue(
     task_t * task
 ) {
     thread->deque.push(task);
+
+    // TODO: this is quite ugly, but the thread may be sleeping in two places:
+    //  - within its condition
+    //  - within a team barrier (thus, the broadcast)
     thread->wakeup();
+    if (thread->team)
+        pthread_cond_broadcast(&thread->team->priv.barrier.cond);
 }
 
 void
