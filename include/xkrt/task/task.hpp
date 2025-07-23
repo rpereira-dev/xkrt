@@ -133,20 +133,20 @@ typedef struct  task_t
         /* parent task */
         task_t * parent;
 
-        /* children counter - number of threads with uncompleted tasks scheduled */
+        /* children counter - number of uncompleted children tasks */
         std::atomic<uint32_t> cc;
-
-        /* task format id */
-        task_format_id_t fmtid;
-
-        /* task flags */
-        task_flag_bitfield_t flags;
 
         /* task state */
         struct {
             spinlock_t      lock;
             task_state_t    value;
         } state;
+
+        /* task format id */
+        task_format_id_t fmtid;
+
+        /* task flags */
+        task_flag_bitfield_t flags;
 
         # ifndef NDEBUG
         char label[128];
@@ -352,6 +352,7 @@ task_get_extra_size(const task_flag_bitfield_t flags)
 
 
         // this is a constexpr, if we reach this default case, then the compiler will fail
+        // it means the user tried an invalid combination of capabilities flags
         default:
             return task_get_base_size_fallback(flags);
 
@@ -566,7 +567,8 @@ __task_ready(
     assert(!(task->flags & TASK_FLAG_DEPENDENT) || (TASK_DEP_INFO(task)->wc.load() == 0));
     task->state.value = TASK_STATE_READY;
     LOGGER_DEBUG_TASK_STATE(task);
-    F(std::forward<Args>(args)..., task);
+    if (F)
+        F(std::forward<Args>(args)..., task);
 }
 
 /* commit the task and call F(args) if it is now ready */

@@ -354,7 +354,7 @@ typedef struct  xkrt_thread_t
             assert(this->current_task);
             ++this->current_task->cc;
             task->parent = this->current_task;
-            __task_commit(task, F, args...);
+            return __task_commit(task, F, args...);
         }
 
         # ifndef NDEBUG

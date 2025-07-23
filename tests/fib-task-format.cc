@@ -3,7 +3,7 @@
 /*   fib-task-format.cc                                           .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/03/04 05:42:49 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/30 17:55:00 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/07/23 22:49:37 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -127,6 +127,8 @@ main_team(xkrt_team_t * team, xkrt_thread_t * thread)
 int
 main(int argc, char ** argv)
 {
+    LOGGER_INFO("Task size is %lu", task_compute_size(TASK_FLAG_ZERO, 0));
+    LOGGER_INFO("Task size is %lu", task_compute_size(TASK_FLAG_DEPENDENT | TASK_FLAG_MOLDABLE, 1));
     if (argc != 2)
     {
         LOGGER_WARN("usage: %s [n]", argv[0]);

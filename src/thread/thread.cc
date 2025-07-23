@@ -79,8 +79,10 @@ xkrt_thread_t::warmup(void)
 {
     // touches every pages to avoid minor page faults later during the execution
     size_t pagesize = (size_t) getpagesize();
-    for (uint8_t * ptr = this->memory_stack_ptr ; ptr < this->memory_stack_bottom + THREAD_MAX_MEMORY ; ptr += pagesize)
-        *ptr = 42;
+    for (uint8_t * ptr = this->memory_stack_ptr ;
+            ptr < this->memory_stack_bottom + THREAD_MAX_MEMORY ;
+            ptr += pagesize)
+        *ptr = 0;
 }
 
 task_t *

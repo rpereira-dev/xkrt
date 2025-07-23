@@ -477,7 +477,7 @@ xkrt_runtime_t::task_thread_enqueue(
     //  - within a team barrier (thus, the broadcast)
     thread->wakeup();
     if (thread->team)
-        pthread_cond_broadcast(&thread->team->priv.barrier.cond);
+        pthread_cond_signal(&thread->team->priv.barrier.cond);
 }
 
 void

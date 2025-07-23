@@ -372,16 +372,17 @@ xkrt_runtime_t::task_run(
     assert(task);
 
     assert(thread == xkrt_thread_t::get_tls());
-    assert(task->fmtid);
-
-    task_format_t * format = this->formats.list.list + task->fmtid;
-    assert(format->f[TASK_FORMAT_TARGET_HOST]);
-    task_t * current = thread->current_task;
-    thread->current_task = task;
-    void (*f)(task_t *) = (void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST];
-    f(task);
+    if (task->fmtid != TASK_FORMAT_NULL)
+    {
+        task_format_t * format = this->formats.list.list + task->fmtid;
+        assert(format->f[TASK_FORMAT_TARGET_HOST]);
+        task_t * current = thread->current_task;
+        thread->current_task = task;
+        void (*f)(task_t *) = (void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST];
+        f(task);
+        thread->current_task = current;
+    }
     __task_executed(this, task);
-    thread->current_task = current;
 }
 
 /** duplicate a moldable task */
@@ -508,8 +509,10 @@ submit_task_device(
 }
 
 void
-xkrt_runtime_submit_task(xkrt_runtime_t * runtime, task_t * task)
-{
+xkrt_runtime_submit_task(
+    xkrt_runtime_t * runtime,
+    task_t * task
+) {
     assert(task->state.value == TASK_STATE_READY);
     if (task->flags & TASK_FLAG_DEVICE)
         submit_task_device(runtime, task);
