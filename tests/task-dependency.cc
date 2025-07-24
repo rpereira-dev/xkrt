@@ -3,7 +3,7 @@
 /*   task-dependency.cc                                           .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2024/12/20 15:07:55 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/03 18:13:40 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/07/21 15:09:13 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -55,7 +55,7 @@ main(void)
     constexpr size_t task_size = task_compute_size(flags, AC);
 
     task_t * task = thread->allocate_task(task_size);
-    new(task) task_t(FORMAT, flags);
+    new (task) task_t(FORMAT, flags);
 
     task_dep_info_t * dep = TASK_DEP_INFO(task);
     new (dep) task_dep_info_t(AC);
@@ -77,7 +77,7 @@ main(void)
             for (int j = 0 ; j < m ; ++j)
                 mem[i*ld+j] = 42;
 
-        new(accesses + 0) access_t(task, MATRIX_COLMAJOR, mem, ld, 0, 0, m, n, sizeof(int), ACCESS_MODE_R);
+        new (accesses + 0) access_t(task, MATRIX_COLMAJOR, mem, ld, 0, 0, m, n, sizeof(int), ACCESS_MODE_R);
 
         thread->resolve<AC>(task, accesses);
 

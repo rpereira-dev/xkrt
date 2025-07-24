@@ -69,7 +69,7 @@ static_assert(XKRT_DEVICES_MAX <= sizeof(xkrt_device_global_id_bitfield_t)*8);
 # define XKRT_MAX_THREADS_PER_DEVICE (16)
 
 /* maximum number of memory per thread */
-# define THREAD_MAX_MEMORY ((size_t)2*1024*1024*1024)
+# define THREAD_MAX_MEMORY ((size_t)4*1024*1024*1024)
 
 // TODO: using smaller type here can improve perf
 typedef uint16_t task_wait_counter_type_t;

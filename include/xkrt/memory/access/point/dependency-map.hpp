@@ -3,7 +3,7 @@
 /*   dependency-map.hpp                                           .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/05/19 00:09:44 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/07/17 19:49:03 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/07/21 16:10:15 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -66,6 +66,56 @@ class DependencyMap : public DependencyDomain
 
     public:
 
+        inline void
+        insert_empty_write(const void * point)
+        {
+            // create the empty task node
+            xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+            assert(thread);
+
+            constexpr int AC = 1;
+            constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT;
+            constexpr size_t task_size = task_compute_size(flags, AC);
+
+            task_t * extra = thread->allocate_task(task_size);
+            assert(extra);
+            new (extra) task_t(TASK_FORMAT_NULL, flags);
+
+            task_dep_info_t * dep = TASK_DEP_INFO(extra);
+            assert(dep);
+            new (dep) task_dep_info_t(AC);
+
+            # ifndef NDEBUG
+            snprintf(extra->label, sizeof(extra->label), "cw-empty-node");
+            # endif
+
+            access_t * accesses = TASK_ACCESSES(extra, flags);
+            assert(accesses);
+            {
+                constexpr access_mode_t         mode        = ACCESS_MODE_VW;
+                constexpr access_concurrency_t  concurrency = ACCESS_CONCURRENCY_SEQUENTIAL;
+                constexpr access_scope_t        scope       = ACCESS_SCOPE_NONUNIFIED;
+                new (accesses + 0) access_t(extra, point, mode, concurrency, scope);
+            }
+
+            // TODO : bellow are really ugly implementation hacks
+            // maybe refactor the code to go through the traditionnal runtime routines
+            this->link(accesses + 0);
+
+            if (dep->wc.fetch_sub(1, std::memory_order_seq_cst) == 1)
+            {
+                // all predecessors completed already, we can skip that empty node
+            }
+            else
+            {
+                assert(thread->current_task);
+                extra->parent = thread->current_task;
+                ++thread->current_task->cc;
+
+                this->put(accesses + 0);
+            }
+        }
+
         //  access type         depend on
         //  SEQ-R               SEQ-W, CNC-W,  COM-W
         //  CNC-W               SEQ-R, SEQ-W,  COM-W,
@@ -89,7 +139,7 @@ class DependencyMap : public DependencyDomain
             // the generated access depends on previous SEQ-R
             if (node.last_seq_reads.size() && (access->mode & ACCESS_MODE_W))
             {
-                # if 0
+                # if 1
                 // CNC-W
                 if (access->concurrency == ACCESS_CONCURRENCY_CONCURRENT)
                 {
@@ -100,18 +150,7 @@ class DependencyMap : public DependencyDomain
                      *                 / \
                      * conc-w:        O   O     // <- inserting this
                      */
-                    # if 0
-                    access_t * extra = NULL;
-                    constexpr access_mode_t         mode        = ACCESS_MODE_V | ACCESS_MODE_W;
-                    constexpr access_concurrency_t  concurrency = ACCESS_CONCURRENCY_SEQUENTIAL;
-                    constexpr access_scope_t        scope       = ACCESS_SCOPE_NONUNIFIED;
-                    new (extra) access_t(NULL, access->point, mode, concurrency, scope);
-
-                    for (access_t * read : node.last_seq_reads)
-                        __access_precedes(read, );
-                    # else
-                    LOGGER_FATAL("TODO");
-                    # endif
+                    insert_empty_write(access->point);
                 }
                 // SEQ-W
                 else
@@ -119,8 +158,8 @@ class DependencyMap : public DependencyDomain
                 {
                     for (access_t * read : node.last_seq_reads)
                         __access_precedes(read, access);
+                    seq_w_edge_transitive = true;
                 }
-                seq_w_edge_transitive = true;
             }
 
             // the generated access depends on previous CNC-W
@@ -128,14 +167,17 @@ class DependencyMap : public DependencyDomain
             {
                 # if 0
                 if (access->mode & ACCESS_MODE_W)
-                {
                 # endif
+                {
                     for (access_t * cw : node.last_conc_writes)
                         __access_precedes(cw, access);
-                # if 0
+                    seq_w_edge_transitive = true;
                 }
+                # if 0
                 else
                 {
+                    assert(access->mode & ACCESS_MODE_R);
+
                     /**
                      * conc-w:        O O O
                      *                 \|/
@@ -143,29 +185,27 @@ class DependencyMap : public DependencyDomain
                      *                 / \
                      * seq-r:         O   O     // <- inserting this
                      */
-                    # if 0
-                    # else
-                    LOGGER_FATAL("TODO");
-                    # endif
+                    insert_empty_write(access->point);
                 }
                 # endif
-                seq_w_edge_transitive = true;
             }
 
             // the generated access depends on previous SEQ-W (they all do)
-            if (1)
+            if (node.last_seq_write)
             {
                 if (seq_w_edge_transitive)
                 {
-                    // nothing to do:
-                    // if 'last_conc_writes' or 'last_seq_reads' are not empty,
-                    // then 'access' already depends on 'last_seq_write' by
-                    // transitivity
+                    // nothing to do: another edge already ensure that
+                    // dependency by transitivity
                 }
-                else if (node.last_seq_write)
+                else
                 {
                     __access_precedes(node.last_seq_write, access);
                 }
+            }
+            else
+            {
+                // nothing to do: no previous writers
             }
         }
 
