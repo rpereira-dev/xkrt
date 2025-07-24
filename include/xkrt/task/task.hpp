@@ -155,9 +155,11 @@ typedef struct  task_t
     public:
 
         task_t(task_format_id_t fmtid, task_flag_bitfield_t flags) :
-             parent(NULL), cc(0),
-            fmtid(fmtid), flags(flags),
-            state { .lock = SPINLOCK_INITIALIZER, .value = TASK_STATE_ALLOCATED }
+            parent(NULL),
+            cc(0),
+            state { .lock = SPINLOCK_INITIALIZER, .value = TASK_STATE_ALLOCATED },
+            fmtid(fmtid),
+            flags(flags)
         {}
 
 }               task_t;

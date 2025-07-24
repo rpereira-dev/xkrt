@@ -253,6 +253,10 @@ read_from_binary(unsigned char **output, size_t * size, const char *name)
     return 0;
 }
 
+# endif /* XKRT_SUPPORT_ZE */
+
+# if XKRT_SUPPORT_ZE
+
 # include <xkrt/driver/driver-ze.h>
 # include <xkrt/logger/logger-ze.h>
 # include <ze_api.h>
@@ -345,7 +349,60 @@ body_ze(
 
     ZE_SAFE_CALL(zeCommandListAppendLaunchKernel(stream->ze.command.list, fn, &dispatch, stream->ze.events.list[idx], 0, NULL));
 }
-# endif /* XKRT_SUPPORT_CUDA */
+# endif /* XKRT_SUPPORT_ZE */
+
+# if XKRT_SUPPORT_HIP
+
+# include <xkrt/driver/driver-hip.h>
+# include <xkrt/logger/logger-hip.h>
+
+extern "C"
+void diffusion_hip(
+    hipStream_t stream,
+    TYPE * src, int ld_src,
+    TYPE * dst, int ld_dst,
+    int tile_x, int tile_y,
+    int tsx, int tsy
+);
+
+
+static void
+body_hip(
+    xkrt_stream_hip_t * stream,
+    xkrt_stream_instruction_t * instr,
+    xkrt_stream_instruction_counter_t idx
+) {
+    task_t * task = (task_t *) instr->kern.vargs;
+    args_t * args = (args_t *) TASK_ARGS(task);
+
+    const access_t * accesses = TASK_ACCESSES(task);
+    const access_t * a_src = accesses + 0;
+    const access_t * a_dst = accesses + 1;
+
+    TYPE * src = (TYPE *) a_src->device_view.addr;
+    TYPE * dst = (TYPE *) a_dst->device_view.addr;
+    const size_t ld_src = a_src->device_view.ld;
+    const size_t ld_dst = a_dst->device_view.ld;
+
+    // offset boundary access so the kernel receive the correct pointer
+    if (args->tile_x == 0)  dst = dst - 1;
+    else                    src = src + 1;
+
+    if (args->tile_y == 0)  dst = dst - ld_dst;
+    else                    src = src + ld_src;
+
+    // submit kernel
+    hipStream_t hipstream = stream->hip.handle.high;
+    diffusion_hip(
+        hipstream,
+        src, ld_src,
+        dst, ld_dst,
+        args->tile_x, args->tile_y,
+        TSX, TSY
+    );
+    HIP_SAFE_CALL(hipEventRecord(stream->hip.events.buffer[idx], hipstream));
+}
+# endif /* XKRT_SUPPORT_HIP */
 
 static void
 update_cpu(TYPE * src, TYPE * dst)
@@ -381,6 +438,10 @@ setup_tasks(void)
         # if XKRT_SUPPORT_ZE
         format.f[XKRT_DRIVER_TYPE_ZE] = (task_format_func_t) body_ze;
         # endif /* XKRT_SUPPORT_ZE */
+
+        # if XKRT_SUPPORT_HIP
+        format.f[XKRT_DRIVER_TYPE_HIP] = (task_format_func_t) body_hip;
+        # endif /* XKRT_SUPPORT_HIP */
 
         snprintf(format.label, sizeof(format.label), "heat-diffusion");
         diffusion_format_id = task_format_create(&(runtime.formats.list), &format);

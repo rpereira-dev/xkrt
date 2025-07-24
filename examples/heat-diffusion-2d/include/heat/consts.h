@@ -46,10 +46,10 @@
 #  define TYPE float
 
 /* Number of timesteps */
-#  define N_STEP (10)
+#  define N_STEP (1000)
 
 /* Number of vtk images to generate */
-#  define N_VTK MIN(1, N_STEP)
+#  define N_VTK MIN(10, N_STEP)
 
 /* Thermal diffusivity */
 #  define ALPHA (1.11e-4f)
