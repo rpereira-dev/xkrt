@@ -550,7 +550,7 @@ __access_precedes(access_t * pred, access_t * succ)
 
     // avoid redundant edges
     if (pred->successors.size() && pred->successors.back()->task == succ->task)
-        return false;
+        return true;
 
     // set edge
     return __task_precedes(pred->task, succ->task, __access_link, pred, succ);

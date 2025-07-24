@@ -3,7 +3,7 @@
 /*   dependency-map.hpp                                           .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/05/19 00:09:44 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/07/21 16:10:15 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/07/24 21:23:40 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -116,6 +116,48 @@ class DependencyMap : public DependencyDomain
             }
         }
 
+        // set all accesses of 'list' as predecessors of 'succ'
+        // and remove entries in 'list' that already completed
+        static inline void
+        link_or_pop(
+            std::vector<access_t *> & list,
+            // std::list<access_t *> & list,
+            access_t * succ
+        ) {
+            # if 1
+            for (auto it = list.begin(); it != list.end(); )
+            {
+                access_t * pred = *it;
+
+                // return true if pred is not already completed
+                if (__access_precedes(pred, succ))
+                {
+                    ++it;
+                }
+                // pred completed, we can remove it from the list to dampen
+                // future accesses search
+                else
+                {
+                    it = list.erase(it);
+                }
+            }
+            # elif 0
+            bool clear = true;
+            for (access_t * pred : list)
+            {
+                if (__access_precedes(pred, succ))
+                {
+                    clear = false;
+                }
+            }
+            if (clear)
+                list.clear();
+            # else
+            for (access_t * pred : list)
+                __access_precedes(pred, succ);
+            # endif
+        }
+
         //  access type         depend on
         //  SEQ-R               SEQ-W, CNC-W,  COM-W
         //  CNC-W               SEQ-R, SEQ-W,  COM-W,
@@ -133,7 +175,7 @@ class DependencyMap : public DependencyDomain
                 return ;
 
             // else, set dependencies
-            const Node & node = it->second;
+            Node & node = it->second;
             bool seq_w_edge_transitive = false;
 
             // the generated access depends on previous SEQ-R
@@ -156,8 +198,7 @@ class DependencyMap : public DependencyDomain
                 else
                 # endif
                 {
-                    for (access_t * read : node.last_seq_reads)
-                        __access_precedes(read, access);
+                    link_or_pop(node.last_seq_reads, access);
                     seq_w_edge_transitive = true;
                 }
             }
@@ -165,15 +206,14 @@ class DependencyMap : public DependencyDomain
             // the generated access depends on previous CNC-W
             if (node.last_conc_writes.size() && access->concurrency != ACCESS_CONCURRENCY_CONCURRENT)
             {
-                # if 0
+                # if 1
                 if (access->mode & ACCESS_MODE_W)
                 # endif
                 {
-                    for (access_t * cw : node.last_conc_writes)
-                        __access_precedes(cw, access);
+                    link_or_pop(node.last_conc_writes, access);
                     seq_w_edge_transitive = true;
                 }
-                # if 0
+                # if 1
                 else
                 {
                     assert(access->mode & ACCESS_MODE_R);
@@ -200,7 +240,15 @@ class DependencyMap : public DependencyDomain
                 }
                 else
                 {
-                    __access_precedes(node.last_seq_write, access);
+                    if (__access_precedes(node.last_seq_write, access))
+                    {
+                        // nothing to do, last writer has not completed
+                    }
+                    else
+                    {
+                        // last writer completed already, can remove it
+                        node.last_seq_write = NULL;
+                    }
                 }
             }
             else
