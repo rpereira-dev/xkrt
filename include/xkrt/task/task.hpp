@@ -496,7 +496,7 @@ TASK_ARGS(const task_t * task)
 
 /* pred precedes succ - call 'F(args)' if 'pred' isnt completed yet in a lock region */
 template <typename... Args>
-static inline void
+static inline bool
 __task_precedes(
     task_t * pred,
     task_t * succ,
@@ -511,6 +511,7 @@ __task_precedes(
     assert(pred->flags & TASK_FLAG_DEPENDENT);
     assert(succ->flags & TASK_FLAG_DEPENDENT);
 
+    bool r = false;
     if (pred->state.value < TASK_STATE_COMPLETED)
     {
         SPINLOCK_LOCK(pred->state.lock);
@@ -521,10 +522,12 @@ __task_precedes(
                 task_dep_info_t * sdep = TASK_DEP_INFO(succ);
                 sdep->wc.fetch_add(1, std::memory_order_seq_cst);
                 F(std::forward<Args>(args)...);
+                r = true;
             }
         }
         SPINLOCK_UNLOCK(pred->state.lock);
     }
+    return r;
 }
 
 static inline void
@@ -533,7 +536,7 @@ __access_link(access_t * pred, access_t * succ)
     pred->successors.push_back(succ);
 }
 
-inline void
+inline bool
 __access_precedes(access_t * pred, access_t * succ)
 {
     // succ must be a dependent task
@@ -547,10 +550,10 @@ __access_precedes(access_t * pred, access_t * succ)
 
     // avoid redundant edges
     if (pred->successors.size() && pred->successors.back()->task == succ->task)
-        return ;
+        return false;
 
     // set edge
-    __task_precedes(pred->task, succ->task, __access_link, pred, succ);
+    return __task_precedes(pred->task, succ->task, __access_link, pred, succ);
 }
 
 ////////////////////////////////////

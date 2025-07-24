@@ -321,10 +321,10 @@ xkrt_device_task_execute(
                 }
             }
             else
-                LOGGER_FATAL("Task format for `%s` has no impl for device `%u`", task->label, device->global_id);
+                LOGGER_FATAL("Task format for `%p` has no impl for device `%u`", task, device->global_id);
         }
         else
-            LOGGER_FATAL("Invalid format for task `%s`", task->label);
+            LOGGER_FATAL("Invalid format for task `%p`", task);
     }
 }
 

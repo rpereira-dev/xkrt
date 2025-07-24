@@ -306,7 +306,7 @@ xkrt_init_conf(xkrt_conf_t * conf)
     conf->device.use_p2p                        = true;
     conf->merge_transfers                       = false;
     conf->protect_registered_memory_overflow    = true;
-    conf->enable_prefetching                    = true;
+    conf->enable_prefetching                    = false;
 
     //////////////////
     // drivers conf //
