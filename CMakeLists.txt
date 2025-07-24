@@ -188,6 +188,7 @@ if (USE_ZE)
 
     add_library(${XKRT}_driver_ze SHARED src/driver/driver_ze.cc)
     add_dependencies(${XKRT}_driver_ze always_generate_files)
+    target_link_libraries(${XKRT}_driver_ze PRIVATE ${HWLOC_LIBRARIES} ${ZE_LIBRARIES})
     target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_ze)
     install(TARGETS ${XKRT}_driver_ze LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 
