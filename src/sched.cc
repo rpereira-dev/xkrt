@@ -149,18 +149,20 @@ __task_moldable_split(
     }
 }
 
-inline void
-xkrt_device_prepare_task(
+static inline void
+__device_prepare_task(
     xkrt_runtime_t * runtime,
     xkrt_device_t * device,
-    xkrt_device_global_id_t device_global_id,
     task_t * task
 ) {
-    assert((device == NULL && device_global_id == HOST_DEVICE_GLOBAL_ID) || (device && device->global_id == device_global_id));
-    assert(  task->state.value == TASK_STATE_READY);
+    assert(device);
+    assert(task);
+    assert(task->state.value == TASK_STATE_READY);
 
-    LOGGER_DEBUG("Preparing task `%s` of format `%d` on device %d",
-            task->label, task->fmtid, device_global_id);
+    /* if that's a device task, then fetches to the device. Else, fetch to the host */
+    xkrt_device_global_id_t device_global_id = (task->flags & TASK_FLAG_DEVICE) ? device->global_id : HOST_DEVICE_GLOBAL_ID;
+    LOGGER_DEBUG("Preparing task `%s` of format `%d` on device `%d` - on a thread of device `%d`",
+            task->label, task->fmtid, device_global_id, device->global_id);
 
     if (task->flags & TASK_FLAG_DEPENDENT)
     {
@@ -275,7 +277,7 @@ xkrt_device_thread_main_loop(
         // if there is a task, run it
         if (task)
         {
-            xkrt_device_prepare_task(runtime, device, device->global_id, task);
+            __device_prepare_task(runtime, device, task);
             task = NULL;
         }
 

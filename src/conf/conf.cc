@@ -200,6 +200,13 @@ __parse_register_overflow(xkrt_conf_t * conf, char const * value)
         conf->protect_registered_memory_overflow = atoi(value);
 }
 
+static void
+__parse_task_prefetch(xkrt_conf_t * conf, char const * value)
+{
+    if (value)
+        conf->enable_prefetching = atoi(value);
+}
+
 void __parse_help(xkrt_conf_t * conf, char const * value);
 
 extern char ** environ;
@@ -214,26 +221,27 @@ typedef struct  xkrt_conf_parse_t
 // variables are parsed in-order
 static xkrt_conf_parse_t CONF_PARSE[] = {
     {"XKAAPI_CACHE_LIMIT",                      NULL,                       NULL},
-    {"XKAAPI_D2D_PER_STREAM",                   __parse_d2d_per_stream,      "Number of concurrent copies per D2D stream before throttling device-thread"},
-    {"XKAAPI_D2H_PER_STREAM",                   __parse_d2h_per_stream,      "Number of concurrent copies per D2H stream before throttling device-thread"},
-    {"XKAAPI_DEFAULT_MATH",                     NULL,                        NULL},
-    {"XKAAPI_DRIVERS",                          __parse_drivers,             "Exemple: 'cuda,4;hip,2;host,3' - will enable drivers cuda, hip and host respectively with 4, 2, and 3 threads per device."},
-    {"XKAAPI_GPU_MEM_PERCENT",                  __parse_gpu_mem_percent,     "%% of total memory to allocate initially per GPU (in ]0..100["},
-    {"XKAAPI_H2D_PER_STREAM",                   __parse_h2d_per_stream,      "Number of concurrent copies per H2D stream before throttling device-thread"},
-    {"XKAAPI_HELP",                             __parse_help,                "Show this helper"},
-    {"XKAAPI_KERN_PER_STREAM",                  __parse_kern_per_stream,     "Number of concurrent kernels per KERN stream before throttling device-thread"},
-    {"XKAAPI_MERGE_TRANSFERS",                  __parse_merge_transfers,     "Merge memory transfers over continuous virtual memory"},
-    {"XKAAPI_NGPUS",                            __parse_ngpus,               "Number of gpus to use"},
+    {"XKAAPI_D2D_PER_STREAM",                   __parse_d2d_per_stream,     "Number of concurrent copies per D2D stream before throttling device-thread"},
+    {"XKAAPI_D2H_PER_STREAM",                   __parse_d2h_per_stream,     "Number of concurrent copies per D2H stream before throttling device-thread"},
+    {"XKAAPI_DEFAULT_MATH",                     NULL,                       NULL},
+    {"XKAAPI_DRIVERS",                          __parse_drivers,            "Exemple: 'cuda,4;hip,2;host,3' - will enable drivers cuda, hip and host respectively with 4, 2, and 3 threads per device."},
+    {"XKAAPI_GPU_MEM_PERCENT",                  __parse_gpu_mem_percent,    "%% of total memory to allocate initially per GPU (in ]0..100["},
+    {"XKAAPI_H2D_PER_STREAM",                   __parse_h2d_per_stream,     "Number of concurrent copies per H2D stream before throttling device-thread"},
+    {"XKAAPI_HELP",                             __parse_help,               "Show this helper"},
+    {"XKAAPI_KERN_PER_STREAM",                  __parse_kern_per_stream,    "Number of concurrent kernels per KERN stream before throttling device-thread"},
+    {"XKAAPI_MERGE_TRANSFERS",                  __parse_merge_transfers,    "Merge memory transfers over continuous virtual memory"},
+    {"XKAAPI_NGPUS",                            __parse_ngpus,              "Number of gpus to use"},
     {"XKAAPI_MEMORY_REGISTER_PROTECT_OVERFLOW", __parse_register_overflow,  "Split memory transfers to avoid overflow over registered/unregistered memory that causes cuda to crash"},
-    {"XKAAPI_NSTREAMS_D2D",                     __parse_nstreams_d2d,        "Number of D2D streams per GPU"},
-    {"XKAAPI_NSTREAMS_D2H",                     __parse_nstreams_d2h,        "Number of D2H streams per GPU"},
-    {"XKAAPI_NSTREAMS_H2D",                     __parse_nstreams_h2d,        "Number of H2D streams per GPU"},
-    {"XKAAPI_NSTREAMS_KERN",                    __parse_nstreams_kern,       "Number of KERN streams per GPU"},
-    {"XKAAPI_OFFLOADER_CAPACITY",               __parse_offloader_capacity,  "Maximum number of pending instructions per stream"},
-    {"XKAAPI_PRECISION",                        NULL,                        NULL},
-    {"XKAAPI_STATS",                            __parse_stats,               "Boolean to dump stats on deinit"},
-    {"XKAAPI_USE_P2P",                          __parse_p2p,                 "Boolean to enable/disable the use of p2p transfers"},
-    {"XKAAPI_VERBOSE",                          __parse_verbose,             "Verbosity level (the higher the most)"},
+    {"XKAAPI_TASK_PREFETCH",                    __parse_task_prefetch,      "If enabled, after completing a task, initiate data transfers for all its WaR successors that place of execution is already known (else, transfers only starts once the successor is ready)."},
+    {"XKAAPI_NSTREAMS_D2D",                     __parse_nstreams_d2d,       "Number of D2D streams per GPU"},
+    {"XKAAPI_NSTREAMS_D2H",                     __parse_nstreams_d2h,       "Number of D2H streams per GPU"},
+    {"XKAAPI_NSTREAMS_H2D",                     __parse_nstreams_h2d,       "Number of H2D streams per GPU"},
+    {"XKAAPI_NSTREAMS_KERN",                    __parse_nstreams_kern,      "Number of KERN streams per GPU"},
+    {"XKAAPI_OFFLOADER_CAPACITY",               __parse_offloader_capacity, "Maximum number of pending instructions per stream"},
+    {"XKAAPI_PRECISION",                        NULL,                       NULL},
+    {"XKAAPI_STATS",                            __parse_stats,              "Boolean to dump stats on deinit"},
+    {"XKAAPI_USE_P2P",                          __parse_p2p,                "Boolean to enable/disable the use of p2p transfers"},
+    {"XKAAPI_VERBOSE",                          __parse_verbose,            "Verbosity level (the higher the most)"},
     {NULL, NULL, NULL}
 };
 
@@ -298,6 +306,7 @@ xkrt_init_conf(xkrt_conf_t * conf)
     conf->device.use_p2p                        = true;
     conf->merge_transfers                       = false;
     conf->protect_registered_memory_overflow    = true;
+    conf->enable_prefetching                    = true;
 
     //////////////////
     // drivers conf //

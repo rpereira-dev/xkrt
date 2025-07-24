@@ -107,6 +107,7 @@ __task_complete(
     // updates on the 'parent' counter ?
     task->parent->cc.fetch_sub(1, std::memory_order_relaxed);
 
+    // assertions
     assert(
         task->state.value == TASK_STATE_DATA_FETCHED ||
         task->state.value == TASK_STATE_READY
@@ -118,6 +119,8 @@ __task_complete(
             ((task->flags & TASK_FLAG_DETACHABLE) && (TASK_DET_INFO(task)->wc.load() == 2))
         );
     }
+
+    // transition the task
     SPINLOCK_LOCK(task->state.lock);
     {
         task->state.value = TASK_STATE_COMPLETED;
@@ -125,6 +128,8 @@ __task_complete(
     }
     SPINLOCK_UNLOCK(task->state.lock);
     assert(task->parent);
+
+    // if the task has successors, that dependency is now satisfied
     if (task->flags & TASK_FLAG_DEPENDENT)
     {
         task_dep_info_t * dep = TASK_DEP_INFO(task);
@@ -146,26 +151,27 @@ __task_complete(
                 // MEMORY PREFETCHING //
                 ////////////////////////
 
-                # if 0
-                // if the succ access is not being fetched, or got fetched already
-                if (succ_access->state == ACCESS_STATE_INIT)
+                if (runtime->conf.enable_prefetching)
                 {
-                    // if the pred access wrote memory
-                    if (access->mode & ACCESS_MODE_W)
+                    // if the succ access is not being fetched, or got fetched already
+                    if (succ_access->state == ACCESS_STATE_INIT)
                     {
-                        // if successor device can already be known
-                        const xkrt_device_global_id_t device_global_id = __task_device(succ);
-                        if (device_global_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
+                        // if the pred access wrote memory
+                        if (access->mode & ACCESS_MODE_W)
                         {
-                            // then we can prefetch memory
-                            MemoryCoherencyController * mcc = task_get_memory_controller(
-                                    runtime, succ->parent, succ_access);
-                            if (mcc)
-                                mcc->fetch(access, device_global_id);
+                            // if successor device can already be known
+                            const xkrt_device_global_id_t device_global_id = __task_device(succ);
+                            if (device_global_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
+                            {
+                                // then we can prefetch memory
+                                MemoryCoherencyController * mcc = task_get_memory_controller(
+                                        runtime, succ->parent, succ_access);
+                                if (mcc)
+                                    mcc->fetch(access, device_global_id);
+                            }
                         }
                     }
                 }
-                # endif
 
                 //////////////////////////////////
                 // RELEASE TASK DEPENPENDENCIES //
