@@ -99,6 +99,12 @@ typedef struct  xkrt_conf_s
      * segment to avoid cuda crashing while transfering memory that is
      * partially registered */
     bool protect_registered_memory_overflow;
+
+    /* prefetch memory: when completing a predecessor, if the successor place
+     * of execution is known, and its a WaR dependency, then initiate data
+     * transfer now */
+    bool enable_prefetching;
+
 }               xkrt_conf_t;
 
 void xkrt_init_conf(xkrt_conf_t * conf);

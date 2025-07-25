@@ -96,7 +96,7 @@ extern "C" {
     );
 
     /* Allocate incoherent memory replicates onto the passed device */
-    void xkrt_coherent_allocate_2D(
+    void xkrt_incoherent_allocate_2D(
         xkrt_runtime_t * runtime,
         xkrt_device_global_id_t device_global_id,
         matrix_storage_t storage,

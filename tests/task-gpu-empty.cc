@@ -90,6 +90,7 @@ main(void)
 
     // submit it to the runtime
     runtime.task_commit(task);
+    runtime.task_wait();
 
     // wait
     assert(xkrt_sync(&runtime) == 0);

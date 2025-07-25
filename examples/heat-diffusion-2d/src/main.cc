@@ -117,7 +117,7 @@ maybe_export(int step, TYPE * grid)
 {
     if (N_VTK)
     {
-        if (step % (N_STEP / N_VTK) == 0)
+        if ((step + 1) % (N_STEP / N_VTK) == 0)
         {
             int frame = step / (N_STEP / N_VTK);
 
@@ -131,13 +131,13 @@ maybe_export(int step, TYPE * grid)
             constexpr size_t args_size = sizeof(args_export_t);
 
             task_t * task = thread->allocate_task(task_size + args_size);
-            new(task) task_t(export_vtk_format_id, flags);
+            new (task) task_t(export_vtk_format_id, flags);
 
             task_dep_info_t * dep = TASK_DEP_INFO(task);
             new (dep) task_dep_info_t(AC);
 
             args_export_t * args = (args_export_t *) TASK_ARGS(task, task_size);
-            new(args) args_export_t(grid, frame);
+            new (args) args_export_t(grid, frame);
 
             # ifndef NDEBUG
             snprintf(task->label, sizeof(task->label), "export-vtk-%d", frame);
@@ -145,7 +145,7 @@ maybe_export(int step, TYPE * grid)
 
             static_assert(AC <= TASK_MAX_ACCESSES);
             access_t * accesses = TASK_ACCESSES(task, flags);
-            new(accesses + 0) access_t(task, MATRIX_COLMAJOR, grid, LD, 1, 1, NX-2, NY-2, sizeof(TYPE), ACCESS_MODE_R);
+            new(accesses + 0) access_t(task, MATRIX_COLMAJOR, grid, LD, 0, 0, NX, NY, sizeof(TYPE), ACCESS_MODE_R);
             thread->resolve<AC>(task, accesses);
             # undef AC
 
@@ -153,9 +153,9 @@ maybe_export(int step, TYPE * grid)
 
             # else
 
-            xkrt_coherency_host_async(&runtime, MATRIX_COLMAJOR, grid, LD, NX, NY, sizeof(TYPE));
-            xkrt_sync(&runtime);
-            export_to_vtk(frame, grid);
+            runtime.coherent_async(MATRIX_COLMAJOR, grid, LD, NX, NY, sizeof(TYPE));
+            // runtime.task_wait();
+            // export_to_vtk(frame, grid);
 
             # endif
         }
@@ -182,7 +182,14 @@ typedef struct  args_t
 # include <xkrt/driver/driver-cu.h>
 # include <xkrt/logger/logger-cu.h>
 
-extern "C" void diffusion_cuda(cudaStream_t stream, TYPE * src, int ld_src, TYPE * dst, int ld_dst, int tile_x, int tile_y, int tsx, int tsy);
+extern "C"
+void diffusion_cuda(
+    cudaStream_t stream,
+    TYPE * src, int ld_src,
+    TYPE * dst, int ld_dst,
+    int tile_x, int tile_y,
+    int tsx, int tsy
+);
 
 static void
 body_cuda(
@@ -245,6 +252,10 @@ read_from_binary(unsigned char **output, size_t * size, const char *name)
     fclose(fp);
     return 0;
 }
+
+# endif /* XKRT_SUPPORT_ZE */
+
+# if XKRT_SUPPORT_ZE
 
 # include <xkrt/driver/driver-ze.h>
 # include <xkrt/logger/logger-ze.h>
@@ -338,7 +349,60 @@ body_ze(
 
     ZE_SAFE_CALL(zeCommandListAppendLaunchKernel(stream->ze.command.list, fn, &dispatch, stream->ze.events.list[idx], 0, NULL));
 }
-# endif /* XKRT_SUPPORT_CUDA */
+# endif /* XKRT_SUPPORT_ZE */
+
+# if XKRT_SUPPORT_HIP
+
+# include <xkrt/driver/driver-hip.h>
+# include <xkrt/logger/logger-hip.h>
+
+extern "C"
+void diffusion_hip(
+    hipStream_t stream,
+    TYPE * src, int ld_src,
+    TYPE * dst, int ld_dst,
+    int tile_x, int tile_y,
+    int tsx, int tsy
+);
+
+
+static void
+body_hip(
+    xkrt_stream_hip_t * stream,
+    xkrt_stream_instruction_t * instr,
+    xkrt_stream_instruction_counter_t idx
+) {
+    task_t * task = (task_t *) instr->kern.vargs;
+    args_t * args = (args_t *) TASK_ARGS(task);
+
+    const access_t * accesses = TASK_ACCESSES(task);
+    const access_t * a_src = accesses + 0;
+    const access_t * a_dst = accesses + 1;
+
+    TYPE * src = (TYPE *) a_src->device_view.addr;
+    TYPE * dst = (TYPE *) a_dst->device_view.addr;
+    const size_t ld_src = a_src->device_view.ld;
+    const size_t ld_dst = a_dst->device_view.ld;
+
+    // offset boundary access so the kernel receive the correct pointer
+    if (args->tile_x == 0)  dst = dst - 1;
+    else                    src = src + 1;
+
+    if (args->tile_y == 0)  dst = dst - ld_dst;
+    else                    src = src + ld_src;
+
+    // submit kernel
+    hipStream_t hipstream = stream->hip.handle.high;
+    diffusion_hip(
+        hipstream,
+        src, ld_src,
+        dst, ld_dst,
+        args->tile_x, args->tile_y,
+        TSX, TSY
+    );
+    HIP_SAFE_CALL(hipEventRecord(stream->hip.events.buffer[idx], hipstream));
+}
+# endif /* XKRT_SUPPORT_HIP */
 
 static void
 update_cpu(TYPE * src, TYPE * dst)
@@ -374,6 +438,10 @@ setup_tasks(void)
         # if XKRT_SUPPORT_ZE
         format.f[XKRT_DRIVER_TYPE_ZE] = (task_format_func_t) body_ze;
         # endif /* XKRT_SUPPORT_ZE */
+
+        # if XKRT_SUPPORT_HIP
+        format.f[XKRT_DRIVER_TYPE_HIP] = (task_format_func_t) body_hip;
+        # endif /* XKRT_SUPPORT_HIP */
 
         snprintf(format.label, sizeof(format.label), "heat-diffusion");
         diffusion_format_id = task_format_create(&(runtime.formats.list), &format);
@@ -439,7 +507,7 @@ initialize(TYPE * grid1, TYPE * grid2)
 
 /* Submit a tile */
 static void
-update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
+update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step, unsigned int ngpus)
 {
     xkrt_thread_t * thread = xkrt_thread_t::get_tls();
     assert(thread);
@@ -450,7 +518,7 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
     constexpr size_t args_size = sizeof(args_t);
 
     task_t * task = thread->allocate_task(task_size + args_size);
-    new(task) task_t(diffusion_format_id, flags);
+    new (task) task_t(diffusion_format_id, flags);
 
     task_dep_info_t * dep = TASK_DEP_INFO(task);
     new (dep) task_dep_info_t(AC);
@@ -460,7 +528,7 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
     new (dev) task_dev_info_t(UNSPECIFIED_DEVICE_GLOBAL_ID, ocr_access);
 
     args_t * args = (args_t *) TASK_ARGS(task, task_size);
-    new(args) args_t(src, dst, tile_x, tile_y);
+    new (args) args_t(src, dst, tile_x, tile_y);
 
     # ifndef NDEBUG
     snprintf(task->label, sizeof(task->label), "diffusion(%d, %d, s=%d)", tile_x, tile_y, step);
@@ -481,7 +549,7 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
         const ssize_t y1 = MIN(y+TSY+1, NY);
         const  size_t sx = x1 - x0;
         const  size_t sy = y1 - y0;
-        new(accesses + 0) access_t(task, MATRIX_COLMAJOR, src, LD, x0, y0, sx, sy, sizeof(TYPE), ACCESS_MODE_R);
+        new (accesses + 0) access_t(task, MATRIX_COLMAJOR, src, LD, x0, y0, sx, sy, sizeof(TYPE), ACCESS_MODE_R);
     }
     {
         const ssize_t x0 = MAX(x, 1);
@@ -490,7 +558,7 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
         const ssize_t y1 = MIN(y+TSY, NY-1);
         const  size_t sx = x1 - x0;
         const  size_t sy = y1 - y0;
-        new(accesses + 1) access_t(task, MATRIX_COLMAJOR, dst, LD, x0, y0, sx, sy, sizeof(TYPE), ACCESS_MODE_W);
+        new (accesses + 1) access_t(task, MATRIX_COLMAJOR, dst, LD, x0, y0, sx, sy, sizeof(TYPE), ACCESS_MODE_W);
     }
     thread->resolve<AC>(task, accesses);
     # undef AC
@@ -500,14 +568,14 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step)
 
 /* Simulate 1 time step */
 static void
-update(TYPE * src, TYPE * dst, int step)
+update(TYPE * src, TYPE * dst, int step, unsigned int ngpus)
 {
     # if 1
     const int ntx = NUM_OF_TILES(NX, TSX);
     const int nty = NUM_OF_TILES(NY, TSY);
     for (int tile_x = 0; tile_x < ntx; ++tile_x)
         for (int tile_y = 0; tile_y < nty; ++tile_y)
-            update_tile(src, dst, tile_x, tile_y, step);
+            update_tile(src, dst, tile_x, tile_y, step, ngpus);
     # else
     update_cpu(src, dst);
     # endif
@@ -554,10 +622,13 @@ main(void)
     // Set initial conditions
     initialize(grid1, grid2);
 
-    // Create tasks to distribute memory
-    xkrt_distribute2D_async(&runtime, XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid1, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
-    xkrt_distribute2D_async(&runtime, XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid2, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
+    // Distribute memory
+    runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid1, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
+    runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC2D, MATRIX_COLMAJOR, grid2, LD, NX, NY, TSX, TSY, sizeof(TYPE), 1, 1);
 
+    runtime.task_wait();
+
+    // run simulation
     uint64_t t0 = xkrt_get_nanotime();
 
     // Time stepping
@@ -568,7 +639,7 @@ main(void)
         TYPE * dst = (step % 2 == 0) ? grid2 : grid1;
 
         // Update
-        update(src, dst, step);
+        update(src, dst, step, ngpus);
         if (step % (N_STEP / 10 + 1) == 0)
             LOGGER_WARN("(graph creation) Progress: %.2lf%%", step / (double)N_STEP*100);
 
@@ -578,8 +649,10 @@ main(void)
 
     uint64_t tf = xkrt_get_nanotime();
     LOGGER_WARN("Graph Creation Took %.2lf s", (tf-t0)/1e9);
+
     // Finish remaining tasks
-    xkrt_sync(&runtime);
+    runtime.task_wait();
+
     tf = xkrt_get_nanotime();
     LOGGER_WARN("Graph Execution Took %.2lf s", (tf-t0)/1e9);
 

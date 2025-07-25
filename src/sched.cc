@@ -62,18 +62,107 @@
 //  DEVICE PROGRESSION //
 /////////////////////////
 
-inline void
-xkrt_device_prepare_task(
+static inline void
+__task_moldable_split(
+    xkrt_runtime_t * runtime,
+    task_t * task,
+    access_t * accesses,
+    task_dep_info_t * dep,
+    task_mol_info_t * mol
+) {
+    // right now, all task accesses must have the same type
+    const access_type_t type = (accesses + 0)->type;
+
+    # ifndef NDEBUG
+    for (task_access_counter_t i = 1 ; i < dep->ac ; ++i)
+        assert(type == (accesses + i)->type);
+    # endif /* atm, only support moldable tasks with accesses of same type */
+
+    switch (type)
+    {
+        case (ACCESS_TYPE_INTERVAL):
+        {
+            // dupplicate the task
+            task_t * dup_task = runtime->task_dup(task);
+            assert(dup_task);
+
+            // split accesses and refine dependencies
+            access_t * dup_accesses = TASK_ACCESSES(dup_task);
+            assert(dup_accesses);
+
+            // for each access
+            for (task_access_counter_t i = 0 ; i < dep->ac ; ++i)
+            {
+                access_t * access     = accesses     + i;
+                access_t * dup_access = dup_accesses + i;
+
+                assert(access->task     == task);
+                assert(dup_access->task == task);
+                dup_access->task = dup_task;
+                assert(access->task     == task);
+                assert(dup_access->task == dup_task);
+
+                // split access
+                access_t::split(access, dup_access, dup_task, ACCESS_SPLIT_MODE_HALVES);
+
+                // for each original successor
+                for (access_t * succ_access : access->successors)
+                {
+                    // if new access conflicts
+                    if (access_t::conflicts(dup_access, succ_access))
+                    {
+                        // set a dependency
+                        __access_precedes(dup_access, succ_access);
+                    }
+                    else
+                    {
+                        // nothing to do
+                    }
+
+                    // if shrinked access still conflicts
+                    if (access_t::conflicts(access, succ_access))
+                    {
+                        // nothing to do, we recycle task and the access,
+                        // so the dependency is already set
+                    }
+                    else
+                    {
+                        // TODO: unset the dependency
+                        LOGGER_FATAL("TODO: should unref once the successor");
+                    }
+                }
+            }
+
+            // submit the dupplicated task
+            assert(dup_task->parent);
+            assert(dup_task->parent == task->parent);
+
+            # pragma message(TODO "This is quite ugly, can we have tasks go through a more regular transition path ? At that point, the dupplicated task is in the 'ready' state already, as its original task was ready")
+            ++dup_task->parent->cc;
+            xkrt_runtime_submit_task(runtime, dup_task);
+
+            break ;
+        }
+
+        default:
+            LOGGER_FATAL("Not supported");
+    }
+}
+
+static inline void
+__device_prepare_task(
     xkrt_runtime_t * runtime,
     xkrt_device_t * device,
-    xkrt_device_global_id_t device_global_id,
     task_t * task
 ) {
-    assert((device == NULL && device_global_id == HOST_DEVICE_GLOBAL_ID) || (device && device->global_id == device_global_id));
-    assert(  task->state.value == TASK_STATE_READY);
+    assert(device);
+    assert(task);
+    assert(task->state.value == TASK_STATE_READY);
 
-    LOGGER_DEBUG("Preparing task `%s` of format `%d` on device %d",
-            task->label, task->fmtid, device_global_id);
+    /* if that's a device task, then fetches to the device. Else, fetch to the host */
+    xkrt_device_global_id_t device_global_id = (task->flags & TASK_FLAG_DEVICE) ? device->global_id : HOST_DEVICE_GLOBAL_ID;
+    LOGGER_DEBUG("Preparing task `%s` of format `%d` on device `%d` - on a thread of device `%d`",
+            task->label, task->fmtid, device_global_id, device->global_id);
 
     if (task->flags & TASK_FLAG_DEPENDENT)
     {
@@ -83,14 +172,51 @@ xkrt_device_prepare_task(
         /* if there is at least one access */
         if (dep->ac > 0)
         {
+            /* retrieve accesses */
+            access_t * accesses = TASK_ACCESSES(task);
+
+            /////////////////////////
+            // MOLDABLE TASK SPLIT //
+            /////////////////////////
+
+            // TODO : move that to another function
+
+            /* if the task is moldable */
+            if (task->flags & TASK_FLAG_MOLDABLE)
+            {
+                /* check split condition, and split, or execute normally */
+                task_mol_info_t * mol = TASK_MOL_INFO(task);
+                assert(mol->split_condition);
+
+                /* if the moldable task must split */
+                if (mol->split_condition(task, accesses))
+                {
+                    // shrink the moldable task, and resubmit the original task
+                    // whose accesses got shrinked
+                    __task_moldable_split(runtime, task, accesses, dep, mol);
+                    return xkrt_runtime_submit_task(runtime, task);
+                }
+                else
+                {
+                    // mothing to do
+                }
+            }
+            else
+            {
+                // nothing to do
+            }
+
+            ////////////////////
+            // FETCH ACCESSES //
+            ////////////////////
+
             /* increase task 'fetching' counter so it does not get ready early
              * (eg before we processed all accesses bellow) */
             __task_fetching(1, task);
 
             /* for each access */
             assert(dep->ac <= TASK_MAX_ACCESSES);
-            access_t * accesses = TASK_ACCESSES(task);
-            for (int i = 0 ; i < dep->ac ; ++i)
+            for (task_access_counter_t i = 0 ; i < dep->ac ; ++i)
             {
                 access_t * access = accesses + i;
                 if (access->mode & ACCESS_MODE_V)
@@ -125,18 +251,20 @@ xkrt_device_thread_main_loop(
 
     task_t * task = NULL;
 
+    auto test = [&] (void) {
+        if (task)                                                                   return false;
+        if ((task = thread->deque.pop()) != NULL)                                   return false;
+        if (!device->offloader_streams_are_empty(device_tid, XKRT_STREAM_TYPE_ALL)) return false;
+        if (device->state != XKRT_DEVICE_STATE_COMMIT)                              return false;
+        return true;
+    };
+
     while (device->state == XKRT_DEVICE_STATE_COMMIT)
     {
         ///////////////////////////////////////////////////////////////////////////////////
         // sleep until a task or an instruction is ready, or until the runtime must stop
         ///////////////////////////////////////////////////////////////////////////////////
-        auto test = [&] (void) {
-            if (task)                                                                   return false;
-            if ((task = thread->deque.pop()) != NULL)                                   return false;
-            if (!device->offloader_streams_are_empty(device_tid, XKRT_STREAM_TYPE_ALL)) return false;
-            if (device->state != XKRT_DEVICE_STATE_COMMIT)                              return false;
-            return true;
-        };
+
         thread->pause(test);
 
         // if the runtime must stop, break
@@ -149,7 +277,7 @@ xkrt_device_thread_main_loop(
         // if there is a task, run it
         if (task)
         {
-            xkrt_device_prepare_task(runtime, device, device->global_id, task);
+            __device_prepare_task(runtime, device, task);
             task = NULL;
         }
 
@@ -340,26 +468,25 @@ xkrt_device_thread_main(
 }
 
 void
-xkrt_team_thread_task_enqueue(
-    xkrt_runtime_t * runtime,
-    xkrt_team_t * team,
+xkrt_runtime_t::task_thread_enqueue(
     xkrt_thread_t * thread,
     task_t * task
 ) {
-    (void) runtime;
-    (void) team;
     thread->deque.push(task);
+
+    // TODO: this is quite ugly, but the thread may be sleeping in two places:
+    //  - within its condition
+    //  - within a team barrier (thus, the broadcast)
     thread->wakeup();
+    if (thread->team)
+        pthread_cond_signal(&thread->team->priv.barrier.cond);
 }
 
 void
-xkrt_team_task_enqueue(
-    xkrt_runtime_t * runtime,
+xkrt_runtime_t::task_team_enqueue(
     xkrt_team_t * team,
     task_t * task
 ) {
-    (void) runtime;
-
     // start at a random thread
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
     int start = tls->rng() % team->priv.nthreads;
@@ -373,11 +500,11 @@ xkrt_team_task_enqueue(
             continue ;
 
         // assign it the task
-        return xkrt_team_thread_task_enqueue(runtime, team, thread, task);
+        return this->task_thread_enqueue(thread, task);
     }
 
     // all threads are working, assigning on the first random one
     xkrt_thread_t * thread = team->priv.threads + start;
-    return xkrt_team_thread_task_enqueue(runtime, team, thread, task);
+    return this->task_thread_enqueue(thread, task);
 }
 

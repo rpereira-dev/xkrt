@@ -478,7 +478,7 @@ class KBLASMemoryTreeNodeSearch {
         enum Type : uint8_t {
             INSERTING_BLOCKS     = 0,    // insert new blocks
             SEARCH_FOR_PARTITION = 1,    // search for a partition
-            SEARCH_AWAITING      = 2,    // search tasks awaiting on blocks (to be transfered onto a gpu, typically)
+            SEARCH_FETCHED      = 2,    // search tasks awaiting on blocks (to be transfered onto a gpu, typically)
             SEARCH_OWNERS        = 3,    // search how many bytes owns each device
             # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
             REGISTERED           = 4,    // mark memory block as registered
@@ -516,7 +516,7 @@ class KBLASMemoryTreeNodeSearch {
         Partition partition;
 
         ///////////////////////////////////////////
-        // used if type == SEARCH_AWAITING //
+        // used if type == SEARCH_FETCHED //
         ///////////////////////////////////////////
         xkrt_area_chunk_t * chunk;
         struct {
@@ -561,10 +561,10 @@ class KBLASMemoryTreeNodeSearch {
        }
 
        void
-       prepare_search_awaiting(xkrt_area_chunk_t * chunk)
+       prepare_search_fetched(xkrt_area_chunk_t * chunk)
        {
            this->chunk = chunk;
-           this->type = SEARCH_AWAITING;
+           this->type = SEARCH_FETCHED;
        }
 
        void
@@ -928,9 +928,13 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             access_t * access
         ) {
             assert(access->task);
-            LOGGER_DEBUG("task `%s` fetched `%p`", access->task->label, (void *) (fetch->dst_chunk ? fetch->dst_chunk->ptr : NULL));
+            LOGGER_DEBUG("task `%s` fetched `%p` on device `%u`",
+                    access->task->label, (void *) (fetch->dst_chunk ? fetch->dst_chunk->ptr : NULL), fetch->dst_device_global_id);
             access->state = ACCESS_STATE_FETCHED;
-            __task_fetched(1, access->task, xkrt_device_task_submit, runtime, fetch->dst_device_global_id);
+
+            xkrt_device_t * device = runtime->device_get(fetch->dst_device_global_id);
+            assert(device);
+            __task_fetched(1, access->task, xkrt_device_task_execute, runtime, device);
         }
 
         static inline fetch_list_t *
@@ -972,23 +976,21 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             {
                 fetch_callback_access(runtime, fetch, access);
 
-                /* if fetched to a device */
+                /* `fetch->dst_chunk` is the allocated memory chunk on which the data had been fetched. */
+                assert(fetch->dst_chunk || fetch->dst_device_global_id == HOST_DEVICE_GLOBAL_ID);
+
+                /* Search in the tree to unmark the block 'fetching' bit, and forward data to awaiting tasks using D2D */
+                Search search(fetch->dst_device_global_id);
+                search.prepare_search_fetched(fetch->dst_chunk);
+                tree->lock();
+                {
+                    tree->intersect(search, fetch->rects[0]);
+                    tree->intersect(search, fetch->rects[1]);
+                }
+                tree->unlock();
+
                 if (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID)
                 {
-                    /* `fetch->dst_chunk` is the memory allocated chunk on which the data had been fetched.
-                     * Search in the tree for awaiting tasks and forwards */
-                    assert(fetch->dst_chunk);
-
-                    /* retrieve awaiting tasks */
-                    Search search(fetch->dst_device_global_id);
-                    search.prepare_search_awaiting(fetch->dst_chunk);
-                    tree->lock();
-                    {
-                        tree->intersect(search, fetch->rects[0]);
-                        tree->intersect(search, fetch->rects[1]);
-                    }
-                    tree->unlock();
-
                     /* callback to release awaiting tasks */
                     for (access_t * & access_awaiting : search.awaiting.accesses)
                         fetch_callback_access(runtime, fetch, access_awaiting);
@@ -1047,10 +1049,9 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                             // no need to reduce the list, we already have only 1 copy per dst device
                         }
                     }
-                }
-
+                } /* if != HOST_DEVICE_GLOBAL_ID */
                 list->fetched();
-            }
+            } /* tree->ref() */
             tree->unref();
         }
 
@@ -2024,59 +2025,65 @@ next_view:
                     break ;
                 }
 
-                /* search for tasks awaiting on that rect for a given allocation */
-                case (Search::Type::SEARCH_AWAITING):
+                /* search after an access got fetched, to unset 'fetching' bits
+                 * and search for tasks awaiting on that rect for a given
+                 * allocation */
+                case (Search::Type::SEARCH_FETCHED):
                 {
                     const xkrt_device_global_id_bitfield_t devbit = (xkrt_device_global_id_bitfield_t) (1 << search.device_global_id);
                     MemoryReplicate & replicate = node->block.replicates[search.device_global_id];
 
-                    /* this is called when searching for awaiting tasks after completing a fetch.
-                     * There must be at least one allocation available (the one that just got fetched...) */
-                    assert(replicate.nallocations);
-
-                    /* for each allocation of that block */
-                    for (memory_allocation_view_id_t allocation_view_id = 0 ; allocation_view_id < replicate.nallocations ; ++allocation_view_id)
+                    if (search.device_global_id != HOST_DEVICE_GLOBAL_ID)
                     {
-                        const memory_allocation_view_id_bitfield_t allocbit = (memory_allocation_view_id_bitfield_t) (1 << allocation_view_id);
-                        MemoryReplicateAllocationView * allocation_view = replicate.allocations[allocation_view_id];
+                        /* this is called after completing a fetch.
+                         * There must be at least one allocation available (the one that just got fetched...)
+                         */
+                        assert(replicate.nallocations);
 
-                        /* if it matches the allocation being searched */
-                        if (allocation_view->chunk == search.chunk)
+                        /* for each allocation of that block */
+                        for (memory_allocation_view_id_t allocation_view_id = 0 ; allocation_view_id < replicate.nallocations ; ++allocation_view_id)
                         {
-                            /* move the awaiting tasks */
-                            search.awaiting.accesses.insert(
-                                search.awaiting.accesses.end(),
-                                allocation_view->awaiting.accesses.begin(),
-                                allocation_view->awaiting.accesses.end()
-                            );
-                            allocation_view->awaiting.accesses.clear();
+                            const memory_allocation_view_id_bitfield_t allocbit = (memory_allocation_view_id_bitfield_t) (1 << allocation_view_id);
+                            MemoryReplicateAllocationView * allocation_view = replicate.allocations[allocation_view_id];
 
-                            /* move awaiting forwards */
-                            search.awaiting.forwards.insert(
-                                search.awaiting.forwards.end(),
-                                allocation_view->awaiting.forwards.begin(),
-                                allocation_view->awaiting.forwards.end()
-                            );
-                            allocation_view->awaiting.forwards.clear();
+                            /* if it matches the allocation being searched */
+                            if (allocation_view->chunk == search.chunk)
+                            {
+                                /* move the awaiting tasks */
+                                search.awaiting.accesses.insert(
+                                    search.awaiting.accesses.end(),
+                                    allocation_view->awaiting.accesses.begin(),
+                                    allocation_view->awaiting.accesses.end()
+                                );
+                                allocation_view->awaiting.accesses.clear();
 
-                            /* this replicate just got fetched and is now coherent */
+                                /* move awaiting forwards */
+                                search.awaiting.forwards.insert(
+                                    search.awaiting.forwards.end(),
+                                    allocation_view->awaiting.forwards.begin(),
+                                    allocation_view->awaiting.forwards.end()
+                                );
+                                allocation_view->awaiting.forwards.clear();
 
-                            // this assertion is not always true, if coming from
-                            // an ACCESS_MODE_W, the data was already set coherent
-                            // assert((replicate.coherency & allocbit) == 0);
-                            replicate.coherency |= (memory_allocation_view_id_bitfield_t) allocbit;
+                                /* this replicate just got fetched and is now coherent */
 
-                            assert(replicate.fetching & allocbit);
-                            replicate.fetching &= (memory_allocation_view_id_bitfield_t) ~allocbit;
+                                // this assertion is not always true, if coming from
+                                // an ACCESS_MODE_W, the data was already set coherent
+                                // assert((replicate.coherency & allocbit) == 0);
+                                replicate.coherency |= (memory_allocation_view_id_bitfield_t) allocbit;
 
-                            break ;
+                                assert(replicate.fetching & allocbit);
+                                replicate.fetching &= (memory_allocation_view_id_bitfield_t) ~allocbit;
+
+                                break ;
+                            }
                         }
+                        // at least one allocation must match with the chunk on which we fetched
+                        assert(replicate.coherency);
                     }
 
                     /* set device bits */
-                    assert(replicate.coherency);
                     node->block.coherency |= devbit;
-
                     if (replicate.fetching == 0)
                         node->block.fetching &= ~devbit;
 

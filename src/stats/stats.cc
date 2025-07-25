@@ -103,6 +103,7 @@ xkrt_runtime_stats_device_report(device_stats_t * stats)
 
     LOGGER_WARN("  Memory");
 
+    # if 0
     xkrt_metric_byte(buffer, sizeof(buffer), stats->memory.allocated.total.load());
     LOGGER_WARN("    Allocated (total): %s", buffer);
 
@@ -111,6 +112,11 @@ xkrt_runtime_stats_device_report(device_stats_t * stats)
 
     xkrt_metric_byte(buffer, sizeof(buffer), stats->memory.freed.load());
     LOGGER_WARN("    Freed: %s", buffer);
+    # else
+    LOGGER_WARN("    Allocated (total): %zuB", stats->memory.allocated.total.load());
+    LOGGER_WARN("    Allocated (currently): %zuB", stats->memory.allocated.currently.load());
+    LOGGER_WARN("    Freed: %zuB", stats->memory.freed.load());
+    # endif
 
     if (stats->memory.registered.load() || stats->memory.unregistered.load())
     {
@@ -121,12 +127,15 @@ xkrt_runtime_stats_device_report(device_stats_t * stats)
         LOGGER_WARN("    Unregistered: %s", buffer);
     }
 
-
     LOGGER_WARN("  Streams");
     for (int stype = 0 ; stype < XKRT_STREAM_TYPE_ALL ; ++stype)
     {
+        # if 0
         xkrt_metric_byte(buffer, sizeof(buffer), stats->streams[stype].transfered.load());
         LOGGER_WARN("    `%4s` - with %2lu streams - transfered %s", xkrt_stream_type_to_str((xkrt_stream_type_t) stype), stats->streams[stype].n.load(), buffer);
+        # else
+        LOGGER_WARN("    `%4s` - with %2lu streams - transfered %zuB", xkrt_stream_type_to_str((xkrt_stream_type_t) stype), stats->streams[stype].n.load(), stats->streams[stype].transfered.load());
+        # endif
     }
 
     LOGGER_WARN("  Instructions");

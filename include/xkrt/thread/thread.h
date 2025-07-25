@@ -179,8 +179,8 @@ typedef struct  xkrt_thread_t
         xkrt_device_global_id_t device_global_id;
 
         /* the thread deque */
-        // xkrt_deque_t<task_t *, 4096> deque;
-        NaiveQueue<task_t *> deque;
+        xkrt_deque_t<task_t *, 4096> deque;
+        // NaiveQueue<task_t *> deque;
 
         /* tasks stack */
         uint8_t * memory_stack_bottom;
@@ -324,9 +324,15 @@ typedef struct  xkrt_thread_t
     public:
 
         /** Find conflicts and insert accesses in the dependency tree */
-        template <int AC>
+        template <task_access_counter_t AC>
         inline void
         resolve(task_t * task, access_t * accesses)
+        {
+            return this->resolve(task, accesses, AC);
+        }
+
+        inline void
+        resolve(task_t * task, access_t * accesses, task_access_counter_t AC)
         {
             (void) task;
             assert(task->flags & TASK_FLAG_DEPENDENT);
@@ -348,7 +354,7 @@ typedef struct  xkrt_thread_t
             assert(this->current_task);
             ++this->current_task->cc;
             task->parent = this->current_task;
-            __task_commit(task, F, args...);
+            return __task_commit(task, F, args...);
         }
 
         # ifndef NDEBUG

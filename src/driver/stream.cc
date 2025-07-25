@@ -342,7 +342,6 @@ xkrt_stream_t::complete_instruction(xkrt_stream_instruction_t * instr)
     __complete_instruction_internal<true>(this, instr);
 }
 
-// complete all instructions to 'ok_p'
 void
 xkrt_stream_t::complete_instructions(const xkrt_stream_instruction_counter_t p)
 {
@@ -371,14 +370,13 @@ xkrt_stream_t::progress_pending_instructions(void)
     if (this->pending.is_empty())
         return 0;
 
-    LOGGER_DEBUG("Progressing pending instructions of stream %p of type `%s` (%d pending)",
-            this, xkrt_stream_type_to_str(this->type), this->pending.size());
+    LOGGER_DEBUG("Progressing pending instructions of stream %p of type `%s` (%d pending) - ptr at r=%u, w=%u",
+            this, xkrt_stream_type_to_str(this->type), this->pending.size(), this->pending.pos.r, this->pending.pos.w);
 
     // ask for progression of the given instructions
     const int r = this->f_instructions_progress(this);
 
     // move reading position to first uncompleted instr
-    xkrt_stream_instruction_counter_t i = this->pending.pos.r;
     const xkrt_stream_instruction_counter_t p = this->pending.iterate([this] (xkrt_stream_instruction_counter_t p) {
         return (this->pending.instr[p].completed) ? true : false;
     });
