@@ -42,14 +42,10 @@ CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE
 - `XKAAPI_HELP=1` - displays available environment variables.
 
 # Directions for improvements
+- Add explicit/synchronous driver interfaces, to allow users to bypas event/polling/coherency/tasking. Particularly for OpenMP blocking constructs
 - Add a memory coherency controller for 'point' accesses, to retrieve original xkblas/kaapi behavior
-- If OCR is set on a successor task, when the predecessor writter completes
-  - the successor device is known: set it already
-  - if a reader predecessor completes and the device is known, transfer can be initiated without waiting for all predecessors to complete
-- Tasks descriptor are allocated on the producer thread memory... while it will be heavily accessed and modified by consumers
 - Tasks are currently only deleted all-at-once on `invalidate` calls.
-- `xkrt-init` could be removed/made noop - so all stuff got initialized lazily
-- allow C++ capture that run onto device threads
+- Stuff from `xkrt-init` could be moved for lazier initializations
 - add support for blas compact symetric matrices
 - add support for commutative write, maybe with a priority-heap favoring accesses with different heuristics (the most successors, the most volume of data as successors, etc...)
-- add support for IA/ML devices (most of them only have high-level Python API, only Graphcore seems to have a good C API)
+- add support for IA/ML devices (most of them only have high-level Python API, only Graphcore seems to have a good C API, but Graphcore seems to be dying)

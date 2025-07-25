@@ -38,6 +38,8 @@
 # define __LOGGER_HIPBLAS_H__
 
 # include <xkrt/logger/logger.h>
+
+# define __HIP_PLATFORM_AMD__
 # include <hipblas/hipblas.h>
 
 static const char *

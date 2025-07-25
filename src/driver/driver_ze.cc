@@ -505,6 +505,9 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                 .depth   = 1
             };
 
+            if (src_region.width != src_pitch || dst_region.width != dst_pitch)
+                LOGGER_FATAL("memcpy2D not working on intel max gpu series zzzzzzzzzz....");
+
             ZE_SAFE_CALL(
                 zeCommandListAppendMemoryCopyRegion(
                     stream->ze.command.list,
@@ -538,7 +541,11 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
     xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
 
     const uint64_t timeout = UINT64_MAX;
+# if 0
     ZE_SAFE_CALL(zeCommandListHostSynchronize(stream->ze.command.list, timeout));
+# else
+    LOGGER_FATAL("Not supported");
+# endif
     return 0;
 }
 
@@ -1022,6 +1029,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
         .stype = ZE_STRUCTURE_TYPE_HOST_MEM_ALLOC_DESC,
         .pNext = NULL,
         .flags = 0
+        // .flags = ZE_HOST_MEM_ALLOC_FLAG_BIAS_INITIAL_PLACEMENT
         // .flags = ZE_HOST_MEM_ALLOC_FLAG_BIAS_CACHED | ZE_HOST_MEM_ALLOC_FLAG_BIAS_INITIAL_PLACEMENT | ZE_HOST_MEM_ALLOC_FLAG_BIAS_WRITE_COMBINED
     };
     void * ptr;

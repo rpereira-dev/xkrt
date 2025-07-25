@@ -38,6 +38,7 @@
 
 # include <xkrt/thread/thread.h>
 # include <xkrt/runtime.h>
+# include <xkrt/logger/logger-hwloc.h>
 
 # include <cassert>
 # include <cstring>
@@ -78,8 +79,10 @@ xkrt_thread_t::warmup(void)
 {
     // touches every pages to avoid minor page faults later during the execution
     size_t pagesize = (size_t) getpagesize();
-    for (uint8_t * ptr = this->memory_stack_ptr ; ptr < this->memory_stack_bottom + THREAD_MAX_MEMORY ; ptr += pagesize)
-        *ptr = 42;
+    for (uint8_t * ptr = this->memory_stack_ptr ;
+            ptr < this->memory_stack_bottom + THREAD_MAX_MEMORY ;
+            ptr += pagesize)
+        *ptr = 0;
 }
 
 task_t *
@@ -189,17 +192,33 @@ team_create_get_place(
                     return ;
                 }
 
+                case (XKRT_TEAM_BINDING_PLACES_HYPERTHREAD):
                 case (XKRT_TEAM_BINDING_PLACES_CORE):
+                case (XKRT_TEAM_BINDING_PLACES_L1):
+                case (XKRT_TEAM_BINDING_PLACES_L2):
+                case (XKRT_TEAM_BINDING_PLACES_L3):
+                case (XKRT_TEAM_BINDING_PLACES_NUMA):
+                case (XKRT_TEAM_BINDING_PLACES_SOCKET):
+                case (XKRT_TEAM_BINDING_PLACES_MACHINE):
                 {
+                    hwloc_obj_type_t type =
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_HYPERTHREAD) ? HWLOC_OBJ_PU          :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_CORE)        ? HWLOC_OBJ_CORE        :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L1)          ? HWLOC_OBJ_L1CACHE     :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L2)          ? HWLOC_OBJ_L2CACHE     :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L3)          ? HWLOC_OBJ_L3CACHE     :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_NUMA)        ? HWLOC_OBJ_NUMANODE    :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_MACHINE)     ? HWLOC_OBJ_MACHINE     :
+                        HWLOC_OBJ_CORE;
+                    ;
+
                     // this is a host thread
                     *device_global_id = HOST_DEVICE_GLOBAL_ID;
 
                     // get linux cpuset
                     int logical_index = tid;
-                    hwloc_obj_t pu = hwloc_get_obj_by_type(runtime->topology, HWLOC_OBJ_PU, logical_index);
-                    int os_cpu = pu->os_index;
-                    CPU_ZERO(place);
-                    CPU_SET(os_cpu, place);
+                    hwloc_obj_t obj = hwloc_get_obj_by_type(runtime->topology, type, logical_index);
+                    HWLOC_SAFE_CALL(hwloc_cpuset_to_glibc_sched_affinity(runtime->topology, obj->cpuset, place, sizeof(cpu_set_t)));
 
                     return ;
                 }
@@ -251,6 +270,8 @@ team_create_recursive(void * vargs)
             // args are allocated on the stack, no need to free
             // but we have to reset previous TLS
             xkrt_thread_t::pop_tls();
+
+            // reset cpu set
         }
         else
         {
@@ -321,7 +342,7 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
     assert(
         (team->desc.binding.mode == XKRT_TEAM_BINDING_MODE_COMPACT && team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_DEVICE   && team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_NONE)                                                                    ||
         (team->desc.binding.mode == XKRT_TEAM_BINDING_MODE_COMPACT && team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_DEVICE   && team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_EXCLUDE_HOST)                                                            ||
-        (team->desc.binding.mode == XKRT_TEAM_BINDING_MODE_COMPACT && team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_CORE     && team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_NONE)                                                                    ||
+        (team->desc.binding.mode == XKRT_TEAM_BINDING_MODE_COMPACT && team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_NONE)                                                                    ||
         (team->desc.binding.mode == XKRT_TEAM_BINDING_MODE_COMPACT && team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_EXPLICIT && team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_NONE && team->desc.binding.places_list && team->desc.binding.nplaces)
     );
 
@@ -351,7 +372,7 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
     }
     else
     {
-        team->priv.barrier.n.store(team->priv.nthreads, std::memory_order_seq_cst);
+        team->priv.barrier.n.store(team->priv.nthreads + 0, std::memory_order_seq_cst);
     }
 
     // fork threads
@@ -379,12 +400,17 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
                 .to = team->priv.nthreads - 1
             };
 
+            # pragma message(TODO "What is the expected behavior of openmp parallel regions ? should the master thread reset its affinity after each parallel region ? Currently, xkaapi does not")
+
+            // move thread before running
+            xkrt_runtime_t::thread_setaffinity(place);
+
             // recursively spawn other threads and run the routine
             team_create_recursive(&args);
         }
     }
 
-    // if master thread is not member of the team, the barrier may not be released
+    // if master thread is not member of the team, the barrier may now be released
     if (!team->desc.master_is_member)
         team_barrier_fetch(team, 1);
 }
@@ -421,33 +447,40 @@ worksteal(
     xkrt_team_t * team,
     xkrt_thread_t * thread
 ) {
-    const int n = team->priv.nthreads;
-    const int tid = thread->tid;
-
-    for (int i = 0 ; i < n ; ++i)
+    // if the thread is executing within a team, do hierarchical workstealing
+    if (team)
     {
-        const int victim_tid = get_ith_victim(tid, i, n);
-        xkrt_thread_t * victim = team->priv.threads + victim_tid;
-        if (victim->state != XKRT_THREAD_INITIALIZED)
-            continue ;
+        const int n = team->priv.nthreads;
+        const int tid = thread->tid;
 
-        task_t * task = (victim_tid == tid) ? victim->deque.pop() : victim->deque.steal();
-        if (task)
+        for (int i = 0 ; i < n ; ++i)
         {
-            runtime->task_run(team, thread, task);
-            return 1;
+            const int victim_tid = get_ith_victim(tid, i, n);
+            xkrt_thread_t * victim = team->priv.threads + victim_tid;
+            if (victim->state != XKRT_THREAD_INITIALIZED)
+                continue ;
+
+            task_t * task = (victim_tid == tid) ? victim->deque.pop() : victim->deque.steal();
+            if (task)
+            {
+                runtime->task_run(team, thread, task);
+                return 1;
+            }
         }
     }
-    return 0;
-}
+    // else, schedule that thread tasks only
+    else
+    {
+        task_t * task = thread->deque.pop();
+        if (task)
+        {
+            runtime->task_run(NULL, thread, task);
+            return 1;
+        }
 
-static inline int
-schedule(
-    xkrt_runtime_t * runtime,
-    xkrt_team_t * team,
-    xkrt_thread_t * thread
-) {
-    return worksteal(runtime, team, thread);
+    }
+
+    return 0;
 }
 
 void
@@ -492,7 +525,7 @@ xkrt_runtime_t::task_wait(void)
     while (1)
     {
         // work steal
-        if (thread->team && schedule(this, thread->team, thread))
+        if (worksteal(this, thread->team, thread))
         {
             backoff = initial_backoff;
             continue ;
@@ -514,7 +547,7 @@ xkrt_runtime_t::task_wait(void)
 }
 
 // TODO : reimplement this using team's topology
-template<bool worksteal>
+template<bool ws>
 void
 xkrt_runtime_t::team_barrier(
     xkrt_team_t * team,
@@ -525,14 +558,14 @@ xkrt_runtime_t::team_barrier(
     if (team->priv.nthreads == 1)
         return ;
 
-    assert((worksteal && thread) || (!worksteal && !thread));
+    assert((ws && thread) || (!ws && !thread));
 
     int old_version = team->priv.barrier.version;
     if (team_barrier_fetch(team, 1))
     {
         while (old_version == team->priv.barrier.version)
         {
-            if (worksteal && schedule(this, team, thread))
+            if (ws && worksteal(this, team, thread))
                 continue ;
 
             pthread_mutex_lock(&team->priv.barrier.mtx);
@@ -549,6 +582,32 @@ xkrt_runtime_t::team_barrier(
 
 template void xkrt_runtime_t::team_barrier<true>(xkrt_team_t * team, xkrt_thread_t * thread);
 template void xkrt_runtime_t::team_barrier<false>(xkrt_team_t * team, xkrt_thread_t * thread);
+
+static inline void
+xkrt_team_parallel_for_run_f(
+    xkrt_team_t * team,
+    xkrt_thread_t * thread,
+    xkrt_team_parallel_for_func_t f
+) {
+    ++thread->parallel_for.index;
+    f(team, thread);
+
+    // last thread to complete wakes up the master
+    if (team->priv.parallel_for.pending.fetch_sub(1, std::memory_order_seq_cst) - 1 == 0)
+    {
+        // wakeup the master thread
+        team->priv.parallel_for.completed = 1;
+        syscall(
+                SYS_futex,
+                &team->priv.parallel_for.completed, // uint32_t *uaddr
+                FUTEX_WAKE,                         // int futex_op
+                INT_MAX,                            // uint32_t val
+                NULL,                               // const struct timespec *timeout | uint32_t val2
+                NULL,                               // uint32_t *uaddr2
+                NULL                                // uint32_t val3
+        );
+    }
+}
 
 void
 xkrt_runtime_t::team_parallel_for(
@@ -583,12 +642,35 @@ xkrt_runtime_t::team_parallel_for(
 
     if (f)
     {
-        // busy waiting a bit before sleeping
-        for (int i = 0 ; i < 16 ; ++i)
-            if ((volatile uint32_t) team->priv.parallel_for.completed == 1)
-                return ;
+        // if master is member, run the routine
+        if (team->desc.master_is_member)
+        {
+            // retrieve team's tls of the master
+            constexpr int tid = 0;
+            xkrt_thread_t * tls = team->priv.threads + tid;
+            assert(tls);
 
-        // wait until they executed
+            // set the TLS
+            xkrt_thread_t::push_tls(tls);
+
+            // run
+            xkrt_team_parallel_for_run_f(team, tls, f);
+
+            // pop the TLS
+            xkrt_thread_t::pop_tls();
+        }
+        // else busy wait a bit before sleeping
+        else
+        {
+            for (int i = 0 ; i < 16 ; ++i)
+            {
+                if ((volatile uint32_t) team->priv.parallel_for.completed == 1)
+                    return ;
+                mem_pause();
+            }
+        }
+
+        // wait until all executed
         while ((volatile uint32_t) team->priv.parallel_for.completed == 0)
         {
             syscall(
@@ -609,6 +691,9 @@ xkrt_team_parallel_for_main(
     xkrt_team_t * team,
     xkrt_thread_t * thread
 ) {
+    if (team->desc.master_is_member && thread->tid == 0)
+        return NULL;
+
     while (1)
     {
         // keep executing functions until all got executed
@@ -618,30 +703,16 @@ parallel_for_run:
             xkrt_team_parallel_for_func_t f = team->priv.parallel_for.f[thread->parallel_for.index % XKRT_TEAM_PARALLEL_FOR_MAX_FUNC];
             if (f == nullptr)
                 return NULL;
-            ++thread->parallel_for.index;
-            f(team, thread);
-
-            // last thread to complete wakes up the master
-            if (team->priv.parallel_for.pending.fetch_sub(1, std::memory_order_seq_cst) - 1 == 0)
-            {
-                // wakeup the master thread
-                team->priv.parallel_for.completed = 1;
-                syscall(
-                    SYS_futex,
-                    &team->priv.parallel_for.completed, // uint32_t *uaddr
-                    FUTEX_WAKE,                         // int futex_op
-                    INT_MAX,                            // uint32_t val
-                    NULL,                               // const struct timespec *timeout | uint32_t val2
-                    NULL,                               // uint32_t *uaddr2
-                    NULL                                // uint32_t val3
-                );
-            }
+            xkrt_team_parallel_for_run_f(team, thread, f);
         }
 
-        // some polling before sleeping for real
+        // some polling before sleeping
         for (int i = 0 ; i < 16 ; ++i)
+        {
             if (thread->parallel_for.index < (volatile uint32_t) team->priv.parallel_for.index)
                 goto parallel_for_run;
+            mem_pause();
+        }
 
         // keep sleeping until there is functions to execute, or until the master is joining
         while (thread->parallel_for.index >= (volatile uint32_t) team->priv.parallel_for.index)

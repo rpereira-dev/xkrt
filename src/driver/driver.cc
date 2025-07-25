@@ -133,7 +133,7 @@ xkrt_drivers_init(xkrt_runtime_t * runtime)
             if (driver->f_init == NULL || driver->f_init(ndevices_requested - ndevices, use_p2p))
             {
                 LOGGER_WARN("Failed to load");
-                return ;
+                continue ;
             }
 
             assert(driver->f_get_ndevices_max);

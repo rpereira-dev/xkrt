@@ -39,6 +39,7 @@
 
 # include <assert.h>
 # include <stddef.h>
+# include <stdint.h>
 
 # define INTERVAL_TYPE_T        uintptr_t
 # define INTERVAL_DIFF_TYPE_T   ptrdiff_t

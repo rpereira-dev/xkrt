@@ -49,10 +49,7 @@
 static inline void
 xkrt_distribute1D_submit(
     xkrt_runtime_t * runtime,
-    void * ptr, size_t size,
-    size_t bs,
-    size_t h,
-    size_t t,
+    uintptr_t x1, uintptr_t x2,
     xkrt_device_global_id_t device_global_id
 ) {
     xkrt_thread_t * thread = xkrt_thread_t::get_tls();
@@ -71,19 +68,14 @@ xkrt_distribute1D_submit(
     task_dev_info_t * dev = TASK_DEV_INFO(task);
     new (dev) task_dev_info_t(device_global_id, UNSPECIFIED_TASK_ACCESS);
 
-    const uintptr_t p = (const uintptr_t) ptr;
     access_t * accesses = TASK_ACCESSES(task);
-    {
-        const uintptr_t x  = p + t * bs;
-        const uintptr_t x0 = MAX(x-(ssize_t)h, 0);
-        const uintptr_t x1 = MIN(x+bs+h, p+size);
-        new(accesses + 0) access_t(task, x0, x1, ACCESS_MODE_R);
-    }
+    new(accesses + 0) access_t(task, x1, x2, ACCESS_MODE_R);
+
     thread->resolve<AC>(task, accesses);
     # undef AC
 
     #ifndef NDEBUG
-    snprintf(task->label, sizeof(task->label), "distribute_cyclic_1d_async");
+    snprintf(task->label, sizeof(task->label), "distribute1d_async");
     #endif /* NDEBUG */
 
     runtime->task_commit(task);
@@ -133,7 +125,7 @@ xkrt_distribute2D_submit(
     # undef AC
 
     #ifndef NDEBUG
-    snprintf(task->label, sizeof(task->label), "distribute_cyclic_2d_async");
+    snprintf(task->label, sizeof(task->label), "distribute2D_async");
     #endif /* NDEBUG */
 
     runtime->task_commit(task);
@@ -181,20 +173,25 @@ void
 xkrt_distribute1D_async(
     xkrt_runtime_t * runtime,
     xkrt_distribution_type_t type,
-    void * ptr, size_t size,
-    size_t bs,
+    void * ptr, size_t size, size_t chunk_size,
     size_t h
 ) {
     assert(type == XKRT_DISTRIBUTION_TYPE_CYCLIC1D);
+    assert(h < chunk_size);
 
     const int ngpus = runtime->get_ndevices() - 1;
     assert(ngpus);
 
     xkrt_distribution_t d;
-    xkrt_distribution1D_init(&d, type, ngpus, size, bs);
+    xkrt_distribution1D_init(&d, type, ngpus, size, chunk_size);
 
+    const uintptr_t p = (const uintptr_t) ptr;
     for (size_t t = 0; t < d.t; ++t)
-        xkrt_distribute1D_submit(runtime, ptr, size, bs, h, t, xkrt_distribution1D_get(&d, t));
+    {
+        const size_t i = (t == 0)       ?    0 : ((t+0) * chunk_size - h);
+        const size_t j = (t == d.t - 1) ? size : ((t+1) * chunk_size + h);
+        xkrt_distribute1D_submit(runtime, p + i, p + j, xkrt_distribution1D_get(&d, t));
+    }
 }
 
 void
@@ -205,4 +202,36 @@ xkrt_runtime_t::distribute_async(
     size_t h
 ) {
     xkrt_distribute1D_async(this, type, ptr, size, bs, h);
+}
+
+void
+xkrt_distribute1D_array_async(
+    xkrt_runtime_t * runtime,
+    xkrt_distribution_type_t type,
+    void ** ptr, size_t chunk_size,
+    unsigned int n
+) {
+    assert(type == XKRT_DISTRIBUTION_TYPE_CYCLIC1D);
+
+    const int ngpus = runtime->get_ndevices() - 1;
+    assert(ngpus);
+
+    xkrt_distribution_t d;
+    xkrt_distribution1D_init(&d, type, ngpus, n * chunk_size, chunk_size);
+
+    for (size_t t = 0; t < d.t; ++t)
+    {
+        const uintptr_t x1 = (const uintptr_t) ptr[t];
+        const uintptr_t x2 = (const uintptr_t) x1 + chunk_size;
+        xkrt_distribute1D_submit(runtime, x1, x2, xkrt_distribution1D_get(&d, t));
+    }
+}
+
+void
+xkrt_runtime_t::distribute_async(
+    xkrt_distribution_type_t type,
+    void ** ptr, size_t chunk_size,
+    unsigned int n
+) {
+    xkrt_distribute1D_array_async(this, type, ptr, chunk_size, n);
 }
