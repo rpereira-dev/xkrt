@@ -375,6 +375,7 @@ xkrt_device_thread_main(
     assert(device);
     uint8_t device_tid = device->nthreads.fetch_add(1, std::memory_order_relaxed);
     device->threads[device_tid] = thread;
+    thread->device_global_id = device->global_id;
 
     // print thread
     unsigned int cpu, node;

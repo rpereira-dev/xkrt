@@ -437,7 +437,9 @@ submit_task_host(
     xkrt_thread_t * tls = xkrt_thread_t::get_tls();
     assert(tls);
 
-    if (tls->team == NULL)
+    // tls->team == NULL means it come from a user-thread, unknown to kaapi
+    // tls->device_global_id != XKRT_DRIVER_TYPE_HOST means it is a kaapi thread, but not a host thread
+    if (tls->team == NULL || tls->device_global_id != XKRT_DRIVER_TYPE_HOST)
     {
         xkrt_driver_t * driver = runtime->drivers.list[XKRT_DRIVER_TYPE_HOST];
         assert(driver->ndevices_commited == 1);
