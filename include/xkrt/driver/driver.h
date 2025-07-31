@@ -140,6 +140,17 @@ typedef struct  xkrt_driver_t
     int    (*f_memory_host_register)(void * mem, uint64_t size);
     int    (*f_memory_host_unregister)(void * mem, uint64_t size);
 
+    //////////////////////
+    // MEMORY TRANSFERS //
+    //////////////////////
+
+    int (*f_transfer_h2d)(void * dst, void * src, const size_t size);
+    int (*f_transfer_d2h)(void * dst, void * src, const size_t size);
+    int (*f_transfer_d2d)(void * dst, void * src, const size_t size);
+    int (*f_transfer_h2d_async)(xkrt_stream_t * stream, void * dst, void * src, const size_t size);
+    int (*f_transfer_d2h_async)(xkrt_stream_t * stream, void * dst, void * src, const size_t size);
+    int (*f_transfer_d2d_async)(xkrt_stream_t * stream, void * dst, void * src, const size_t size);
+
     ///////////////
     // THREADING //
     ///////////////
