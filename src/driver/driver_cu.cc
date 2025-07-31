@@ -972,6 +972,51 @@ XKRT_DRIVER_ENTRYPOINT(power_stop)(int device_driver_id, xkrt_power_t * pwr)
 
 # endif /* XKRT_SUPPORT_NVML */
 
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_h2d)(void * dst, void * src, const size_t size)
+{
+    CU_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) dst, src, size));
+    return 0;
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_d2h)(void * dst, void * src, const size_t size)
+{
+    CU_SAFE_CALL(cuMemcpyDtoH(dst, (CUdeviceptr) src, size));
+    return 0;
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_d2d)(void * dst, void * src, const size_t size)
+{
+    CU_SAFE_CALL(cuMemcpyDtoD((CUdeviceptr)dst, (CUdeviceptr) src, size));
+    return 0;
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+{
+    xkrt_stream_cu_t * stream = (xkrt_stream_cu_t *) istream;
+    CU_SAFE_CALL(cuMemcpyHtoDAsync((CUdeviceptr) dst, src, size, stream->cu.handle.high));
+    return 0;
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+{
+    xkrt_stream_cu_t * stream = (xkrt_stream_cu_t *) istream;
+    CU_SAFE_CALL(cuMemcpyDtoHAsync(dst, (CUdeviceptr) src, size, stream->cu.handle.high));
+    return 0;
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+{
+    xkrt_stream_cu_t * stream = (xkrt_stream_cu_t *) istream;
+    CU_SAFE_CALL(cuMemcpyDtoDAsync((CUdeviceptr)dst, (CUdeviceptr) src, size, stream->cu.handle.high));
+    return 0;
+}
+
 xkrt_driver_t *
 XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 {
@@ -992,6 +1037,13 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(device_destroy);
 
     REGISTER(device_info);
+
+    REGISTER(transfer_h2d);
+    REGISTER(transfer_d2h);
+    REGISTER(transfer_d2d);
+    REGISTER(transfer_h2d_async);
+    REGISTER(transfer_d2h_async);
+    REGISTER(transfer_d2d_async);
 
     REGISTER(memory_device_info);
     REGISTER(memory_device_allocate);
