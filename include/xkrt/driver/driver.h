@@ -147,9 +147,9 @@ typedef struct  xkrt_driver_t
     int (*f_transfer_h2d)(void * dst, void * src, const size_t size);
     int (*f_transfer_d2h)(void * dst, void * src, const size_t size);
     int (*f_transfer_d2d)(void * dst, void * src, const size_t size);
-    int (*f_transfer_h2d_async)(xkrt_stream_t * stream, void * dst, void * src, const size_t size);
-    int (*f_transfer_d2h_async)(xkrt_stream_t * stream, void * dst, void * src, const size_t size);
-    int (*f_transfer_d2d_async)(xkrt_stream_t * stream, void * dst, void * src, const size_t size);
+    int (*f_transfer_h2d_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream);
+    int (*f_transfer_d2h_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream);
+    int (*f_transfer_d2d_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream);
 
     ///////////////
     // THREADING //
