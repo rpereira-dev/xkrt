@@ -1032,8 +1032,9 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
         // .flags = ZE_HOST_MEM_ALLOC_FLAG_BIAS_INITIAL_PLACEMENT
         // .flags = ZE_HOST_MEM_ALLOC_FLAG_BIAS_CACHED | ZE_HOST_MEM_ALLOC_FLAG_BIAS_INITIAL_PLACEMENT | ZE_HOST_MEM_ALLOC_FLAG_BIAS_WRITE_COMBINED
     };
+    constexpr size_t alignment = 0;
     void * ptr;
-    ZE_SAFE_CALL(zeMemAllocHost(device->ze.context, &host_desc, size, 64, (void **) &ptr));
+    ZE_SAFE_CALL(zeMemAllocHost(device->ze.context, &host_desc, size, alignment, (void **) &ptr));
     return ptr;
 }
 
@@ -1161,6 +1162,48 @@ XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
     return fn;
 }
 
+static inline int
+XKRT_DRIVER_ENTRYPOINT(transfer_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+{
+    xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
+    assert(stream);
+
+    ze_event_handle_t ze_event_handle = nullptr;
+    const uint32_t num_wait_events = 0;
+    ze_event_handle_t * wait_events = NULL;
+
+    ZE_SAFE_CALL(
+        zeCommandListAppendMemoryCopy(
+            stream->ze.command.list,
+            dst,
+            src,
+            size,
+            ze_event_handle,
+            num_wait_events,
+            wait_events
+        )
+    );
+    return 0;
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+{
+    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+{
+    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+{
+    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
+}
+
 //////////////////////////
 // Routine registration //
 //////////////////////////
@@ -1182,8 +1225,17 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(device_init);
     REGISTER(device_commit);
     REGISTER(device_destroy);
-
+    REGISTER(device_cpuset);
     REGISTER(device_info);
+
+    # if 0
+    REGISTER(transfer_h2d);
+    REGISTER(transfer_d2h);
+    REGISTER(transfer_d2d);
+    # endif
+    REGISTER(transfer_h2d_async);
+    REGISTER(transfer_d2h_async);
+    REGISTER(transfer_d2d_async);
 
     REGISTER(memory_device_info);
     REGISTER(memory_device_allocate);
@@ -1194,8 +1246,6 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     // REGISTER(memory_host_unregister);
     // REGISTER(memory_unified_allocate);
     // REGISTER(memory_unified_deallocate);
-
-    REGISTER(device_cpuset);
 
     REGISTER(stream_suggest);
     REGISTER(stream_create);
