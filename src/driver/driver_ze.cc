@@ -541,7 +541,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
     xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
 
     const uint64_t timeout = UINT64_MAX;
-# if 0
+# if 1
     ZE_SAFE_CALL(zeCommandListHostSynchronize(stream->ze.command.list, timeout));
 # else
     LOGGER_FATAL("Not supported");
