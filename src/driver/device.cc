@@ -319,10 +319,14 @@ xkrt_device_t::offloader_init_thread(
         {
             // create a new stream
             all_streams[i] = f_stream_create(this, static_cast<xkrt_stream_type_t>(stype), this->conf->offloader.capacity);
-            assert(all_streams[i]);
+            if (all_streams[i] == NULL)
+            {
+                this->count[stype] = j;
+                break ;
+            }
         }
     }
-    assert(i == this->nstreams_per_thread);
+    assert(i <= this->nstreams_per_thread);
 }
 
 bool
@@ -474,7 +478,7 @@ xkrt_device_t::offloader_stream_instruction_new(
 
 void
 xkrt_device_t::offloader_stream_instruction_submit_kernel(
-    void (*launch)(void * istream, void * instr, xkrt_stream_instruction_counter_t idx),
+    xkrt_kernel_launcher_t launch,
     void * vargs,
     const xkrt_callback_t & callback
 ) {
@@ -496,8 +500,8 @@ xkrt_device_t::offloader_stream_instruction_submit_kernel(
     assert(stream->is_locked());
 
     /* create a new kernel instruction */
-    instr->kern.launch = launch;
-    instr->kern.vargs = vargs;
+    instr->kern.launch  = (void (*)()) launch;
+    instr->kern.vargs   = vargs;
 
     this->offloader_stream_instruction_commit(thread, stream, instr);
 }

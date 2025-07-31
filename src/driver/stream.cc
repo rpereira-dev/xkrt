@@ -211,7 +211,7 @@ xkrt_stream_t::launch_ready_instructions(void)
             case (XKRT_STREAM_INSTR_TYPE_KERN):
             {
                 err = EINPROGRESS;
-                instr->kern.launch(this, instr, p);
+                ((xkrt_kernel_launcher_t) instr->kern.launch)(this, instr, p);
                 break ;
             }
 

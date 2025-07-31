@@ -151,6 +151,13 @@ __parse_p2p(xkrt_conf_t * conf, char const * value)
 }
 
 static void
+__parse_warmup(xkrt_conf_t * conf, char const * value)
+{
+    if (value)
+        conf->warmup = (bool) atoi(value);
+}
+
+static void
 __parse_drivers(xkrt_conf_t * conf, char const * value)
 {
     if (value)
@@ -241,6 +248,7 @@ static xkrt_conf_parse_t CONF_PARSE[] = {
     {"XKAAPI_PRECISION",                        NULL,                       NULL},
     {"XKAAPI_STATS",                            __parse_stats,              "Boolean to dump stats on deinit"},
     {"XKAAPI_USE_P2P",                          __parse_p2p,                "Boolean to enable/disable the use of p2p transfers"},
+    {"XKAAPI_WARMUP",                           __parse_warmup,             "Boolean to enable/disable threads/devices warmup on runtime initialization"},
     {"XKAAPI_VERBOSE",                          __parse_verbose,            "Verbosity level (the higher the most)"},
     {NULL, NULL, NULL}
 };
@@ -307,6 +315,7 @@ xkrt_init_conf(xkrt_conf_t * conf)
     conf->merge_transfers                       = false;
     conf->protect_registered_memory_overflow    = true;
     conf->enable_prefetching                    = false;
+    conf->warmup                                = false;
 
     //////////////////
     // drivers conf //

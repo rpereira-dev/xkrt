@@ -43,8 +43,9 @@ CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE
 - `XKAAPI_HELP=1` - displays available environment variables.
 
 # Directions for improvements
+- Rework interface for distributions - so it is an abstract object that may be passed to various constructs - look at what PGAS do
 - Add explicit/synchronous driver interfaces, to allow users to bypas event/polling/coherency/tasking. Particularly for OpenMP blocking constructs
-- Add a memory coherency controller for 'point' accesses, to retrieve original xkblas/kaapi behavior
+- Add a memory coherency controller for 'point' accesses, to retrieve original xkblas/kaapi behavior - that is a decentralized and paged-base coherency protocol
 - Tasks are currently only deleted all-at-once on `invalidate` calls.
 - Stuff from `xkrt-init` could be moved for lazier initializations
 - Add support for blas compact symetric matrices

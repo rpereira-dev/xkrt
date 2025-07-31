@@ -507,20 +507,20 @@ typedef struct  xkrt_runtime_t
     /* get number of commited devices */
     unsigned int get_ndevices(void);
 
-     # if XKRT_SUPPORT_STATS
-     struct {
-         struct {
-             stats_int_t submitted;
-             stats_int_t commited;
-             stats_int_t completed;
-         } tasks[TASK_FORMAT_MAX];
+    # if XKRT_SUPPORT_STATS
+    struct {
+        struct {
+            stats_int_t submitted;
+            stats_int_t commited;
+            stats_int_t completed;
+        } tasks[TASK_FORMAT_MAX];
 
-         struct {
-             stats_int_t registered;
-             stats_int_t unregistered;
-         } memory;
-     } stats;
-     # endif /* XKRT_SUPPORT_STATS */
+        struct {
+            stats_int_t registered;
+            stats_int_t unregistered;
+        } memory;
+    } stats;
+    # endif /* XKRT_SUPPORT_STATS */
 
 }               xkrt_runtime_t;
 

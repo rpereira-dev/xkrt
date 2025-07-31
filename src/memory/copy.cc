@@ -92,8 +92,6 @@ body_memory_copy(task_t * task)
 /**
  *  Create a detachable task to be scheduled onto a thread of the device 'device_global_id'.
  *  The task will intiate the copy
- *  TODO: instead of creating a task, maybe simply submit the instruction
- *  taking to the stream of one of the two devices
  */
 extern "C"
 void

@@ -59,9 +59,14 @@ convert_bool(USE_ZE_SYCL_INTEROP)
 convert_bool(USE_MEMORY_REGISTER_OVERFLOW_PROTECTION)
 convert_bool(USE_SHUT_UP)
 
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/include/xkrt")
 configure_file(
     ${CMAKE_SOURCE_DIR}/include/xkrt/support.h.in
-    ${CMAKE_SOURCE_DIR}/include/xkrt/support.h
+    ${CMAKE_BINARY_DIR}/include/xkrt/support.h
+)
+install(
+    FILES "${CMAKE_BINARY_DIR}/include/xkrt/support.h"
+    DESTINATION include/xkrt
 )
 
 # XKRT version and supports
@@ -115,12 +120,13 @@ set_target_properties(${XKRT} PROPERTIES BUILD_RPATH "${CMAKE_SOURCE_DIR}/lib")
 set_target_properties(${XKRT} PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
 
 # Include directory
-include_directories(include/)
-include_directories(src/)
+include_directories(${CMAKE_SOURCE_DIR}/include/)
+include_directories(${CMAKE_BINARY_DIR}/include/)
+include_directories(${CMAKE_SOURCE_DIR}/src/)
 
 # Installation
 install(TARGETS ${XKRT} LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include FILES_MATCHING PATTERN "*.h*")
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
 
 ###############
 # DEPENDENCES #

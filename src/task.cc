@@ -314,7 +314,7 @@ xkrt_device_task_execute(
 
                     /* submit kernel launch instruction */
                     device->offloader_stream_instruction_submit_kernel(
-                        (void (*)(void *, void *, xkrt_stream_instruction_counter_t)) format->f[targetfmt],
+                        (xkrt_kernel_launcher_t) format->f[targetfmt],
                         task,
                         callback
                     );

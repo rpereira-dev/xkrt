@@ -105,6 +105,9 @@ typedef struct  xkrt_conf_s
      * transfer now */
     bool enable_prefetching;
 
+    /* to warmup threads/devices on init (touch memory pages, allocate device memory...) */
+    bool warmup;
+
 }               xkrt_conf_t;
 
 void xkrt_init_conf(xkrt_conf_t * conf);

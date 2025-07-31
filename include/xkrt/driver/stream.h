@@ -192,4 +192,11 @@ void xkrt_stream_init(
 
 void xkrt_stream_deinit(xkrt_stream_t * stream);
 
+/* routine to launch a kernel from a thread */
+typedef void (*xkrt_kernel_launcher_t)(
+    xkrt_stream_t * istream,
+    xkrt_stream_instruction_t * instr,
+    xkrt_stream_instruction_counter_t idx
+);
+
 #endif /* __STREAM_HPP__ */

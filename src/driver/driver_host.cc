@@ -392,6 +392,8 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     (void)type;
     (void)capacity;
 
+    if (type != XKRT_STREAM_TYPE_FD_READ && type != XKRT_STREAM_TYPE_FD_WRITE)
+        return NULL;
     assert(type == XKRT_STREAM_TYPE_FD_READ || type == XKRT_STREAM_TYPE_FD_WRITE);
 
     uint8_t * mem = (uint8_t *) malloc(sizeof(xkrt_stream_host_t));

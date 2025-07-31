@@ -173,7 +173,9 @@ void
 xkrt_distribute1D_async(
     xkrt_runtime_t * runtime,
     xkrt_distribution_type_t type,
-    void * ptr, size_t size, size_t chunk_size,
+    void * ptr,
+    size_t size,
+    size_t chunk_size,
     size_t h
 ) {
     assert(type == XKRT_DISTRIBUTION_TYPE_CYCLIC1D);
@@ -197,7 +199,8 @@ xkrt_distribute1D_async(
 void
 xkrt_runtime_t::distribute_async(
     xkrt_distribution_type_t type,
-    void * ptr, size_t size,
+    void * ptr,
+    size_t size,
     size_t bs,
     size_t h
 ) {
@@ -208,7 +211,8 @@ void
 xkrt_distribute1D_array_async(
     xkrt_runtime_t * runtime,
     xkrt_distribution_type_t type,
-    void ** ptr, size_t chunk_size,
+    void ** ptr,
+    size_t chunk_size,
     unsigned int n
 ) {
     assert(type == XKRT_DISTRIBUTION_TYPE_CYCLIC1D);
@@ -230,7 +234,8 @@ xkrt_distribute1D_array_async(
 void
 xkrt_runtime_t::distribute_async(
     xkrt_distribution_type_t type,
-    void ** ptr, size_t chunk_size,
+    void ** ptr,
+    size_t chunk_size,
     unsigned int n
 ) {
     xkrt_distribute1D_array_async(this, type, ptr, chunk_size, n);

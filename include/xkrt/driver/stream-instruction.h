@@ -74,7 +74,9 @@ typedef struct  xkrt_stream_instruction_copy_2D_t
 /* kernel : to launch kernel on the device */
 typedef struct  xkrt_stream_instruction_kernel_t
 {
-    void (*launch)(void * istream, void * instr, xkrt_stream_instruction_counter_t idx);
+    // arguments are:
+    //   xkrt_stream_t * istream, xkrt_stream_instruction * instr, xkrt_stream_instruction_counter_t idx)
+    void (*launch)();
     void * vargs;
 }               xkrt_stream_instruction_kernel_t;
 

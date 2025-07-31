@@ -76,30 +76,40 @@ xkrt_drivers_init(xkrt_runtime_t * runtime)
     static_assert(XKRT_DRIVER_TYPE_HOST == 0);
     static_assert(HOST_DEVICE_GLOBAL_ID == 0);
 
+    char support[512];
+    strcpy(support, "host");
+
 # if XKRT_SUPPORT_CUDA
     extern xkrt_driver_t * XKRT_DRIVER_TYPE_CU_create_driver(void);
     creators[XKRT_DRIVER_TYPE_CUDA] = XKRT_DRIVER_TYPE_CU_create_driver;
+    strcat(support, ", cuda");
 # endif /* XKRT_SUPPORT_CUDA */
 
 # if XKRT_SUPPORT_ZE
     extern xkrt_driver_t * XKRT_DRIVER_TYPE_ZE_create_driver(void);
     creators[XKRT_DRIVER_TYPE_ZE] = XKRT_DRIVER_TYPE_ZE_create_driver;
+    strcat(support, ", ze");
 # endif /* XKRT_SUPPORT_ZE */
 
 # if XKRT_SUPPORT_CL
     extern xkrt_driver_t * XKRT_DRIVER_TYPE_CL_create_driver(void);
     creators[XKRT_DRIVER_TYPE_CL] = XKRT_DRIVER_TYPE_CL_create_driver;
+    strcat(support, ", opencl");
 # endif /* XKRT_SUPPORT_CL */
 
 # if XKRT_SUPPORT_HIP
     extern xkrt_driver_t * XKRT_DRIVER_TYPE_HIP_create_driver(void);
     creators[XKRT_DRIVER_TYPE_HIP] = XKRT_DRIVER_TYPE_HIP_create_driver;
+    strcat(support, ", hip");
 # endif /* XKRT_SUPPORT_HIP */
 
 # if XKRT_SUPPORT_SYCL
     extern xkrt_driver_t * XKRT_DRIVER_TYPE_SYCL_create_driver(void);
     creators[XKRT_DRIVER_TYPE_SYCL] = XKRT_DRIVER_TYPE_SYCL_create_driver;
+    strcat(support, ", sycl");
 # endif /* XKRT_SUPPORT_SYCL */
+
+    LOGGER_INFO("Built with support for `%s`", support);
 
     // number of devices
     uint8_t ndevices = 0;

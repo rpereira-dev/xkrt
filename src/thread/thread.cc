@@ -261,6 +261,10 @@ team_create_recursive(void * vargs)
         // launch routine
         thread->state = XKRT_THREAD_INITIALIZED;
 
+        // warmup thread if conf says so
+        if (args->runtime->conf.warmup)
+            thread->warmup();
+
         // starts
         void * r = args->team->desc.routine(team, thread);
 
