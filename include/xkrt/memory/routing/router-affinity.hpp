@@ -3,7 +3,7 @@
 /*   router-affinity.hpp                                          .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/03 18:04:34 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/03 00:28:58 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -42,7 +42,7 @@ class RouterAffinity : public Router
         get_source(
             const xkrt_device_global_id_t dst,
             const xkrt_device_global_id_bitfield_t valid
-        ) const {
+        ) const override {
 
             /* fast way out: valid on that device already */
             if (valid & (1 << dst))

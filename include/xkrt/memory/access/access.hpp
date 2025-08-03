@@ -186,11 +186,14 @@ matrix_from_rects(
 }
 
 /* rects must have at least a capacity of 2x Rect */
+template <int NRECTS>
 static inline void
 matrix_to_rects(
     matrix_tile_t & mat,
-    Rect (& rects) []
+    Rect (& rects) [NRECTS]
 ) {
+    static_assert(NRECTS >= 2);
+
     const size_t  A = mat.begin_addr();
     const size_t ld = mat.ld;
     const size_t  m = mat.m;

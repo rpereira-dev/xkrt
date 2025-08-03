@@ -182,8 +182,7 @@ typedef struct  task_dep_info_t
 
 }               task_dep_info_t;
 
-/* detachable counter, share with 'task_dep_info_t' if the task is both
- * DEPENDENT and DETACHABLE */
+/* detachable counter, shared with 'task_dep_info_t' if the task is both DEPENDENT and DETACHABLE */
 typedef struct  task_det_info_t
 {
     task_wait_counter_t wc;
