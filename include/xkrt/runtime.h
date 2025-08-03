@@ -262,8 +262,11 @@ typedef struct  xkrt_runtime_t
      * completed. The task will be pushed to a device team */
     void task_commit(task_t * task);
 
-    /* Notify once a detachable task */
-    void task_detachable_post(task_t * task);
+    /* Decrease the ref counter of a detachable task, and complete it if it reaches 0 */
+    void task_detachable_decr(task_t * task);
+
+    /* Increase the ref counter of a detachable task */
+    void task_detachable_incr(task_t * task);
 
     /* Complete a task */
     void task_complete(task_t * task);

@@ -65,7 +65,7 @@ body_memory_copy_callback(const void * vargs [XKRT_CALLBACK_ARGS_MAX])
     assert(task);
 
     copy_args_t * args = (copy_args_t *) TASK_ARGS(task);
-    args->runtime->task_detachable_post(task);
+    args->runtime->task_detachable_decr(task);
 }
 
 static void
@@ -112,7 +112,7 @@ xkrt_memory_copy_async(
     constexpr size_t args_size = sizeof(copy_args_t);
 
     task_t * task = thread->allocate_task(task_size + args_size);
-    new(task) task_t(runtime->formats.copy_async, flags);
+    new (task) task_t(runtime->formats.copy_async, flags);
 
     task_dev_info_t * dev = TASK_DEV_INFO(task);
     new (dev) task_dev_info_t(device_global_id, UNSPECIFIED_TASK_ACCESS);
@@ -133,6 +133,7 @@ xkrt_memory_copy_async(
     snprintf(task->label, sizeof(task->label), "copy");
     # endif /* NDEBUG */
 
+    runtime->task_detachable_incr(task);
     runtime->task_commit(task);
 }
 

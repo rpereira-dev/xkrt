@@ -116,7 +116,7 @@ __task_complete(
     {
         assert(
             ((task->flags & TASK_FLAG_DEPENDENT)  && (TASK_DEP_INFO(task)->wc.load() == 0)) ||
-            ((task->flags & TASK_FLAG_DETACHABLE) && (TASK_DET_INFO(task)->wc.load() == 2))
+            ((task->flags & TASK_FLAG_DETACHABLE) && (TASK_DET_INFO(task)->wc.load() == 0))
         );
     }
 
@@ -189,17 +189,29 @@ __task_complete(
     XKRT_STATS_INCR(runtime->stats.tasks[task->fmtid].completed, 1);
 }
 
-/* decrease detachable ref counter by 1, and call F(..., succ) foreach task
- * 'succ' that became ready */
+/* decrease detachable ref counter by 1, and complete the task if it reached 0 */
+template <int N>
 static inline void
-__task_detachable_post(
+__task_detachable_decr(
     xkrt_runtime_t * runtime,
     task_t * task
 ) {
     assert(task->flags & TASK_FLAG_DETACHABLE);
     task_det_info_t * det = TASK_DET_INFO(task);
-    if (det->wc.fetch_add(1, std::memory_order_relaxed) == 1)
+    if (det->wc.fetch_sub(N, std::memory_order_relaxed) == N)
         __task_complete(runtime, task);
+}
+
+/* increase detachable ref counter by 1 */
+template <int N>
+static inline void
+__task_detachable_incr(
+    xkrt_runtime_t * runtime,
+    task_t * task
+) {
+    assert(task->flags & TASK_FLAG_DETACHABLE);
+    task_det_info_t * det = TASK_DET_INFO(task);
+    det->wc.fetch_add(N, std::memory_order_relaxed);
 }
 
 /* transition the task to the state 'executed' - and eventually to 'completed' or 'detached' */
@@ -209,7 +221,7 @@ __task_executed(
     task_t * task
 ) {
     if (task->flags & TASK_FLAG_DETACHABLE)
-        __task_detachable_post(runtime, task);
+        __task_detachable_decr<0>(runtime, task);
     else
         __task_complete(runtime, task);
 }
@@ -358,11 +370,21 @@ xkrt_runtime_t::task_commit(task_t * task)
 }
 
 void
-xkrt_runtime_t::task_detachable_post(task_t * task)
+xkrt_runtime_t::task_detachable_decr(task_t * task)
 {
     assert(task);
     assert(task->flags & TASK_FLAG_DETACHABLE);
-    __task_detachable_post(this, task);
+    assert(task->state.value != TASK_STATE_COMPLETED);
+    __task_detachable_decr<1>(this, task);
+}
+
+void
+xkrt_runtime_t::task_detachable_incr(task_t * task)
+{
+    assert(task);
+    assert(task->flags & TASK_FLAG_DETACHABLE);
+    assert(task->state.value != TASK_STATE_COMPLETED);
+    __task_detachable_incr<1>(this, task);
 }
 
 void
