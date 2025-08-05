@@ -90,28 +90,28 @@ static void
 __parse_nstreams_h2d(xkrt_conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_H2D].n = (uint8_t) MAX(atoi(value), 1);
+        conf->device.offloader.streams[XKRT_STREAM_TYPE_H2D].n = (uint8_t) MAX(atoi(value), 0);
 }
 
 static void
 __parse_nstreams_d2h(xkrt_conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_D2H].n = (uint8_t) MAX(atoi(value), 1);
+        conf->device.offloader.streams[XKRT_STREAM_TYPE_D2H].n = (uint8_t) MAX(atoi(value), 0);
 }
 
 static void
 __parse_nstreams_d2d(xkrt_conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_D2D].n = (uint8_t) MAX(atoi(value), 1);
+        conf->device.offloader.streams[XKRT_STREAM_TYPE_D2D].n = (uint8_t) MAX(atoi(value), 0);
 }
 
 static void
 __parse_nstreams_kern(xkrt_conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_KERN].n = (uint8_t) MAX(atoi(value), 1);
+        conf->device.offloader.streams[XKRT_STREAM_TYPE_KERN].n = (uint8_t) MAX(atoi(value), 0);
 }
 
 static void
@@ -183,7 +183,7 @@ __parse_drivers(xkrt_conf_t * conf, char const * value)
             assert(nthreads_str);
 
             int nthreads = atoi(nthreads_str);
-            assert(nthreads);
+            assert(nthreads > 0);
 
             if (nthreads > XKRT_MAX_THREADS_PER_DEVICE)
                 LOGGER_FATAL("Requested too many threads for driver `%s`. Reduce the number of thread, or increase `XKRT_MAX_THREADS_PER_DEVICE` and recompile", driver_name);

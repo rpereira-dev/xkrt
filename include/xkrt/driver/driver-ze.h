@@ -155,7 +155,6 @@ typedef struct  xkrt_stream_ze_t
 typedef struct  xkrt_driver_ze_t
 {
     xkrt_driver_t super;
-
 }               xkrt_driver_ze_t;
 
 #endif /* __DRIVER_ZE_H__ */

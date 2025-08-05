@@ -86,6 +86,15 @@ static ze_context_handle_t  ze_contextes[XKRT_ZE_MAX_DRIVERS];
 static ze_device_handle_t   ze_devices[XKRT_ZE_MAX_DRIVERS][XKRT_DEVICES_MAX];
 static uint32_t             ze_n_devices[XKRT_ZE_MAX_DRIVERS];
 
+// default driver to use, in case several driver exists and the API does not allow to pick one
+# define ZE_DEFAULT_DRIVER_ID 0
+
+// extensions
+struct {
+    ze_result_t (*zexDriverImportExternalPointer)(ze_driver_handle_t hDriver, void *ptr, size_t size);
+    ze_result_t (*zexDriverReleaseImportedPointer)(ze_driver_handle_t hDriver, void *ptr);
+} ext[XKRT_ZE_MAX_DRIVERS];
+
 # if XKRT_SUPPORT_ZES
 // ze sysman
 static uint32_t                 zes_n_drivers;
@@ -213,11 +222,15 @@ XKRT_DRIVER_ENTRYPOINT(init)(
         // get the driver
         ze_driver_handle_t ze_driver = ze_drivers[ze_driver_id];
 
+        // get extensions - https://fossies.org/linux/mvapich/modules/libfabric/prov/psm3/psm3/psm_user.h
+        ZE_SAFE_CALL(zeDriverGetExtensionFunctionAddress(ze_driver, "zexDriverImportExternalPointer", (void **) &ext[ze_driver_id].zexDriverImportExternalPointer));
+        ZE_SAFE_CALL(zeDriverGetExtensionFunctionAddress(ze_driver, "zexDriverReleaseImportedPointer", (void **) &ext[ze_driver_id].zexDriverReleaseImportedPointer));
+
         // Create context for driver
         ze_context_desc_t ze_context_desc = {
             .stype = ZE_STRUCTURE_TYPE_CONTEXT_DESC,
             .pNext = NULL,
-            .flags = ZE_CONTEXT_FLAG_TBD
+            .flags = 0 // ZE_CONTEXT_FLAG_TBD
         };
         ZE_SAFE_CALL(zeContextCreate(ze_driver, &ze_context_desc, ze_contextes + ze_driver_id));
 
@@ -358,8 +371,10 @@ XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * sch
 }
 
 static xkrt_device_t *
-XKRT_DRIVER_ENTRYPOINT(device_create)(xkrt_driver_t * driver, int device_driver_id)
-{
+XKRT_DRIVER_ENTRYPOINT(device_create)(
+    xkrt_driver_t * driver,
+    int device_driver_id
+) {
     (void) driver;
     assert(device_driver_id >= 0 && device_driver_id < XKRT_DEVICES_MAX);
 
@@ -762,7 +777,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
         .index      = index,
         .flags      = ZE_COMMAND_QUEUE_FLAG_EXPLICIT_ONLY,
         .mode       = ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS,
-        .priority   = ZE_COMMAND_QUEUE_PRIORITY_PRIORITY_LOW
+        .priority   = ZE_COMMAND_QUEUE_PRIORITY_NORMAL // ZE_COMMAND_QUEUE_PRIORITY_PRIORITY_LOW
     };
     LOGGER_DEBUG("Creating stream of type `%4s` with (ordinal, index) = (%d, %d)", xkrt_stream_type_to_str(type), ordinal, index);
 
@@ -1161,6 +1176,73 @@ XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
     return fn;
 }
 
+static inline int
+XKRT_DRIVER_ENTRYPOINT(transfer_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+{
+    xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
+    assert(stream);
+
+    ze_event_handle_t ze_event_handle = nullptr;
+    const uint32_t num_wait_events = 0;
+    ze_event_handle_t * wait_events = NULL;
+
+    ZE_SAFE_CALL(
+        zeCommandListAppendMemoryCopy(
+            stream->ze.command.list,
+            dst,
+            src,
+            size,
+            ze_event_handle,
+            num_wait_events,
+            wait_events
+        )
+    );
+    return 0;
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+{
+    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+{
+    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+{
+    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
+}
+
+static int
+XKRT_DRIVER_ENTRYPOINT(memory_host_register)(
+    void * ptr,
+    uint64_t size
+) {
+    if (ext[ZE_DEFAULT_DRIVER_ID].zexDriverImportExternalPointer == NULL)
+        LOGGER_FATAL("zexDriverImportExternalPointer is NULL");
+    ZE_SAFE_CALL(ext[ZE_DEFAULT_DRIVER_ID].zexDriverImportExternalPointer(ze_drivers[ZE_DEFAULT_DRIVER_ID], ptr, size));
+    return 0;
+}
+
+static int
+XKRT_DRIVER_ENTRYPOINT(memory_host_unregister)(
+    void * ptr,
+    uint64_t size
+) {
+    if (ext[ZE_DEFAULT_DRIVER_ID].zexDriverReleaseImportedPointer == NULL)
+        LOGGER_FATAL("zexDriverReleaseImportedPointer is NULL");
+    ZE_SAFE_CALL(ext[ZE_DEFAULT_DRIVER_ID].zexDriverReleaseImportedPointer(ze_drivers[ZE_DEFAULT_DRIVER_ID], ptr));
+
+    (void) size;
+
+    return 0;
+}
+
 //////////////////////////
 // Routine registration //
 //////////////////////////
@@ -1190,8 +1272,8 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(memory_device_deallocate);
     REGISTER(memory_host_allocate);
     REGISTER(memory_host_deallocate);
-    // REGISTER(memory_host_register);
-    // REGISTER(memory_host_unregister);
+    REGISTER(memory_host_register);
+    REGISTER(memory_host_unregister);
     // REGISTER(memory_unified_allocate);
     // REGISTER(memory_unified_deallocate);
 

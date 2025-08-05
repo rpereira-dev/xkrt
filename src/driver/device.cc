@@ -288,7 +288,7 @@ xkrt_device_t::offloader_init(
 
     for (int stype = 0 ; stype < XKRT_STREAM_TYPE_ALL ; ++stype)
     {
-        this->count[stype] = (this->conf->offloader.streams[stype].n > 0) ? this->conf->offloader.streams[stype].n : f_stream_suggest ? f_stream_suggest(this->driver_id, (xkrt_stream_type_t) stype) : 4;
+        this->count[stype] = (this->conf->offloader.streams[stype].n >= 0) ? this->conf->offloader.streams[stype].n : f_stream_suggest ? f_stream_suggest(this->driver_id, (xkrt_stream_type_t) stype) : 4;
         this->nstreams_per_thread += this->count[stype];
     }
 }
