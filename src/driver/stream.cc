@@ -298,8 +298,10 @@ xkrt_stream_t::launch_ready_instructions(void)
 
 template <bool set_completed_flag>
 static inline void
-__complete_instruction_internal(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr)
-{
+__complete_instruction_internal(
+    xkrt_stream_t * stream,
+    xkrt_stream_instruction_t * instr
+) {
     assert(instr >= stream->pending.instr);
     assert(instr <  stream->pending.instr + stream->pending.capacity);
 

@@ -59,16 +59,6 @@ convert_bool(USE_ZE_SYCL_INTEROP)
 convert_bool(USE_MEMORY_REGISTER_OVERFLOW_PROTECTION)
 convert_bool(USE_SHUT_UP)
 
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/include/xkrt")
-configure_file(
-    ${CMAKE_SOURCE_DIR}/include/xkrt/support.h.in
-    ${CMAKE_BINARY_DIR}/include/xkrt/support.h
-)
-install(
-    FILES "${CMAKE_BINARY_DIR}/include/xkrt/support.h"
-    DESTINATION include/xkrt
-)
-
 # XKRT version and supports
 add_custom_command(
     OUTPUT  always-run
@@ -124,9 +114,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include/)
 include_directories(${CMAKE_BINARY_DIR}/include/)
 include_directories(${CMAKE_SOURCE_DIR}/src/)
 
-# Installation
-install(TARGETS ${XKRT} LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
+# targets to install (lib)
+set(XKRT_TARGETS ${XKRT})
 
 ###############
 # DEPENDENCES #
@@ -146,7 +135,7 @@ target_link_libraries(${XKRT} PRIVATE ${HWLOC_LIBRARIES})
 add_library(${XKRT}_driver_host SHARED src/driver/driver_host.cc)
 add_dependencies(${XKRT}_driver_host always_generate_files)
 target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_host)
-install(TARGETS ${XKRT}_driver_host LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+list(APPEND XKRT_TARGETS ${XKRT}_driver_host)
 
 # CUDA
 if (USE_CUDA)
@@ -164,7 +153,7 @@ if (USE_CUDA)
     add_dependencies(${XKRT}_driver_cu always_generate_files)
     target_link_libraries(${XKRT}_driver_cu PRIVATE ${HWLOC_LIBRARIES} ${CUDA_DRIVER_LIBRARIES} ${CUDA_RT_LIBRARIES} ${CUBLAS_LIBRARIES})
     target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_cu)
-    install(TARGETS ${XKRT}_driver_cu LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+    list(APPEND XKRT_TARGETS ${XKRT}_driver_cu)
 
 endif()
 
@@ -180,9 +169,8 @@ if (USE_HIP)
     add_library(${XKRT}_driver_hip SHARED src/driver/driver_hip.cc)
     add_dependencies(${XKRT}_driver_hip always_generate_files)
     target_link_libraries(${XKRT}_driver_hip PRIVATE ${HWLOC_LIBRARIES} ${HIP_LIBRARIES} ${HIPBLAS_LIBRARIES})
-    message(STATUS "LIB IS ${HIP_LIBRARIES}")
     target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_hip)
-    install(TARGETS ${XKRT}_driver_hip LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+    list(APPEND XKRT_TARGETS ${XKRT}_driver_hip)
 
 endif()
 
@@ -196,7 +184,7 @@ if (USE_ZE)
     add_dependencies(${XKRT}_driver_ze always_generate_files)
     target_link_libraries(${XKRT}_driver_ze PRIVATE ${HWLOC_LIBRARIES} ${ZE_LIBRARIES})
     target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_ze)
-    install(TARGETS ${XKRT}_driver_ze LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+    list(APPEND XKRT_TARGETS ${XKRT}_driver_ze)
 
 endif()
 
@@ -212,7 +200,7 @@ if (USE_SYCL)
     target_compile_options(${XKRT}_driver_sycl PRIVATE -fsycl)
     add_dependencies(      ${XKRT}_driver_sycl always_generate_files)
     target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_sycl)
-    install(TARGETS ${XKRT}_driver_sycl LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+    list(APPEND XKRT_TARGETS ${XKRT}_driver_sycl)
 endif()
 
 if (USE_ZE_SYCL_INTEROP)
@@ -228,8 +216,7 @@ if (USE_CL)
     add_library(${XKRT}_driver_cl SHARED src/driver/driver_cl.cc)
     add_dependencies(${XKRT}_driver_cl always_generate_files)
     target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_cl ${CL_LIBRARIES})
-    install(TARGETS ${XKRT}_driver_cl LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
-
+    list(APPEND XKRT_TARGETS ${XKRT}_driver_cl)
 endif()
 
 # NVML
@@ -265,6 +252,54 @@ if (STRICT)
         target_compile_options(${XKRT}_driver_cu PRIVATE ${STRICT_OPTIONS})
     endif()
 endif()
+
+################
+# INSTALLATION #
+################
+
+# Header file generated
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/include/xkrt")
+configure_file(
+    ${CMAKE_SOURCE_DIR}/include/xkrt/support.h.in
+    ${CMAKE_BINARY_DIR}/include/xkrt/support.h
+)
+install(
+    FILES "${CMAKE_BINARY_DIR}/include/xkrt/support.h"
+    DESTINATION include/xkrt
+)
+
+# Installation - lib and include files
+install(TARGETS ${XKRT_TARGETS} LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
+
+# Installation - cmake files
+target_include_directories(${XKRT} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+message(STATUS "Targets are ${XKRT_TARGETS}")
+install(TARGETS ${XKRT_TARGETS}
+        EXPORT XKRTTargets
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include)
+install(DIRECTORY include/ DESTINATION include)
+install(EXPORT XKRTTargets
+        FILE XKRTTargets.cmake
+        NAMESPACE XKRT::
+        DESTINATION lib/cmake/XKRT)
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    cmake/XKRTConfig.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/XKRTConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/XKRT
+)
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/XKRTConfig.cmake"
+    DESTINATION lib/cmake/XKRT
+)
 
 ################
 # Sub projects #

@@ -67,7 +67,7 @@ body_file_async_callback(const void * vargs [XKRT_CALLBACK_ARGS_MAX])
     file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
 
     # if 1
-    args->runtime->task_detachable_post(task);
+    args->runtime->task_detachable_decr(task);
     # else
     LOGGER_WARN("TODO: Implement partitioned accesses");
     // if all read/write completed, complete the task
@@ -183,6 +183,7 @@ file_async(
         thread->resolve<1>(task, accesses);
 
         // commit
+        runtime->task_detachable_incr(task);
         runtime->task_commit(task);
     }
 

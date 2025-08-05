@@ -4,6 +4,8 @@ Welcome to the new experimental XKaapi implementation.
 This repository is highly experimental and not yet fully compatible with older XKaapi/XKBlas releases located at http://gitlab.inria.fr/xkblas/versions.
 It is a C++ implementation and interfaces of the XKaapi dataflow and task-based programming model.
 
+Please open any issue at https://github.com/rpereira-dev/xkaapi
+
 # Related Projects
 This repository hosts the XKaapi runtime system.    
 Other repository hosts specialization layers built on top of the runtime:
@@ -22,6 +24,7 @@ Other repository hosts specialization layers built on top of the runtime:
 - Cuda, HIP, Level Zero, SYCL, OpenCL
 - CUBLAS, HIPBLAS, ONEAPI::MKL
 - NVML, RSMI, Level Zero Sysman
+- AML - https://github.com/anlsys/aml
 - Cairo - https://github.com/msteinert/cairo - for debugging purposes, to visualize memory trees
 
 ### Build command example

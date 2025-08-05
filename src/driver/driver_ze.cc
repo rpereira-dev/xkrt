@@ -1047,8 +1047,9 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
         // .flags = ZE_HOST_MEM_ALLOC_FLAG_BIAS_INITIAL_PLACEMENT
         // .flags = ZE_HOST_MEM_ALLOC_FLAG_BIAS_CACHED | ZE_HOST_MEM_ALLOC_FLAG_BIAS_INITIAL_PLACEMENT | ZE_HOST_MEM_ALLOC_FLAG_BIAS_WRITE_COMBINED
     };
+    constexpr size_t alignment = 0;
     void * ptr;
-    ZE_SAFE_CALL(zeMemAllocHost(device->ze.context, &host_desc, size, 64, (void **) &ptr));
+    ZE_SAFE_CALL(zeMemAllocHost(device->ze.context, &host_desc, size, alignment, (void **) &ptr));
     return ptr;
 }
 
@@ -1264,8 +1265,17 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(device_init);
     REGISTER(device_commit);
     REGISTER(device_destroy);
-
+    REGISTER(device_cpuset);
     REGISTER(device_info);
+
+    # if 0
+    REGISTER(transfer_h2d);
+    REGISTER(transfer_d2h);
+    REGISTER(transfer_d2d);
+    # endif
+    REGISTER(transfer_h2d_async);
+    REGISTER(transfer_d2h_async);
+    REGISTER(transfer_d2d_async);
 
     REGISTER(memory_device_info);
     REGISTER(memory_device_allocate);
@@ -1276,8 +1286,6 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(memory_host_unregister);
     // REGISTER(memory_unified_allocate);
     // REGISTER(memory_unified_deallocate);
-
-    REGISTER(device_cpuset);
 
     REGISTER(stream_suggest);
     REGISTER(stream_create);
