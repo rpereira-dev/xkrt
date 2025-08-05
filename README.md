@@ -24,6 +24,7 @@ Other repository hosts specialization layers built on top of the runtime:
 - Cuda, HIP, Level Zero, SYCL, OpenCL
 - CUBLAS, HIPBLAS, ONEAPI::MKL
 - NVML, RSMI, Level Zero Sysman
+- AML - https://github.com/anlsys/aml
 - Cairo - https://github.com/msteinert/cairo - for debugging purposes, to visualize memory trees
 
 ### Build command example
