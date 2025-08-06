@@ -59,7 +59,7 @@ typedef struct  copy_args_t
 }               copy_args_t;
 
 static void
-body_memory_copy_callback(const void * vargs [XKRT_CALLBACK_ARGS_MAX])
+body_memory_copy_callback(void * vargs [XKRT_CALLBACK_ARGS_MAX])
 {
     task_t * task = (task_t *) vargs[0];
     assert(task);

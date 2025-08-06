@@ -42,8 +42,8 @@
 
 typedef struct  xkrt_callback_t
 {
-    void (*func)(const void * [XKRT_CALLBACK_ARGS_MAX]);
-    const void * args[XKRT_CALLBACK_ARGS_MAX];
+    void (*func)(void * [XKRT_CALLBACK_ARGS_MAX]);
+    void * args[XKRT_CALLBACK_ARGS_MAX];
 }               xkrt_callback_t;
 
 # define xkrt_callback_raise(c) (c.func(c.args))

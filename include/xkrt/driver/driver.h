@@ -151,6 +151,25 @@ typedef struct  xkrt_driver_t
     int (*f_transfer_d2h_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream);
     int (*f_transfer_d2d_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream);
 
+    ///////////////////
+    // KERNEL LAUNCH //
+    ///////////////////
+
+    int (*f_kernel_launch)(
+        xkrt_stream_t * istream,                // the stream
+        xkrt_stream_instruction_counter_t idx,  // index of the event associated with the kernel launch
+        const xkrt_driver_module_fn_t * fn,     // the function
+        const unsigned int gx,                  // grid size
+        const unsigned int gy,
+        const unsigned int gz,
+        const unsigned int bx,                  // block dim
+        const unsigned int by,
+        const unsigned int bz,
+        const unsigned int shared_memory_bytes,
+        void * args,
+        const size_t args_size                  // size of args in bytes
+    );
+
     ///////////////
     // THREADING //
     ///////////////

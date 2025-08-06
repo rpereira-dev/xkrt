@@ -228,7 +228,7 @@ __task_executed(
 
 static void
 xkrt_device_task_executed_callback(
-    const void * args[XKRT_CALLBACK_ARGS_MAX]
+    void * args[XKRT_CALLBACK_ARGS_MAX]
 ) {
     xkrt_runtime_t * runtime = (xkrt_runtime_t *) args[0];
     assert(runtime);
