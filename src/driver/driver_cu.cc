@@ -1017,6 +1017,50 @@ XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t 
     return 0;
 }
 
+// kernel launch
+int XKRT_DRIVER_ENTRYPOINT(kernel_launch)(
+    xkrt_stream_t * istream,
+    xkrt_stream_instruction_counter_t idx,
+    const xkrt_driver_module_fn_t * fn,
+    const unsigned int gx,
+    const unsigned int gy,
+    const unsigned int gz,
+    const unsigned int bx,
+    const unsigned int by,
+    const unsigned int bz,
+    const unsigned int shared_memory_bytes,
+    void * args,
+    const size_t args_size
+) {
+    xkrt_stream_cu_t * stream = (xkrt_stream_cu_t *) istream;
+    assert(stream);
+
+    void * conf[] = {
+        CU_LAUNCH_PARAM_BUFFER_POINTER,
+        args,
+        CU_LAUNCH_PARAM_BUFFER_SIZE,
+        (void *) &args_size,
+        CU_LAUNCH_PARAM_END
+    };
+
+    CU_SAFE_CALL(
+        cuLaunchKernel(
+            (CUfunction) fn,
+            gx, gy, gz,
+            bx, by, bz,
+            shared_memory_bytes,
+            stream->cu.handle.high,
+            nullptr,
+            conf
+        )
+    );
+
+    // TODO - sync on event, this is temporary to design itnerfaces
+    cuStreamSynchronize(stream->cu.handle.high);
+
+    return 0;
+}
+
 xkrt_driver_t *
 XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 {
@@ -1044,6 +1088,8 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(transfer_h2d_async);
     REGISTER(transfer_d2h_async);
     REGISTER(transfer_d2d_async);
+
+    REGISTER(kernel_launch);
 
     REGISTER(memory_device_info);
     REGISTER(memory_device_allocate);

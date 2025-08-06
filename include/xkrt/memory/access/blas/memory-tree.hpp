@@ -947,7 +947,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         }
 
         static void
-        fetch_callback(const void * args[XKRT_CALLBACK_ARGS_MAX])
+        fetch_callback(void * args[XKRT_CALLBACK_ARGS_MAX])
         {
             assert(XKRT_CALLBACK_ARGS_MAX >= 4);
 

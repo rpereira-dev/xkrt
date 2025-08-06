@@ -58,7 +58,7 @@ constexpr size_t task_size = task_compute_size(flags, ac);
 constexpr size_t args_size = sizeof(file_args_t);
 
 static void
-body_file_async_callback(const void * vargs [XKRT_CALLBACK_ARGS_MAX])
+body_file_async_callback(void * vargs [XKRT_CALLBACK_ARGS_MAX])
 {
     task_t * task = (task_t *) vargs[0];
     assert(task);
