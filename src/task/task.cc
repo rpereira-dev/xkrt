@@ -82,6 +82,15 @@ task_get_memory_controller(
                     runtime->conf.merge_transfers
                 );
                 dom->mccs.interval = mcc;
+
+                # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+                /* insert regions that represents registered memory segment, to
+                 * enforce the split in multiple copies */
+                if (runtime->conf.protect_registered_memory_overflow)
+                    for (const auto & [ptr, size] : runtime->registered_memory)
+                        ((BLASMemoryTree *) mcc)->registered(ptr, size);
+                # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
                 LOGGER_DEBUG("Created new `ACCESS_TYPE_INTERVAL` memory coherency controller");
             }
             else

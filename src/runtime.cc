@@ -100,9 +100,14 @@ xkrt_init(xkrt_runtime_t * runtime)
 
     # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
     // initialize the registered memory map
-    new (&runtime->registered_memory) std::map<uintptr_t, size_t>();
-    if (!runtime->conf.protect_registered_memory_overflow)
+    if (runtime->conf.protect_registered_memory_overflow)
+    {
+        new (&runtime->registered_memory) std::map<uintptr_t, size_t>();
+    }
+    else
+    {
         LOGGER_WARN("Compiled with `MEMORY_REGISTER_OVERFLOW_PROTECTION` but `XKAAPI_MEMORY_REGISTER_PROTECT_OVERFLOW` environment variable is not set");
+    }
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
     // mark runtime as initialized

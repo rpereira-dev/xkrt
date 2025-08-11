@@ -38,6 +38,7 @@
 
 # include <xkrt/logger/todo.h>
 # include <xkrt/runtime.h>
+# include <xkrt/memory/pageas.h>
 # include <xkrt/memory/access/blas/memory-tree.hpp>
 
 ///////////////////////////////////
@@ -65,6 +66,11 @@ xkrt_memory_register(
     void * ptr,
     size_t size
 ) {
+    # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+    if (runtime->conf.protect_registered_memory_overflow)
+        pageas(ptr, size, (uintptr_t *) &ptr, &size);
+    # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
     for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
     {
         xkrt_driver_t * driver = runtime->driver_get((xkrt_driver_type_t) driver_id);
@@ -77,22 +83,25 @@ xkrt_memory_register(
     }
 
     # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
-    /* save in the registered map, for later accesses */
-    runtime->registered_memory[(uintptr_t)ptr] = size;
-
-    /* notify the current memory coherency controllers that the memory got registered */
-    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
-    assert(tls);
-    assert(tls->current_task);
-
-    task_t * parent = tls->current_task->parent;
-    if (parent && parent->flags & TASK_FLAG_DOMAIN)
+    if (runtime->conf.protect_registered_memory_overflow)
     {
-        task_dom_info_t * dom = TASK_DOM_INFO(parent);
-        assert(dom);
+        /* save in the registered map, for later accesses */
+        runtime->registered_memory[(uintptr_t)ptr] = size;
 
-        for (MemoryCoherencyController * mcc : dom->mccs.blas)
-            ((BLASMemoryTree *)mcc)->registered((uintptr_t)ptr, size);
+        /* notify the current memory coherency controllers that the memory got registered */
+        xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+        assert(tls);
+        assert(tls->current_task);
+
+        task_t * parent = tls->current_task->parent;
+        if (parent && parent->flags & TASK_FLAG_DOMAIN)
+        {
+            task_dom_info_t * dom = TASK_DOM_INFO(parent);
+            assert(dom);
+
+            for (MemoryCoherencyController * mcc : dom->mccs.blas)
+                ((BLASMemoryTree *)mcc)->registered((uintptr_t)ptr, size);
+        }
     }
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
@@ -107,6 +116,11 @@ extern "C"
 int
 xkrt_memory_unregister(xkrt_runtime_t * runtime, void * ptr, size_t size)
 {
+    # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+    if (runtime->conf.protect_registered_memory_overflow)
+        pageas(ptr, size, (uintptr_t *) &ptr, &size);
+    # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
     for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
     {
         xkrt_driver_t * driver = runtime->driver_get((xkrt_driver_type_t) driver_id);
@@ -119,8 +133,11 @@ xkrt_memory_unregister(xkrt_runtime_t * runtime, void * ptr, size_t size)
     }
 
     # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
-    /* remove from the registered map */
-    runtime->registered_memory.erase((uintptr_t)ptr);
+    if (runtime->conf.protect_registered_memory_overflow)
+    {
+        /* remove from the registered map */
+        runtime->registered_memory.erase((uintptr_t)ptr);
+    }
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
     # if XKRT_SUPPORT_STATS

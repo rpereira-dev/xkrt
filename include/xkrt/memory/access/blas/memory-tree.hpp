@@ -2166,10 +2166,14 @@ next_view:
 
             assert(a % pagesize == 0);
             assert(b % pagesize == 0);
+            assert(a        <= p);
+            assert(p + size <= b);
+            assert(a < b);
+            assert(b - a >= size);
 
             static_assert(K == 2);
             Rect rects[3];
-            interval_to_rects(a, b, this->ld, this->sizeof_type, rects);
+            interval_to_rects(a, b-a, this->ld, this->sizeof_type, rects);
 
             /* insert blocks in the tree with the registered bit */
             Search search;
