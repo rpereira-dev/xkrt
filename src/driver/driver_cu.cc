@@ -259,7 +259,8 @@ XKRT_DRIVER_ENTRYPOINT(init)(
         xkrt_device_cu_t * device = device_cu_get(i);
         device->inherited.state = XKRT_DEVICE_STATE_DEALLOCATED;
         CU_SAFE_CALL(cuDeviceGet(&device->cu.device, i));
-        CU_SAFE_CALL(cuCtxCreate(&device->cu.context, 0, device->cu.device));
+        // CU_SAFE_CALL(cuCtxCreate(&device->cu.context, 0, device->cu.device));
+        CU_SAFE_CALL(cuDevicePrimaryCtxRetain(&device->cu.context, device->cu.device));
     }
 
     get_gpu_topo(ndevices, use_p2p);
@@ -1057,6 +1058,7 @@ int XKRT_DRIVER_ENTRYPOINT(kernel_launch)(
 
     // TODO - sync on event, this is temporary to design itnerfaces
     cuStreamSynchronize(stream->cu.handle.high);
+    LOGGER_FATAL("remove the sync");
 
     return 0;
 }
