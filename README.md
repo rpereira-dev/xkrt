@@ -52,5 +52,6 @@ CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE
 - Tasks are currently only deleted all-at-once on `invalidate` calls.
 - Stuff from `xkrt-init` could be moved for lazier initializations
 - Add support for blas compact symetric matrices
+- Add support for GDRCopy in the Cuda Driver (https://developer.nvidia.com/gdrcopy?utm_source=chatgpt.com) - for low overhead transfer using CPUs instead of GPUs DMAs
 - Add support for commutative write, maybe with a priority-heap favoring accesses with different heuristics (the most successors, the most volume of data as successors, etc...)
 - Add support for IA/ML devices (most of them only have high-level Python API, only Graphcore seems to have a good C API, but Graphcore seems to be dying)
