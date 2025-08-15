@@ -1044,21 +1044,28 @@ int XKRT_DRIVER_ENTRYPOINT(kernel_launch)(
         CU_LAUNCH_PARAM_END
     };
 
+    CUstream handle = stream->cu.handle.high;
+
     CU_SAFE_CALL(
         cuLaunchKernel(
             (CUfunction) fn,
             gx, gy, gz,
             bx, by, bz,
             shared_memory_bytes,
-            stream->cu.handle.high,
+            handle,
             nullptr,
             conf
         )
     );
 
+    # if 1
+    CUevent event = stream->cu.events.buffer[idx];
+    CU_SAFE_CALL(cuEventRecord(event, handle));
+    # else
     // TODO - sync on event, this is temporary to design itnerfaces
     cuStreamSynchronize(stream->cu.handle.high);
-    LOGGER_FATAL("remove the sync");
+    LOGGER_ERROR("remove the sync");
+    # endif
 
     return 0;
 }
