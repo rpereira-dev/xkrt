@@ -97,7 +97,7 @@ typedef struct  xkrt_runtime_t
     // PUBLIC INTERFACES //
     //////////////////////////////////////////////////////////////////////////////////////////////
 
-    /* deallocate all memory replicates and tasks */
+    /* deallocate all memory replicas and tasks */
     void reset(void);
 
     ////////////////////
@@ -120,21 +120,17 @@ typedef struct  xkrt_runtime_t
         const xkrt_device_global_id_t   device_global_id,
         const memory_view_t           & host_view,
         const xkrt_device_global_id_t   dst_device_global_id,
-        const memory_replicate_view_t & dst_device_view,
+        const memory_replica_view_t & dst_device_view,
         const xkrt_device_global_id_t   src_device_global_id,
-        const memory_replicate_view_t & src_device_view,
+        const memory_replica_view_t & src_device_view,
         const xkrt_callback_t         & callback
     );
 
-    /* synchronous allocation of a device incoherent replicate */
-    void incoherent_allocate(xkrt_device_global_id_t device_global_id, void * ptr, size_t size);
-    void incoherent_allocate(xkrt_device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
+    ///////////////////////
+    // DATA DISTRIBUTION //
+    ///////////////////////
 
-    /* spawn tasks to make the host replicate coherent */
-    void coherent_async(void * ptr, size_t size);
-    void coherent_async(matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
-
-    /* distribute memory segment across all devices */
+    /* distribute the passed memory segment uniformly and continuously across all devices */
     void distribute_async(
         xkrt_distribution_type_t type,
         void * ptr, size_t size,
@@ -145,7 +141,8 @@ typedef struct  xkrt_runtime_t
     /* distribute array of segment across all devices */
     void distribute_async(
         xkrt_distribution_type_t type,
-        void ** ptr, size_t chunk_size,
+        void ** ptr,
+        size_t chunk_size,
         unsigned int n
     );
 
@@ -204,9 +201,9 @@ typedef struct  xkrt_runtime_t
         }
     }
 
-    ////////////
-    // MEMORY //
-    ////////////
+    ///////////////////////
+    // MEMORY ALLOCATION //
+    ///////////////////////
 
     /* allocate the chunk0 on the device if not allocated already */
     void memory_device_preallocate_ensure(const xkrt_device_global_id_t device_global_id, const int memory_id);
@@ -234,6 +231,22 @@ typedef struct  xkrt_runtime_t
 
     /* deallocate unified memory using the driver of the given device */
     void memory_unified_deallocate(const xkrt_device_global_id_t device_global_id, void * mem, const size_t size);
+
+    ////////////////////////
+    // MEMORY REPLICATION //
+    ////////////////////////
+
+    /* synchronous allocation of a device noncoherent replica */
+    void memory_replicate_noncoherent(xkrt_device_global_id_t device_global_id, void * ptr, size_t size);
+    void memory_replicate_noncoherent(xkrt_device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
+
+    /////////////////////
+    // MEMORY MOVEMENT //
+    /////////////////////
+
+    /* spawn tasks to make the host replica coherent */
+    void memory_host_coherent_async(void * ptr, size_t size);
+    void memory_host_coherent_async(matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
     /////////////////////////
     // MEMORY REGISTRATION //
@@ -406,15 +419,19 @@ typedef struct  xkrt_runtime_t
      * `task_spawn` instead) */
     void task_run(xkrt_team_t * team, xkrt_thread_t * thread, task_t * task);
 
-    ///////////////
-    // THREADING //
-    ///////////////
+    /////////////////////////
+    // THREADING - THREADS //
+    /////////////////////////
 
     /* Retrieve the cpuset of the calling thread */
     static void thread_getaffinity(cpu_set_t & cpuset);
 
     /* Bind the calling thread to the given cpu set */
     static void thread_setaffinity(cpu_set_t & cpuset);
+
+    ///////////////////////
+    // THREADING - TEAMS //
+    ///////////////////////
 
     /* create a new thread team */
     void team_create(xkrt_team_t * team);
@@ -434,6 +451,10 @@ typedef struct  xkrt_runtime_t
 
     /* blocking parallel_for region */
     void team_parallel_for(xkrt_team_t * team, xkrt_team_parallel_for_func_t func);
+
+    /////////////////////////
+    // THREADING - TASKING //
+    /////////////////////////
 
     template <task_access_counter_t ac, bool has_set_accesses, bool has_split_condition>
     inline void
@@ -481,6 +502,10 @@ typedef struct  xkrt_runtime_t
         this->team_task_spawn<0, false, false>(team, nullptr, nullptr, f);
     }
 
+    //////////////////
+    // TEAM - UTILS //
+    //////////////////
+
     /* retrieve the team of thread of the specific driver */
     xkrt_team_t * team_get(const xkrt_driver_type_t type);
 
@@ -511,6 +536,11 @@ typedef struct  xkrt_runtime_t
     unsigned int get_ndevices(void);
 
     # if XKRT_SUPPORT_STATS
+
+    ///////////
+    // STATS //
+    ///////////
+
     struct {
         struct {
             stats_int_t submitted;
@@ -523,6 +553,7 @@ typedef struct  xkrt_runtime_t
             stats_int_t unregistered;
         } memory;
     } stats;
+
     # endif /* XKRT_SUPPORT_STATS */
 
 }               xkrt_runtime_t;
