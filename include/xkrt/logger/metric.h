@@ -40,13 +40,17 @@
 #  include <stddef.h>
 #  include <stdint.h>
 
+#ifdef __cplusplus
 extern "C" {
+# endif /* __cplusplus */
     uint64_t xkrt_get_nanotime(void);
 
     void xkrt_metric_byte(char * buffer, int bufsize, size_t nbytes);
     void xkrt_metric_time(char * buffer, int bufsize, uint64_t ns);
     void xkrt_metric_bandwidth(char * buffer, int bufsize, size_t byte_per_sec);
+#ifdef __cplusplus
 };
+# endif /* __cplusplus */
 
 typedef enum    metric_t
 {

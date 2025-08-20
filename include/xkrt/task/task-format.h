@@ -41,31 +41,6 @@
 # include <atomic>
 # include <stdint.h>
 
-# if 0
-
-enum task_kern_t : uint8_t
-{
-    TASK_KERN_NOOP      = 0,
-
-    TASK_KERN_GEMM      = 1,
-    TASK_KERN_TRSM      = 2,
-    TASK_KERN_COPYSCALE = 3,
-
-    TASK_KERN_MAX       = 4,
-};
-
-enum task_kern_precision_t : uint8_t
-{
-    TASK_KERN_PRECISION_NONE = 0,
-    TASK_KERN_PRECISION_B    = 1,    /* byte */
-    TASK_KERN_PRECISION_S    = 2,    /* float */
-    TASK_KERN_PRECISION_C    = 3,    /* float complex */
-    TASK_KERN_PRECISION_D    = 4,    /* double */
-    TASK_KERN_PRECISION_Z    = 5,    /* double complex */
-};
-
-# endif
-
 typedef enum    task_format_target_t : uint8_t
 {
     TASK_FORMAT_TARGET_HOST  = 0,
