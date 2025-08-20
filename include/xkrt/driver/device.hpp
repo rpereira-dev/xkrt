@@ -193,11 +193,18 @@ typedef struct  xkrt_device_t
         xkrt_stream_t * (*f_stream_create)(xkrt_device_t * device, xkrt_stream_type_t type, xkrt_stream_instruction_counter_t capacity)
     );
 
-    /* poll the device for launching and progressing pending instructions in every streams */
-    int offloader_poll(uint8_t device_tid);
+    /* launch ready instructions in every streams */
+    int offloader_launch(uint8_t device_tid);
 
-    /* return true if the the streams for the given type are all empty */
-    bool offloader_streams_are_empty(uint8_t device_id, const xkrt_stream_type_t stype) const;
+    /* progress pending instructions in every streams */
+    int offloader_progress(uint8_t device_tid);
+
+    /* progress pending instructions in every streams */
+    int offloader_wait_random_instruction(uint8_t device_tid);
+
+    /* set 'ready' and 'pending' to false whether there is ready/pending
+     * instructions in the streams of the given type */
+    void offloader_streams_are_empty(uint8_t device_id, const xkrt_stream_type_t stype, bool * ready, bool * pending) const;
 
     /* get next stream to use for submitting an instruction for the given type */
     void offloader_stream_next(
@@ -331,7 +338,7 @@ typedef struct  xkrt_device_t
 
         /* assertions */
         # define IS_1D (std::is_same<HOST_VIEW_T, size_t>()        && std::is_same<DEVICE_VIEW_T, uintptr_t>())
-        # define IS_2D (std::is_same<HOST_VIEW_T, memory_view_t>() && std::is_same<DEVICE_VIEW_T, memory_replicate_view_t>())
+        # define IS_2D (std::is_same<HOST_VIEW_T, memory_view_t>() && std::is_same<DEVICE_VIEW_T, memory_replica_view_t>())
         static_assert(IS_1D || IS_2D);
         if constexpr(IS_1D) {
             assert(host_view);

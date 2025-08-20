@@ -140,8 +140,11 @@ class xkrt_stream_t : public Lockable
         /* progrtream instruction */
         int (*f_instructions_progress)(xkrt_stream_t * stream);
 
-        /* wait  instructions completion on a stream */
+        /* wait instructions completion on a stream */
         int (*f_instructions_wait)(xkrt_stream_t * stream);
+
+        /* wait instructions completion on a stream */
+        int (*f_instruction_wait)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx);
 
     public:
 
@@ -187,7 +190,8 @@ void xkrt_stream_init(
     xkrt_stream_instruction_counter_t capacity,
     int (*f_instruction_launch)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx),
     int (*f_instructions_progress)(xkrt_stream_t * stream),
-    int (*f_instructions_wait)(xkrt_stream_t * stream)
+    int (*f_instructions_wait)(xkrt_stream_t * stream),
+    int (*f_instruction_wait)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx)
 );
 
 void xkrt_stream_deinit(xkrt_stream_t * stream);

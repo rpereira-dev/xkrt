@@ -115,7 +115,7 @@ class KMemoryForward {
         xkrt_device_global_id_t device_global_id;
 
         /* the dst view */
-        memory_replicate_view_t device_view;
+        memory_replica_view_t device_view;
 
     public:
 
@@ -124,7 +124,7 @@ class KMemoryForward {
             xkrt_area_chunk_t * chunk,
             const Hyperrect & dst_hyperrect,
             xkrt_device_global_id_t device_global_id,
-            memory_replicate_view_t & device_view
+            memory_replica_view_t & device_view
         ) :
             access(access),
             chunk(chunk),
@@ -149,7 +149,7 @@ class KMemoryReplicateAllocationView {
         xkrt_area_chunk_t * chunk;
 
         /* the address of that view in [allocation, allocation + allocation->size[ */
-        memory_replicate_view_t view;
+        memory_replica_view_t view;
 
         /* awaiting operations */
         struct {
@@ -374,7 +374,7 @@ class KBLASMemoryTreeNodeSearch {
                 memory_allocation_view_id_t dst_allocation_view_id;
 
                 /* dst view */
-                memory_replicate_view_t dst_view;
+                memory_replica_view_t dst_view;
 
                 /* source device */
                 xkrt_device_global_id_t src_device_global_id;
@@ -383,7 +383,7 @@ class KBLASMemoryTreeNodeSearch {
                 memory_allocation_view_id_t src_allocation_view_id;
 
                 /* src view */
-                memory_replicate_view_t src_view;
+                memory_replica_view_t src_view;
 
                 /* the source chunk for that partite */
                 xkrt_area_chunk_t * src_chunk;
@@ -728,7 +728,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             xkrt_device_global_id_t src_device_global_id;
 
             /* src view */
-            memory_replicate_view_t src_view;
+            memory_replica_view_t src_view;
 
             /* mark 'fetched' all the tasks awaiting on that allocation */
             xkrt_area_chunk_t * dst_chunk;
@@ -737,7 +737,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             xkrt_device_global_id_t dst_device_global_id;
 
             /* dst view */
-            memory_replicate_view_t dst_view;
+            memory_replica_view_t dst_view;
 
             /* whether this fetch had been merged, and can therefore be skipped */
             bool merged;
@@ -1041,7 +1041,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                             // the just-fetched 'dst' is the new 'src' - offset it to the begining of the forward view
                             assert(fetch->host_view.begin_addr() <= forward_fetch->host_view.begin_addr());
                             const size_t offset = forward_fetch->host_view.begin_addr() - fetch->host_view.begin_addr();
-                            new (&forward_fetch->src_view) memory_replicate_view_t(fetch->dst_view.addr + offset, fetch->dst_view.ld);
+                            new (&forward_fetch->src_view) memory_replica_view_t(fetch->dst_view.addr + offset, fetch->dst_view.ld);
 
                             // can launch the forward already
                             tree->fetch_list_launch_ith(forward.access, forward_list, i);
@@ -1083,9 +1083,9 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                 /* set the views */
                 memory_view_t host_view;
                 matrix_from_rect(host_view, partite.hyperrect, this->ld, this->sizeof_type);
-                const memory_replicate_view_t host_replicate_view(host_view.begin_addr(), this->ld);
-                const memory_replicate_view_t dst_view = (partite.dst_allocation_view_id == MEMORY_REPLICATE_ALLOCATION_VIEW_NONE) ? host_replicate_view : partite.dst_view;
-                const memory_replicate_view_t src_view = (partite.src_allocation_view_id == MEMORY_REPLICATE_ALLOCATION_VIEW_NONE) ? host_replicate_view : partite.src_view;
+                const memory_replica_view_t host_replica_view(host_view.begin_addr(), this->ld);
+                const memory_replica_view_t dst_view = (partite.dst_allocation_view_id == MEMORY_REPLICATE_ALLOCATION_VIEW_NONE) ? host_replica_view : partite.dst_view;
+                const memory_replica_view_t src_view = (partite.src_allocation_view_id == MEMORY_REPLICATE_ALLOCATION_VIEW_NONE) ? host_replica_view : partite.src_view;
 
                 /* allocate fetch info for the callback argument */
                 fetch_t * fetch = list->prepare_next_fetch();

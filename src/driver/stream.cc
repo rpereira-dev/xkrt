@@ -98,7 +98,8 @@ xkrt_stream_init(
     xkrt_stream_instruction_counter_t capacity,
     int (*f_stream_instruction_launch)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx),
     int (*f_stream_instructions_progress)(xkrt_stream_t * stream),
-    int (*f_stream_instructions_wait)(xkrt_stream_t * stream)
+    int (*f_stream_instructions_wait)(xkrt_stream_t * stream),
+    int (*f_stream_instruction_wait)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx)
 ) {
     stream->type = type;
     stream->spinlock = SPINLOCK_INITIALIZER;
@@ -106,6 +107,7 @@ xkrt_stream_init(
     stream->f_instruction_launch    = f_stream_instruction_launch;
     stream->f_instructions_progress = f_stream_instructions_progress;
     stream->f_instructions_wait     = f_stream_instructions_wait;
+    stream->f_instruction_wait      = f_stream_instruction_wait;
 
     uint8_t * mem = (uint8_t *) malloc(sizeof(xkrt_stream_instruction_t) * capacity * 2);
     assert(mem);
@@ -389,11 +391,4 @@ xkrt_stream_t::progress_pending_instructions(void)
 
     // return err code
     return r;
-}
-
-/* return true if the stream is empty, false otherwise */
-int
-xkrt_stream_t::is_empty(void) const
-{
-    return (this->ready.is_empty() && this->pending.is_empty());
 }

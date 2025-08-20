@@ -291,7 +291,6 @@ typedef struct  xkrt_thread_t
                 while (test())
                 {
                     this->sleep.sleeping = true;
-                    // LOGGER_DEBUG("Sleeping thread");
                     pthread_cond_wait(&this->sleep.cond, &this->sleep.lock);
                 }
             }

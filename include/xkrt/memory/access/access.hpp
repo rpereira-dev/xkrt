@@ -385,7 +385,7 @@ class access_t
         memory_view_t host_view;
 
         /* device view of the access - set after fetching the data */
-        memory_replicate_view_t device_view;
+        memory_replica_view_t device_view;
 
     public:
         /////////////

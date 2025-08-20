@@ -273,7 +273,7 @@ xkrt_incoherent_allocate_2D(
 }
 
 void
-xkrt_runtime_t::incoherent_allocate(
+xkrt_runtime_t::memory_replicate_noncoherent(
     xkrt_device_global_id_t device_global_id,
     void * ptr, size_t size
 ) {
@@ -281,7 +281,7 @@ xkrt_runtime_t::incoherent_allocate(
 }
 
 void
-xkrt_runtime_t::incoherent_allocate(
+xkrt_runtime_t::memory_replicate_noncoherent(
     xkrt_device_global_id_t device_global_id,
     matrix_storage_t storage,
     void * ptr, size_t ld,
@@ -292,14 +292,14 @@ xkrt_runtime_t::incoherent_allocate(
 }
 
 void
-xkrt_runtime_t::coherent_async(
+xkrt_runtime_t::memory_host_coherent_async(
     void * ptr, size_t size
 ) {
     xkrt_coherent1D_async(this, ptr, size);
 }
 
 void
-xkrt_runtime_t::coherent_async(
+xkrt_runtime_t::memory_host_coherent_async(
     matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
