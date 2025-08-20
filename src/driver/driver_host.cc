@@ -329,6 +329,16 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
     return 0;
 }
 
+static inline int
+XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
+    xkrt_stream_t * istream,
+    xkrt_stream_instruction_t * instr,
+    xkrt_stream_instruction_counter_t idx
+) {
+    LOGGER_FATAL("Not supported");
+    return 0;
+}
+
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     xkrt_stream_t * istream
@@ -410,7 +420,8 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
         capacity,
         XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
         XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress),
-        XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)
+        XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait),
+        XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)
     );
 
     /*************************/

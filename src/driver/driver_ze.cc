@@ -554,6 +554,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
     xkrt_stream_t * istream
 ) {
     xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
+    assert(stream);
 
     const uint64_t timeout = UINT64_MAX;
 # if 1
@@ -564,6 +565,22 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
     return 0;
 }
 
+static inline int
+XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
+    xkrt_stream_t * istream,
+    xkrt_stream_instruction_t * instr,
+    xkrt_stream_instruction_counter_t idx
+) {
+    xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
+    assert(stream);
+
+    ze_event_handle_t event = stream->ze.events.list[idx];
+    const uint64_t timeout = UINT64_MAX;
+
+    ZE_SAFE_CALL(zeEventHostSynchronize(event, timeout));
+
+    return 0;
+}
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
@@ -703,7 +720,8 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
         capacity,
         XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
         XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress),
-        XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)
+        XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait),
+        XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)
     );
 
     xkrt_device_ze_t * device = (xkrt_device_ze_t *) idevice;

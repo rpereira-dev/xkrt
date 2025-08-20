@@ -66,8 +66,8 @@ typedef struct  xkrt_stream_instruction_copy_2D_t
     size_t m;
     size_t n;
     size_t sizeof_type;
-    memory_replicate_view_t dst_device_view;
-    memory_replicate_view_t src_device_view;
+    memory_replica_view_t dst_device_view;
+    memory_replica_view_t src_device_view;
 
 }               xkrt_stream_instruction_copy_2D_t;
 

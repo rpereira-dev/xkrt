@@ -329,18 +329,33 @@ xkrt_device_t::offloader_init_thread(
     assert(i <= this->nstreams_per_thread);
 }
 
-bool
+void
 xkrt_device_t::offloader_streams_are_empty(
     uint8_t device_tid,
-    const xkrt_stream_type_t stype
+    const xkrt_stream_type_t stype,
+    bool * ready,
+    bool * pending
 ) const {
+
+    *ready   = false;
+    *pending = false;
+
     unsigned int bgn = (stype == XKRT_STREAM_TYPE_ALL) ?                    0 : stype;
     unsigned int end = (stype == XKRT_STREAM_TYPE_ALL) ? XKRT_STREAM_TYPE_ALL : stype + 1;
+
     for (unsigned int s = bgn ; s < end ; ++s)
+    {
         for (int i = 0 ; i < this->count[s] ; ++i)
-            if (!this->streams[device_tid][s][i]->is_empty())
-                return false;
-    return true;
+        {
+            const xkrt_stream_t * stream = this->streams[device_tid][s][i];
+            if (*ready == false)
+                *ready = stream->ready.is_empty();
+            if (*pending == false)
+                *pending = stream->pending.is_empty();
+            if (*ready && *pending)
+                return ;
+        }
+    }
 }
 
 int
@@ -412,17 +427,68 @@ xkrt_device_t::offloader_stream_next(
 }
 
 int
-xkrt_device_t::offloader_poll(uint8_t device_tid)
+xkrt_device_t::offloader_launch(uint8_t device_tid)
 {
-    int err = 0;
-
-    err = this->offloader_stream_instructions_launch(device_tid, XKRT_STREAM_TYPE_ALL);
-    assert((err == 0) || (err == EINPROGRESS));
-
-    err = this->offloader_stream_instructions_progress<false>(device_tid, XKRT_STREAM_TYPE_ALL);
+    int err = this->offloader_stream_instructions_launch(device_tid, XKRT_STREAM_TYPE_ALL);
     assert((err == 0) || (err == EINPROGRESS));
 
     return err;
+}
+
+int
+xkrt_device_t::offloader_progress(uint8_t device_tid)
+{
+    int err = this->offloader_stream_instructions_progress<false>(device_tid, XKRT_STREAM_TYPE_ALL);
+    assert((err == 0) || (err == EINPROGRESS));
+
+    return err;
+}
+
+int
+xkrt_device_t::offloader_wait_random_instruction(uint8_t device_tid)
+{
+    static unsigned int seed = 0x42;
+
+    // randomly pick a type and a stream
+    static_assert(XKRT_STREAM_TYPE_ALL > 0);
+    unsigned int rtype   = rand_r(&seed);
+    unsigned int rstream = rand_r(&seed);
+    for (unsigned int itype = 0 ; itype < XKRT_STREAM_TYPE_ALL ; ++itype)
+    {
+        unsigned int s = (rtype + itype) % XKRT_STREAM_TYPE_ALL;
+
+        xkrt_stream_t * stream = NULL;
+        for (unsigned int istream = 0 ; istream < this->count[s] ; ++istream)
+        {
+            unsigned int i = (rstream + istream) % this->count[s];
+
+            stream = this->streams[device_tid][s][i];
+            assert(stream);
+
+            if (!stream->pending.is_empty())
+            {
+                const xkrt_stream_instruction_counter_t i = stream->pending.pos.r;
+                assert(i >= 0);
+                assert(i < stream->pending.capacity);
+
+                xkrt_stream_instruction_t * instr = stream->pending.instr + i;
+                assert(instr);
+                assert(!instr->completed);
+
+                assert(stream->f_instruction_wait);
+
+                // waiting on the first event of the randomly elected stream
+                int err = stream->f_instruction_wait(stream, instr, i);
+
+                // calling this to complete events and move queues pointers
+                // but also detect out-of-order completions
+                this->offloader_progress(device_tid);
+
+                return err;
+            }
+        }
+    }
+    return 0;
 }
 
 ////////////////////////////

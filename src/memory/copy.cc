@@ -152,13 +152,13 @@ xkrt_runtime_t::copy(
     const xkrt_device_global_id_t   device_global_id,
     const memory_view_t           & host_view,
     const xkrt_device_global_id_t   dst_device_global_id,
-    const memory_replicate_view_t & dst_device_view,
+    const memory_replica_view_t & dst_device_view,
     const xkrt_device_global_id_t   src_device_global_id,
-    const memory_replicate_view_t & src_device_view,
+    const memory_replica_view_t & src_device_view,
     const xkrt_callback_t         & callback
 ) {
     xkrt_device_t * device = this->device_get(device_global_id);
-    return device->offloader_stream_instruction_submit_copy<memory_view_t, memory_replicate_view_t>(
+    return device->offloader_stream_instruction_submit_copy<memory_view_t, memory_replica_view_t>(
         host_view,
         dst_device_global_id,
         dst_device_view,

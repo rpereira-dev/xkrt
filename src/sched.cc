@@ -250,21 +250,33 @@ xkrt_device_thread_main_loop(
     assert(thread == xkrt_thread_t::get_tls());
 
     task_t * task = NULL;
+    bool ready    = false;
+    bool pending  = false;
 
-    auto test = [&] (void) {
-        if (task)                                                                   return false;
-        if ((task = thread->deque.pop()) != NULL)                                   return false;
-        if (!device->offloader_streams_are_empty(device_tid, XKRT_STREAM_TYPE_ALL)) return false;
-        if (device->state != XKRT_DEVICE_STATE_COMMIT)                              return false;
+    // test whether the thread should be put to sleep, all three conditions must be met:
+    //  - there is no ready tasks
+    //  - there is no pending instructions
+    //  - the device is running
+    auto test = [&] (void)
+    {
+        if (device->state != XKRT_DEVICE_STATE_COMMIT)
+            return false;
+
+        // find a new task or instructions to progress
+        if (task == NULL)
+            task = thread->deque.pop();
+
+        device->offloader_streams_are_empty(device_tid, XKRT_STREAM_TYPE_ALL, &ready, &pending);
+
+        if (task || ready || pending)
+            return false;
+
         return true;
     };
 
     while (device->state == XKRT_DEVICE_STATE_COMMIT)
     {
-        ///////////////////////////////////////////////////////////////////////////////////
-        // sleep until a task or an instruction is ready, or until the runtime must stop
-        ///////////////////////////////////////////////////////////////////////////////////
-
+        // pause the thread as long as the test returns 'true'
         thread->pause(test);
 
         // if the runtime must stop, break
@@ -274,16 +286,37 @@ xkrt_device_thread_main_loop(
             break ;
         }
 
-        // if there is a task, run it
+        // if there is a task ready, launch it
         if (task)
-        {
             __device_prepare_task(runtime, device, task);
-            task = NULL;
+
+        // if there are instructions ready, launch them
+        if (ready)
+        {
+            device->offloader_launch(device_tid);
+            pending = true;
         }
 
-        // is there are instructions to proress, progress them
-        if (!device->offloader_streams_are_empty(device_tid, XKRT_STREAM_TYPE_ALL))
-            device->offloader_poll(device_tid);
+        // if there are pending instructions, progress them
+        if (pending)
+        {
+            // no more tasks to launch
+            // pause the thread until some progress has been made
+            if (task == NULL)
+            {
+                device->offloader_wait_random_instruction(device_tid);
+            }
+            // some task was ready, so maybe there is more.
+            // Just poll events a bit (potentially unlocking more tasks)
+            // and do another trip
+            else
+            {
+                device->offloader_progress(device_tid);
+            }
+        }
+
+        // task had been launched
+        task = NULL;
     }
 
     return EINTR;
