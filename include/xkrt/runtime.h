@@ -97,6 +97,16 @@ typedef struct  xkrt_runtime_t
     // PUBLIC INTERFACES //
     //////////////////////////////////////////////////////////////////////////////////////////////
 
+    ////////////////
+    // Management //
+    ////////////////
+
+    /* initialize the runtime: load drivers and create task formats */
+    int init(void);
+
+    /* deinitialize the runtime */
+    int deinit(void);
+
     /* deallocate all memory replicas and tasks */
     void reset(void);
 

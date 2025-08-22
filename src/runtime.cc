@@ -64,9 +64,8 @@ task_format_register(xkrt_runtime_t * runtime)
     xkrt_file_async_register_format(runtime);
 }
 
-extern "C"
 int
-xkrt_init(xkrt_runtime_t * runtime)
+xkrt_runtime_t::init(void)
 {
     LOGGER_INFO("Initializing XKRT");
 
@@ -81,28 +80,28 @@ xkrt_init(xkrt_runtime_t * runtime)
     xkrt_thread_t::push_tls(thread);
 
     # if XKRT_SUPPORT_STATS
-    memset(&runtime->stats, 0, sizeof(runtime->stats));
+    memset(&this->stats, 0, sizeof(this->stats));
     # endif /* XKRT_SUPPORT_STATS */
 
     // set affinities to 0
-    memset(&runtime->router.affinity, 0, sizeof(runtime->router.affinity));
+    memset(&this->router.affinity, 0, sizeof(this->router.affinity));
 
     // create topology
-    hwloc_topology_init(&runtime->topology);
-    hwloc_topology_load(runtime->topology);
+    hwloc_topology_init(&this->topology);
+    hwloc_topology_load(this->topology);
 
     // load
-    xkrt_init_conf(&(runtime->conf));
-    task_format_register(runtime);
+    xkrt_init_conf(&(this->conf));
+    task_format_register(this);
 
     // the '+1' is to enforce the host device, always
-    xkrt_drivers_init(runtime);
+    xkrt_drivers_init(this);
 
     # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
     // initialize the registered memory map
-    if (runtime->conf.protect_registered_memory_overflow)
+    if (this->conf.protect_registered_memory_overflow)
     {
-        new (&runtime->registered_memory) std::map<uintptr_t, size_t>();
+        new (&this->registered_memory) std::map<uintptr_t, size_t>();
     }
     else
     {
@@ -111,29 +110,41 @@ xkrt_init(xkrt_runtime_t * runtime)
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
     // mark runtime as initialized
-    runtime->state = XKRT_RUNTIME_INITIALIZED;
+    this->state = XKRT_RUNTIME_INITIALIZED;
+
+    return 0;
+}
+
+int
+xkrt_runtime_t::deinit(void)
+{
+    LOGGER_INFO("Deinitializing XKRT");
+    assert(this->state == XKRT_RUNTIME_INITIALIZED);
+
+    # if XKRT_SUPPORT_STATS
+    if (this->conf.report_stats_on_deinit)
+        xkrt_runtime_stats_report(this);
+    # endif /* XKRT_SUPPORT_STATS */
+
+    this->state = XKRT_RUNTIME_DEINITIALIZED;
+    xkrt_drivers_deinit(this);
+    hwloc_topology_destroy(this->topology);
 
     return 0;
 }
 
 extern "C"
 int
+xkrt_init(xkrt_runtime_t * runtime)
+{
+    runtime->init();
+}
+
+extern "C"
+int
 xkrt_deinit(xkrt_runtime_t * runtime)
 {
-    LOGGER_INFO("Deinitializing XKRT");
-    assert(runtime);
-    assert(runtime->state == XKRT_RUNTIME_INITIALIZED);
-
-    # if XKRT_SUPPORT_STATS
-    if (runtime->conf.report_stats_on_deinit)
-        xkrt_runtime_stats_report(runtime);
-    # endif /* XKRT_SUPPORT_STATS */
-
-    runtime->state = XKRT_RUNTIME_DEINITIALIZED;
-    xkrt_drivers_deinit(runtime);
-    hwloc_topology_destroy(runtime->topology);
-
-    return 0;
+    return runtime->deinit();
 }
 
 //////////////////////////////
