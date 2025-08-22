@@ -373,7 +373,6 @@ typedef struct  xkrt_device_t
         xkrt_stream_type_t stype;
         switch(itype)
         {
-            # pragma message(TODO "No H2H streams, do we want one ? Currently using H2D stream for H2H copies")
             case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
             case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
             case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):

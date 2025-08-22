@@ -438,9 +438,6 @@ class access_t
         // INTERVAL ACCESSES CONSTRUCTORS                                   //
         //////////////////////////////////////////////////////////////////////
 
-        // TODO : convert it to a BLAS matrix for now, as the memory coherency
-        // tree is quite hard/heavy to implement and would require significant
-        // code refractoring to mutualize code with a 1D implementation
         access_t(
             task_t * task,
             const uintptr_t a,
@@ -467,6 +464,25 @@ class access_t
             assert(a < b);
             this->type = ACCESS_TYPE_INTERVAL;
         }
+
+        access_t(
+            task_t * task,
+            const void * ptr,
+            const size_t n,
+            const size_t sizeof_type,
+            access_mode_t mode,
+            access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
+            access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
+        ) :
+            access_t(
+                task,
+                ((uintptr_t) ptr) + 0,
+                ((uintptr_t) ptr) + n * sizeof_type,
+                mode,
+                concurrency,
+                scope
+            )
+        {}
 
         //////////////////////////////////////////////////////////////////////
         // BLAS MATRIX ACCESSES CONSTRUCTORS                                //
