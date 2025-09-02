@@ -3,7 +3,7 @@
 /*   task-dependency-interval.cc                                  .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/05/19 00:09:44 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/04 16:36:55 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/23 00:13:37 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -14,13 +14,15 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 # include <xkrt/memory/access/blas/dependency-tree.hpp>
 # include <xkrt/task/task-format.h>
 # include <xkrt/task/task.hpp>
 
 # include <assert.h>
 # include <string.h>
+
+XKRT_NAMESPACE_USE;
 
 static int x = 0;
 
@@ -40,8 +42,8 @@ func(task_t * task)
 int
 main(void)
 {
-    xkrt_runtime_t runtime;
-    assert(xkrt_init(&runtime) == 0);
+    runtime_t runtime;
+    assert(runtime.init() == 0);
 
     // create an empty task format
     task_format_id_t FORMAT;
@@ -53,7 +55,7 @@ main(void)
     }
     assert(FORMAT);
 
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     ////////////////////////////////
@@ -103,10 +105,10 @@ main(void)
     }
 
     // wait
-    assert(xkrt_sync(&runtime) == 0);
+    runtime.task_wait();
 
     // deinit has an implicit taskwait
-    assert(xkrt_deinit(&runtime) == 0);
+    assert(runtime.deinit() == 0);
     assert(x == ntasks);
 
     return 0;

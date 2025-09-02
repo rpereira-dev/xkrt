@@ -60,7 +60,7 @@ typedef struct  device_stats_t
     struct {
         stats_int_t n;
         stats_int_t transfered;
-    } streams[XKRT_STREAM_TYPE_ALL];
+    } streams[STREAM_TYPE_ALL];
 
     struct {
         stats_int_t commited;
@@ -83,7 +83,7 @@ xkrt_runtime_stats_device_agg(device_stats_t * src, device_stats_t * agg)
     agg->memory.allocated.total += src->memory.allocated.total;
     agg->memory.allocated.currently += src->memory.allocated.currently;
 
-    for (int stype = 0 ; stype < XKRT_STREAM_TYPE_ALL ; ++stype)
+    for (int stype = 0 ; stype < STREAM_TYPE_ALL ; ++stype)
     {
         agg->streams[stype].n += src->streams[stype].n;
         agg->streams[stype].transfered += src->streams[stype].transfered;
@@ -128,7 +128,7 @@ xkrt_runtime_stats_device_report(device_stats_t * stats)
     }
 
     LOGGER_WARN("  Streams");
-    for (int stype = 0 ; stype < XKRT_STREAM_TYPE_ALL ; ++stype)
+    for (int stype = 0 ; stype < STREAM_TYPE_ALL ; ++stype)
     {
         # if 0
         xkrt_metric_byte(buffer, sizeof(buffer), stats->streams[stype].transfered.load());
@@ -163,7 +163,7 @@ xkrt_runtime_stats_device_gather(
 
     for (uint8_t device_tid = 0 ; device_tid < device->nthreads ; ++device_tid)
     {
-        for (int stype = 0 ; stype < XKRT_STREAM_TYPE_ALL ; ++stype)
+        for (int stype = 0 ; stype < STREAM_TYPE_ALL ; ++stype)
         {
             for (int stream_id = 0 ; stream_id < device->count[stype] ; ++stream_id)
             {

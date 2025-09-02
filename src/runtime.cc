@@ -50,34 +50,36 @@
 
 # include <hwloc.h>
 
+XKRT_NAMESPACE_BEGIN
+
 //////////////////////////////
 //  Runtime initialization  //
 //////////////////////////////
 
 static inline void
-task_format_register(xkrt_runtime_t * runtime)
+task_format_register(runtime_t * runtime)
 {
     task_formats_init(&(runtime->formats.list));
-    xkrt_memory_copy_async_register_format(runtime);
-    xkrt_task_host_capture_register_format(runtime);
-    xkrt_memory_async_register_format(runtime);
-    xkrt_file_async_register_format(runtime);
+    memory_copy_async_register_format(runtime);
+    task_host_capture_register_format(runtime);
+    memory_async_register_format(runtime);
+    file_async_register_format(runtime);
 }
 
 int
-xkrt_runtime_t::init(void)
+runtime_t::init(void)
 {
     LOGGER_INFO("Initializing XKRT");
 
     // set TLS
-    xkrt_team_t * team = NULL;
+    team_t * team = NULL;
     int tid = 0;
-    xkrt_device_global_id_t device_global_id = HOST_DEVICE_GLOBAL_ID;
-    xkrt_thread_place_t place;
-    xkrt_runtime_t::thread_getaffinity(place);
-    xkrt_thread_t * thread = new xkrt_thread_t(team, tid, pthread_self(), device_global_id, place);
+    device_global_id_t device_global_id = HOST_DEVICE_GLOBAL_ID;
+    thread_place_t place;
+    runtime_t::thread_getaffinity(place);
+    thread_t * thread = new thread_t(team, tid, pthread_self(), device_global_id, place);
     assert(thread);
-    xkrt_thread_t::push_tls(thread);
+    thread_t::push_tls(thread);
 
     # if XKRT_SUPPORT_STATS
     memset(&this->stats, 0, sizeof(this->stats));
@@ -91,11 +93,11 @@ xkrt_runtime_t::init(void)
     hwloc_topology_load(this->topology);
 
     // load
-    xkrt_init_conf(&(this->conf));
+    this->conf.init();
     task_format_register(this);
 
     // the '+1' is to enforce the host device, always
-    xkrt_drivers_init(this);
+    drivers_init(this);
 
     # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
     // initialize the registered memory map
@@ -116,47 +118,19 @@ xkrt_runtime_t::init(void)
 }
 
 int
-xkrt_runtime_t::deinit(void)
+runtime_t::deinit(void)
 {
     LOGGER_INFO("Deinitializing XKRT");
     assert(this->state == XKRT_RUNTIME_INITIALIZED);
 
     # if XKRT_SUPPORT_STATS
     if (this->conf.report_stats_on_deinit)
-        xkrt_runtime_stats_report(this);
+        runtime_stats_report(this);
     # endif /* XKRT_SUPPORT_STATS */
 
     this->state = XKRT_RUNTIME_DEINITIALIZED;
-    xkrt_drivers_deinit(this);
+    drivers_deinit(this);
     hwloc_topology_destroy(this->topology);
-
-    return 0;
-}
-
-extern "C"
-int
-xkrt_init(xkrt_runtime_t * runtime)
-{
-    runtime->init();
-}
-
-extern "C"
-int
-xkrt_deinit(xkrt_runtime_t * runtime)
-{
-    return runtime->deinit();
-}
-
-//////////////////////////////
-//  Runtime synchronize     //
-//////////////////////////////
-
-extern "C"
-int
-xkrt_sync(xkrt_runtime_t * runtime)
-{
-    assert(runtime);
-    runtime->task_wait();
 
     return 0;
 }
@@ -165,27 +139,27 @@ xkrt_sync(xkrt_runtime_t * runtime)
 // UTILITIES //
 ///////////////
 
-extern "C"
-int
-xkrt_get_ndevices_max(xkrt_runtime_t * runtime, int * count)
+unsigned int
+runtime_t::get_ndevices_max(void)
 {
-    assert(count);
-
-    *count = 0;
+    unsigned int count = 1;
     for (int i = 0 ; i < XKRT_DRIVER_TYPE_MAX ; ++i)
     {
         if (i != XKRT_DRIVER_TYPE_HOST)
         {
-            xkrt_driver_t * driver = runtime->driver_get((xkrt_driver_type_t) i);
+            driver_t * driver = this->driver_get((driver_type_t) i);
             if (driver && driver->f_get_ndevices_max)
-                *count += driver->f_get_ndevices_max();
+                count += driver->f_get_ndevices_max();
         }
     }
-    return 0;
+
+    return count;
 }
 
 unsigned int
-xkrt_runtime_t::get_ndevices(void)
+runtime_t::get_ndevices(void)
 {
     return this->drivers.devices.n;
 }
+
+XKRT_NAMESPACE_END

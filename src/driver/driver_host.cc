@@ -71,6 +71,8 @@
 
 # include <linux/io_uring.h>
 
+XKRT_NAMESPACE_BEGIN
+
 static int
 XKRT_DRIVER_ENTRYPOINT(init)(
     unsigned int ndevices,
@@ -130,12 +132,12 @@ XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * sch
     return 0;
 }
 
-static xkrt_device_t *
-XKRT_DRIVER_ENTRYPOINT(device_create)(xkrt_driver_t * driver, int device_driver_id)
+static device_t *
+XKRT_DRIVER_ENTRYPOINT(device_create)(driver_t * driver, int device_driver_id)
 {
     (void) driver;
     assert(device_driver_id == 0);
-    static xkrt_device_t device;
+    static device_t device;
     return &device;
 }
 
@@ -154,7 +156,7 @@ XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
 
 /* Called for each device of the driver once they all have been initialized */
 static int
-XKRT_DRIVER_ENTRYPOINT(device_commit)(int device_driver_id, xkrt_device_global_id_bitfield_t * affinity)
+XKRT_DRIVER_ENTRYPOINT(device_commit)(int device_driver_id, device_global_id_bitfield_t * affinity)
 {
     (void) device_driver_id;
     (void) affinity;
@@ -174,7 +176,7 @@ XKRT_DRIVER_ENTRYPOINT(device_commit)(int device_driver_id, xkrt_device_global_i
 
 /** see : https://man7.org/linux/man-pages/man7/io_uring.7.html */
 static inline void
-XKRT_DRIVER_ENTRYPOINT(io_uring_init)(xkrt_stream_host_t * stream)
+XKRT_DRIVER_ENTRYPOINT(io_uring_init)(stream_host_t * stream)
 {
     // TODO: what is this ?
     # define QUEUE_DEPTH 1
@@ -240,9 +242,9 @@ XKRT_DRIVER_ENTRYPOINT(io_uring_init)(xkrt_stream_host_t * stream)
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
-    xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+    stream_t * istream,
+    stream_instruction_t * instr,
+    stream_instruction_counter_t idx
 ) {
     (void) istream;
     (void) idx;
@@ -250,7 +252,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
     assert(instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ ||
             instr->type == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
 
-    xkrt_stream_host_t * stream = (xkrt_stream_host_t *) istream;
+    stream_host_t * stream = (stream_host_t *) istream;
 
     switch (instr->type)
     {
@@ -306,13 +308,13 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
     int device_driver_id,
-    xkrt_stream_type_t stype
+    stream_type_t stype
 ) {
     assert(device_driver_id == 0);
     switch (stype)
     {
-        case (XKRT_STREAM_TYPE_FD_READ):
-        case (XKRT_STREAM_TYPE_FD_WRITE):
+        case (STREAM_TYPE_FD_READ):
+        case (STREAM_TYPE_FD_WRITE):
             return 1;
 
         default:
@@ -323,7 +325,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
 
 static inline int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
     LOGGER_FATAL("Not supported");
     return 0;
@@ -331,9 +333,9 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
 
 static inline int
 XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
-    xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+    stream_t * istream,
+    stream_instruction_t * instr,
+    stream_instruction_counter_t idx
 ) {
     LOGGER_FATAL("Not supported");
     return 0;
@@ -341,11 +343,11 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
     assert(istream);
 
-    xkrt_stream_host_t * stream = (xkrt_stream_host_t *) istream;
+    stream_host_t * stream = (stream_host_t *) istream;
     int r = 0;
 
     // no need to iterate through instr, its saved in the completion queue for I/O Instructions
@@ -372,8 +374,8 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
                 LOGGER_FATAL("Error: %s", strerror(abs(cqe->res)));
             else
             {
-                const xkrt_stream_instruction_counter_t p = (const xkrt_stream_instruction_counter_t) cqe->user_data;
-                xkrt_stream_instruction_t * instr = istream->pending.instr + p;
+                const stream_instruction_counter_t p = (const stream_instruction_counter_t) cqe->user_data;
+                stream_instruction_t * instr = istream->pending.instr + p;
                 assert(instr);
                 assert(instr->completed == false);
                 assert(cqe->res == instr->file.n);
@@ -392,30 +394,30 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     return r;
 }
 
-static xkrt_stream_t *
+static stream_t *
 XKRT_DRIVER_ENTRYPOINT(stream_create)(
-    xkrt_device_t * idevice,
-    xkrt_stream_type_t type,
-    xkrt_stream_instruction_counter_t capacity
+    device_t * idevice,
+    stream_type_t type,
+    stream_instruction_counter_t capacity
 ) {
     (void)idevice;
     (void)type;
     (void)capacity;
 
-    if (type != XKRT_STREAM_TYPE_FD_READ && type != XKRT_STREAM_TYPE_FD_WRITE)
+    if (type != STREAM_TYPE_FD_READ && type != STREAM_TYPE_FD_WRITE)
         return NULL;
-    assert(type == XKRT_STREAM_TYPE_FD_READ || type == XKRT_STREAM_TYPE_FD_WRITE);
+    assert(type == STREAM_TYPE_FD_READ || type == STREAM_TYPE_FD_WRITE);
 
-    uint8_t * mem = (uint8_t *) malloc(sizeof(xkrt_stream_host_t));
+    uint8_t * mem = (uint8_t *) malloc(sizeof(stream_host_t));
     assert(mem);
 
-    xkrt_stream_host_t * stream = (xkrt_stream_host_t *) mem;
+    stream_host_t * stream = (stream_host_t *) mem;
 
     /*************************/
     /* init xkrt stream */
     /*************************/
-    xkrt_stream_init(
-        (xkrt_stream_t *) stream,
+    stream_init(
+        (stream_t *) stream,
         type,
         capacity,
         XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
@@ -430,12 +432,12 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
 
     // nothing to do
 
-    return (xkrt_stream_t *) stream;
+    return (stream_t *) stream;
 }
 
 static void
 XKRT_DRIVER_ENTRYPOINT(stream_delete)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
     free(istream);
 }
@@ -467,7 +469,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(int device_driver_id, void * pt
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_device_info)(
     int device_driver_id,
-    xkrt_device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX],
+    device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX],
     int * nmemories
 ) {
     (void)device_driver_id;
@@ -511,12 +513,12 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_deallocate)(
     (void)size;
 }
 
-xkrt_driver_module_t
+driver_module_t
 XKRT_DRIVER_ENTRYPOINT(module_load)(
     int device_driver_id,
     uint8_t * bin,
     size_t binsize,
-    xkrt_driver_module_format_t format
+    driver_module_format_t format
 ) {
     (void)device_driver_id;
     (void)bin;
@@ -527,14 +529,14 @@ XKRT_DRIVER_ENTRYPOINT(module_load)(
 
 void
 XKRT_DRIVER_ENTRYPOINT(module_unload)(
-    xkrt_driver_module_t module
+    driver_module_t module
 ) {
     (void)module;
 }
 
-xkrt_driver_module_fn_t
+driver_module_fn_t
 XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
-    xkrt_driver_module_t module,
+    driver_module_t module,
     const char * name
 ) {
     (void)module;
@@ -546,10 +548,10 @@ XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
 //////////////////////////
 // Routine registration //
 //////////////////////////
-xkrt_driver_t *
+driver_t *
 XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 {
-    xkrt_driver_t * driver = (xkrt_driver_t *) calloc(1, sizeof(xkrt_driver_t));
+    driver_t * driver = (driver_t *) calloc(1, sizeof(driver_t));
     assert(driver);
 
     # define REGISTER(func) driver->f_##func = XKRT_DRIVER_ENTRYPOINT(func)
@@ -589,5 +591,7 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 
     # undef REGISTER
 
-    return (xkrt_driver_t *) driver;
+    return (driver_t *) driver;
 }
+
+XKRT_NAMESPACE_END

@@ -37,10 +37,11 @@
 **/
 
 # include <xkrt/runtime.h>
-# include <xkrt/xkrt.h>
 # include <xkrt/memory/access/blas/dependency-tree.hpp>
 
 # include <math.h>
+
+XKRT_NAMESPACE_USE;
 
 //////////////////
 // DISTRIBUTION //
@@ -48,9 +49,9 @@
 
 extern "C"
 void
-xkrt_distribution1D_init(
-    xkrt_distribution_t * d,
-    xkrt_distribution_type_t type,
+distribution1D_init(
+    distribution_t * d,
+    distribution_type_t type,
     size_t count,
     size_t size, size_t bs
 ) {
@@ -119,9 +120,9 @@ xkrt_distribution1D_init(
 
 extern "C"
 void
-xkrt_distribution2D_init(
-    xkrt_distribution_t * d,
-    xkrt_distribution_type_t type,
+distribution2D_init(
+    distribution_t * d,
+    distribution_type_t type,
     size_t count,
     size_t m, size_t n,
     size_t mb, size_t nb
@@ -193,9 +194,9 @@ xkrt_distribution2D_init(
 }
 
 extern "C"
-xkrt_device_global_id_t
-xkrt_distribution1D_get(
-    xkrt_distribution_t * d,
+device_global_id_t
+distribution1D_get(
+    distribution_t * d,
     size_t t
 ) {
     assert(t < d->t);
@@ -206,7 +207,7 @@ xkrt_distribution1D_get(
          *  1 2 3 4 1 2 3
          */
         case (XKRT_DISTRIBUTION_TYPE_CYCLIC1D):
-            return 1 + (xkrt_device_global_id_t) (t % d->count);
+            return 1 + (device_global_id_t) (t % d->count);
 
         default:
             LOGGER_FATAL("Not implemented");
@@ -214,9 +215,9 @@ xkrt_distribution1D_get(
 }
 
 extern "C"
-xkrt_device_global_id_t
-xkrt_distribution2D_get(
-    xkrt_distribution_t * d,
+device_global_id_t
+distribution2D_get(
+    distribution_t * d,
     size_t tm, size_t tn
 ) {
     assert(tm < d->mt);
@@ -232,7 +233,7 @@ xkrt_distribution2D_get(
          *  1 2 3 4
          */
         case (XKRT_DISTRIBUTION_TYPE_CYCLIC2D):
-            return 1 + (xkrt_device_global_id_t) ((tm * d->nt + tn) % d->count);
+            return 1 + (device_global_id_t) ((tm * d->nt + tn) % d->count);
 
         /**
          * example on 4 gpus
@@ -242,7 +243,7 @@ xkrt_distribution2D_get(
          *  3 4 3 4
          */
         case (XKRT_DISTRIBUTION_TYPE_CYCLIC2DBLOCK):
-            return 1 + (xkrt_device_global_id_t) (
+            return 1 + (device_global_id_t) (
                     (
                      ((tm / d->blkm) % d->gm) * d->gn +
                       (tn / d->blkn) % d->gn)

@@ -41,6 +41,8 @@
 # include <xkrt/logger/logger.h>
 # include <xkrt/sync/mem.h>
 
+XKRT_NAMESPACE_BEGIN
+
 // TODO : PROBLEM - this impl assumes `push` and `pop` are called from the same
 // 'producer' thread and `steal` from any other thread.
 // It does not support 'giving' tasks, that is, having a thread different from
@@ -48,7 +50,7 @@
 
 template <typename T, int C>
 void
-xkrt_deque_t<T, C>::push(T const & task)
+deque_t<T, C>::push(T const & task)
 {
     int idx = _t++;
     tasks[idx%C] = task;
@@ -56,7 +58,7 @@ xkrt_deque_t<T, C>::push(T const & task)
 
 template <typename T, int C>
 T
-xkrt_deque_t<T,C>::pop(void)
+deque_t<T,C>::pop(void)
 {
     task_t * task;
     int idx = --_t;
@@ -87,7 +89,7 @@ xkrt_deque_t<T,C>::pop(void)
 
 template <typename T, int C>
 T
-xkrt_deque_t<T,C>::steal(void)
+deque_t<T,C>::steal(void)
 {
     task_t * task;
     SPINLOCK_LOCK(lock);
@@ -106,4 +108,6 @@ xkrt_deque_t<T,C>::steal(void)
 }
 
 // Explicit instantiation
-template struct xkrt_deque_t<task_t *, 4096>;
+template struct deque_t<task_t *, 4096>;
+
+XKRT_NAMESPACE_END

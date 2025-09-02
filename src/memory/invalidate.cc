@@ -38,15 +38,17 @@
 
 # include <xkrt/runtime.h>
 
+XKRT_NAMESPACE_BEGIN
+
 static inline void
-xkrt_memory_deallocate_all(
-    xkrt_runtime_t * runtime
+memory_deallocate_all(
+    runtime_t * runtime
 ) {
-    for (xkrt_device_global_id_t device_global_id = 0 ;
+    for (device_global_id_t device_global_id = 0 ;
             device_global_id < runtime->drivers.devices.n ;
             ++device_global_id)
     {
-        xkrt_device_t * device = runtime->device_get(device_global_id);
+        device_t * device = runtime->device_get(device_global_id);
         assert(device);
 
         // device memory
@@ -56,7 +58,7 @@ xkrt_memory_deallocate_all(
         uint8_t nthreads = device->nthreads.load(std::memory_order_acq_rel);
         for (uint8_t i = 0 ; i < nthreads ; ++i)
         {
-            xkrt_thread_t * thread = device->threads[i];
+            thread_t * thread = device->threads[i];
             assert(thread);
             thread->deallocate_all_tasks();
         }
@@ -66,12 +68,12 @@ xkrt_memory_deallocate_all(
 # pragma message(TODO "This interface definition is fucked: deallocating all device memory is not safe here if there is multiple threads submitting tasks to the device. It also releases both memory controllers and dependency trees: are we sure about this ?")
 extern "C"
 void
-xkrt_coherency_reset(xkrt_runtime_t * runtime)
+coherency_reset(runtime_t * runtime)
 {
     LOGGER_DEBUG("Invalidate XKBlas devices memory");
 
     // remove all memory controllers of the current task
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     task_dom_info_t * dom = TASK_DOM_INFO(thread->current_task);
@@ -121,11 +123,13 @@ xkrt_coherency_reset(xkrt_runtime_t * runtime)
     dom->deps.blas.clear();
 
     // deallocate all device memory
-    xkrt_memory_deallocate_all(runtime);
+    memory_deallocate_all(runtime);
 }
 
 void
-xkrt_runtime_t::reset(void)
+runtime_t::reset(void)
 {
-    xkrt_coherency_reset(this);
+    coherency_reset(this);
 }
+
+XKRT_NAMESPACE_END

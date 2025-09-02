@@ -40,28 +40,30 @@
 # include <xkrt/driver/driver.h>
 # include <xkrt/logger/metric.h>
 
+XKRT_NAMESPACE_BEGIN;
+
 void
-xkrt_runtime_t::power_start(
-    const xkrt_device_global_id_t device_global_id,
-    xkrt_power_t * power
+runtime_t::power_start(
+    const device_global_id_t device_global_id,
+    power_t * power
 ) {
     assert(power);
 
-    xkrt_device_t * device = this->device_get(device_global_id);
-    xkrt_driver_t * driver = this->driver_get(device->driver_type);
+    device_t * device = this->device_get(device_global_id);
+    driver_t * driver = this->driver_get(device->driver_type);
     if (driver->f_power_start)
         driver->f_power_start(device->driver_id, power);
 }
 
 void
-xkrt_runtime_t::power_stop(
-    const xkrt_device_global_id_t device_global_id,
-    xkrt_power_t * power
+runtime_t::power_stop(
+    const device_global_id_t device_global_id,
+    power_t * power
 ) {
     assert(power);
 
-    xkrt_device_t * device = this->device_get(device_global_id);
-    xkrt_driver_t * driver = this->driver_get(device->driver_type);
+    device_t * device = this->device_get(device_global_id);
+    driver_t * driver = this->driver_get(device->driver_type);
     if (driver->f_power_stop)
         driver->f_power_stop(device->driver_id, power);
     else
@@ -70,3 +72,5 @@ xkrt_runtime_t::power_stop(
         power->P  = -1.0;
     }
 }
+
+XKRT_NAMESPACE_END;

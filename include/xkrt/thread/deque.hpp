@@ -46,20 +46,24 @@
 #  include <atomic>
 #  include <new>
 
+XKRT_NAMESPACE_BEGIN
+
 /* a deque (THE protocol) */
 template<typename T, int C>
-struct xkrt_deque_t
+struct deque_t
 {
     T tasks[C];
     alignas(hardware_destructive_interference_size) spinlock_t lock;
     alignas(hardware_destructive_interference_size) std::atomic<int> _h;
     alignas(hardware_destructive_interference_size) std::atomic<int> _t;
 
-    xkrt_deque_t() : tasks{}, lock(0), _h(0), _t(0) {}
+    deque_t() : tasks{}, lock(0), _h(0), _t(0) {}
 
     void push(T const & task);
     T pop(void);
     T steal(void);
 };
+
+XKRT_NAMESPACE_END
 
 # endif /* __XKRT_DEQUE_H__ */

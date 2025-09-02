@@ -45,37 +45,41 @@
 
 # include <sycl/sycl.hpp>
 
-typedef struct  xkrt_device_sycl_t
-{
-    xkrt_device_t inherited;
+XKRT_NAMESPACE_BEGIN
 
-    struct {
-        sycl::platform  platform;
-        sycl::device    device;
-        sycl::queue     alloc_queue;
-    } sycl;
+    typedef struct  device_sycl_t
+    {
+        device_t inherited;
 
-}               xkrt_device_sycl_t;
-
-
-typedef struct  xkrt_stream_sycl_t
-{
-    xkrt_stream_t super;
-
-    struct {
-        sycl::queue queue;
         struct {
-            sycl::event * buffer;
-            size_t capacity;
-        } events ;
-    } sycl;
-}               xkrt_stream_sycl_t;
+            sycl::platform  platform;
+            sycl::device    device;
+            sycl::queue     alloc_queue;
+        } sycl;
+
+    }               device_sycl_t;
 
 
-typedef struct  xkrt_driver_sycl_t
-{
-    xkrt_driver_t super;
+    typedef struct  stream_sycl_t
+    {
+        stream_t super;
 
-}               xkrt_driver_sycl_t;
+        struct {
+            sycl::queue queue;
+            struct {
+                sycl::event * buffer;
+                size_t capacity;
+            } events ;
+        } sycl;
+    }               stream_sycl_t;
+
+
+    typedef struct  driver_sycl_t
+    {
+        driver_t super;
+
+    }               driver_sycl_t;
+
+XKRT_NAMESPACE_END
 
 #endif /* __DRIVER_SYCL_H__ */

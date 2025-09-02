@@ -42,12 +42,14 @@
 # include <xkrt/memory/access/interval/dependency-tree.hpp>
 # include <xkrt/memory/access/point/dependency-map.hpp>
 
+XKRT_NAMESPACE_BEGIN
+
 /**
  * Retrieve or (insert and return) the memory controller of the passed task for the given access
  */
 MemoryCoherencyController *
 task_get_memory_controller(
-    xkrt_runtime_t * runtime,
+    runtime_t * runtime,
     task_t * task,
     const access_t * access
 ) {
@@ -252,3 +254,5 @@ task_dependency_resolve(
             LOGGER_FATAL("Tried to run a dependency domain on an unsupported access");
     }
 }
+
+XKRT_NAMESPACE_END

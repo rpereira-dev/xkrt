@@ -56,6 +56,9 @@
 # define ACCESS_BLAS_ROW_DIM 0
 # define ACCESS_BLAS_COL_DIM (1 - ACCESS_BLAS_ROW_DIM)
 
+# include <xkrt/namespace.h>
+XKRT_NAMESPACE_BEGIN
+
 // task and accesses depends to one another, breaking chicken/egg problem here
 struct task_t;
 
@@ -623,5 +626,7 @@ class access_t
         ~access_t() {}
 
 };
+
+XKRT_NAMESPACE_END
 
 #endif /* __ACCESS_HPP__ */

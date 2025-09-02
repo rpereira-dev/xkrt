@@ -44,38 +44,42 @@
 // Driver devices memory //
 ///////////////////////////
 
-typedef enum    xkrt_area_chunk_state_t
-{
-    XKRT_ALLOC_CHUNK_STATE_FREE       = 0,
-    XKRT_ALLOC_CHUNK_STATE_ALLOCATED  = 1,
+XKRT_NAMESPACE_BEGIN
 
-}               xkrt_area_chunk_state_t;
+    typedef enum    area_chunk_state_t
+    {
+        XKRT_ALLOC_CHUNK_STATE_FREE       = 0,
+        XKRT_ALLOC_CHUNK_STATE_ALLOCATED  = 1,
 
-/**
- * Represent a segment of memory in device memory (used by custom allocator)
- * It is placed in two chained list:
- *  - the list of all chunk in device memory
- *  - the list of free chunk in device memory
-*/
-typedef struct  xkrt_area_chunk_t
-{
-    uintptr_t ptr;                          /* position of memory in device */
-    size_t size;                            /* size of the segment in byte */
-    int state;                              /* state of the chunk */
-    struct xkrt_area_chunk_t * prev;        /* previous chunk in double chained list */
-    struct xkrt_area_chunk_t * next;        /* next chunk in double chained list */
-    struct xkrt_area_chunk_t * freelink;    /* next freechunk in the chained list */
-    int use_counter;                        /* used in the memory-tree to count how many blocks relies on that allocation chunk */
-    int area_idx;                           /* memory area index in the device (TODO: bad design) */
-}               xkrt_area_chunk_t;
+    }               area_chunk_state_t;
 
-/* The device memory with allocation information */
-typedef struct  xkrt_area_t
-{
-    xkrt_mutex_t lock;
-    xkrt_area_chunk_t chunk0;
-    xkrt_area_chunk_t * free_chunk_list;
+    /**
+     * Represent a segment of memory in device memory (used by custom allocator)
+     * It is placed in two chained list:
+     *  - the list of all chunk in device memory
+     *  - the list of free chunk in device memory
+    */
+    typedef struct  area_chunk_t
+    {
+        uintptr_t ptr;                          /* position of memory in device */
+        size_t size;                            /* size of the segment in byte */
+        int state;                              /* state of the chunk */
+        struct area_chunk_t * prev;        /* previous chunk in double chained list */
+        struct area_chunk_t * next;        /* next chunk in double chained list */
+        struct area_chunk_t * freelink;    /* next freechunk in the chained list */
+        int use_counter;                        /* used in the memory-tree to count how many blocks relies on that allocation chunk */
+        int area_idx;                           /* memory area index in the device (TODO: bad design) */
+    }               area_chunk_t;
 
-}               xkrt_area_t;
+    /* The device memory with allocation information */
+    typedef struct  area_t
+    {
+        mutex_t lock;
+        area_chunk_t chunk0;
+        area_chunk_t * free_chunk_list;
+
+    }               area_t;
+
+XKRT_NAMESPACE_END
 
 #endif /* __AREA_H__ */

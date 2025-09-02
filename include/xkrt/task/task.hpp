@@ -57,6 +57,8 @@
 # include <xkrt/memory/access/coherency-controller.hpp>
 # include <xkrt/sync/spinlock.h>
 
+XKRT_NAMESPACE_BEGIN
+
 /* task states */
 typedef enum    task_state_t : uint8_t
 {
@@ -192,7 +194,7 @@ typedef struct  task_det_info_t
 typedef struct  task_dev_info_t
 {
     /* worker id on where to schedule once ready (or 'UNSPECIFIED_DEVICE_GLOBAL_ID' if leaving the decision to the scheduler) */
-    xkrt_device_global_id_t targeted_device_id;
+    device_global_id_t targeted_device_id;
 
     // TODO : move the 'ocr' field to the 'dep_info' : it is tight to accesses, not to a device
 
@@ -201,7 +203,7 @@ typedef struct  task_dev_info_t
     task_access_counter_t ocr_access_index;
 
     /* constructor */
-    task_dev_info_t(xkrt_device_global_id_t target, task_access_counter_t ocr)
+    task_dev_info_t(device_global_id_t target, task_access_counter_t ocr)
         : targeted_device_id(target), ocr_access_index(ocr) {}
 
 }               task_dev_info_t;
@@ -630,5 +632,7 @@ __task_fetched(
         F(std::forward<Args>(args)..., task);
     }
 }
+
+XKRT_NAMESPACE_END
 
 # endif /* __XKRT_TASK_HPP__ */

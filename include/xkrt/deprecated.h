@@ -3,7 +3,6 @@
 **
 ** Contributors :
 ** Thierry Gautier, thierry.gautier@inrialpes.fr
-** Joao Lima joao.lima@inf.ufsm.br
 ** Romain PEREIRA, romain.pereira@inria.fr + rpereira@anl.gov
 **
 ** This software is a computer program whose purpose is to execute
@@ -36,47 +35,37 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-# include <xkrt/runtime.h>
+#ifndef __XKRT_DEPRECATED_H__
+# define __XKRT_DEPRECATED_H__
 
-extern "C"
-void
-xkrt_coherency_replicate_2D_async(
-    xkrt_runtime_t * runtime,
-    matrix_storage_t storage,
-    void * ptr, size_t ld,
-    size_t m, size_t n,
-    size_t sizeof_type
-) {
-    assert(runtime->drivers.devices.n >= 2);
+// deprecate.h
+#pragma once
 
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
-    assert(thread);
+#if defined(__cplusplus)
+  // In C++, we can use the standard [[deprecated]] attribute (C++14 and newer)
+  #if __cplusplus >= 201402L
+    #define DEPRECATED(msg) [[deprecated(msg)]]
+  #else
+    // Fall back to compiler-specific
+    #if defined(_MSC_VER)
+      #define DEPRECATED(msg) __declspec(deprecated(msg))
+    #elif defined(__GNUC__) || defined(__clang__)
+      #define DEPRECATED(msg) __attribute__((deprecated(msg)))
+    #else
+      #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+      #define DEPRECATED(msg)
+    #endif
+  #endif
+#else
+  // Pure C (no [[deprecated]] support)
+  #if defined(_MSC_VER)
+    #define DEPRECATED(msg) __declspec(deprecated(msg))
+  #elif defined(__GNUC__) || defined(__clang__)
+    #define DEPRECATED(msg) __attribute__((deprecated(msg)))
+  #else
+    #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+    #define DEPRECATED(msg)
+  #endif
+#endif
 
-    for (xkrt_device_global_id_t device_global_id = 1 ; device_global_id < runtime->drivers.devices.n ; ++device_global_id)
-    {
-        # define AC 1
-        constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT | TASK_FLAG_DEVICE;
-        constexpr size_t task_size = task_compute_size(flags, AC);
-
-        task_t * task = thread->allocate_task(task_size);
-        new(task) task_t(TASK_FORMAT_NULL, flags);
-
-        task_dep_info_t * dep = TASK_DEP_INFO(task);
-        new (dep) task_dep_info_t(AC);
-
-        task_dev_info_t * dev = TASK_DEV_INFO(task);
-        new (dev) task_dev_info_t(device_global_id, UNSPECIFIED_TASK_ACCESS);
-
-        access_t * accesses = TASK_ACCESSES(task);
-        new(accesses + 0) access_t(task, storage, ptr, ld, m, n, sizeof_type, ACCESS_MODE_R);
-
-        thread->resolve<AC>(task, accesses);
-        # undef AC
-
-        #ifndef NDEBUG
-        snprintf(task->label, sizeof(task->label), "replicate_cyclic_2d_async");
-        #endif /* NDEBUG */
-
-        runtime->task_commit(task);
-    }
-}
+# endif /* __XKRT_DEPRECATED_H__ */

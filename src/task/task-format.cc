@@ -36,12 +36,15 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-# include <xkrt/task/task-format.h>
-# include <xkrt/logger/logger.h>
-
 # include <atomic>
 # include <cassert>
 # include <cstring>
+
+# include <xkrt/task/task-format.h>
+# include <xkrt/logger/logger.h>
+# include <xkrt/namespace.h>
+
+XKRT_NAMESPACE_BEGIN
 
 void
 task_formats_init(task_formats_t * formats)
@@ -71,3 +74,5 @@ task_format_create(task_formats_t * formats, task_format_t * format)
     LOGGER_INFO("Created new task format `%d` named `%s`", fmtid, format->label);
     return fmtid;
 }
+
+XKRT_NAMESPACE_END

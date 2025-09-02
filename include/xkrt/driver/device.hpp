@@ -51,7 +51,9 @@
 # include <xkrt/sync/mutex.h>
 # include <xkrt/task/task.hpp>
 
-typedef enum    xkrt_device_state_t : uint8_t
+XKRT_NAMESPACE_BEGIN
+
+typedef enum    device_state_t : uint8_t
 {
     XKRT_DEVICE_STATE_DEALLOCATED = 0,
     XKRT_DEVICE_STATE_CREATE      = 1,
@@ -61,10 +63,10 @@ typedef enum    xkrt_device_state_t : uint8_t
     XKRT_DEVICE_STATE_STOPPED     = 5,
     XKRT_DEVICE_STATE_DESTROYED   = 6
 
-}               xkrt_device_state_t;
+}               device_state_t;
 
 /* Memory info of a device */
-typedef struct  xkrt_device_memory_info_t
+typedef struct  device_memory_info_t
 {
     ///////////////////////////////////////
     //  TO BE FILL BY THE DRIVER ON INIT //
@@ -87,36 +89,36 @@ typedef struct  xkrt_device_memory_info_t
     int allocated;
 
     /* the area of that memory */
-    xkrt_area_t area;
+    area_t area;
 
-}               xkrt_device_memory_info_t;
+}               device_memory_info_t;
 
 /* A device virtualize a ressource with its one address space and
    a communication stream between host and the ressource */
-typedef struct  xkrt_device_t
+typedef struct  device_t
 {
     /////////////////
     //  ATTRIBUTES //
     /////////////////
 
     /* the conf */
-    xkrt_conf_device_t * conf;
+    conf_device_t * conf;
 
     /* the driver type in [0..XKRT_DRIVER_TYPE_MAX[ */
-    xkrt_driver_type_t driver_type;
+    driver_type_t driver_type;
 
     /* driver device id in [0..ndevices_for_device] */
     uint8_t driver_id;
 
     /* global device id in [0, XKRT_DEVICES_MAX[ - host is a virtual device of id 'XKRT_DEVICES_MAX' */
-    xkrt_device_global_id_t global_id;
+    device_global_id_t global_id;
 
     /* the device state */
-    std::atomic<xkrt_device_state_t> state;
+    std::atomic<device_state_t> state;
 
     /* affinity[i] - j-th bit is set to '1' if this device has an affinity 'i'
      * with 'j' (the lowest affinity, the better perf) */
-    xkrt_device_global_id_bitfield_t * affinity;
+    device_global_id_bitfield_t * affinity;
 
     ///////////
     // STATS //
@@ -139,20 +141,20 @@ typedef struct  xkrt_device_t
     //////////////////////
 
     /* memory areas of that device - sorted by performance */
-    xkrt_device_memory_info_t memories[XKRT_DEVICE_MEMORIES_MAX];
+    device_memory_info_t memories[XKRT_DEVICE_MEMORIES_MAX];
     int nmemories;
 
     /* allocate memory on a specific area */
-    xkrt_area_chunk_t * memory_allocate_on(const size_t size, int area_idx);
+    area_chunk_t * memory_allocate_on(const size_t size, int area_idx);
 
     /* allocate memory */
-    xkrt_area_chunk_t * memory_allocate(const size_t size);
+    area_chunk_t * memory_allocate(const size_t size);
 
     /* deallocate the given chunk */
-    void memory_deallocate_on(xkrt_area_chunk_t * chunk, int area_idx);
+    void memory_deallocate_on(area_chunk_t * chunk, int area_idx);
 
     /* deallocate the given chunk */
-    void memory_deallocate(xkrt_area_chunk_t * chunk);
+    void memory_deallocate(area_chunk_t * chunk);
 
     /* free all memory of every area of that device, resetting their state to chunk0 */
     void memory_reset(void);
@@ -171,26 +173,26 @@ typedef struct  xkrt_device_t
     int nstreams_per_thread;
 
     /* number of stream per type */
-    int count[XKRT_STREAM_TYPE_ALL];
+    int count[STREAM_TYPE_ALL];
 
     /* next thread to use for offloading an instruction */
     std::atomic<uint8_t> next_thread;
 
     /* next stream to use for the given thread and type */
-    std::atomic<int> next_stream[XKRT_MAX_THREADS_PER_DEVICE][XKRT_STREAM_TYPE_ALL];
+    std::atomic<int> next_stream[XKRT_MAX_THREADS_PER_DEVICE][STREAM_TYPE_ALL];
 
     /* basic stream */
-    xkrt_stream_t ** streams[XKRT_MAX_THREADS_PER_DEVICE][XKRT_STREAM_TYPE_ALL];
+    stream_t ** streams[XKRT_MAX_THREADS_PER_DEVICE][STREAM_TYPE_ALL];
 
     /* initialize the offloader (must be called once before any thread called the 'thread' version) */
     void offloader_init(
-        int (*f_stream_suggest)(int device_driver_id, xkrt_stream_type_t type)
+        int (*f_stream_suggest)(int device_driver_id, stream_type_t type)
     );
 
     /* initialize a thread of the offloader */
     void offloader_init_thread(
         uint8_t device_tid,
-        xkrt_stream_t * (*f_stream_create)(xkrt_device_t * device, xkrt_stream_type_t type, xkrt_stream_instruction_counter_t capacity)
+        stream_t * (*f_stream_create)(device_t * device, stream_type_t type, stream_instruction_counter_t capacity)
     );
 
     /* launch ready instructions in every streams */
@@ -204,17 +206,17 @@ typedef struct  xkrt_device_t
 
     /* set 'ready' and 'pending' to false whether there is ready/pending
      * instructions in the streams of the given type */
-    void offloader_streams_are_empty(uint8_t device_id, const xkrt_stream_type_t stype, bool * ready, bool * pending) const;
+    void offloader_streams_are_empty(uint8_t device_id, const stream_type_t stype, bool * ready, bool * pending) const;
 
     /* get next stream to use for submitting an instruction for the given type */
     void offloader_stream_next(
-        const xkrt_stream_type_t type,
-        xkrt_thread_t ** pthread,       /* OUT */
-        xkrt_stream_t ** pstream        /* OUT */
+        const stream_type_t type,
+        thread_t ** pthread,       /* OUT */
+        stream_t ** pstream        /* OUT */
     );
 
     /* launch ready instructions dispatching them in streams of the given type */
-    int offloader_stream_instructions_launch(uint8_t device_id, const xkrt_stream_type_t stype);
+    int offloader_stream_instructions_launch(uint8_t device_id, const stream_type_t stype);
 
     /* progress pending instructions in streams of the given type of the given thread.
      * If blocking is true, also waits for the completion of pending instructions */
@@ -222,22 +224,22 @@ typedef struct  xkrt_device_t
     int
     offloader_stream_instructions_progress(
         uint8_t device_tid,
-        const xkrt_stream_type_t stype
+        const stream_type_t stype
     ) {
         int err = 0;
-        unsigned int bgn = (stype == XKRT_STREAM_TYPE_ALL) ?                    0 : stype;
-        unsigned int end = (stype == XKRT_STREAM_TYPE_ALL) ? XKRT_STREAM_TYPE_ALL : stype + 1;
+        unsigned int bgn = (stype == STREAM_TYPE_ALL) ?               0 : stype;
+        unsigned int end = (stype == STREAM_TYPE_ALL) ? STREAM_TYPE_ALL : stype + 1;
         for (unsigned int s = bgn ; s < end ; ++s)
         {
             for (int i = 0 ; i < this->count[s] ; ++i)
             {
-                xkrt_stream_t * stream = this->streams[device_tid][s][i];
+                stream_t * stream = this->streams[device_tid][s][i];
                 assert(stream);
 
                 if (stream->pending.is_empty())
                     continue ;
 
-                xkrt_stream_instruction_counter_t n;
+                stream_instruction_counter_t n;
                 do {
                     stream->lock();
                     if (blocking)
@@ -258,30 +260,30 @@ typedef struct  xkrt_device_t
 
     /* create a new instruction and lock the stream */
     void offloader_stream_instruction_new(
-        const xkrt_stream_type_t stype,             /* IN  */
-              xkrt_thread_t ** pthread,             /* OUT */
-              xkrt_stream_t ** pstream,             /* OUT */
-        const xkrt_stream_instruction_type_t itype, /* IN  */
-              xkrt_stream_instruction_t ** pinstr,  /* OUT */
-        const xkrt_callback_t & callback            /* IN */
+        const stream_type_t stype,             /* IN  */
+              thread_t ** pthread,             /* OUT */
+              stream_t ** pstream,             /* OUT */
+        const stream_instruction_type_t itype, /* IN  */
+              stream_instruction_t ** pinstr,  /* OUT */
+        const callback_t & callback            /* IN */
     );
 
     /* commit an instruction previously returned with
      * "offloader_stream_instruction_new" and unlock the stream */
     void offloader_stream_instruction_commit(
-        xkrt_thread_t * thread,
-        xkrt_stream_t * stream,
-        xkrt_stream_instruction_t * instr
+        thread_t * thread,
+        stream_t * stream,
+        stream_instruction_t * instr
     );
 
     /* submit a file I/O instruction */
-    template <xkrt_stream_instruction_type_t T>
+    template <stream_instruction_type_t T>
     void offloader_stream_instruction_submit_file(
         int fd,
         void * buffer,
         size_t n,
         size_t offset,
-        const xkrt_callback_t & callback
+        const callback_t & callback
     ) {
         static_assert(
             T == XKRT_STREAM_INSTR_TYPE_FD_READ ||
@@ -289,12 +291,12 @@ typedef struct  xkrt_device_t
         );
 
         /* create a new instruction and retrieve its offload stream */
-        constexpr xkrt_stream_type_t stype = (T == XKRT_STREAM_INSTR_TYPE_FD_READ) ? XKRT_STREAM_TYPE_FD_READ : XKRT_STREAM_TYPE_FD_WRITE;
-        constexpr xkrt_stream_instruction_type_t itype = T;
+        constexpr stream_type_t stype = (T == XKRT_STREAM_INSTR_TYPE_FD_READ) ? STREAM_TYPE_FD_READ : STREAM_TYPE_FD_WRITE;
+        constexpr stream_instruction_type_t itype = T;
 
-        xkrt_thread_t * thread;
-        xkrt_stream_t * stream;
-        xkrt_stream_instruction_t * instr;
+        thread_t * thread;
+        stream_t * stream;
+        stream_instruction_t * instr;
         this->offloader_stream_instruction_new(stype, &thread, &stream, itype, &instr, callback);
         assert(thread);
         assert(stream);
@@ -313,26 +315,26 @@ typedef struct  xkrt_device_t
 
     /* submit a kernel execution instruction */
     void offloader_stream_instruction_submit_kernel(
-        xkrt_kernel_launcher_t launcher,
+        kernel_launcher_t launcher,
         void * vargs,
-        const xkrt_callback_t & callback
+        const callback_t & callback
     );
 
     /* copy */
     template <typename HOST_VIEW_T, typename DEVICE_VIEW_T>
-    xkrt_stream_t *
+    stream_t *
     offloader_stream_instruction_submit_copy(
         const HOST_VIEW_T             & host_view,
-        const xkrt_device_global_id_t   dst_device_global_id,
+        const device_global_id_t   dst_device_global_id,
         const DEVICE_VIEW_T           & dst_device_view,
-        const xkrt_device_global_id_t   src_device_global_id,
+        const device_global_id_t   src_device_global_id,
         const DEVICE_VIEW_T           & src_device_view,
-        const xkrt_callback_t         & callback
+        const callback_t         & callback
     ) {
         assert(this->global_id == dst_device_global_id || this->global_id == src_device_global_id);
 
         /* find the instruction type */
-        xkrt_stream_instruction_type_t itype;
+        stream_instruction_type_t itype;
         const int src_is_host = (src_device_global_id == HOST_DEVICE_GLOBAL_ID) ? 1 : 0;
         const int dst_is_host = (dst_device_global_id == HOST_DEVICE_GLOBAL_ID) ? 1 : 0;
 
@@ -370,7 +372,7 @@ typedef struct  xkrt_device_t
         }
 
         /* find the type of stream to use */
-        xkrt_stream_type_t stype;
+        stream_type_t stype;
         switch(itype)
         {
             case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
@@ -378,21 +380,21 @@ typedef struct  xkrt_device_t
             case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):
             case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
             {
-               stype = XKRT_STREAM_TYPE_H2D;
+               stype = STREAM_TYPE_H2D;
                break ;
             }
 
             case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
             case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
             {
-                stype = XKRT_STREAM_TYPE_D2H;
+                stype = STREAM_TYPE_D2H;
                 break ;
             }
 
             case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
             case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
             {
-                stype = XKRT_STREAM_TYPE_D2D;
+                stype = STREAM_TYPE_D2D;
                 break ;
             }
 
@@ -404,9 +406,9 @@ typedef struct  xkrt_device_t
         }
 
         /* create a new instruction and retrieve its offload stream */
-        xkrt_thread_t * thread;
-        xkrt_stream_t * stream;
-        xkrt_stream_instruction_t * instr;
+        thread_t * thread;
+        stream_t * stream;
+        stream_instruction_t * instr;
         this->offloader_stream_instruction_new(stype, &thread, &stream, itype, &instr, callback);
         assert(thread);
         assert(stream);
@@ -440,7 +442,7 @@ typedef struct  xkrt_device_t
     //////////////////////
 
     /* worker threads for that device */
-    xkrt_thread_t * threads[XKRT_MAX_THREADS_PER_DEVICE];
+    thread_t * threads[XKRT_MAX_THREADS_PER_DEVICE];
 
     /* total number of threads */
     std::atomic<uint8_t> nthreads;
@@ -448,6 +450,8 @@ typedef struct  xkrt_device_t
     /* the next thread to receive a task */
     std::atomic<uint8_t> thread_next;
 
-}               xkrt_device_t;
+}               device_t;
+
+XKRT_NAMESPACE_END
 
 #endif /* __XKRT_DEVICE_HPP__ */

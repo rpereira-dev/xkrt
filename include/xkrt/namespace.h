@@ -35,55 +35,14 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __CONSTS_H__
-# define __CONSTS_H__
+#ifndef __NAMESPACE_H__
+# define __NAMESPACE_H__
 
-#  include <stdint.h>
-#  include <atomic>
-#  include <xkrt/namespace.h>
+# define XKRT_NAMESPACE         xkrt
 
-XKRT_NAMESPACE_BEGIN
+# define XKRT_NAMESPACE_BEGIN   namespace XKRT_NAMESPACE {
+# define XKRT_NAMESPACE_END     }
 
-/* maximum number of devices in total */
-# define XKRT_DEVICES_MAX (16)
+# define XKRT_NAMESPACE_USE     using namespace XKRT_NAMESPACE
 
-/* maximum number of memory per device */
-# define XKRT_DEVICE_MEMORIES_MAX (1)
-
-/* maximum number of performance ranks between devices. */
-# define XKRT_DEVICES_PERF_RANK_MAX (4)
-
-typedef uint8_t device_global_id_t;
-static_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(device_global_id_t)*8)));
-
-typedef uint16_t device_global_id_bitfield_t;
-static_assert(XKRT_DEVICES_MAX <= sizeof(device_global_id_bitfield_t)*8);
-
-/* an ID representing the host device */
-# define HOST_DEVICE_GLOBAL_ID (0)
-
-/* an ID representing an unspecified device */
-# define UNSPECIFIED_DEVICE_GLOBAL_ID (XKRT_DEVICES_MAX)
-
-/* a bitmask that represents all devices */
-# define XKRT_DEVICES_MASK_ALL (~((device_global_id_bitfield_t)0))
-
-/* maximum number of threads per device */
-# define XKRT_MAX_THREADS_PER_DEVICE (16)
-
-/* maximum number of memory per thread */
-# define THREAD_MAX_MEMORY ((size_t)4*1024*1024*1024)
-
-// TODO: using smaller type here can improve perf
-typedef uint16_t task_wait_counter_type_t;
-typedef std::atomic<task_wait_counter_type_t> task_wait_counter_t;
-
-typedef uint16_t task_access_counter_t;
-# define UNSPECIFIED_TASK_ACCESS ((task_access_counter_t)-1)
-// # define TASK_MAX_ACCESSES (5)
-# define TASK_MAX_ACCESSES (1024)
-static_assert(TASK_MAX_ACCESSES < (1 << 8*sizeof(task_access_counter_t)));
-
-XKRT_NAMESPACE_END
-
-#endif /* __CONSTS_H__ */
+#endif /* __NAMESPACE_H__ */

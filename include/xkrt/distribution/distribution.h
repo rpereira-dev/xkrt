@@ -41,17 +41,19 @@
 # include <xkrt/consts.h>
 # include <stdlib.h>
 
+XKRT_NAMESPACE_BEGIN
+
 // DISTRIBUTION //
-typedef enum    xkrt_distribution_type_t
+typedef enum    distribution_type_t
 {
     XKRT_DISTRIBUTION_TYPE_CYCLIC1D,
     XKRT_DISTRIBUTION_TYPE_CYCLIC2D,
     XKRT_DISTRIBUTION_TYPE_CYCLIC2DBLOCK,
-}               xkrt_distribution_type_t;
+}               distribution_type_t;
 
-typedef struct  xkrt_distribution_t
+typedef struct  distribution_t
 {
-    xkrt_distribution_type_t type;
+    distribution_type_t type;
     size_t count;       // 1D, 2D
     union {
         size_t size;    // 1D
@@ -85,24 +87,24 @@ typedef struct  xkrt_distribution_t
             size_t gm, gn;
         };
     };
-}               xkrt_distribution_t;
+}               distribution_t;
 
 extern "C"
-xkrt_device_global_id_t xkrt_distribution1D_get(
-    xkrt_distribution_t * d, size_t t
+device_global_id_t distribution1D_get(
+    distribution_t * d, size_t t
 );
 
 extern "C"
-xkrt_device_global_id_t xkrt_distribution2D_get(
-    xkrt_distribution_t * d,
+device_global_id_t distribution2D_get(
+    distribution_t * d,
     size_t tm, size_t tn
 );
 
 extern "C"
 void
-xkrt_distribution1D_init(
-    xkrt_distribution_t * d,
-    xkrt_distribution_type_t type,
+distribution1D_init(
+    distribution_t * d,
+    distribution_type_t type,
     size_t count,
     size_t size,
     size_t bs
@@ -110,12 +112,14 @@ xkrt_distribution1D_init(
 
 extern "C"
 void
-xkrt_distribution2D_init(
-    xkrt_distribution_t * d,
-    xkrt_distribution_type_t type,
+distribution2D_init(
+    distribution_t * d,
+    distribution_type_t type,
     size_t count,
     size_t m, size_t n,
     size_t mb, size_t nb
 );
+
+XKRT_NAMESPACE_END
 
 #endif /* __XKRT_DISTRIBUTION_H__ */

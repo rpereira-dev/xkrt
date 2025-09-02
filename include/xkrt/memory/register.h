@@ -40,12 +40,16 @@
 
 # include <xkrt/task/task.hpp>
 
-/* task, ptr and size from an async memory register */
-typedef struct  xkrt_memory_registration_t
-{
-    task_t * task;
-    void * ptr;
-    size_t size;
-}               xkrt_memory_registration_t;
+XKRT_NAMESPACE_BEGIN
+
+    /* task, ptr and size from an async memory register */
+    typedef struct  memory_registration_t
+    {
+        task_t * task;
+        void * ptr;
+        size_t size;
+    }               memory_registration_t;
+
+XKRT_NAMESPACE_END
 
 #endif /* __XKRT_MEMORY_REGISTER_H__ */

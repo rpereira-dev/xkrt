@@ -89,9 +89,7 @@ SET(SOURCE_FILES
     ${CMAKE_SOURCE_DIR}/src/memory/copy.cc
     ${CMAKE_SOURCE_DIR}/src/memory/distribute.cc
     ${CMAKE_SOURCE_DIR}/src/memory/invalidate.cc
-    ${CMAKE_SOURCE_DIR}/src/memory/register-legacy.cc
     ${CMAKE_SOURCE_DIR}/src/memory/register.cc
-    ${CMAKE_SOURCE_DIR}/src/memory/replicate.cc
     ${CMAKE_SOURCE_DIR}/src/power.cc
     ${CMAKE_SOURCE_DIR}/src/runtime.cc
     ${CMAKE_SOURCE_DIR}/src/sched.cc

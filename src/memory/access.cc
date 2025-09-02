@@ -37,6 +37,8 @@
 # include <xkrt/memory/access/access.hpp>
 # include <xkrt/logger/logger.h>
 
+XKRT_NAMESPACE_BEGIN;
+
 bool
 access_t::intersects(
     access_t * x,
@@ -146,3 +148,5 @@ access_t::split(
         }
     }
 }
+
+XKRT_NAMESPACE_END

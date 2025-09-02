@@ -3,7 +3,7 @@
 /*   task-format.cc                                               .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2024/12/20 15:07:55 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/03 18:13:44 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/23 00:15:27 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -14,17 +14,19 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 # include <xkrt/task/task-format.h>
 
 # include <assert.h>
 # include <string.h>
 
+XKRT_NAMESPACE_USE;
+
 int
 main(void)
 {
-    xkrt_runtime_t runtime;
-    assert(xkrt_init(&runtime) == 0);
+    runtime_t runtime;
+    assert(runtime.init() == 0);
 
     // create an empty task format
     task_format_id_t EMPTY;
@@ -35,7 +37,7 @@ main(void)
     }
     assert(EMPTY);
 
-    assert(xkrt_deinit(&runtime) == 0);
+    assert(runtime.deinit() == 0);
 
     return 0;
 }

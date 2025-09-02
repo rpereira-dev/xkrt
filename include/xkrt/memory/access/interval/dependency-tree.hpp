@@ -46,6 +46,8 @@
 
 # define K 1
 
+XKRT_NAMESPACE_BEGIN
+
 class IntervalDependencyTreeSearch
 {
     public:
@@ -360,6 +362,8 @@ class IntervalDependencyTree : public KHPTree<K, IntervalDependencyTreeSearch>, 
 };
 
 # undef K
+
+XKRT_NAMESPACE_END
 
 #endif /* __INTERVAL_DEPENDENCY_TREE_HPP__ */
 

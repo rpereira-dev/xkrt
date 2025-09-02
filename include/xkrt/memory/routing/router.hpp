@@ -3,7 +3,7 @@
 /*   router.hpp                                                   .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/08/03 00:27:45 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/22 22:43:48 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -19,6 +19,8 @@
 
 # include <xkrt/consts.h>
 
+XKRT_NAMESPACE_BEGIN
+
 class Router
 {
     public:
@@ -29,12 +31,14 @@ class Router
          *  Retrieve the source to use for a data transfer to 'dst' where the
          *  valid sources are amongst the 'valid' bitfield
          */
-        virtual xkrt_device_global_id_t
+        virtual device_global_id_t
         get_source(
-            const xkrt_device_global_id_t dst,
-            const xkrt_device_global_id_bitfield_t valid
+            const device_global_id_t dst,
+            const device_global_id_bitfield_t valid
         ) const = 0;
 
 };
+
+XKRT_NAMESPACE_END
 
 # endif /* __ROUTER_HPP__ */

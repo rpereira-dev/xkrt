@@ -58,13 +58,15 @@
 # endif /* _GNU_SOURCE */
 # include <sched.h> /* getcpu */
 
+XKRT_NAMESPACE_BEGIN
+
 /////////////////////////
 //  DEVICE PROGRESSION //
 /////////////////////////
 
 static inline void
 __task_moldable_split(
-    xkrt_runtime_t * runtime,
+    runtime_t * runtime,
     task_t * task,
     access_t * accesses,
     task_dep_info_t * dep,
@@ -139,7 +141,7 @@ __task_moldable_split(
 
             # pragma message(TODO "This is quite ugly, can we have tasks go through a more regular transition path ? At that point, the dupplicated task is in the 'ready' state already, as its original task was ready")
             ++dup_task->parent->cc;
-            xkrt_runtime_submit_task(runtime, dup_task);
+            runtime_submit_task(runtime, dup_task);
 
             break ;
         }
@@ -151,8 +153,8 @@ __task_moldable_split(
 
 static inline void
 __device_prepare_task(
-    xkrt_runtime_t * runtime,
-    xkrt_device_t * device,
+    runtime_t * runtime,
+    device_t * device,
     task_t * task
 ) {
     assert(device);
@@ -160,7 +162,7 @@ __device_prepare_task(
     assert(task->state.value == TASK_STATE_READY);
 
     /* if that's a device task, then fetches to the device. Else, fetch to the host */
-    xkrt_device_global_id_t device_global_id = (task->flags & TASK_FLAG_DEVICE) ? device->global_id : HOST_DEVICE_GLOBAL_ID;
+    device_global_id_t device_global_id = (task->flags & TASK_FLAG_DEVICE) ? device->global_id : HOST_DEVICE_GLOBAL_ID;
     LOGGER_DEBUG("Preparing task `%s` of format `%d` on device `%d` - on a thread of device `%d`",
             task->label, task->fmtid, device_global_id, device->global_id);
 
@@ -194,7 +196,7 @@ __device_prepare_task(
                     // shrink the moldable task, and resubmit the original task
                     // whose accesses got shrinked
                     __task_moldable_split(runtime, task, accesses, dep, mol);
-                    return xkrt_runtime_submit_task(runtime, task);
+                    return runtime_submit_task(runtime, task);
                 }
                 else
                 {
@@ -229,25 +231,25 @@ __device_prepare_task(
             }
 
             /* decrease the task 'fetching' counter to detect early-fetch completion */
-            __task_fetched(1, task, xkrt_device_task_execute, runtime, device);
+            __task_fetched(1, task, device_task_execute, runtime, device);
             /* else the task will be launched in a callback while all accesses were fetched */
         }
     }
     else
     {
-        xkrt_device_task_execute(runtime, device, task);
+        device_task_execute(runtime, device, task);
     }
 }
 
 /* main loop for the thread responsible the passed device */
 static inline int
-xkrt_device_thread_main_loop(
-    xkrt_runtime_t * runtime,
-    xkrt_device_t * device,
-    xkrt_thread_t * thread,
+device_thread_main_loop(
+    runtime_t * runtime,
+    device_t * device,
+    thread_t * thread,
     uint8_t device_tid
 ) {
-    assert(thread == xkrt_thread_t::get_tls());
+    assert(thread == thread_t::get_tls());
 
     task_t * task = NULL;
     bool ready    = false;
@@ -266,7 +268,7 @@ xkrt_device_thread_main_loop(
         if (task == NULL)
             task = thread->deque.pop();
 
-        device->offloader_streams_are_empty(device_tid, XKRT_STREAM_TYPE_ALL, &ready, &pending);
+        device->offloader_streams_are_empty(device_tid, STREAM_TYPE_ALL, &ready, &pending);
 
         if (task || ready || pending)
             return false;
@@ -328,12 +330,12 @@ xkrt_device_thread_main_loop(
 
 /* Main entry thread created per device */
 void *
-xkrt_device_thread_main(
-    xkrt_team_t * team,
-    xkrt_thread_t * thread
+device_thread_main(
+    team_t * team,
+    thread_t * thread
 ) {
     // unpack args
-    xkrt_device_team_args_t * args = (xkrt_device_team_args_t *) team->desc.args;
+    device_team_args_t * args = (device_team_args_t *) team->desc.args;
     assert(args);
 
     // get the id of that thread in the args->devices list
@@ -342,12 +344,12 @@ xkrt_device_thread_main(
     int id = thread->tid % args->ndevices;
 
     // unpack args runtime
-    xkrt_runtime_t * runtime        = args->runtime;
-    xkrt_driver_type_t driver_type  = args->devices[id].driver_type;
+    runtime_t * runtime        = args->runtime;
+    driver_type_t driver_type  = args->devices[id].driver_type;
     uint8_t device_driver_id        = args->devices[id].device_driver_id;
 
     // get the driver
-    xkrt_driver_t * driver = runtime->driver_get(driver_type);
+    driver_t * driver = runtime->driver_get(driver_type);
     int is_device_main_thread = thread->tid < args->ndevices;
 
     // create device
@@ -356,7 +358,7 @@ xkrt_device_thread_main(
         assert(driver->f_device_create);
 
         // create the device
-        xkrt_device_t * device = driver->f_device_create(driver, device_driver_id);
+        device_t * device = driver->f_device_create(driver, device_driver_id);
         if (device == NULL)
             LOGGER_FATAL("Could not create a device");
 
@@ -389,7 +391,7 @@ xkrt_device_thread_main(
             assert(device->nmemories > 0);
             for (int i = 0 ; i < device->nmemories ; ++i)
             {
-                xkrt_device_memory_info_t * info = device->memories + i;
+                device_memory_info_t * info = device->memories + i;
                 LOGGER_INFO("Found memory `%s` of capacity %zuGB", info->name, info->capacity/(size_t)1e9);
                 info->allocated = 0;
                 XKRT_MUTEX_INIT(info->area.lock);
@@ -404,7 +406,7 @@ xkrt_device_thread_main(
     pthread_barrier_wait(&driver->barrier);
 
     // register the device thread
-    xkrt_device_t * device = driver->devices[device_driver_id];
+    device_t * device = driver->devices[device_driver_id];
     assert(device);
     uint8_t device_tid = device->nthreads.fetch_add(1, std::memory_order_relaxed);
     device->threads[device_tid] = thread;
@@ -421,7 +423,7 @@ xkrt_device_thread_main(
     {
         // commit
         assert(driver->f_device_commit);
-        xkrt_device_global_id_bitfield_t * affinity = &(runtime->router.affinity[device->global_id][0]);
+        device_global_id_bitfield_t * affinity = &(runtime->router.affinity[device->global_id][0]);
         memset(affinity, 0, sizeof(runtime->router.affinity[device->global_id]));
         int err = driver->f_device_commit(device->driver_id, affinity);
         if (err)
@@ -436,10 +438,10 @@ xkrt_device_thread_main(
         // print affinity
         for (int i = 0 ; i < XKRT_DEVICES_PERF_RANK_MAX ; ++i)
         {
-            xkrt_device_global_id_bitfield_t bf = affinity[i];
-            constexpr int nbytes = sizeof(xkrt_device_global_id_bitfield_t);
+            device_global_id_bitfield_t bf = affinity[i];
+            constexpr int nbytes = sizeof(device_global_id_bitfield_t);
             char buffer[8*nbytes + 1];
-            xkrt_bits_to_str(buffer, (unsigned char *) &bf, nbytes);
+            bits_to_str(buffer, (unsigned char *) &bf, nbytes);
             LOGGER_DEBUG("Device `%2u` affinity mask for perf `%2u` is `%s`", device->global_id, i, buffer);
         }
 
@@ -458,12 +460,12 @@ xkrt_device_thread_main(
     // cannot use 'args->barrier' after this point
 
     /* infinite loop with the device context */
-    int err = xkrt_device_thread_main_loop(runtime, device, thread, device_tid);
+    int err = device_thread_main_loop(runtime, device, thread, device_tid);
     assert((err==0) || (err==EINTR));
 
     // delete streams
     if (driver->f_stream_delete)
-        for (uint8_t j = 0 ; j < XKRT_STREAM_TYPE_ALL ; ++j)
+        for (uint8_t j = 0 ; j < STREAM_TYPE_ALL ; ++j)
             for (int k = 0 ; k < device->count[j] ; ++k)
                 driver->f_stream_delete(device->streams[device_tid][j][k]);
 
@@ -480,7 +482,7 @@ xkrt_device_thread_main(
             {
                 if (device->memories[j].allocated)
                 {
-                    xkrt_area_t * area = &(device->memories[j].area);
+                    area_t * area = &(device->memories[j].area);
                     driver->f_memory_device_deallocate(device->driver_id, (void *) area->chunk0.ptr, area->chunk0.size, j);
                 }
             }
@@ -502,8 +504,8 @@ xkrt_device_thread_main(
 }
 
 void
-xkrt_runtime_t::task_thread_enqueue(
-    xkrt_thread_t * thread,
+runtime_t::task_thread_enqueue(
+    thread_t * thread,
     task_t * task
 ) {
     thread->deque.push(task);
@@ -517,18 +519,18 @@ xkrt_runtime_t::task_thread_enqueue(
 }
 
 void
-xkrt_runtime_t::task_team_enqueue(
-    xkrt_team_t * team,
+runtime_t::task_team_enqueue(
+    team_t * team,
     task_t * task
 ) {
     // start at a random thread
-    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    thread_t * tls = thread_t::get_tls();
     int start = tls->rng() % team->priv.nthreads;
 
     // find one that is not already working
     for (int i = 0 ; i < team->priv.nthreads ; ++i)
     {
-        xkrt_thread_t * thread = team->priv.threads + ((start + i) % team->priv.nthreads);
+        thread_t * thread = team->priv.threads + ((start + i) % team->priv.nthreads);
         bool busy = !thread->sleep.sleeping;
         if (busy)
             continue ;
@@ -538,7 +540,8 @@ xkrt_runtime_t::task_team_enqueue(
     }
 
     // all threads are working, assigning on the first random one
-    xkrt_thread_t * thread = team->priv.threads + start;
+    thread_t * thread = team->priv.threads + start;
     return this->task_thread_enqueue(thread, task);
 }
 
+XKRT_NAMESPACE_END

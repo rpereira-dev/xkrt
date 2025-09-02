@@ -11,16 +11,18 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/metric.h>
 
-static xkrt_runtime_t runtime;
+XKRT_NAMESPACE_USE;
 
 int
 main(void)
 {
-    assert(xkrt_init(&runtime) == 0);
+    runtime_t runtime;
+
+    assert(runtime.init() == 0);
 
     # include "memory-register-async.conf.cc"
 
@@ -30,7 +32,7 @@ main(void)
     runtime.memory_unregister_async(team, ptr, size, nchunks);
     runtime.task_wait();
 
-    assert(xkrt_deinit(&runtime) == 0);
+    assert(runtime.deinit() == 0);
 
     return 0;
 }

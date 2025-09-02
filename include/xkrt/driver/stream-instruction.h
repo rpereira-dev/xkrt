@@ -49,60 +49,64 @@
 
 # include <functional>
 
-/* counter for the stream queues */
-typedef uint32_t xkrt_stream_instruction_counter_t;
+XKRT_NAMESPACE_BEGIN
 
-/* move data between devices */
-typedef struct  xkrt_stream_instruction_copy_1D_t
-{
-    size_t size;
-    uintptr_t dst_device_addr;
-    uintptr_t src_device_addr;
+    /* counter for the stream queues */
+    typedef uint32_t stream_instruction_counter_t;
 
-}               xkrt_stream_instruction_copy_1D_t;
-
-typedef struct  xkrt_stream_instruction_copy_2D_t
-{
-    size_t m;
-    size_t n;
-    size_t sizeof_type;
-    memory_replica_view_t dst_device_view;
-    memory_replica_view_t src_device_view;
-
-}               xkrt_stream_instruction_copy_2D_t;
-
-/* kernel : to launch kernel on the device */
-typedef struct  xkrt_stream_instruction_kernel_t
-{
-    // arguments are:
-    //   xkrt_stream_t * istream, xkrt_stream_instruction * instr, xkrt_stream_instruction_counter_t idx)
-    void (*launch)();
-    void * vargs;
-}               xkrt_stream_instruction_kernel_t;
-
-/* read/write files */
-typedef struct  xkrt_stream_instruction_file_t
-{
-    int fd;
-    void * buffer;
-    size_t n;
-    size_t offset;
-}               xkrt_stream_instruction_file_t;
-
-/* instructions */
-typedef struct  xkrt_stream_instruction_t
-{
-    xkrt_stream_instruction_type_t type;
-    xkrt_callback_t callback;
-    union
+    /* move data between devices */
+    typedef struct  stream_instruction_copy_1D_t
     {
-        xkrt_stream_instruction_copy_1D_t   copy_1D;
-        xkrt_stream_instruction_copy_2D_t   copy_2D;
-        xkrt_stream_instruction_kernel_t    kern;
-        xkrt_stream_instruction_file_t      file;
-    };
-    bool completed;
+        size_t size;
+        uintptr_t dst_device_addr;
+        uintptr_t src_device_addr;
 
-}               xkrt_stream_instruction_t;
+    }               stream_instruction_copy_1D_t;
+
+    typedef struct  stream_instruction_copy_2D_t
+    {
+        size_t m;
+        size_t n;
+        size_t sizeof_type;
+        memory_replica_view_t dst_device_view;
+        memory_replica_view_t src_device_view;
+
+    }               stream_instruction_copy_2D_t;
+
+    /* kernel : to launch kernel on the device */
+    typedef struct  stream_instruction_kernel_t
+    {
+        // arguments are:
+        //   stream_t * istream, stream_instruction * instr, stream_instruction_counter_t idx)
+        void (*launch)();
+        void * vargs;
+    }               stream_instruction_kernel_t;
+
+    /* read/write files */
+    typedef struct  stream_instruction_file_t
+    {
+        int fd;
+        void * buffer;
+        size_t n;
+        size_t offset;
+    }               stream_instruction_file_t;
+
+    /* instructions */
+    typedef struct  stream_instruction_t
+    {
+        stream_instruction_type_t type;
+        callback_t callback;
+        union
+        {
+            stream_instruction_copy_1D_t   copy_1D;
+            stream_instruction_copy_2D_t   copy_2D;
+            stream_instruction_kernel_t    kern;
+            stream_instruction_file_t      file;
+        };
+        bool completed;
+
+    }               stream_instruction_t;
+
+XKRT_NAMESPACE_END
 
 #endif /* __STREAM_INSTRUCTION_H__ */
