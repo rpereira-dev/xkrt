@@ -11,13 +11,13 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/metric.h>
 
-#include <algorithm>    // std::shuffle
+# include <algorithm>    // std::shuffle
 
-static xkrt_runtime_t runtime;
+XKRT_NAMESPACE_USE;
 
 # define TYPE unsigned char
 # define S    (sizeof(TYPE))
@@ -29,7 +29,9 @@ static xkrt_runtime_t runtime;
 int
 main(void)
 {
-    assert(xkrt_init(&runtime) == 0);
+    runtime_t runtime;
+
+    assert(runtime.init() == 0);
 
     // retrieve page size
     const size_t pagesize = getpagesize();
@@ -68,27 +70,17 @@ main(void)
         ((unsigned char *)p)[offset] = 42; // Touch to make it dirty / paged-in
 
     // register a portion of it
-    xkrt_memory_register_async(
-        &runtime,
-        (void *) (p+REGISTER_OFFSET),
-        REGISTER_SIZE
-    );
-    runtime.task_wait();
+    runtime.memory_register((void *) (p+REGISTER_OFFSET), REGISTER_SIZE);
 
     // submit data to devices
-    xkrt_coherency_replicate_2D_async(&runtime, MATRIX_COLMAJOR, (void *) p, N, N, N, S);
+    runtime.memory_host_coherent_async(MATRIX_COLMAJOR, (void *) p, N, N, N, S);
     runtime.task_wait();
 
     // unregister a portion of it
-    xkrt_memory_unregister_async(
-        &runtime,
-        (void *) (p+REGISTER_OFFSET),
-        REGISTER_SIZE
-    );
-    runtime.task_wait();
+    runtime.memory_unregister((void *) (p+REGISTER_OFFSET), REGISTER_SIZE);
 
     // finalize
-    assert(xkrt_deinit(&runtime) == 0);
+    assert(runtime.deinit() == 0);
 
     return 0;
 }

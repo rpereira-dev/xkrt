@@ -44,6 +44,8 @@
 # include <vector>
 # include <unordered_map>
 
+XKRT_NAMESPACE_BEGIN
+
 template<int K>
 class KBLASDependencyTreeSearch
 {
@@ -445,5 +447,7 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
 };
 
 using BLASDependencyTree = KBLASDependencyTree<2>;
+
+XKRT_NAMESPACE_END
 
 #endif /* __DEPENDENCY_TREE_HPP__ */

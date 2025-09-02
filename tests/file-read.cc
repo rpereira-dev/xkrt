@@ -3,7 +3,7 @@
 /*   file-read.cc                                                 .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/23 18:26:59 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/22 23:50:43 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -23,9 +23,11 @@
 
 # include <new>
 
-# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/metric.h>
+
+XKRT_NAMESPACE_USE;
 
 constexpr const char * filename = "file.bin";             // filename
 constexpr size_t buffer_size = (1024 * 1024);             // 1MB
@@ -33,7 +35,7 @@ constexpr size_t buffer_size = (1024 * 1024);             // 1MB
 constexpr size_t total_size  = (8L * 1024 * 1024);      // 8MB
 constexpr int    nchunks      = 4;                        // tasks that reads the file
 
-static xkrt_runtime_t runtime;
+static runtime_t runtime;
 
 static void
 createfile(void)
@@ -79,7 +81,7 @@ main(void)
 {
     createfile();
 
-    assert(xkrt_init(&runtime) == 0);
+    assert(runtime.init() == 0);
 
     unsigned char * buffer = (unsigned char *) malloc(total_size);
     assert(buffer);
@@ -92,7 +94,7 @@ main(void)
     }
 
     # if 0
-    uint64_t t0 = xkrt_get_nanotime();
+    uint64_t t0 = get_nanotime();
     # endif
 
     /* spawn tasks that read the file */
@@ -119,7 +121,7 @@ main(void)
     runtime.task_wait();
 
     # if 0
-    uint64_t tf = xkrt_get_nanotime();
+    uint64_t tf = get_nanotime();
     double dt_ns = (double) (tf - t0);
     LOGGER_INFO("Read with %.2lf GB/s", total_size/dt_ns);
     # endif
@@ -130,7 +132,7 @@ main(void)
     else
         perror("remove");
 
-    assert(xkrt_deinit(&runtime) == 0);
+    assert(runtime.deinit() == 0);
 
     return 0;
 }

@@ -71,22 +71,24 @@
 
 # include <optional>
 
+XKRT_NAMESPACE_BEGIN
+
 /* number of used device for this run */
-static std::optional<xkrt_device_sycl_t> DEVICES[XKRT_DEVICES_MAX];
+static std::optional<device_sycl_t> DEVICES[XKRT_DEVICES_MAX];
 
 /* maximum number of devices installed */
 static int ndevices_max;
 
-static inline xkrt_device_t *
+static inline device_t *
 device_get(int device_driver_id)
 {
-    return (xkrt_device_t *) (DEVICES + device_driver_id);
+    return (device_t *) (DEVICES + device_driver_id);
 }
 
-static inline xkrt_device_sycl_t *
+static inline device_sycl_t *
 device_sycl_get(int device_driver_id)
 {
-    return (xkrt_device_sycl_t *) device_get(device_driver_id);
+    return (device_sycl_t *) device_get(device_driver_id);
 }
 
 static unsigned int
@@ -118,7 +120,7 @@ XKRT_DRIVER_ENTRYPOINT(init)(
                 {
                     if (dev.is_gpu())
                     {
-                        xkrt_device_sycl_t * device = device_sycl_get(i);
+                        device_sycl_t * device = device_sycl_get(i);
                         device->sycl.platform = platform;
                         device->sycl.device = dev;
                         if (++i == ndevices)
@@ -154,7 +156,7 @@ XKRT_DRIVER_ENTRYPOINT(device_cpuset)(
     cpu_set_t * schedset,
     int device_driver_id
 ) {
-    xkrt_device_sycl_t * device = device_sycl_get(device_driver_id);
+    device_sycl_t * device = device_sycl_get(device_driver_id);
     hwloc_cpuset_t cpuset = hwloc_bitmap_alloc();
 
     LOGGER_IMPL("Couldnt get cpuset of a SYCL device. Device threads will bind to any CPUs");
@@ -177,21 +179,21 @@ XKRT_DRIVER_ENTRYPOINT(device_cpuset)(
     return 0;
 }
 
-static xkrt_device_t *
+static device_t *
 XKRT_DRIVER_ENTRYPOINT(device_create)(
-    xkrt_driver_t * driver,
+    driver_t * driver,
     int device_driver_id
 ) {
-    xkrt_device_sycl_t * device = device_sycl_get(device_driver_id);
+    device_sycl_t * device = device_sycl_get(device_driver_id);
     assert(device->inherited.state == XKRT_DEVICE_STATE_DEALLOCATED);
     new (&device->sycl.alloc_queue) sycl::queue(device->sycl.device);
-    return (xkrt_device_t *) device;
+    return (device_t *) device;
 }
 
 static void
 XKRT_DRIVER_ENTRYPOINT(device_init)(int device_driver_id)
 {
-    xkrt_device_sycl_t * device = device_sycl_get(device_driver_id);
+    device_sycl_t * device = device_sycl_get(device_driver_id);
     assert(device->inherited.state == XKRT_DEVICE_STATE_CREATE);
 }
 
@@ -202,7 +204,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(
     int area_idx
 ) {
     assert(area_idx == 0);
-    xkrt_device_sycl_t * device = device_sycl_get(device_driver_id);
+    device_sycl_t * device = device_sycl_get(device_driver_id);
     void * device_ptr = sycl::malloc_device(size, device->sycl.alloc_queue);
     return device_ptr;
 }
@@ -216,7 +218,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(
 ) {
     (void) size;
     assert(area_idx == 0);
-    xkrt_device_sycl_t * device = device_sycl_get(device_driver_id);
+    device_sycl_t * device = device_sycl_get(device_driver_id);
     sycl::free(ptr, device->sycl.alloc_queue);
 }
 
@@ -250,10 +252,10 @@ XKRT_DRIVER_ENTRYPOINT(memory_unified_deallocate)(
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_device_info)(
     int device_driver_id,
-    xkrt_device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX],
+    device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX],
     int * nmemories
 ) {
-    xkrt_device_sycl_t * device = device_sycl_get(device_driver_id);
+    device_sycl_t * device = device_sycl_get(device_driver_id);
     info[0].capacity = device->sycl.device.get_info<sycl::info::device::global_mem_size>();
     info[0].used     = (size_t) -1;
     strncpy(info[0].name, "(null)", sizeof(info[0].name));
@@ -263,7 +265,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_info)(
 static int
 XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
 {
-    xkrt_device_sycl_t * device = device_sycl_get(device_driver_id);
+    device_sycl_t * device = device_sycl_get(device_driver_id);
     (void) device;
     return 0;
 }
@@ -272,18 +274,18 @@ XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
 static int
 XKRT_DRIVER_ENTRYPOINT(device_commit)(
     int device_driver_id,
-    xkrt_device_global_id_bitfield_t * affinity
+    device_global_id_bitfield_t * affinity
 ) {
     assert(affinity);
 
-    xkrt_device_sycl_t * device = device_sycl_get(device_driver_id);
-    xkrt_device_global_id_t device_global_id = device->inherited.global_id;
+    device_sycl_t * device = device_sycl_get(device_driver_id);
+    device_global_id_t device_global_id = device->inherited.global_id;
 
     LOGGER_IMPL("Set actual affinity, hardcoded for now");
     int rank = 0;
     affinity[rank++] = (1 << device_global_id);
     # if 1 // Aurora specific - set high affinity between the two stacks for the gpu
-    xkrt_device_global_id_t stack_id = (device_global_id % 2 == 0) ? (device_global_id + 1) : (device_global_id - 1);
+    device_global_id_t stack_id = (device_global_id % 2 == 0) ? (device_global_id + 1) : (device_global_id - 1);
     affinity[rank++] =  (1 << stack_id);
     # endif
     affinity[rank++] = ~affinity[0];
@@ -340,13 +342,13 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_deallocate)(
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
     int device_driver_id,
-    xkrt_stream_type_t stype
+    stream_type_t stype
 ) {
     (void) device_driver_id;
 
     switch (stype)
     {
-        case (XKRT_STREAM_TYPE_KERN):
+        case (STREAM_TYPE_KERN):
             return 8;
         default:
             return 4;
@@ -355,11 +357,11 @@ XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
-    xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+    stream_t * istream,
+    stream_instruction_t * instr,
+    stream_instruction_counter_t idx
 ) {
-    xkrt_stream_sycl_t * stream = (xkrt_stream_sycl_t *) istream;
+    stream_sycl_t * stream = (stream_sycl_t *) istream;
     assert(stream);
 
     sycl::queue & q = stream->sycl.queue;
@@ -479,9 +481,9 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 
 static inline int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
-    xkrt_stream_sycl_t * stream = (xkrt_stream_sycl_t *) istream;
+    stream_sycl_t * stream = (stream_sycl_t *) istream;
     assert(stream);
 
     # if 0
@@ -496,9 +498,9 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
 
 static inline int
 XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
-    xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+    stream_t * istream,
+    stream_instruction_t * instr,
+    stream_instruction_counter_t idx
 ) {
     LOGGER_FATAL("Not supported");
     return 0;
@@ -506,19 +508,19 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
     assert(istream);
 
     int r = 0;
 
-    istream->pending.iterate([&istream, &r] (xkrt_stream_instruction_counter_t p) {
+    istream->pending.iterate([&istream, &r] (stream_instruction_counter_t p) {
 
-        xkrt_stream_instruction_t * instr = istream->pending.instr + p;
+        stream_instruction_t * instr = istream->pending.instr + p;
         if (instr->completed)
             return true;
 
-        xkrt_stream_sycl_t * stream = (xkrt_stream_sycl_t *) istream;
+        stream_sycl_t * stream = (stream_sycl_t *) istream;
         sycl::event * e = stream->sycl.events.buffer + p;
 
         switch (instr->type)
@@ -556,25 +558,25 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     return r;
 }
 
-static xkrt_stream_t *
+static stream_t *
 XKRT_DRIVER_ENTRYPOINT(stream_create)(
-    xkrt_device_t * idevice,
-    xkrt_stream_type_t type,
-    xkrt_stream_instruction_counter_t capacity
+    device_t * idevice,
+    stream_type_t type,
+    stream_instruction_counter_t capacity
 ) {
     assert(idevice);
 
-    uint8_t * mem = (uint8_t *) malloc(sizeof(xkrt_stream_sycl_t) + capacity * sizeof(sycl::event));
+    uint8_t * mem = (uint8_t *) malloc(sizeof(stream_sycl_t) + capacity * sizeof(sycl::event));
     assert(mem);
 
-    xkrt_device_sycl_t * device = (xkrt_device_sycl_t *) idevice;
-    xkrt_stream_sycl_t * stream = (xkrt_stream_sycl_t *) mem;
+    device_sycl_t * device = (device_sycl_t *) idevice;
+    stream_sycl_t * stream = (stream_sycl_t *) mem;
 
     /*************************/
     /* init xkrt stream */
     /*************************/
-    xkrt_stream_init(
-        (xkrt_stream_t *) stream,
+    stream_init(
+        (stream_t *) stream,
         type,
         capacity,
         XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
@@ -594,14 +596,14 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     // TODO : how to initialize queues depending on `type` ?
     new (&stream->sycl.queue) sycl::queue(device->sycl.device);
 
-    return (xkrt_stream_t *) stream;
+    return (stream_t *) stream;
 }
 
 static void
 XKRT_DRIVER_ENTRYPOINT(stream_delete)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
-    xkrt_stream_sycl_t * stream = (xkrt_stream_sycl_t *) istream;
+    stream_sycl_t * stream = (stream_sycl_t *) istream;
     stream->sycl.queue.~queue();
     free(stream);
 }
@@ -619,7 +621,7 @@ XKRT_DRIVER_ENTRYPOINT(device_info)(
     char * buffer,
     size_t size
 ) {
-    xkrt_device_sycl_t * device = device_sycl_get(device_driver_id);
+    device_sycl_t * device = device_sycl_get(device_driver_id);
     sycl::device & dev = device->sycl.device;
     auto device_type = dev.get_info<sycl::info::device::device_type>();
 
@@ -641,17 +643,17 @@ XKRT_DRIVER_ENTRYPOINT(device_info)(
 }
 
 #if 0
-xkrt_driver_module_t
+driver_module_t
 XKRT_DRIVER_ENTRYPOINT(module_load)(
     int device_driver_id,
     uint8_t * bin,
     size_t binsize,
-    xkrt_driver_module_format_t format
+    driver_module_format_t format
 ) {
     (void) binsize;
     assert(format == XKRT_DRIVER_MODULE_FORMAT_NATIVE);
     cu_set_context(device_driver_id);
-    xkrt_driver_module_t module = NULL;
+    driver_module_t module = NULL;
     SYCL_SAFE_CALL(cuModuleLoadData((CUmodule *) &module, bin));
     assert(module);
     return module;
@@ -659,17 +661,17 @@ XKRT_DRIVER_ENTRYPOINT(module_load)(
 
 void
 XKRT_DRIVER_ENTRYPOINT(module_unload)(
-    xkrt_driver_module_t module
+    driver_module_t module
 ) {
     SYCL_SAFE_CALL(cuModuleUnload((CUmodule) module));
 }
 
-xkrt_driver_module_fn_t
+driver_module_fn_t
 XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
-    xkrt_driver_module_t module,
+    driver_module_t module,
     const char * name
 ) {
-    xkrt_driver_module_fn_t fn = NULL;
+    driver_module_fn_t fn = NULL;
     SYCL_SAFE_CALL(cuModuleGetFunction((CUfunction *) &fn, (CUmodule) module, name));
     assert(fn);
     return fn;
@@ -678,7 +680,7 @@ XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
 
 # if 0
 void
-XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, xkrt_power_t * pwr)
+XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, power_t * pwr)
 {
     (void) device_driver_id;
     (void) pwr;
@@ -686,7 +688,7 @@ XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, xkrt_power_t * pwr)
 }
 
 void
-XKRT_DRIVER_ENTRYPOINT(power_stop)(int device_driver_id, xkrt_power_t * pwr)
+XKRT_DRIVER_ENTRYPOINT(power_stop)(int device_driver_id, power_t * pwr)
 {
     (void) device_driver_id;
     (void) pwr;
@@ -695,10 +697,10 @@ XKRT_DRIVER_ENTRYPOINT(power_stop)(int device_driver_id, xkrt_power_t * pwr)
 
 # endif
 
-xkrt_driver_t *
+driver_t *
 XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 {
-    xkrt_driver_sycl_t * driver = (xkrt_driver_sycl_t *) calloc(1, sizeof(xkrt_driver_sycl_t));
+    driver_sycl_t * driver = (driver_sycl_t *) calloc(1, sizeof(driver_sycl_t));
     assert(driver);
 
     # define REGISTER(func) driver->super.f_##func = XKRT_DRIVER_ENTRYPOINT(func)
@@ -745,5 +747,7 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 
     # undef REGISTER
 
-    return (xkrt_driver_t *) driver;
+    return (driver_t *) driver;
 }
+
+XKRT_NAMESPACE_END

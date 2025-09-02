@@ -41,6 +41,9 @@
 # include <atomic>
 # include <stdint.h>
 
+# include <xkrt/namespace.h>
+XKRT_NAMESPACE_BEGIN
+
 typedef enum    task_format_target_t : uint8_t
 {
     TASK_FORMAT_TARGET_HOST  = 0,
@@ -80,5 +83,7 @@ typedef struct  task_formats_t
 void task_formats_init(task_formats_t * formats);
 task_format_id_t task_format_create(task_formats_t * formats, task_format_t * format);
 task_format_t * task_format_get(task_formats_t * formats, task_format_id_t id);
+
+XKRT_NAMESPACE_END
 
 #endif /* __TASK_TARGET_H__ */

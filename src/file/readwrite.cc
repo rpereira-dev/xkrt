@@ -38,9 +38,11 @@
 
 # include <xkrt/runtime.h>
 
+XKRT_NAMESPACE_BEGIN
+
 typedef struct  file_args_t
 {
-    xkrt_runtime_t * runtime;
+    runtime_t * runtime;
     int fd;
     size_t offset;
     void * buffer;
@@ -76,19 +78,19 @@ body_file_async_callback(void * vargs [XKRT_CALLBACK_ARGS_MAX])
     # endif
 }
 
-template<xkrt_stream_instruction_type_t T>
+template<stream_instruction_type_t T>
 static void
 body_file_async(task_t * task)
 {
     assert(task);
 
-    xkrt_callback_t callback;
+    callback_t callback;
     callback.func    = body_file_async_callback;
     callback.args[0] = task;
 
     file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
 
-    xkrt_device_t * device = args->runtime->device_get(HOST_DEVICE_GLOBAL_ID);
+    device_t * device = args->runtime->device_get(HOST_DEVICE_GLOBAL_ID);
     assert(device);
 
     # if 1
@@ -117,10 +119,10 @@ body_file_async(task_t * task)
 }
 
 // TODO: reimplement using partitionned dependencies
-template<xkrt_stream_instruction_type_t T>
+template<stream_instruction_type_t T>
 static inline int
 file_async(
-    xkrt_runtime_t * runtime,
+    runtime_t * runtime,
     int fd,
     void * buffer,
     size_t n,
@@ -140,7 +142,7 @@ file_async(
     assert(chunksize > 0);
 
     // create the task that submit the i/o instruction
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     // get task format
@@ -201,7 +203,7 @@ file_async(
        nchunks = (unsigned int) n;
 
     // create the task that submit the i/o instruction
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     // get task format
@@ -248,7 +250,7 @@ file_async(
 }
 
 int
-xkrt_runtime_t::file_read_async(
+runtime_t::file_read_async(
     int fd,
     void * buffer,
     size_t n,
@@ -258,7 +260,7 @@ xkrt_runtime_t::file_read_async(
 }
 
 int
-xkrt_runtime_t::file_write_async(
+runtime_t::file_write_async(
     int fd,
     void * buffer,
     size_t n,
@@ -268,7 +270,7 @@ xkrt_runtime_t::file_write_async(
 }
 
 void
-xkrt_file_async_register_format(xkrt_runtime_t * runtime)
+file_async_register_format(runtime_t * runtime)
 {
     {
         task_format_t format;
@@ -286,3 +288,5 @@ xkrt_file_async_register_format(xkrt_runtime_t * runtime)
         runtime->formats.file_write_async = task_format_create(&(runtime->formats.list), &format);
     }
 }
+
+XKRT_NAMESPACE_END;

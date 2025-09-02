@@ -38,14 +38,17 @@
 #ifndef __XKRT_CALLBACK_H__
 # define __XKRT_CALLBACK_H__
 
+# include <xkrt/namespace.h>
+XKRT_NAMESPACE_BEGIN
+
 # define XKRT_CALLBACK_ARGS_MAX 5
 
-typedef struct  xkrt_callback_t
+typedef struct  callback_t
 {
     void (*func)(void * [XKRT_CALLBACK_ARGS_MAX]);
     void * args[XKRT_CALLBACK_ARGS_MAX];
-}               xkrt_callback_t;
+}               callback_t;
 
-# define xkrt_callback_raise(c) (c.func(c.args))
+XKRT_NAMESPACE_END
 
 # endif /* __XKRT_CALLBACK_H__ */

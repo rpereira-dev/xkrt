@@ -3,7 +3,7 @@
 /*   task-format-host.cc                                          .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2024/12/20 15:07:55 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/03 18:13:46 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/23 00:16:01 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -14,12 +14,14 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 # include <xkrt/task/task-format.h>
 # include <xkrt/task/task.hpp>
 
 # include <assert.h>
 # include <string.h>
+
+XKRT_NAMESPACE_USE;
 
 static int r = 0;
 
@@ -32,8 +34,8 @@ func(task_t * task)
 int
 main(void)
 {
-    xkrt_runtime_t runtime;
-    assert(xkrt_init(&runtime) == 0);
+    runtime_t runtime;
+    assert(runtime.init() == 0);
 
     // create an empty task format
     task_format_id_t FORMAT;
@@ -46,7 +48,7 @@ main(void)
     assert(FORMAT);
 
     // create an host task
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     // Submit the task
@@ -54,15 +56,15 @@ main(void)
     constexpr size_t task_size = task_compute_size(flags, 0);
 
     task_t * task = thread->allocate_task(task_size);
-    new(task) task_t(FORMAT, flags);
+    new (task) task_t(FORMAT, flags);
 
     runtime.task_commit(task);
 
     // wait
-    assert(xkrt_sync(&runtime) == 0);
+    runtime.task_wait();
 
     // deinit has an implicit taskwait
-    assert(xkrt_deinit(&runtime) == 0);
+    assert(runtime.deinit() == 0);
     assert(r == 1);
 
     return 0;

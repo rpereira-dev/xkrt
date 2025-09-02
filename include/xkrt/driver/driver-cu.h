@@ -44,52 +44,56 @@
 # include <cuda.h>
 # include <cublas_v2.h>
 
-typedef struct  xkrt_stream_cu_t
-{
-    xkrt_stream_t super;
+XKRT_NAMESPACE_BEGIN
 
-    struct {
-
-        struct {
-            CUstream  high;
-            CUstream  low;
-        } handle;
+    typedef struct  stream_cu_t
+    {
+        stream_t super;
 
         struct {
-            CUevent * buffer;
-            xkrt_stream_instruction_counter_t capacity;
-        } events;
 
-        struct {
-            cublasHandle_t handle;
-        } blas;
+            struct {
+                CUstream  high;
+                CUstream  low;
+            } handle;
 
-    } cu;
-}               xkrt_stream_cu_t;
+            struct {
+                CUevent * buffer;
+                stream_instruction_counter_t capacity;
+            } events;
+
+            struct {
+                cublasHandle_t handle;
+            } blas;
+
+        } cu;
+    }               stream_cu_t;
 
 
-typedef struct  xkrt_device_cu_t
-{
-    xkrt_device_t inherited;
+    typedef struct  device_cu_t
+    {
+        device_t inherited;
 
-    struct  {
+        struct  {
 
-        CUcontext context;
-        CUdevice device;
+            CUcontext context;
+            CUdevice device;
 
-        struct {
-            int pciBusID;
-            int pciDeviceID;
-            size_t mem_total;
-            char name[64];      /* GPU name */
-        } prop;
+            struct {
+                int pciBusID;
+                int pciDeviceID;
+                size_t mem_total;
+                char name[64];      /* GPU name */
+            } prop;
 
-    } cu;
-}               xkrt_device_cu_t;
+        } cu;
+    }               device_cu_t;
 
-typedef struct  xkrt_driver_cu_t
-{
-    xkrt_driver_t super;
-}               xkrt_driver_cu_t;
+    typedef struct  driver_cu_t
+    {
+        driver_t super;
+    }               driver_cu_t;
+
+XKRT_NAMESPACE_END
 
 #endif /* __DRIVER_CU_H__ */

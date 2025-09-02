@@ -47,9 +47,11 @@
 # include <hip/hip_runtime.h>
 # include <hipblas/hipblas.h>
 
-typedef struct  xkrt_stream_hip_t
+XKRT_NAMESPACE_BEGIN
+
+typedef struct  stream_hip_t
 {
-    xkrt_stream_t super;
+    stream_t super;
 
     struct {
 
@@ -60,7 +62,7 @@ typedef struct  xkrt_stream_hip_t
 
         struct {
             hipEvent_t * buffer;
-            xkrt_stream_instruction_counter_t capacity;
+            stream_instruction_counter_t capacity;
         } events;
 
         struct {
@@ -68,11 +70,11 @@ typedef struct  xkrt_stream_hip_t
         } blas;
 
     } hip;
-}               xkrt_stream_hip_t;
+}               stream_hip_t;
 
-typedef struct  xkrt_device_hip_t
+typedef struct  device_hip_t
 {
-    xkrt_device_t inherited;
+    device_t inherited;
 
     struct  {
 
@@ -87,12 +89,13 @@ typedef struct  xkrt_device_hip_t
         } prop;
 
     } hip;
-}               xkrt_device_hip_t;
+}               device_hip_t;
 
-typedef struct  xkrt_driver_hip_t
+typedef struct  driver_hip_t
 {
-    xkrt_driver_t super;
-}               xkrt_driver_hip_t;
+    driver_t super;
+}               driver_hip_t;
 
+XKRT_NAMESPACE_END
 
 #endif /* __DRIVER_HIP_H__ */

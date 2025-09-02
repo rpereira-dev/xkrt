@@ -37,9 +37,12 @@
 #ifndef __DEPENDENCY_DOMAIN_HPP__
 # define __DEPENDENCY_DOMAIN_HPP__
 
+# include <xkrt/consts.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/todo.h>
 # include <xkrt/memory/access/access.hpp>
+
+XKRT_NAMESPACE_BEGIN
 
 class DependencyDomain
 {
@@ -82,5 +85,7 @@ class DependencyDomain
             this->put<AC>(accesses);
         }
 };
+
+XKRT_NAMESPACE_END
 
 #endif /* __DEPENDENCY_DOMAIN_HPP__ */

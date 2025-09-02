@@ -46,41 +46,45 @@
 
 # include <linux/io_uring.h>
 
-typedef std::atomic<uint8_t> xkrt_stream_host_event_t;
+XKRT_NAMESPACE_BEGIN
 
-typedef struct  xkrt_stream_host_t
-{
-    xkrt_stream_t super;
+    typedef std::atomic<uint8_t> stream_host_event_t;
 
-    /* async i/o */
-    struct {
+    typedef struct  stream_host_t
+    {
+        stream_t super;
 
-        /* io_uring file desc */
-        int fd;
+        /* async i/o */
+        struct {
 
-        /* submission queue */
-        unsigned char * sq_ptr;
-        unsigned char * sq_tail;
-        unsigned char * sq_mask;
-        unsigned char * sq_array;
+            /* io_uring file desc */
+            int fd;
 
-        struct io_uring_sqe * sqes;
+            /* submission queue */
+            unsigned char * sq_ptr;
+            unsigned char * sq_tail;
+            unsigned char * sq_mask;
+            unsigned char * sq_array;
 
-        /* completion queue */
-        unsigned char * cq_ptr;
-        unsigned char * cq_head;
-        unsigned char * cq_tail;
-        unsigned char * cq_mask;
-        unsigned char * cq_array;
+            struct io_uring_sqe * sqes;
 
-        struct io_uring_cqe * cqes;
+            /* completion queue */
+            unsigned char * cq_ptr;
+            unsigned char * cq_head;
+            unsigned char * cq_tail;
+            unsigned char * cq_mask;
+            unsigned char * cq_array;
 
-    } io_uring;
-}               xkrt_stream_host_t;
+            struct io_uring_cqe * cqes;
 
-typedef struct  xkrt_driver_host_t
-{
-    xkrt_driver_t super;
-}               xkrt_driver_host_t;
+        } io_uring;
+    }               stream_host_t;
+
+    typedef struct  driver_host_t
+    {
+        driver_t super;
+    }               driver_host_t;
+
+XKRT_NAMESPACE_END
 
 #endif /* __DRIVER_HOST_H__ */

@@ -3,7 +3,7 @@
 /*   dependency-map.hpp                                           .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/05/19 00:09:44 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/07/24 21:23:40 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/22 23:32:58 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -24,6 +24,8 @@
 
 # include <vector>
 # include <unordered_map>
+
+XKRT_NAMESPACE_BEGIN
 
 class DependencyMap : public DependencyDomain
 {
@@ -70,7 +72,7 @@ class DependencyMap : public DependencyDomain
         insert_empty_write(const void * point)
         {
             // create the empty task node
-            xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+            thread_t * thread = thread_t::get_tls();
             assert(thread);
 
             constexpr int AC = 1;
@@ -300,5 +302,7 @@ class DependencyMap : public DependencyDomain
         }
 
 };
+
+XKRT_NAMESPACE_END
 
 #endif /* __DEPENDENCY_MAP_HPP__ */

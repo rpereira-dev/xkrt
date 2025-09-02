@@ -61,16 +61,18 @@
 # include <cerrno>
 # include <functional>
 
-// TODO : can be make this member of a 'xkrt_driver_ze_t' ?  most likely yes,
+XKRT_NAMESPACE_BEGIN
+
+// TODO : can be make this member of a 'driver_ze_t' ?  most likely yes,
 // but cuda state machine would make it hard to maintain for cuda as well. Keep
 // them as global variable for now, there should only be 1 instances of a
 // driver right now
 
 // xkrt
-static xkrt_device_ze_t * DEVICES;
+static device_ze_t * DEVICES;
 static uint32_t n_devices = 0;
 
-static xkrt_device_ze_t *
+static device_ze_t *
 device_ze_get(int device_driver_id)
 {
     assert(device_driver_id >= 0);
@@ -110,7 +112,7 @@ void convert_zes_device_to_ze_device(void)
     for (unsigned int device_driver_id = 0 ; device_driver_id < n_devices ; ++device_driver_id)
     {
         // figure out the mapping ze to zes
-        xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+        device_ze_t * device = device_ze_get(device_driver_id);
         uint32_t ze_device_id = device->ze.index.device;
 
         zes_uuid_t uuid = {};
@@ -181,7 +183,7 @@ XKRT_DRIVER_ENTRYPOINT(init)(
     assert(0 < ndevices_requested);
     assert(ndevices_requested <= XKRT_DEVICES_MAX);
 
-    DEVICES = (xkrt_device_ze_t *) calloc(XKRT_DEVICES_MAX, sizeof(xkrt_device_ze_t));
+    DEVICES = (device_ze_t *) calloc(XKRT_DEVICES_MAX, sizeof(device_ze_t));
     assert(DEVICES);
 
     # pragma message(TODO "We initialize all Intel drivers and devices here. Maybe make this a bit more lazy")
@@ -260,7 +262,7 @@ XKRT_DRIVER_ENTRYPOINT(init)(
             ze_device_handle_t ze_device = ze_devices[ze_driver_id][ze_device_id];
 
             // save handles
-            xkrt_device_ze_t * device = DEVICES + n_devices++;
+            device_ze_t * device = DEVICES + n_devices++;
             device->ze.context = ze_contextes[ze_driver_id];
             device->ze.driver  = ze_drivers[ze_driver_id];
             device->ze.handle  = ze_device;
@@ -304,7 +306,7 @@ XKRT_DRIVER_ENTRYPOINT(device_info)(
     char * buffer,
     size_t size
 ) {
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+    device_ze_t * device = device_ze_get(device_driver_id);
 
     char uuid[2 + 2 * ZE_MAX_DEVICE_UUID_SIZE + 1];
     size_t pos = 0;
@@ -359,7 +361,7 @@ XKRT_DRIVER_ENTRYPOINT(get_ndevices_max)(void)
 static int
 XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * schedset, int device_driver_id)
 {
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+    device_ze_t * device = device_ze_get(device_driver_id);
 
     hwloc_cpuset_t cpuset = hwloc_bitmap_alloc();
     HWLOC_SAFE_CALL(hwloc_levelzero_get_device_cpuset(topology, device->ze.handle, cpuset));
@@ -370,15 +372,15 @@ XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * sch
     return 0;
 }
 
-static xkrt_device_t *
+static device_t *
 XKRT_DRIVER_ENTRYPOINT(device_create)(
-    xkrt_driver_t * driver,
+    driver_t * driver,
     int device_driver_id
 ) {
     (void) driver;
     assert(device_driver_id >= 0 && device_driver_id < XKRT_DEVICES_MAX);
 
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+    device_ze_t * device = device_ze_get(device_driver_id);
     assert(device->inherited.state == XKRT_DEVICE_STATE_DEALLOCATED);
 
     // query number of command queue groups
@@ -395,7 +397,7 @@ XKRT_DRIVER_ENTRYPOINT(device_create)(
     for (uint32_t i = 0 ; i < device->ze.ncommandqueuegroups ; ++i)
         device->ze.command_queue_group_used[i].store(0);
 
-    return (xkrt_device_t *) device;
+    return (device_t *) device;
 }
 
 static void
@@ -408,7 +410,7 @@ XKRT_DRIVER_ENTRYPOINT(device_init)(int device_driver_id)
 static int
 XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
 {
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+    device_ze_t * device = device_ze_get(device_driver_id);
     delete [] device->ze.command_queue_group_used;
     return 0;
 }
@@ -417,19 +419,19 @@ XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
 static int
 XKRT_DRIVER_ENTRYPOINT(device_commit)(
     int device_driver_id,
-    xkrt_device_global_id_bitfield_t * affinity
+    device_global_id_bitfield_t * affinity
 ) {
     // TODO: Intel API `zeDeviceGetP2PProperties` currently does not have a property about P2P performances
     // so instead, simply hard-code affinity for now
 
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
-    xkrt_device_global_id_t device_global_id = device->inherited.global_id;
+    device_ze_t * device = device_ze_get(device_driver_id);
+    device_global_id_t device_global_id = device->inherited.global_id;
 
     int rank = 0;
     affinity[rank++] = (1 << device_global_id);
 
 # if 1
-    xkrt_device_global_id_t subdevice_global_id = (device_global_id % 2 == 0) ? (device_global_id + 1) : (device_global_id - 1);
+    device_global_id_t subdevice_global_id = (device_global_id % 2 == 0) ? (device_global_id + 1) : (device_global_id - 1);
     affinity[rank++] =  (1 << subdevice_global_id);
     affinity[rank++] = (~affinity[0]) & (~affinity[1]);
 # else
@@ -447,11 +449,11 @@ XKRT_DRIVER_ENTRYPOINT(device_commit)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
-    xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+    stream_t * istream,
+    stream_instruction_t * instr,
+    stream_instruction_counter_t idx
 ) {
-    xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
+    stream_ze_t * stream = (stream_ze_t *) istream;
     assert(stream);
 
     ze_event_handle_t ze_event_handle = stream->ze.events.list[idx];
@@ -551,9 +553,9 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
-    xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
+    stream_ze_t * stream = (stream_ze_t *) istream;
     assert(stream);
 
     const uint64_t timeout = UINT64_MAX;
@@ -567,11 +569,11 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
 
 static inline int
 XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
-    xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+    stream_t * istream,
+    stream_instruction_t * instr,
+    stream_instruction_counter_t idx
 ) {
-    xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
+    stream_ze_t * stream = (stream_ze_t *) istream;
     assert(stream);
 
     ze_event_handle_t event = stream->ze.events.list[idx];
@@ -585,22 +587,22 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
     int device_driver_id,
-    xkrt_stream_type_t stype
+    stream_type_t stype
 ) {
     (void) device_driver_id;
 
     switch (stype)
     {
-        case (XKRT_STREAM_TYPE_KERN):
+        case (STREAM_TYPE_KERN):
             return 8;
 
-        case (XKRT_STREAM_TYPE_H2D):
-        case (XKRT_STREAM_TYPE_D2H):
-        case (XKRT_STREAM_TYPE_D2D):
+        case (STREAM_TYPE_H2D):
+        case (STREAM_TYPE_D2H):
+        case (STREAM_TYPE_D2D):
             return 4;
 
-        case (XKRT_STREAM_TYPE_FD_READ):
-        case (XKRT_STREAM_TYPE_FD_WRITE):
+        case (STREAM_TYPE_FD_READ):
+        case (STREAM_TYPE_FD_WRITE):
             return 0;
 
         default:
@@ -610,19 +612,19 @@ XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
     assert(istream);
 
     int r = 0;
 
-    istream->pending.iterate([&istream, &r] (xkrt_stream_instruction_counter_t p) {
+    istream->pending.iterate([&istream, &r] (stream_instruction_counter_t p) {
 
-        xkrt_stream_instruction_t * instr = istream->pending.instr + p;
+        stream_instruction_t * instr = istream->pending.instr + p;
         if (instr->completed)
             return true;
 
-        xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
+        stream_ze_t * stream = (stream_ze_t *) istream;
         ze_event_handle_t event = stream->ze.events.list[p];
 
         switch (instr->type)
@@ -680,7 +682,7 @@ f_and(
 template <typename T, bool (*f)(const T & x, const T & y)>
 static inline uint32_t
 device_command_queue_group_next(
-    xkrt_device_ze_t * device,
+    device_ze_t * device,
     const ze_command_queue_group_property_flag_t & flag
 ) {
     uint32_t ordinal_with_least_queues = UINT32_MAX;
@@ -703,19 +705,19 @@ device_command_queue_group_next(
     return ordinal_with_least_queues;
 }
 
-static xkrt_stream_t *
+static stream_t *
 XKRT_DRIVER_ENTRYPOINT(stream_create)(
-    xkrt_device_t * idevice,
-    xkrt_stream_type_t type,
-    xkrt_stream_instruction_counter_t capacity
+    device_t * idevice,
+    stream_type_t type,
+    stream_instruction_counter_t capacity
 ) {
     assert(idevice);
 
-    xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) malloc(sizeof(xkrt_stream_ze_t));
+    stream_ze_t * stream = (stream_ze_t *) malloc(sizeof(stream_ze_t));
     assert(stream);
 
-    xkrt_stream_init(
-        (xkrt_stream_t *) stream,
+    stream_init(
+        (stream_t *) stream,
         type,
         capacity,
         XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
@@ -724,7 +726,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
         XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)
     );
 
-    xkrt_device_ze_t * device = (xkrt_device_ze_t *) idevice;
+    device_ze_t * device = (device_ze_t *) idevice;
     stream->ze.device = device;
 
     // Round robin over copy engines
@@ -734,15 +736,15 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     ze_command_queue_group_property_flag_t flag;
     switch (type)
     {
-        case (XKRT_STREAM_TYPE_H2D):
-        case (XKRT_STREAM_TYPE_D2H):
-        case (XKRT_STREAM_TYPE_D2D):
+        case (STREAM_TYPE_H2D):
+        case (STREAM_TYPE_D2H):
+        case (STREAM_TYPE_D2D):
         {
             flag = ZE_COMMAND_QUEUE_GROUP_PROPERTY_FLAG_COPY;
             break ;
         }
 
-        case (XKRT_STREAM_TYPE_KERN):
+        case (STREAM_TYPE_KERN):
         {
             flag = ZE_COMMAND_QUEUE_GROUP_PROPERTY_FLAG_COMPUTE;
             break ;
@@ -764,15 +766,15 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     uint32_t ordinal;
     switch (type)
     {
-        case (XKRT_STREAM_TYPE_KERN):
+        case (STREAM_TYPE_KERN):
         {
             ordinal = 0;
             break ;
         }
 
-        case (XKRT_STREAM_TYPE_H2D):
-        case (XKRT_STREAM_TYPE_D2H):
-        case (XKRT_STREAM_TYPE_D2D):
+        case (STREAM_TYPE_H2D):
+        case (STREAM_TYPE_D2H):
+        case (STREAM_TYPE_D2D):
         {
             ordinal = 1;
             break ;
@@ -797,7 +799,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
         .mode       = ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS,
         .priority   = ZE_COMMAND_QUEUE_PRIORITY_NORMAL // ZE_COMMAND_QUEUE_PRIORITY_PRIORITY_LOW
     };
-    LOGGER_DEBUG("Creating stream of type `%4s` with (ordinal, index) = (%d, %d)", xkrt_stream_type_to_str(type), ordinal, index);
+    LOGGER_DEBUG("Creating stream of type `%4s` with (ordinal, index) = (%d, %d)", stream_type_to_str(type), ordinal, index);
 
     # if 0 /* use a command list and command queue */
     ZE_SAFE_CALL(
@@ -853,7 +855,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
 
     stream->ze.events.list = (ze_event_handle_t *) malloc(sizeof(ze_event_handle_t) * capacity);
     assert(stream->ze.events.list);
-    for (xkrt_stream_instruction_counter_t i = 0 ; i < capacity ; ++i)
+    for (stream_instruction_counter_t i = 0 ; i < capacity ; ++i)
     {
         ze_event_desc_t event_desc = {
             .stype  = ZE_STRUCTURE_TYPE_EVENT_DESC,
@@ -865,14 +867,14 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
         ZE_SAFE_CALL(zeEventCreate(stream->ze.events.pool, &event_desc, stream->ze.events.list + i));
     }
 
-    return (xkrt_stream_t *) stream;
+    return (stream_t *) stream;
 }
 
 static void
 XKRT_DRIVER_ENTRYPOINT(stream_delete)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
-    xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
+    stream_ze_t * stream = (stream_ze_t *) istream;
     ZE_SAFE_CALL(zeEventPoolDestroy(stream->ze.events.pool));
     ZE_SAFE_CALL(zeCommandListDestroy(stream->ze.command.list));
     free(stream);
@@ -888,7 +890,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(int device_driver_id, const size_
     if (size == 0)
         return NULL;
 
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+    device_ze_t * device = device_ze_get(device_driver_id);
 
     # if 1
     const ze_device_mem_alloc_desc_t device_desc = {
@@ -979,7 +981,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(int device_driver_id, void * pt
     (void) area_idx;
     if (ptr)
     {
-        xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+        device_ze_t * device = device_ze_get(device_driver_id);
 
         // from level zero spec:
         //  The application may free the memory without evicting; the memory is implicitly evicted when freed.
@@ -995,10 +997,10 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(int device_driver_id, void * pt
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_device_info)(
     int device_driver_id,
-    xkrt_device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX],
+    device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX],
     int * nmemories
 ) {
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+    device_ze_t * device = device_ze_get(device_driver_id);
 
     # if XKRT_SUPPORT_ZES
 
@@ -1057,7 +1059,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
     int device_driver_id,
     uint64_t size
 ) {
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+    device_ze_t * device = device_ze_get(device_driver_id);
     const ze_host_mem_alloc_desc_t host_desc = {
         .stype = ZE_STRUCTURE_TYPE_HOST_MEM_ALLOC_DESC,
         .pNext = NULL,
@@ -1079,16 +1081,16 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_deallocate)(
 ) {
     (void) size;
 
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+    device_ze_t * device = device_ze_get(device_driver_id);
     ZE_SAFE_CALL(zeMemFree(device->ze.context, mem));
 }
 
-xkrt_driver_module_t
+driver_module_t
 XKRT_DRIVER_ENTRYPOINT(module_load)(
     int device_driver_id,
     uint8_t * bin,
     size_t binsize,
-    xkrt_driver_module_format_t format
+    driver_module_format_t format
 ) {
     ze_module_format_t ze_format;
     switch (format)
@@ -1108,7 +1110,7 @@ XKRT_DRIVER_ENTRYPOINT(module_load)(
         default:
             LOGGER_FATAL("Unknown format");
     }
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+    device_ze_t * device = device_ze_get(device_driver_id);
     ze_module_desc_t desc = {
         .stype = ZE_STRUCTURE_TYPE_MODULE_DESC,
         .pNext = NULL,
@@ -1120,7 +1122,7 @@ XKRT_DRIVER_ENTRYPOINT(module_load)(
     };
 
     // TODO : build log
-    xkrt_driver_module_t module = NULL;
+    driver_module_t module = NULL;
     ZE_SAFE_CALL(zeModuleCreate(device->ze.context, device->ze.handle, &desc, (ze_module_handle_t *) &module, NULL));
     assert(module);
 
@@ -1130,16 +1132,16 @@ XKRT_DRIVER_ENTRYPOINT(module_load)(
 # if XKRT_SUPPORT_ZES
 
 void
-XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, xkrt_power_t * pwr)
+XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, power_t * pwr)
 {
     // problem is, there is multiple power handle for a ze device: which one to use ?
     LOGGER_FATAL("Not implemented");
 
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+    device_ze_t * device = device_ze_get(device_driver_id);
     assert(device);
     assert(pwr);
 
-    pwr->priv.t1 = xkrt_get_nanotime();
+    pwr->priv.t1 = get_nanotime();
     zes_power_energy_counter_t * e1 = (zes_power_energy_counter_t *) &pwr->priv.c1;
     ZE_SAFE_CALL(zesPowerGetEnergyCounter(device->zes.pwr.handle, e1));
 
@@ -1148,19 +1150,19 @@ XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, xkrt_power_t * pwr)
 }
 
 void
-XKRT_DRIVER_ENTRYPOINT(power_stop)(int device_driver_id, xkrt_power_t * pwr)
+XKRT_DRIVER_ENTRYPOINT(power_stop)(int device_driver_id, power_t * pwr)
 {
     // problem is, there is multiple power handle for a ze device: which one to use ?
     LOGGER_FATAL("Not implemented");
 
-    xkrt_device_ze_t * device = device_ze_get(device_driver_id);
+    device_ze_t * device = device_ze_get(device_driver_id);
     assert(device);
 
     zes_power_energy_counter_t * e1 = (zes_power_energy_counter_t *) &pwr->priv.c1;
     zes_power_energy_counter_t * e2 = (zes_power_energy_counter_t *) &pwr->priv.c2;
 
     ZE_SAFE_CALL(zesPowerGetEnergyCounter(device->zes.pwr.handle, e2));
-    pwr->priv.t2 = xkrt_get_nanotime();
+    pwr->priv.t2 = get_nanotime();
 
     double uJ = (double) (e2->energy - e1->energy);
     double  J = uJ / (double)1e6;
@@ -1173,17 +1175,17 @@ XKRT_DRIVER_ENTRYPOINT(power_stop)(int device_driver_id, xkrt_power_t * pwr)
 
 void
 XKRT_DRIVER_ENTRYPOINT(module_unload)(
-    xkrt_driver_module_t module
+    driver_module_t module
 ) {
     ZE_SAFE_CALL(zeModuleDestroy((ze_module_handle_t) module));
 }
 
-xkrt_driver_module_fn_t
+driver_module_fn_t
 XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
-    xkrt_driver_module_t module,
+    driver_module_t module,
     const char * name
 ) {
-    xkrt_driver_module_fn_t fn = NULL;
+    driver_module_fn_t fn = NULL;
     ze_kernel_desc_t desc = {
         .stype = ZE_STRUCTURE_TYPE_KERNEL_DESC,
         .pNext = NULL,
@@ -1196,9 +1198,9 @@ XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
 }
 
 static inline int
-XKRT_DRIVER_ENTRYPOINT(transfer_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+XKRT_DRIVER_ENTRYPOINT(transfer_async)(void * dst, void * src, const size_t size, stream_t * istream)
 {
-    xkrt_stream_ze_t * stream = (xkrt_stream_ze_t *) istream;
+    stream_ze_t * stream = (stream_ze_t *) istream;
     assert(stream);
 
     ze_event_handle_t ze_event_handle = nullptr;
@@ -1220,19 +1222,19 @@ XKRT_DRIVER_ENTRYPOINT(transfer_async)(void * dst, void * src, const size_t size
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, stream_t * istream)
 {
     return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, stream_t * istream)
 {
     return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, xkrt_stream_t * istream)
+XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, stream_t * istream)
 {
     return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
 }
@@ -1265,10 +1267,10 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_unregister)(
 //////////////////////////
 // Routine registration //
 //////////////////////////
-xkrt_driver_t *
+driver_t *
 XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 {
-    xkrt_driver_ze_t * driver = (xkrt_driver_ze_t *) calloc(1, sizeof(xkrt_driver_ze_t));
+    driver_ze_t * driver = (driver_ze_t *) calloc(1, sizeof(driver_ze_t));
     assert(driver);
 
     # define REGISTER(func) driver->super.f_##func = XKRT_DRIVER_ENTRYPOINT(func)
@@ -1320,5 +1322,7 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 
     # undef REGISTER
 
-    return (xkrt_driver_t *) driver;
+    return (driver_t *) driver;
 }
+
+XKRT_NAMESPACE_END

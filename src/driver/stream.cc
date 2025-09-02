@@ -43,24 +43,26 @@
 # include <xkrt/driver/stream.h>
 # include <xkrt/logger/todo.h>
 
+XKRT_NAMESPACE_BEGIN;
+
 const char *
-xkrt_stream_type_to_str(xkrt_stream_type_t type)
+stream_type_to_str(stream_type_t type)
 {
     switch (type)
     {
-        case (XKRT_STREAM_TYPE_H2D):        return "H2D";
-        case (XKRT_STREAM_TYPE_D2H):        return "D2H";
-        case (XKRT_STREAM_TYPE_D2D):        return "D2D";
-        case (XKRT_STREAM_TYPE_KERN):       return "KERN";
-        case (XKRT_STREAM_TYPE_FD_READ):    return "FD_READ";
-        case (XKRT_STREAM_TYPE_FD_WRITE):   return "FD_WRITE";
-        case (XKRT_STREAM_TYPE_ALL):        return "ALL";
+        case (STREAM_TYPE_H2D):        return "H2D";
+        case (STREAM_TYPE_D2H):        return "D2H";
+        case (STREAM_TYPE_D2D):        return "D2D";
+        case (STREAM_TYPE_KERN):       return "KERN";
+        case (STREAM_TYPE_FD_READ):    return "FD_READ";
+        case (STREAM_TYPE_FD_WRITE):   return "FD_WRITE";
+        case (STREAM_TYPE_ALL):        return "ALL";
         default:                            return  NULL;
     }
 }
 
 const char *
-xkrt_stream_instruction_type_to_str(xkrt_stream_instruction_type_t type)
+stream_instruction_type_to_str(stream_instruction_type_t type)
 {
      switch (type)
      {
@@ -80,26 +82,26 @@ xkrt_stream_instruction_type_to_str(xkrt_stream_instruction_type_t type)
 }
 
 static inline void
-xkrt_stream_instruction_queue_init(
-    xkrt_stream_instruction_queue_t * queue,
+stream_instruction_queue_init(
+    stream_instruction_queue_t * queue,
     uint8_t * buffer,
-    xkrt_stream_instruction_counter_t capacity
+    stream_instruction_counter_t capacity
 ) {
-    queue->instr = (xkrt_stream_instruction_t *) buffer;
+    queue->instr = (stream_instruction_t *) buffer;
     queue->capacity = capacity;
     queue->pos.r = 0;
     queue->pos.w = 0;
 }
 
 void
-xkrt_stream_init(
-    xkrt_stream_t * stream,
-    xkrt_stream_type_t type,
-    xkrt_stream_instruction_counter_t capacity,
-    int (*f_stream_instruction_launch)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx),
-    int (*f_stream_instructions_progress)(xkrt_stream_t * stream),
-    int (*f_stream_instructions_wait)(xkrt_stream_t * stream),
-    int (*f_stream_instruction_wait)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx)
+stream_init(
+    stream_t * stream,
+    stream_type_t type,
+    stream_instruction_counter_t capacity,
+    int (*f_stream_instruction_launch)(stream_t * stream, stream_instruction_t * instr, stream_instruction_counter_t idx),
+    int (*f_stream_instructions_progress)(stream_t * stream),
+    int (*f_stream_instructions_wait)(stream_t * stream),
+    int (*f_stream_instruction_wait)(stream_t * stream, stream_instruction_t * instr, stream_instruction_counter_t idx)
 ) {
     stream->type = type;
     stream->spinlock = SPINLOCK_INITIALIZER;
@@ -109,18 +111,18 @@ xkrt_stream_init(
     stream->f_instructions_wait     = f_stream_instructions_wait;
     stream->f_instruction_wait      = f_stream_instruction_wait;
 
-    uint8_t * mem = (uint8_t *) malloc(sizeof(xkrt_stream_instruction_t) * capacity * 2);
+    uint8_t * mem = (uint8_t *) malloc(sizeof(stream_instruction_t) * capacity * 2);
     assert(mem);
 
-    xkrt_stream_instruction_queue_init(
+    stream_instruction_queue_init(
         &stream->ready,
         mem,
         capacity
     );
 
-    xkrt_stream_instruction_queue_init(
+    stream_instruction_queue_init(
        &stream->pending,
-        mem + sizeof(xkrt_stream_instruction_t) * capacity,
+        mem + sizeof(stream_instruction_t) * capacity,
         capacity
     );
 
@@ -130,7 +132,7 @@ xkrt_stream_init(
 }
 
 void
-xkrt_stream_deinit(xkrt_stream_t * stream)
+stream_deinit(stream_t * stream)
 {
     assert(stream);
     assert(stream->ready.instr);
@@ -139,16 +141,16 @@ xkrt_stream_deinit(xkrt_stream_t * stream)
     free(stream->ready.instr);
 }
 
-xkrt_stream_instruction_t *
-xkrt_stream_t::instruction_new(
-    const xkrt_stream_instruction_type_t itype,
-    const xkrt_callback_t & callback
+stream_instruction_t *
+stream_t::instruction_new(
+    const stream_instruction_type_t itype,
+    const callback_t & callback
 ) {
     if (this->ready.is_full())
         return NULL;
 
     assert(this->ready.pos.w >= 0 && this->ready.pos.w < this->ready.capacity);
-    xkrt_stream_instruction_t * instr = this->ready.instr + this->ready.pos.w;
+    stream_instruction_t * instr = this->ready.instr + this->ready.pos.w;
     instr->type = itype;
     instr->callback = callback;
     instr->completed = false;
@@ -157,7 +159,7 @@ xkrt_stream_t::instruction_new(
 }
 
 int
-xkrt_stream_t::commit(xkrt_stream_instruction_t * instr)
+stream_t::commit(stream_instruction_t * instr)
 {
     assert(instr);
     assert(!this->ready.is_full());
@@ -167,7 +169,7 @@ xkrt_stream_t::commit(xkrt_stream_instruction_t * instr)
 
     LOGGER_DEBUG(
         "Commited an instruction of type `%s` (%d ready, %d pending)`",
-        xkrt_stream_instruction_type_to_str(instr->type),
+        stream_instruction_type_to_str(instr->type),
         this->ready.size(),
         this->pending.size()
     );
@@ -178,7 +180,7 @@ xkrt_stream_t::commit(xkrt_stream_instruction_t * instr)
 }
 
 int
-xkrt_stream_t::launch_ready_instructions(void)
+stream_t::launch_ready_instructions(void)
 {
     assert(this->f_instruction_launch);
     if (this->ready.is_empty())
@@ -187,21 +189,21 @@ xkrt_stream_t::launch_ready_instructions(void)
     int err = 0;
 
     /* for each ready instruction */
-    const xkrt_stream_instruction_counter_t p = this->ready.iterate([this, &err] (xkrt_stream_instruction_counter_t p) {
+    const stream_instruction_counter_t p = this->ready.iterate([this, &err] (stream_instruction_counter_t p) {
 
         /* if the pending queue is full, we cannot start more instructions */
         if (this->pending.is_full())
             return false;
 
         /* retrieve it */
-        xkrt_stream_instruction_t * instr = this->ready.instr + p;
+        stream_instruction_t * instr = this->ready.instr + p;
         assert(instr);
 
         LOGGER_DEBUG(
             "Decoding instruction `%s` on stream %p of type `%s` - p=%u, r=%u, w=%u",
-            xkrt_stream_instruction_type_to_str(instr->type),
+            stream_instruction_type_to_str(instr->type),
             this,
-            xkrt_stream_type_to_str(this->type),
+            stream_type_to_str(this->type),
             p,
             this->ready.pos.r,
             this->ready.pos.w
@@ -213,7 +215,7 @@ xkrt_stream_t::launch_ready_instructions(void)
             case (XKRT_STREAM_INSTR_TYPE_KERN):
             {
                 err = EINPROGRESS;
-                ((xkrt_kernel_launcher_t) instr->kern.launch)(this, instr, p);
+                ((kernel_launcher_t) instr->kern.launch)(this, instr, p);
                 break ;
             }
 
@@ -254,13 +256,13 @@ xkrt_stream_t::launch_ready_instructions(void)
             {
                 /* the pending queue must not be full at that point */
                 assert(!this->pending.is_full());
-                const xkrt_stream_instruction_counter_t wp = this->pending.pos.w;
+                const stream_instruction_counter_t wp = this->pending.pos.w;
                 this->pending.pos.w = (this->pending.pos.w + 1) % this->pending.capacity;
 
                 memcpy(
                     this->pending.instr + wp,
                     this->ready.instr   + p,
-                    sizeof(xkrt_stream_instruction_t)
+                    sizeof(stream_instruction_t)
                 );
 
                 break ;
@@ -269,7 +271,7 @@ xkrt_stream_t::launch_ready_instructions(void)
             case (ENOSYS):
             {
                 LOGGER_FATAL("Instruction `%s` not implemented",
-                        xkrt_stream_instruction_type_to_str(instr->type));
+                        stream_instruction_type_to_str(instr->type));
                 break ;
             }
 
@@ -301,17 +303,17 @@ xkrt_stream_t::launch_ready_instructions(void)
 template <bool set_completed_flag>
 static inline void
 __complete_instruction_internal(
-    xkrt_stream_t * stream,
-    xkrt_stream_instruction_t * instr
+    stream_t * stream,
+    stream_instruction_t * instr
 ) {
     assert(instr >= stream->pending.instr);
     assert(instr <  stream->pending.instr + stream->pending.capacity);
 
     LOGGER_DEBUG(
         "Completed instruction `%s` on stream %p of type `%s`",
-        xkrt_stream_instruction_type_to_str(instr->type),
+        stream_instruction_type_to_str(instr->type),
         stream,
-        xkrt_stream_type_to_str(stream->type)
+        stream_type_to_str(stream->type)
     );
 
     if (set_completed_flag)
@@ -325,15 +327,15 @@ __complete_instruction_internal(
 
 template <bool set_completed_flag>
 static inline void
-__complete_instruction_internal(xkrt_stream_t * stream, const xkrt_stream_instruction_counter_t p)
+__complete_instruction_internal(stream_t * stream, const stream_instruction_counter_t p)
 {
-    xkrt_stream_instruction_t * instr = stream->pending.instr + p;
+    stream_instruction_t * instr = stream->pending.instr + p;
     __complete_instruction_internal<set_completed_flag>(stream, instr);
 }
 
 // complete the given instruction
 void
-xkrt_stream_t::complete_instruction(const xkrt_stream_instruction_counter_t p)
+stream_t::complete_instruction(const stream_instruction_counter_t p)
 {
     assert(p >= 0);
     assert(p <  this->pending.capacity);
@@ -341,15 +343,15 @@ xkrt_stream_t::complete_instruction(const xkrt_stream_instruction_counter_t p)
 }
 
 void
-xkrt_stream_t::complete_instruction(xkrt_stream_instruction_t * instr)
+stream_t::complete_instruction(stream_instruction_t * instr)
 {
     __complete_instruction_internal<true>(this, instr);
 }
 
 void
-xkrt_stream_t::complete_instructions(const xkrt_stream_instruction_counter_t p)
+stream_t::complete_instructions(const stream_instruction_counter_t p)
 {
-    this->pending.iterate([this] (xkrt_stream_instruction_counter_t p) {
+    this->pending.iterate([this] (stream_instruction_counter_t p) {
         __complete_instruction_internal<false>(this, p);
         return true;
     });
@@ -357,7 +359,7 @@ xkrt_stream_t::complete_instructions(const xkrt_stream_instruction_counter_t p)
 }
 
 void
-xkrt_stream_t::wait_pending_instructions(void)
+stream_t::wait_pending_instructions(void)
 {
     if (!this->pending.is_empty())
     {
@@ -367,7 +369,7 @@ xkrt_stream_t::wait_pending_instructions(void)
 }
 
 int
-xkrt_stream_t::progress_pending_instructions(void)
+stream_t::progress_pending_instructions(void)
 {
     assert(this->f_instructions_progress);
 
@@ -375,20 +377,23 @@ xkrt_stream_t::progress_pending_instructions(void)
         return 0;
 
     LOGGER_DEBUG("Progressing pending instructions of stream %p of type `%s` (%d pending) - ptr at r=%u, w=%u",
-            this, xkrt_stream_type_to_str(this->type), this->pending.size(), this->pending.pos.r, this->pending.pos.w);
+            this, stream_type_to_str(this->type), this->pending.size(), this->pending.pos.r, this->pending.pos.w);
 
     // ask for progression of the given instructions
     const int r = this->f_instructions_progress(this);
 
     // move reading position to first uncompleted instr
-    const xkrt_stream_instruction_counter_t p = this->pending.iterate([this] (xkrt_stream_instruction_counter_t p) {
+    const stream_instruction_counter_t p = this->pending.iterate([this] (stream_instruction_counter_t p) {
         return (this->pending.instr[p].completed) ? true : false;
     });
     this->pending.pos.r = p;
 
     LOGGER_DEBUG("Progressed pending instructions of stream %p of type `%s` (%d pending)",
-            this, xkrt_stream_type_to_str(this->type), this->pending.size());
+            this, stream_type_to_str(this->type), this->pending.size());
 
     // return err code
     return r;
 }
+
+XKRT_NAMESPACE_END;
+

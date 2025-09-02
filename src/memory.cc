@@ -48,15 +48,17 @@
 # include <cstring>
 # include <cerrno>
 
+XKRT_NAMESPACE_BEGIN
+
 void
-xkrt_runtime_t::memory_device_preallocate_ensure(
-    const xkrt_device_global_id_t device_global_id,
+runtime_t::memory_device_preallocate_ensure(
+    const device_global_id_t device_global_id,
     const int memory_id
 ) {
-    xkrt_device_t * device = this->device_get(device_global_id);
+    device_t * device = this->device_get(device_global_id);
     if (!device->memories[memory_id].allocated)
     {
-        xkrt_driver_t * driver = this->driver_get(device->driver_type);
+        driver_t * driver = this->driver_get(device->driver_type);
 
         XKRT_MUTEX_LOCK(device->memories[memory_id].area.lock);
         {
@@ -73,49 +75,49 @@ xkrt_runtime_t::memory_device_preallocate_ensure(
     }
 }
 
-xkrt_area_chunk_t *
-xkrt_runtime_t::memory_device_allocate_on(
-    const xkrt_device_global_id_t device_global_id,
+area_chunk_t *
+runtime_t::memory_device_allocate_on(
+    const device_global_id_t device_global_id,
     const size_t size,
     const int memory_id
 ) {
-    xkrt_device_t * device = this->device_get(device_global_id);
+    device_t * device = this->device_get(device_global_id);
     this->memory_device_preallocate_ensure(device_global_id, memory_id);
     return device->memory_allocate_on(size, memory_id);
 }
 
-xkrt_area_chunk_t *
-xkrt_runtime_t::memory_device_allocate(
-    const xkrt_device_global_id_t device_global_id,
+area_chunk_t *
+runtime_t::memory_device_allocate(
+    const device_global_id_t device_global_id,
     const size_t size
 ) {
     return this->memory_device_allocate_on(device_global_id, size, 0);
 }
 
 void
-xkrt_runtime_t::memory_device_deallocate(
-    const xkrt_device_global_id_t device_global_id,
-    xkrt_area_chunk_t * chunk
+runtime_t::memory_device_deallocate(
+    const device_global_id_t device_global_id,
+    area_chunk_t * chunk
 ) {
-    xkrt_device_t * device = this->device_get(device_global_id);
+    device_t * device = this->device_get(device_global_id);
     return device->memory_deallocate(chunk);
 }
 
 void
-xkrt_runtime_t::memory_device_deallocate_all(
-    const xkrt_device_global_id_t device_global_id
+runtime_t::memory_device_deallocate_all(
+    const device_global_id_t device_global_id
 ) {
-    xkrt_device_t * device = this->device_get(device_global_id);
+    device_t * device = this->device_get(device_global_id);
     return device->memory_reset();
 }
 
 void *
-xkrt_runtime_t::memory_host_allocate(
-    const xkrt_device_global_id_t device_global_id,
+runtime_t::memory_host_allocate(
+    const device_global_id_t device_global_id,
     const size_t size
 ) {
-    xkrt_device_t * device = this->device_get(device_global_id);
-    xkrt_driver_t * driver = this->driver_get(device->driver_type);
+    device_t * device = this->device_get(device_global_id);
+    driver_t * driver = this->driver_get(device->driver_type);
     if (driver->f_memory_host_allocate)
         return driver->f_memory_host_allocate(device->driver_id, size);
     else
@@ -126,13 +128,13 @@ xkrt_runtime_t::memory_host_allocate(
 }
 
 void
-xkrt_runtime_t::memory_host_deallocate(
-    const xkrt_device_global_id_t device_global_id,
+runtime_t::memory_host_deallocate(
+    const device_global_id_t device_global_id,
     void * mem,
     const size_t size
 ) {
-    xkrt_device_t * device = this->device_get(device_global_id);
-    xkrt_driver_t * driver = this->driver_get(device->driver_type);
+    device_t * device = this->device_get(device_global_id);
+    driver_t * driver = this->driver_get(device->driver_type);
     if (driver->f_memory_host_deallocate)
         driver->f_memory_host_deallocate(device->driver_id, mem, size);
     else
@@ -143,12 +145,12 @@ xkrt_runtime_t::memory_host_deallocate(
 }
 
 void *
-xkrt_runtime_t::memory_unified_allocate(
-    const xkrt_device_global_id_t device_global_id,
+runtime_t::memory_unified_allocate(
+    const device_global_id_t device_global_id,
     const size_t size
 ) {
-    xkrt_device_t * device = this->device_get(device_global_id);
-    xkrt_driver_t * driver = this->driver_get(device->driver_type);
+    device_t * device = this->device_get(device_global_id);
+    driver_t * driver = this->driver_get(device->driver_type);
     if (driver->f_memory_unified_allocate)
         return driver->f_memory_unified_allocate(device->driver_id, size);
     else
@@ -158,13 +160,13 @@ xkrt_runtime_t::memory_unified_allocate(
 }
 
 void
-xkrt_runtime_t::memory_unified_deallocate(
-    const xkrt_device_global_id_t device_global_id,
+runtime_t::memory_unified_deallocate(
+    const device_global_id_t device_global_id,
     void * mem,
     const size_t size
 ) {
-    xkrt_device_t * device = this->device_get(device_global_id);
-    xkrt_driver_t * driver = this->driver_get(device->driver_type);
+    device_t * device = this->device_get(device_global_id);
+    driver_t * driver = this->driver_get(device->driver_type);
     if (driver->f_memory_unified_deallocate)
         driver->f_memory_unified_deallocate(device->driver_id, mem, size);
     else
@@ -172,3 +174,5 @@ xkrt_runtime_t::memory_unified_deallocate(
         LOGGER_FATAL("Driver `%s` does not implement memory_dealloc_unified", driver->f_get_name());
     }
 }
+
+XKRT_NAMESPACE_END

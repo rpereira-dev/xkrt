@@ -40,6 +40,8 @@
 # include <xkrt/xkrt.h>
 # include <xkrt/memory/access/blas/dependency-tree.hpp>
 
+XKRT_NAMESPACE_BEGIN
+
 # include <math.h>
 
 ////////////////
@@ -47,12 +49,12 @@
 ////////////////
 
 static inline void
-xkrt_distribute1D_submit(
-    xkrt_runtime_t * runtime,
+distribute1D_submit(
+    runtime_t * runtime,
     uintptr_t x1, uintptr_t x2,
-    xkrt_device_global_id_t device_global_id
+    device_global_id_t device_global_id
 ) {
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     # define AC 1
@@ -82,8 +84,8 @@ xkrt_distribute1D_submit(
 }
 
 static inline void
-xkrt_distribute2D_submit(
-    xkrt_runtime_t * runtime,
+distribute2D_submit(
+    runtime_t * runtime,
     matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
@@ -91,9 +93,9 @@ xkrt_distribute2D_submit(
     size_t sizeof_type,
     size_t hx, size_t hy,
     size_t tm, size_t tn,
-    xkrt_device_global_id_t device_global_id
+    device_global_id_t device_global_id
 ) {
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     # define AC 1
@@ -133,9 +135,9 @@ xkrt_distribute2D_submit(
 
 extern "C"
 void
-xkrt_distribute2D_async(
-    xkrt_runtime_t * runtime,
-    xkrt_distribution_type_t type,
+distribute2D_async(
+    runtime_t * runtime,
+    distribution_type_t type,
     matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
@@ -146,19 +148,19 @@ xkrt_distribute2D_async(
     const int ngpus = runtime->get_ndevices() - 1;
     assert(ngpus);
 
-    xkrt_distribution_t d;
-    xkrt_distribution2D_init(&d, type, ngpus, m, n, mb, nb);
+    distribution_t d;
+    distribution2D_init(&d, type, ngpus, m, n, mb, nb);
 
     for (size_t tm = 0; tm < d.mt; ++tm)
         for (size_t tn = 0; tn < d.nt; ++tn)
-            xkrt_distribute2D_submit(runtime, storage, ptr, ld,
+            distribute2D_submit(runtime, storage, ptr, ld,
                     m, n, mb, nb, sizeof_type, hx, hy, tm, tn,
-                    xkrt_distribution2D_get(&d, tm, tn));
+                    distribution2D_get(&d, tm, tn));
 }
 
 void
-xkrt_runtime_t::distribute_async(
-    xkrt_distribution_type_t type,
+runtime_t::distribute_async(
+    distribution_type_t type,
     matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
@@ -166,13 +168,13 @@ xkrt_runtime_t::distribute_async(
     size_t sizeof_type,
     size_t hx, size_t hy
 ) {
-    xkrt_distribute2D_async(this, type, storage, ptr, ld, m, n, mb, nb, sizeof_type, hx, hy);
+    distribute2D_async(this, type, storage, ptr, ld, m, n, mb, nb, sizeof_type, hx, hy);
 }
 
 void
-xkrt_distribute1D_async(
-    xkrt_runtime_t * runtime,
-    xkrt_distribution_type_t type,
+distribute1D_async(
+    runtime_t * runtime,
+    distribution_type_t type,
     void * ptr,
     size_t size,
     size_t chunk_size,
@@ -184,33 +186,33 @@ xkrt_distribute1D_async(
     const int ngpus = runtime->get_ndevices() - 1;
     assert(ngpus);
 
-    xkrt_distribution_t d;
-    xkrt_distribution1D_init(&d, type, ngpus, size, chunk_size);
+    distribution_t d;
+    distribution1D_init(&d, type, ngpus, size, chunk_size);
 
     const uintptr_t p = (const uintptr_t) ptr;
     for (size_t t = 0; t < d.t; ++t)
     {
         const size_t i = (t == 0)       ?    0 : ((t+0) * chunk_size - h);
         const size_t j = (t == d.t - 1) ? size : ((t+1) * chunk_size + h);
-        xkrt_distribute1D_submit(runtime, p + i, p + j, xkrt_distribution1D_get(&d, t));
+        distribute1D_submit(runtime, p + i, p + j, distribution1D_get(&d, t));
     }
 }
 
 void
-xkrt_runtime_t::distribute_async(
-    xkrt_distribution_type_t type,
+runtime_t::distribute_async(
+    distribution_type_t type,
     void * ptr,
     size_t size,
     size_t bs,
     size_t h
 ) {
-    xkrt_distribute1D_async(this, type, ptr, size, bs, h);
+    distribute1D_async(this, type, ptr, size, bs, h);
 }
 
 void
-xkrt_distribute1D_array_async(
-    xkrt_runtime_t * runtime,
-    xkrt_distribution_type_t type,
+distribute1D_array_async(
+    runtime_t * runtime,
+    distribution_type_t type,
     void ** ptr,
     size_t chunk_size,
     unsigned int n
@@ -220,23 +222,25 @@ xkrt_distribute1D_array_async(
     const int ngpus = runtime->get_ndevices() - 1;
     assert(ngpus);
 
-    xkrt_distribution_t d;
-    xkrt_distribution1D_init(&d, type, ngpus, n * chunk_size, chunk_size);
+    distribution_t d;
+    distribution1D_init(&d, type, ngpus, n * chunk_size, chunk_size);
 
     for (size_t t = 0; t < d.t; ++t)
     {
         const uintptr_t x1 = (const uintptr_t) ptr[t];
         const uintptr_t x2 = (const uintptr_t) x1 + chunk_size;
-        xkrt_distribute1D_submit(runtime, x1, x2, xkrt_distribution1D_get(&d, t));
+        distribute1D_submit(runtime, x1, x2, distribution1D_get(&d, t));
     }
 }
 
 void
-xkrt_runtime_t::distribute_async(
-    xkrt_distribution_type_t type,
+runtime_t::distribute_async(
+    distribution_type_t type,
     void ** ptr,
     size_t chunk_size,
     unsigned int n
 ) {
-    xkrt_distribute1D_array_async(this, type, ptr, chunk_size, n);
+    distribute1D_array_async(this, type, ptr, chunk_size, n);
 }
+
+XKRT_NAMESPACE_END

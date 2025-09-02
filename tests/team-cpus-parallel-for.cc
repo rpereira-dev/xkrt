@@ -3,7 +3,7 @@
 /*   team-cpus-parallel-for.cc                                    .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/03/05 05:19:56 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/09 03:49:06 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/23 00:17:42 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -25,19 +25,20 @@
 # define XKRT_ASSERT(...) assert(__VA_ARGS__)
 #endif
 
-# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/metric.h>
 
-static xkrt_runtime_t runtime;
+XKRT_NAMESPACE_USE;
 
 int
 main(void)
 {
-    XKRT_ASSERT(xkrt_init(&runtime) == 0);
+    runtime_t runtime;
+    XKRT_ASSERT(runtime.init() == 0);
 
     // team on all cpus
-    xkrt_team_t team = XKRT_TEAM_STATIC_INITIALIZER;
+    team_t team;
     team.desc.routine = XKRT_TEAM_ROUTINE_PARALLEL_FOR;
 
     // TEST 1
@@ -54,7 +55,7 @@ main(void)
     {
         std::atomic<int> counter(0);
         runtime.team_create(&team);
-        runtime.team_parallel_for(&team, [&counter] (xkrt_team_t * team, xkrt_thread_t * thread) {
+        runtime.team_parallel_for(&team, [&counter] (team_t * team, thread_t * thread) {
                 LOGGER_INFO("Thread `%3d` running on `sched_getcpu() -> %3d`", thread->tid, sched_getcpu());
                 ++counter;
             }
@@ -70,15 +71,15 @@ main(void)
         std::atomic<int> counter(0);
         runtime.team_create(&team);
 
-        uint64_t t0 = xkrt_get_nanotime();
+        uint64_t t0 = get_nanotime();
         for (int i = 0 ; i < n ; ++i)
-            runtime.team_parallel_for(&team, [] (xkrt_team_t * team, xkrt_thread_t * thread) { });
-        uint64_t tf = xkrt_get_nanotime();
+            runtime.team_parallel_for(&team, [] (team_t * team, thread_t * thread) { });
+        uint64_t tf = get_nanotime();
         LOGGER_INFO("`%d` empty parallel on `%d` threads for took %lf s - that is %luns/task\n", n, team.priv.nthreads, (tf-t0)/1e9, (tf-t0)/(n*team.priv.nthreads));
 
         runtime.team_join(&team);
     }
-    XKRT_ASSERT(xkrt_deinit(&runtime) == 0);
+    XKRT_ASSERT(runtime.deinit() == 0);
 
     return 0;
 }

@@ -38,19 +38,21 @@
 
 # include <xkrt/runtime.h>
 
+XKRT_NAMESPACE_BEGIN
+
 typedef struct  copy_args_t
 {
     // the runtime
-    xkrt_runtime_t * runtime;
+    runtime_t * runtime;
 
     // the device responsible to perform the copy
-    xkrt_device_global_id_t device_global_id;
+    device_global_id_t device_global_id;
 
     // pointers
-    xkrt_device_global_id_t dst_device_global_id;
+    device_global_id_t dst_device_global_id;
     uintptr_t dst_device_mem;
 
-    xkrt_device_global_id_t src_device_global_id;
+    device_global_id_t src_device_global_id;
     uintptr_t src_device_mem;
 
     // size of the copy
@@ -74,7 +76,7 @@ body_memory_copy(task_t * task)
     assert(task);
     copy_args_t * args = (copy_args_t *) TASK_ARGS(task);
 
-    xkrt_callback_t callback;
+    callback_t callback;
     callback.func    = body_memory_copy_callback;
     callback.args[0] = task;
 
@@ -95,16 +97,16 @@ body_memory_copy(task_t * task)
  */
 extern "C"
 void
-xkrt_memory_copy_async(
-    xkrt_runtime_t * runtime,
-    const xkrt_device_global_id_t device_global_id,
-    const xkrt_device_global_id_t dst_device_global_id,
+memory_copy_async(
+    runtime_t * runtime,
+    const device_global_id_t device_global_id,
+    const device_global_id_t dst_device_global_id,
     const uintptr_t dst_device_mem,
-    const xkrt_device_global_id_t src_device_global_id,
+    const device_global_id_t src_device_global_id,
     const uintptr_t src_device_mem,
     const size_t size
 ) {
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     constexpr task_flag_bitfield_t flags = TASK_FLAG_DETACHABLE | TASK_FLAG_DEVICE;
@@ -138,7 +140,7 @@ xkrt_memory_copy_async(
 }
 
 void
-xkrt_memory_copy_async_register_format(xkrt_runtime_t * runtime)
+memory_copy_async_register_format(runtime_t * runtime)
 {
     task_format_t format;
     memset(format.f, 0, sizeof(format.f));
@@ -147,17 +149,17 @@ xkrt_memory_copy_async_register_format(xkrt_runtime_t * runtime)
     runtime->formats.copy_async = task_format_create(&(runtime->formats.list), &format);
 }
 
-xkrt_stream_t *
-xkrt_runtime_t::copy(
-    const xkrt_device_global_id_t   device_global_id,
-    const memory_view_t           & host_view,
-    const xkrt_device_global_id_t   dst_device_global_id,
+stream_t *
+runtime_t::copy(
+    const device_global_id_t      device_global_id,
+    const memory_view_t         & host_view,
+    const device_global_id_t      dst_device_global_id,
     const memory_replica_view_t & dst_device_view,
-    const xkrt_device_global_id_t   src_device_global_id,
+    const device_global_id_t      src_device_global_id,
     const memory_replica_view_t & src_device_view,
-    const xkrt_callback_t         & callback
+    const callback_t            & callback
 ) {
-    xkrt_device_t * device = this->device_get(device_global_id);
+    device_t * device = this->device_get(device_global_id);
     return device->offloader_stream_instruction_submit_copy<memory_view_t, memory_replica_view_t>(
         host_view,
         dst_device_global_id,
@@ -168,17 +170,17 @@ xkrt_runtime_t::copy(
     );
 }
 
-xkrt_stream_t *
-xkrt_runtime_t::copy(
-    const xkrt_device_global_id_t   device_global_id,
-    const size_t                    size,
-    const xkrt_device_global_id_t   dst_device_global_id,
-    const uintptr_t                 dst_device_addr,
-    const xkrt_device_global_id_t   src_device_global_id,
-    const uintptr_t                 src_device_addr,
-    const xkrt_callback_t         & callback
+stream_t *
+runtime_t::copy(
+    const device_global_id_t   device_global_id,
+    const size_t               size,
+    const device_global_id_t   dst_device_global_id,
+    const uintptr_t            dst_device_addr,
+    const device_global_id_t   src_device_global_id,
+    const uintptr_t            src_device_addr,
+    const callback_t         & callback
 ) {
-    xkrt_device_t * device = this->device_get(device_global_id);
+    device_t * device = this->device_get(device_global_id);
     // TODO: create 1x instruction per pinned segment, and callback
     return device->offloader_stream_instruction_submit_copy<size_t, uintptr_t>(
         size,
@@ -189,3 +191,5 @@ xkrt_runtime_t::copy(
         callback
     );
 }
+
+XKRT_NAMESPACE_END

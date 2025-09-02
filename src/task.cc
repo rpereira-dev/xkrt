@@ -52,7 +52,9 @@
 # include <cstring>
 # include <cerrno>
 
-static inline xkrt_device_global_id_t
+XKRT_NAMESPACE_BEGIN
+
+static inline device_global_id_t
 __task_device(
     task_t * task
 ) {
@@ -100,7 +102,7 @@ __task_device(
  */
 static inline void
 __task_complete(
-    xkrt_runtime_t * runtime,
+    runtime_t * runtime,
     task_t * task
 ) {
     // TODO: instead, can we have a counter per thread, to reduce the number of
@@ -160,7 +162,7 @@ __task_complete(
                         if (access->mode & ACCESS_MODE_W)
                         {
                             // if successor device can already be known
-                            const xkrt_device_global_id_t device_global_id = __task_device(succ);
+                            const device_global_id_t device_global_id = __task_device(succ);
                             if (device_global_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
                             {
                                 // then we can prefetch memory
@@ -182,7 +184,7 @@ __task_complete(
 
                 // task may be ready now
                 if (sdep->wc.fetch_sub(1, std::memory_order_seq_cst) == 1)
-                    __task_ready(succ, xkrt_runtime_submit_task, runtime);
+                    __task_ready(succ, runtime_submit_task, runtime);
             }
         }
     }
@@ -193,7 +195,7 @@ __task_complete(
 template <int N>
 static inline void
 __task_detachable_decr(
-    xkrt_runtime_t * runtime,
+    runtime_t * runtime,
     task_t * task
 ) {
     assert(task->flags & TASK_FLAG_DETACHABLE);
@@ -206,7 +208,7 @@ __task_detachable_decr(
 template <int N>
 static inline void
 __task_detachable_incr(
-    xkrt_runtime_t * runtime,
+    runtime_t * runtime,
     task_t * task
 ) {
     assert(task->flags & TASK_FLAG_DETACHABLE);
@@ -217,7 +219,7 @@ __task_detachable_incr(
 /* transition the task to the state 'executed' - and eventually to 'completed' or 'detached' */
 static inline void
 __task_executed(
-    xkrt_runtime_t * runtime,
+    runtime_t * runtime,
     task_t * task
 ) {
     if (task->flags & TASK_FLAG_DETACHABLE)
@@ -227,10 +229,10 @@ __task_executed(
 }
 
 static void
-xkrt_device_task_executed_callback(
+device_task_executed_callback(
     void * args[XKRT_CALLBACK_ARGS_MAX]
 ) {
-    xkrt_runtime_t * runtime = (xkrt_runtime_t *) args[0];
+    runtime_t * runtime = (runtime_t *) args[0];
     assert(runtime);
 
     task_t * task = (task_t *) args[1];
@@ -246,12 +248,12 @@ xkrt_device_task_executed_callback(
  *  - task   - the task
  */
 void
-xkrt_device_task_execute(
-    xkrt_runtime_t * runtime,
-    xkrt_device_t * device,
+device_task_execute(
+    runtime_t * runtime,
+    device_t * device,
     task_t * task
 ) {
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     task_format_t * format;
@@ -318,15 +320,15 @@ xkrt_device_task_execute(
                 else
                 {
                     /* the task will complete in the callback called asynchronously on kernel completion */
-                    xkrt_callback_t callback;
-                    callback.func    = xkrt_device_task_executed_callback;
+                    callback_t callback;
+                    callback.func    = device_task_executed_callback;
                     callback.args[0] = runtime;
                     callback.args[1] = task;
                     assert(XKRT_CALLBACK_ARGS_MAX >= 2);
 
                     /* submit kernel launch instruction */
                     device->offloader_stream_instruction_submit_kernel(
-                        (xkrt_kernel_launcher_t) format->f[targetfmt],
+                        (kernel_launcher_t) format->f[targetfmt],
                         task,
                         callback
                     );
@@ -350,7 +352,7 @@ body_host_capture(task_t * task)
 }
 
 void
-xkrt_task_host_capture_register_format(xkrt_runtime_t * runtime)
+task_host_capture_register_format(runtime_t * runtime)
 {
     task_format_t format;
     memset(format.f, 0, sizeof(format.f));
@@ -360,17 +362,17 @@ xkrt_task_host_capture_register_format(xkrt_runtime_t * runtime)
 }
 
 void
-xkrt_runtime_t::task_commit(task_t * task)
+runtime_t::task_commit(task_t * task)
 {
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
-    thread->commit(task, xkrt_runtime_submit_task, this);
+    thread->commit(task, runtime_submit_task, this);
     XKRT_STATS_INCR(this->stats.tasks[task->fmtid].commited, 1);
 }
 
 void
-xkrt_runtime_t::task_detachable_decr(task_t * task)
+runtime_t::task_detachable_decr(task_t * task)
 {
     assert(task);
     assert(task->flags & TASK_FLAG_DETACHABLE);
@@ -379,7 +381,7 @@ xkrt_runtime_t::task_detachable_decr(task_t * task)
 }
 
 void
-xkrt_runtime_t::task_detachable_incr(task_t * task)
+runtime_t::task_detachable_incr(task_t * task)
 {
     assert(task);
     assert(task->flags & TASK_FLAG_DETACHABLE);
@@ -388,7 +390,7 @@ xkrt_runtime_t::task_detachable_incr(task_t * task)
 }
 
 void
-xkrt_runtime_t::task_complete(task_t * task)
+runtime_t::task_complete(task_t * task)
 {
     assert(task);
     assert(!(task->flags & TASK_FLAG_DETACHABLE));
@@ -397,16 +399,16 @@ xkrt_runtime_t::task_complete(task_t * task)
 }
 
 void
-xkrt_runtime_t::task_run(
-    xkrt_team_t * team,
-    xkrt_thread_t * thread,
+runtime_t::task_run(
+    team_t * team,
+    thread_t * thread,
     task_t * task
 ) {
     assert(team);
     assert(thread);
     assert(task);
 
-    assert(thread == xkrt_thread_t::get_tls());
+    assert(thread == thread_t::get_tls());
     if (task->fmtid != TASK_FORMAT_NULL)
     {
         task_format_t * format = this->formats.list.list + task->fmtid;
@@ -422,7 +424,7 @@ xkrt_runtime_t::task_run(
 
 /** duplicate a moldable task */
 task_t *
-xkrt_runtime_t::task_dup(
+runtime_t::task_dup(
     const task_t * task
 ) {
     assert(task->flags & TASK_FLAG_MOLDABLE);
@@ -433,7 +435,7 @@ xkrt_runtime_t::task_dup(
     const size_t args_size = mol->args_size;
     const size_t task_size = TASK_SIZE(task);
 
-    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    thread_t * tls = thread_t::get_tls();
     task_t * dup = tls->allocate_task(task_size + args_size);
     assert(dup);
 
@@ -453,17 +455,17 @@ xkrt_runtime_t::task_dup(
 
 static inline void
 submit_task_host(
-    xkrt_runtime_t * runtime,
+    runtime_t * runtime,
     task_t * task
 ) {
-    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    thread_t * tls = thread_t::get_tls();
     assert(tls);
 
     // tls->team == NULL means it come from a user-thread, unknown to kaapi
     // tls->device_global_id != XKRT_DRIVER_TYPE_HOST means it is a kaapi thread, but not a host thread
     if (tls->team == NULL || tls->device_global_id != XKRT_DRIVER_TYPE_HOST)
     {
-        xkrt_driver_t * driver = runtime->drivers.list[XKRT_DRIVER_TYPE_HOST];
+        driver_t * driver = runtime->drivers.list[XKRT_DRIVER_TYPE_HOST];
         assert(driver->ndevices_commited == 1);
         runtime->task_team_enqueue(&driver->team, task);
     }
@@ -475,7 +477,7 @@ submit_task_host(
 
 static inline void
 submit_task_device(
-    xkrt_runtime_t * runtime,
+    runtime_t * runtime,
     task_t * task
 ) {
     // task must be a device task
@@ -483,8 +485,8 @@ submit_task_device(
     task_dev_info_t * dev = TASK_DEV_INFO(task);
 
     // Find the worker to offload the task
-    xkrt_device_t * device = NULL;
-    xkrt_device_global_id_t device_id = UNSPECIFIED_DEVICE_GLOBAL_ID;
+    device_t * device = NULL;
+    device_global_id_t device_id = UNSPECIFIED_DEVICE_GLOBAL_ID;
 
     // if an ocr parameter is set, retrieve the device accordingly
     if (dev->ocr_access_index != UNSPECIFIED_TASK_ACCESS)
@@ -500,9 +502,9 @@ submit_task_device(
         // looking for the device that owns the data
         MemoryCoherencyController * memcontroller = task_get_memory_controller(runtime, task->parent, access);
         assert(memcontroller);
-        const xkrt_device_global_id_bitfield_t owners = memcontroller->who_owns(access);
+        const device_global_id_bitfield_t owners = memcontroller->who_owns(access);
         if (owners)
-            device_id = (xkrt_device_global_id_t) (__random_set_bit(owners) - 1);
+            device_id = (device_global_id_t) (__random_set_bit(owners) - 1);
     }
 
     // if a target device is set
@@ -518,9 +520,9 @@ submit_task_device(
             while (1)
             {
                 device_id = runtime->drivers.devices.round_robin_device_global_id.fetch_add(1, std::memory_order_relaxed);
-                device_id = (xkrt_device_global_id_t) (1 + (device_id % (runtime->drivers.devices.n - 1)));
+                device_id = (device_global_id_t) (1 + (device_id % (runtime->drivers.devices.n - 1)));
 
-                xkrt_device_t * device = runtime->drivers.devices.list[device_id];
+                device_t * device = runtime->drivers.devices.list[device_id];
                 if (device)
                     break ;
             }
@@ -541,13 +543,13 @@ submit_task_device(
 
     /* push a task to a thread of the device */
     uint8_t tid = device->thread_next.fetch_add(1, std::memory_order_relaxed) % device->nthreads;
-    xkrt_thread_t * thread = device->threads[tid];
+    thread_t * thread = device->threads[tid];
     runtime->task_thread_enqueue(thread, task);
 }
 
 void
-xkrt_runtime_submit_task(
-    xkrt_runtime_t * runtime,
+runtime_submit_task(
+    runtime_t * runtime,
     task_t * task
 ) {
     assert(task->state.value == TASK_STATE_READY);
@@ -558,7 +560,9 @@ xkrt_runtime_submit_task(
 }
 
 void
-xkrt_runtime_t::task_enqueue(task_t * task)
+runtime_t::task_enqueue(task_t * task)
 {
-    xkrt_runtime_submit_task(this, task);
+    runtime_submit_task(this, task);
 }
+
+XKRT_NAMESPACE_END

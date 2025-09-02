@@ -3,7 +3,7 @@
 /*   memory-register-async.cc                                     .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/14 01:25:26 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/22 23:51:39 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -14,23 +14,25 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/metric.h>
 
-static xkrt_runtime_t runtime;
+XKRT_NAMESPACE_USE;
 
 int
 main(void)
 {
-    assert(xkrt_init(&runtime) == 0);
+    runtime_t runtime;
+
+    assert(runtime.init() == 0);
 
     # include "memory-register-async.conf.cc"
 
     runtime.memory_register_async(team, ptr, size, nchunks);
     runtime.task_wait();
 
-    assert(xkrt_deinit(&runtime) == 0);
+    assert(runtime.deinit() == 0);
 
     return 0;
 }

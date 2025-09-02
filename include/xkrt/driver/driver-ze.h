@@ -51,110 +51,114 @@
 #  include <zes_api.h>
 # endif
 
-typedef struct  xkrt_device_ze_t
-{
-    xkrt_device_t inherited;
+XKRT_NAMESPACE_BEGIN
 
-    struct {
+    typedef struct  device_ze_t
+    {
+        device_t inherited;
 
-        // handles
-        ze_driver_handle_t      driver;
-        ze_context_handle_t     context;
-        ze_device_handle_t      handle;
-        ze_device_properties_t  properties;
-
-        // indexes
         struct {
-            unsigned int driver;    // ze driver index
-            unsigned int device;    // ze device index
-        } index;
 
-        // number of command queue group
-        uint32_t ncommandqueuegroups;
+            // handles
+            ze_driver_handle_t      driver;
+            ze_context_handle_t     context;
+            ze_device_handle_t      handle;
+            ze_device_properties_t  properties;
 
-        // per command queue group property
-        ze_command_queue_group_properties_t * command_queue_group_properties;
+            // indexes
+            struct {
+                unsigned int driver;    // ze driver index
+                unsigned int device;    // ze device index
+            } index;
 
-        // per command queue number of queue used
-        std::atomic<uint32_t> * command_queue_group_used;
+            // number of command queue group
+            uint32_t ncommandqueuegroups;
 
-        // memory properties
+            // per command queue group property
+            ze_command_queue_group_properties_t * command_queue_group_properties;
+
+            // per command queue number of queue used
+            std::atomic<uint32_t> * command_queue_group_used;
+
+            // memory properties
+            struct {
+                uint32_t count;
+                ze_device_memory_properties_t properties[XKRT_DEVICE_MEMORIES_MAX];
+            } memory;
+
+        } ze;
+
+        # if XKRT_SUPPORT_ZE_SYCL_INTEROP
+        // sycl interop
         struct {
-            uint32_t count;
-            ze_device_memory_properties_t properties[XKRT_DEVICE_MEMORIES_MAX];
-        } memory;
+            sycl::device device;
+            sycl::context context;
+        } sycl;
+        # endif /* XKRT_SUPPORT_ZE_SYCL_INTEROP */
 
-    } ze;
-
-    # if XKRT_SUPPORT_ZE_SYCL_INTEROP
-    // sycl interop
-    struct {
-        sycl::device device;
-        sycl::context context;
-    } sycl;
-    # endif /* XKRT_SUPPORT_ZE_SYCL_INTEROP */
-
-    # if XKRT_SUPPORT_ZES
-    struct {
-
-       // handles
-        zes_device_handle_t device; // zes device
-
-        // indexes
+        # if XKRT_SUPPORT_ZES
         struct {
-            unsigned int driver;    // ze driver index
-            unsigned int device;    // ze device index
-            ze_bool_t on_subdevice; // if this is a subdevice
-            uint32_t subdevice_id;  // subdevice id, if it is a subdevice
-        } index;
 
-        // memory
+            // handles
+            zes_device_handle_t device; // zes device
+
+            // indexes
+            struct {
+                unsigned int driver;    // ze driver index
+                unsigned int device;    // ze device index
+                ze_bool_t on_subdevice; // if this is a subdevice
+                uint32_t subdevice_id;  // subdevice id, if it is a subdevice
+            } index;
+
+            // memory
+            struct {
+                uint32_t count;
+                zes_mem_handle_t handles[XKRT_DEVICE_MEMORIES_MAX];
+            } memory;
+
+            // pwr
+            struct {
+                zes_pwr_handle_t handle;
+            } pwr;
+        } zes;
+
+        # endif /* XKRT_SUPPORT_ZES */
+
+    }               device_ze_t;
+
+
+    typedef struct  stream_ze_t
+    {
+        stream_t super;
+
         struct {
-            uint32_t count;
-            zes_mem_handle_t handles[XKRT_DEVICE_MEMORIES_MAX];
-        } memory;
+            struct {
+                ze_command_list_handle_t list;
+            } command;
+            struct {
+                ze_event_pool_handle_t  pool;
+                ze_event_handle_t     * list;
+            } events;
 
-        // pwr
+            // bad design, but required to submit kernels with level zero
+            device_ze_t * device;
+
+        } ze;
+
+        # if XKRT_SUPPORT_ZE_SYCL_INTEROP
         struct {
-            zes_pwr_handle_t handle;
-        } pwr;
-    } zes;
+            sycl::queue queue;
+        } sycl;
+        # endif /* XKRT_SUPPORT_ZE_SYCL_INTEROP */
 
-    # endif /* XKRT_SUPPORT_ZES */
-
-}               xkrt_device_ze_t;
+    }               stream_ze_t;
 
 
-typedef struct  xkrt_stream_ze_t
-{
-    xkrt_stream_t super;
+    typedef struct  driver_ze_t
+    {
+        driver_t super;
+    }               driver_ze_t;
 
-    struct {
-        struct {
-            ze_command_list_handle_t list;
-        } command;
-        struct {
-            ze_event_pool_handle_t  pool;
-            ze_event_handle_t     * list;
-        } events;
-
-        // bad design, but required to submit kernels with level zero
-        xkrt_device_ze_t * device;
-
-    } ze;
-
-    # if XKRT_SUPPORT_ZE_SYCL_INTEROP
-    struct {
-        sycl::queue queue;
-    } sycl;
-    # endif /* XKRT_SUPPORT_ZE_SYCL_INTEROP */
-
-}               xkrt_stream_ze_t;
-
-
-typedef struct  xkrt_driver_ze_t
-{
-    xkrt_driver_t super;
-}               xkrt_driver_ze_t;
+XKRT_NAMESPACE_END
 
 #endif /* __DRIVER_ZE_H__ */

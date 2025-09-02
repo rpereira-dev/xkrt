@@ -38,10 +38,146 @@
 
 # include <xkrt/xkrt.h>
 # include <xkrt/runtime.h>
+# include <xkrt/memory/pageas.h>
+# include <xkrt/memory/access/blas/memory-tree.hpp>
+
+XKRT_NAMESPACE_BEGIN
+
+///////////////////////////////////
+//  ORIGINAL KAAPI 1.0 INTERFACE //
+///////////////////////////////////
+
+//  General idea of these interfaces
+//      - Nvidia GPUs serializes memory pinning anyway
+//      - We have a single thread dedicated to pinning memory to any device
+//      - it schedule 'pinning tasks' that are tasks with read/write access on the memory
+
+
+//  Some ideas:
+//      - can we pin memory independently of CUDA / HIP / ... via 'mlock' and
+//      notify the driver that the memory is pinned ? Would be better in case
+//      of server with different GPU vendors...
+
+
+# pragma message(TODO "The current implementation spawn independent tasks. Maybe make it dependent to a specific type of access")
+
+int
+runtime_t::memory_register(
+    void * ptr,
+    size_t size
+) {
+    # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+    if (this->conf.protect_registered_memory_overflow)
+        pageas(ptr, size, (uintptr_t *) &ptr, &size);
+    # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
+    for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
+    {
+        driver_t * driver = this->driver_get((driver_type_t) driver_id);
+        if (!driver)
+            continue ;
+        if (!driver->f_memory_host_register)
+            LOGGER_DEBUG("Driver `%u` does not implement memory register", driver_id);
+        else if (driver->f_memory_host_register(ptr, size))
+            LOGGER_ERROR("Could not register memory for driver `%s`", driver->f_get_name());
+    }
+
+    # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+    if (this->conf.protect_registered_memory_overflow)
+    {
+        /* save in the registered map, for later accesses */
+        this->registered_memory[(uintptr_t)ptr] = size;
+
+        /* notify the current memory coherency controllers that the memory got registered */
+        thread_t * tls = thread_t::get_tls();
+        assert(tls);
+        assert(tls->current_task);
+
+        task_t * parent = tls->current_task->parent;
+        if (parent && parent->flags & TASK_FLAG_DOMAIN)
+        {
+            task_dom_info_t * dom = TASK_DOM_INFO(parent);
+            assert(dom);
+
+            for (MemoryCoherencyController * mcc : dom->mccs.blas)
+                ((BLASMemoryTree *)mcc)->registered((uintptr_t)ptr, size);
+        }
+    }
+    # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
+    # if XKRT_SUPPORT_STATS
+    this->stats.memory.registered += size;
+    # endif /* XKRT_SUPPORT_STATS */
+
+    return 0;
+}
+
+int
+runtime_t::memory_unregister(void * ptr, size_t size)
+{
+    # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+    if (this->conf.protect_registered_memory_overflow)
+        pageas(ptr, size, (uintptr_t *) &ptr, &size);
+    # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
+    for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
+    {
+        driver_t * driver = this->driver_get((driver_type_t) driver_id);
+        if (!driver)
+            continue ;
+        if (!driver->f_memory_host_unregister)
+            LOGGER_DEBUG("Driver `%u` does not implement memory unregister", driver_id);
+        else if (driver->f_memory_host_unregister(ptr, size))
+            LOGGER_ERROR("Could not unregister memory for driver `%s`", driver->f_get_name());
+    }
+
+    # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+    if (this->conf.protect_registered_memory_overflow)
+    {
+        /* remove from the registered map */
+        this->registered_memory.erase((uintptr_t)ptr);
+    }
+    # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
+    # if XKRT_SUPPORT_STATS
+    this->stats.memory.unregistered += size;
+    # endif /* XKRT_SUPPORT_STATS */
+
+    return 0;
+}
+
+int
+runtime_t::memory_register_async(void * ptr, size_t size)
+{
+    // TODO : could be optimized using a custom format for register tasks
+    this->task_spawn(
+        [=, this] (task_t * task) {
+            this->memory_register(ptr, size);
+        }
+    );
+    return 0;
+}
+
+int
+runtime_t::memory_unregister_async(void * ptr, size_t size)
+{
+    // TODO : could be optimized using a custom format for unregister tasks
+    this->task_spawn(
+        [=, this] (task_t * task) {
+            (void) task;
+            this->memory_unregister(ptr, size);
+        }
+    );
+    return 0;
+}
+
+///////////////////////////////
+//  NEW XKAAPI 2.0 INTERFACE //
+///////////////////////////////
 
 typedef struct  memory_op_async_args_t
 {
-    xkrt_runtime_t * runtime;
+    runtime_t * runtime;
     uintptr_t start;
     uintptr_t end;
 
@@ -71,9 +207,9 @@ body_memory_async(task_t * task)
     assert(args->start < args->end);
 
     if constexpr (T == REGISTER)
-        xkrt_memory_register(args->runtime, (void *) args->start, (size_t) (args->end - args->start));
+        args->runtime->memory_register((void *) args->start, (size_t) (args->end - args->start));
     else if constexpr (T == UNREGISTER)
-        xkrt_memory_unregister(args->runtime, (void *) args->start, (size_t) (args->end - args->start));
+        args->runtime->memory_unregister((void *) args->start, (size_t) (args->end - args->start));
     else if constexpr (T == TOUCH)
     {
         // volatile to trick the compiler and avoid optimization of *p = *p
@@ -89,8 +225,8 @@ body_memory_async(task_t * task)
 template<memory_op_type_t T>
 static int
 memory_op_async(
-    xkrt_runtime_t * runtime,
-    xkrt_team_t * team,
+    runtime_t * runtime,
+    team_t * team,
     void * ptr,
     size_t size,
     int n
@@ -100,7 +236,7 @@ memory_op_async(
     constexpr task_access_counter_t AC = (T == TOUCH) ? 1 : 2;
     constexpr size_t task_size = task_compute_size(flags, AC);
 
-    xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+    thread_t * tls = thread_t::get_tls();
     assert(tls);
 
     const task_format_id_t fmtid = (T == REGISTER)   ? runtime->formats.memory_register_async   :
@@ -179,15 +315,15 @@ memory_op_async(
         tls->resolve<AC>(task, accesses);
 
         // commit task
-        tls->commit(task, xkrt_runtime_t::task_team_enqueue, runtime, team);
+        tls->commit(task, runtime_t::task_team_enqueue, runtime, team);
     }
 
     return 0;
 }
 
 int
-xkrt_runtime_t::memory_unregister_async(
-    xkrt_team_t * team,
+runtime_t::memory_unregister_async(
+    team_t * team,
     void * ptr,
     const size_t size,
     int n
@@ -196,8 +332,8 @@ xkrt_runtime_t::memory_unregister_async(
 }
 
 int
-xkrt_runtime_t::memory_register_async(
-    xkrt_team_t * team,
+runtime_t::memory_register_async(
+    team_t * team,
     void * ptr,
     const size_t size,
     int n
@@ -206,8 +342,8 @@ xkrt_runtime_t::memory_register_async(
 }
 
 int
-xkrt_runtime_t::memory_touch_async(
-    xkrt_team_t * team,
+runtime_t::memory_touch_async(
+    team_t * team,
     void * ptr,
     const size_t size,
     int n
@@ -216,7 +352,7 @@ xkrt_runtime_t::memory_touch_async(
 }
 
 void
-xkrt_memory_async_register_format(xkrt_runtime_t * runtime)
+memory_async_register_format(runtime_t * runtime)
 {
     {
         task_format_t format;
@@ -242,3 +378,5 @@ xkrt_memory_async_register_format(xkrt_runtime_t * runtime)
         runtime->formats.memory_touch_async = task_format_create(&(runtime->formats.list), &format);
     }
 }
+
+XKRT_NAMESPACE_END

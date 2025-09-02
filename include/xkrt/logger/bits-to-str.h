@@ -38,7 +38,7 @@
 #  define __XKRT_BITS_TO_STR_H__
 
 extern "C" {
-    void xkrt_bits_to_str(char * buffer, unsigned char * mem, size_t nbytes);
+    void bits_to_str(char * buffer, unsigned char * mem, size_t nbytes);
 };
 
 # endif /* __XKRT_BITS_TO_STR_H__ */

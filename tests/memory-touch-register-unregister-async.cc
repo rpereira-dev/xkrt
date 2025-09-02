@@ -13,19 +13,21 @@
 
 # include <random>
 
-# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/metric.h>
 
-static xkrt_runtime_t runtime;
+XKRT_NAMESPACE_USE;
 
 int
 main(int argc, char ** argv)
 {
-    if (xkrt_init(&runtime))
+    runtime_t runtime;
+
+    if (runtime.init())
         LOGGER_FATAL("ERROR INIT");
 
-    xkrt_driver_t * driver = runtime.driver_get(XKRT_DRIVER_TYPE_HOST);
+    driver_t * driver = runtime.driver_get(XKRT_DRIVER_TYPE_HOST);
     assert(driver);
 
     std::mt19937 rng(std::random_device{}());
@@ -57,7 +59,7 @@ main(int argc, char ** argv)
             dumped = 1;
         }
 
-        uint64_t t0 = xkrt_get_nanotime();
+        uint64_t t0 = get_nanotime();
 
         if (i == 0 || i == 1)
         {
@@ -65,10 +67,10 @@ main(int argc, char ** argv)
             {
                 LOGGER_INFO("Running with touch>sync>register>sync>unregister>sync");
 
-                uint64_t t0 = xkrt_get_nanotime();
+                uint64_t t0 = get_nanotime();
                 runtime.memory_touch_async(team, ptr, size, nchunks);
                 runtime.task_wait();
-                uint64_t tf = xkrt_get_nanotime();
+                uint64_t tf = get_nanotime();
                 LOGGER_INFO("      Touch took %lf s.", (tf - t0) / 1e9);
             }
             else if (i == 1)
@@ -77,37 +79,37 @@ main(int argc, char ** argv)
             }
 
             {
-                uint64_t t0 = xkrt_get_nanotime();
+                uint64_t t0 = get_nanotime();
                 runtime.memory_register_async(team, ptr, size, nchunks);
                 runtime.task_wait();
-                uint64_t tf = xkrt_get_nanotime();
+                uint64_t tf = get_nanotime();
                 LOGGER_INFO("    Pinning took %lf s.", (tf - t0) / 1e9);
             }
         }
         else if (i == 2)
         {
             LOGGER_INFO("Running with touch>register>sync>unregister>sync");
-            uint64_t t0 = xkrt_get_nanotime();
+            uint64_t t0 = get_nanotime();
             runtime.memory_touch_async(team, ptr, size, nchunks);
             runtime.memory_register_async(team, ptr, size, nchunks);
             runtime.task_wait();
-            uint64_t tf = xkrt_get_nanotime();
+            uint64_t tf = get_nanotime();
             LOGGER_INFO("  Touch+Pin took %lf s.", (tf - t0) / 1e9);
         }
 
         {
-            uint64_t t0 = xkrt_get_nanotime();
+            uint64_t t0 = get_nanotime();
             runtime.memory_unregister_async(team, ptr, size, nchunks);
             runtime.task_wait();
-            uint64_t tf = xkrt_get_nanotime();
+            uint64_t tf = get_nanotime();
             LOGGER_INFO("  Unpinning took %lf s.", (tf - t0) / 1e9);
         }
 
-        uint64_t tf = xkrt_get_nanotime();
+        uint64_t tf = get_nanotime();
         LOGGER_INFO("Total took %lf s.", (tf - t0) / 1e9);
     }
 
-    if (xkrt_deinit(&runtime))
+    if (runtime.deinit())
         LOGGER_FATAL("ERROR DEINIT");
 
     return 0;

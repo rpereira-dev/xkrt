@@ -3,7 +3,7 @@
 /*   deinit.cc                                                    .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/01/30 00:16:18 by Romain Pereira          __/_*_*(_        */
-/*   Updated: 2025/06/03 18:13:13 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/22 23:36:57 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -14,16 +14,17 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include <xkrt/xkrt.h>
-# include <assert.h>
+# include <xkrt/runtime.h>
+
+XKRT_NAMESPACE_USE;
 
 int
 main(void)
 {
-    xkrt_runtime_t runtime;
+    runtime_t runtime;
 
-    assert(xkrt_init(&runtime) == 0);
-    assert(xkrt_deinit(&runtime) == 0);
+    assert(runtime.init() == 0);
+    assert(runtime.deinit() == 0);
 
     return 0;
 }

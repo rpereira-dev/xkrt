@@ -3,7 +3,7 @@
 /*   fib-task-capture.cc                                          .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/03/04 05:42:49 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/06/09 03:46:37 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/22 23:47:17 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -14,10 +14,12 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 # include <xkrt/runtime.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/metric.h>
+
+XKRT_NAMESPACE_USE;
 
 static int N = 0;
 # define CUTOFF_DEPTH 10
@@ -30,7 +32,7 @@ static const int fib_values[] = {
     165580141, 267914296, 433494437, 701408733, 1134903170, 1836311903
 };
 
-static xkrt_runtime_t runtime;
+static runtime_t runtime;
 
 static inline int
 fib(int n, int depth = 0)
@@ -64,7 +66,7 @@ fib(int n, int depth = 0)
 }
 
 static void *
-main_team(xkrt_team_t * team, xkrt_thread_t * thread)
+main_team(team_t * team, thread_t * thread)
 {
     // warmup
     if (thread->tid == 0)
@@ -77,10 +79,10 @@ main_team(xkrt_team_t * team, xkrt_thread_t * thread)
     // run
     if (thread->tid == 0)
     {
-        double t0 = xkrt_get_nanotime();
+        double t0 = get_nanotime();
         int r = fib(N);
         runtime.task_wait();
-        double tf = xkrt_get_nanotime();
+        double tf = get_nanotime();
         LOGGER_INFO("Fib(%d) = %d - took %.2lf s", N, r, (tf - t0) / (double)1e9);
         assert(r == fib_values[N]);
     }
@@ -102,15 +104,15 @@ main(int argc, char ** argv)
 
     assert(N < sizeof(fib_values) / sizeof(int));
 
-    assert(xkrt_init(&runtime) == 0);
+    assert(runtime.init() == 0);
 
-    xkrt_team_t team = XKRT_TEAM_STATIC_INITIALIZER;
+    team_t team;
     team.desc.routine = main_team;
 
     runtime.team_create(&team);
     runtime.team_join(&team);
 
-    assert(xkrt_deinit(&runtime) == 0);
+    assert(runtime.deinit() == 0);
 
     return 0;
 }

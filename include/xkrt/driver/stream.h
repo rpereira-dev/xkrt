@@ -48,159 +48,163 @@
 
 # include <atomic>
 
-class xkrt_stream_instruction_queue_t
-{
-    public:
+XKRT_NAMESPACE_BEGIN
 
-        xkrt_stream_instruction_t * instr;                /* instructions buffer */
-        xkrt_stream_instruction_counter_t capacity;       /* buffer capacity */
-        struct {
-            volatile xkrt_stream_instruction_counter_t r; /* first instruction to process */
-            volatile xkrt_stream_instruction_counter_t w; /* next position for inserting instructions */
-        } pos;
+    class stream_instruction_queue_t
+    {
+        public:
 
-    public:
-
-        /* methods */
-        int
-        is_full(void) const
-        {
-            return (this->pos.w  == this->pos.r - 1);
-        }
-
-        int
-        is_empty(void) const
-        {
-            return (this->pos.r == this->pos.w);
-        }
-
-        xkrt_stream_instruction_counter_t
-        size(void) const
-        {
-            if (this->pos.r <= this->pos.w)
-                return (this->pos.w - this->pos.r);
-            else
-                return this->capacity - this->pos.r + this->pos.w;
-        }
-
-        template<typename Func>
-        xkrt_stream_instruction_counter_t
-        iterate(Func && process)
-        {
-            const xkrt_stream_instruction_counter_t a = this->pos.r;
-            const xkrt_stream_instruction_counter_t b = this->pos.w;
-
-            assert(a >= 0);
-            assert(b >= 0);
-            assert(a < this->capacity);
-            assert(b < this->capacity);
-
-            if (a <= b) {
-                for (xkrt_stream_instruction_counter_t i = a; i < b; ++i)
-                    if (!process(i)) return i;
-            } else {
-                for (xkrt_stream_instruction_counter_t i = a; i < capacity; ++i)
-                    if (!process(i)) return i;
-                for (xkrt_stream_instruction_counter_t i = 0; i < b; ++i)
-                    if (!process(i)) return i;
-            }
-            return b;
-        }
-};
-
-# pragma message(TODO "make this a C++ class and use inheritance/pure virtual - currently hybrid of C struct C++ class :(")
-
-/* this is a 'xkrt_io_stream' equivalent */
-class xkrt_stream_t : public Lockable
-{
-    public:
-
-        /* the type of that stream */
-        xkrt_stream_type_t type;
-
-        /* queue for ready instruction */
-        xkrt_stream_instruction_queue_t ready;
-
-        /* queue for pending instructions to progress */
-        xkrt_stream_instruction_queue_t pending;
-
-        # if XKRT_SUPPORT_STATS
-        struct {
+            stream_instruction_t * instr;                /* instructions buffer */
+            stream_instruction_counter_t capacity;       /* buffer capacity */
             struct {
-                stats_int_t commited;
-                stats_int_t completed;
-            } instructions[XKRT_STREAM_INSTR_TYPE_MAX];
-            stats_int_t transfered;
-        } stats;
-        # endif /* XKRT_SUPPORT_STATS */
+                volatile stream_instruction_counter_t r; /* first instruction to process */
+                volatile stream_instruction_counter_t w; /* next position for inserting instructions */
+            } pos;
 
-        /* launch a stream instruction */
-        int (*f_instruction_launch)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx);
+        public:
 
-        /* progrtream instruction */
-        int (*f_instructions_progress)(xkrt_stream_t * stream);
+            /* methods */
+            int
+            is_full(void) const
+            {
+                return (this->pos.w  == this->pos.r - 1);
+            }
 
-        /* wait instructions completion on a stream */
-        int (*f_instructions_wait)(xkrt_stream_t * stream);
+            int
+            is_empty(void) const
+            {
+                return (this->pos.r == this->pos.w);
+            }
 
-        /* wait instructions completion on a stream */
-        int (*f_instruction_wait)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx);
+            stream_instruction_counter_t
+            size(void) const
+            {
+                if (this->pos.r <= this->pos.w)
+                    return (this->pos.w - this->pos.r);
+                else
+                    return this->capacity - this->pos.r + this->pos.w;
+            }
 
-    public:
+            template<typename Func>
+            stream_instruction_counter_t
+            iterate(Func && process)
+            {
+                const stream_instruction_counter_t a = this->pos.r;
+                const stream_instruction_counter_t b = this->pos.w;
 
-        /* allocate a new instruction to the stream (must then be commited via 'commit') */
-        xkrt_stream_instruction_t * instruction_new(
-            const xkrt_stream_instruction_type_t itype,
-            const xkrt_callback_t & callback
-        );
+                assert(a >= 0);
+                assert(b >= 0);
+                assert(a < this->capacity);
+                assert(b < this->capacity);
 
-        /* complete the instruction at the i-th position in the pending queue (invoke the callback) */
-        void complete_instruction(const xkrt_stream_instruction_counter_t p);
+                if (a <= b) {
+                    for (stream_instruction_counter_t i = a; i < b; ++i)
+                        if (!process(i)) return i;
+                } else {
+                    for (stream_instruction_counter_t i = a; i < capacity; ++i)
+                        if (!process(i)) return i;
+                    for (stream_instruction_counter_t i = 0; i < b; ++i)
+                        if (!process(i)) return i;
+                }
+                return b;
+            }
+    };
 
-        /* complete the instruction that must be in the pending queue */
-        void complete_instruction(xkrt_stream_instruction_t * instr);
+    # pragma message(TODO "make this a C++ class and use inheritance/pure virtual - currently hybrid of C struct C++ class :(")
 
-        /* commit the instruction to the stream (must be allocated via 'instruction_new') */
-        int commit(xkrt_stream_instruction_t * instruction);
+    /* this is a 'io_stream' equivalent */
+    class stream_t : public Lockable
+    {
+        public:
 
-        /* launch instructions, and may generate pending instructions */
-        int launch_ready_instructions(void);
+            /* the type of that stream */
+            stream_type_t type;
 
-        /* progress pending instructions */
-        int progress_pending_instructions(void);
+            /* queue for ready instruction */
+            stream_instruction_queue_t ready;
 
-        /* (internal) complete all instructions to 'ok_p' */
-        void complete_instructions(const xkrt_stream_instruction_counter_t ok_p);
+            /* queue for pending instructions to progress */
+            stream_instruction_queue_t pending;
 
-        /* wait for completion of all pending instructions */
-        void wait_pending_instructions(void);
+            # if XKRT_SUPPORT_STATS
+            struct {
+                struct {
+                    stats_int_t commited;
+                    stats_int_t completed;
+                } instructions[XKRT_STREAM_INSTR_TYPE_MAX];
+                stats_int_t transfered;
+            } stats;
+            # endif /* XKRT_SUPPORT_STATS */
 
-        /* return true if the stream is full of instructions, false otherwise */
-        int is_full(void) const;
+            /* launch a stream instruction */
+            int (*f_instruction_launch)(stream_t * stream, stream_instruction_t * instr, stream_instruction_counter_t idx);
 
-        /* return true if the stream is empty, false otherwise */
-        int is_empty(void) const;
+            /* progrtream instruction */
+            int (*f_instructions_progress)(stream_t * stream);
+
+            /* wait instructions completion on a stream */
+            int (*f_instructions_wait)(stream_t * stream);
+
+            /* wait instructions completion on a stream */
+            int (*f_instruction_wait)(stream_t * stream, stream_instruction_t * instr, stream_instruction_counter_t idx);
+
+        public:
+
+            /* allocate a new instruction to the stream (must then be commited via 'commit') */
+            stream_instruction_t * instruction_new(
+                const stream_instruction_type_t itype,
+                const callback_t & callback
+            );
+
+            /* complete the instruction at the i-th position in the pending queue (invoke the callback) */
+            void complete_instruction(const stream_instruction_counter_t p);
+
+            /* complete the instruction that must be in the pending queue */
+            void complete_instruction(stream_instruction_t * instr);
+
+            /* commit the instruction to the stream (must be allocated via 'instruction_new') */
+            int commit(stream_instruction_t * instruction);
+
+            /* launch instructions, and may generate pending instructions */
+            int launch_ready_instructions(void);
+
+            /* progress pending instructions */
+            int progress_pending_instructions(void);
+
+            /* (internal) complete all instructions to 'ok_p' */
+            void complete_instructions(const stream_instruction_counter_t ok_p);
+
+            /* wait for completion of all pending instructions */
+            void wait_pending_instructions(void);
+
+            /* return true if the stream is full of instructions, false otherwise */
+            int is_full(void) const;
+
+            /* return true if the stream is empty, false otherwise */
+            int is_empty(void) const;
 
 
-};  /* xkrt_stream_t */
+    };  /* stream_t */
 
-void xkrt_stream_init(
-    xkrt_stream_t * stream,
-    xkrt_stream_type_t type,
-    xkrt_stream_instruction_counter_t capacity,
-    int (*f_instruction_launch)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx),
-    int (*f_instructions_progress)(xkrt_stream_t * stream),
-    int (*f_instructions_wait)(xkrt_stream_t * stream),
-    int (*f_instruction_wait)(xkrt_stream_t * stream, xkrt_stream_instruction_t * instr, xkrt_stream_instruction_counter_t idx)
-);
+    void stream_init(
+        stream_t * stream,
+        stream_type_t type,
+        stream_instruction_counter_t capacity,
+        int (*f_instruction_launch)(stream_t * stream, stream_instruction_t * instr, stream_instruction_counter_t idx),
+        int (*f_instructions_progress)(stream_t * stream),
+        int (*f_instructions_wait)(stream_t * stream),
+        int (*f_instruction_wait)(stream_t * stream, stream_instruction_t * instr, stream_instruction_counter_t idx)
+    );
 
-void xkrt_stream_deinit(xkrt_stream_t * stream);
+    void stream_deinit(stream_t * stream);
 
-/* routine to launch a kernel from a thread */
-typedef void (*xkrt_kernel_launcher_t)(
-    xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
-);
+    /* routine to launch a kernel from a thread */
+    typedef void (*kernel_launcher_t)(
+        stream_t * istream,
+        stream_instruction_t * instr,
+        stream_instruction_counter_t idx
+    );
+
+XKRT_NAMESPACE_END
 
 #endif /* __STREAM_HPP__ */

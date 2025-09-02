@@ -53,19 +53,21 @@
 
 # include <map>
 
-typedef enum    xkrt_runtime_state_t : uint8_t
+XKRT_NAMESPACE_BEGIN
+
+typedef enum    runtime_state_t : uint8_t
 {
     XKRT_RUNTIME_DEINITIALIZED = 0,
     XKRT_RUNTIME_INITIALIZED,
-}               xkrt_runtime_state_t;
+}               runtime_state_t;
 
-typedef struct  xkrt_runtime_t
+struct  runtime_t
 {
     /* runtime state */
-    std::atomic<xkrt_runtime_state_t> state;
+    std::atomic<runtime_state_t> state;
 
     /* driver list */
-    xkrt_drivers_t drivers;
+    drivers_t drivers;
 
     /* task formats */
     struct {
@@ -80,7 +82,7 @@ typedef struct  xkrt_runtime_t
     } formats;
 
     /* user conf */
-    xkrt_conf_t conf;
+    conf_t conf;
 
     /* memory router */
     RouterAffinity router;
@@ -115,25 +117,25 @@ typedef struct  xkrt_runtime_t
     ////////////////////
 
     /* Submit a copy instruction to a stream of the device */
-    xkrt_stream_t * copy(
-        const xkrt_device_global_id_t   device_global_id,
+    stream_t * copy(
+        const device_global_id_t   device_global_id,
         const size_t                    size,
-        const xkrt_device_global_id_t   dst_device_global_id,
+        const device_global_id_t   dst_device_global_id,
         const uintptr_t                 dst_device_addr,
-        const xkrt_device_global_id_t   src_device_global_id,
+        const device_global_id_t   src_device_global_id,
         const uintptr_t                 src_device_addr,
-        const xkrt_callback_t         & callback
+        const callback_t         & callback
     );
 
     /* Submit a copy instruction to a stream of the device */
-    xkrt_stream_t * copy(
-        const xkrt_device_global_id_t   device_global_id,
+    stream_t * copy(
+        const device_global_id_t   device_global_id,
         const memory_view_t           & host_view,
-        const xkrt_device_global_id_t   dst_device_global_id,
+        const device_global_id_t   dst_device_global_id,
         const memory_replica_view_t & dst_device_view,
-        const xkrt_device_global_id_t   src_device_global_id,
+        const device_global_id_t   src_device_global_id,
         const memory_replica_view_t & src_device_view,
-        const xkrt_callback_t         & callback
+        const callback_t         & callback
     );
 
     ///////////////////////
@@ -142,7 +144,7 @@ typedef struct  xkrt_runtime_t
 
     /* distribute the passed memory segment uniformly and continuously across all devices */
     void distribute_async(
-        xkrt_distribution_type_t type,
+        distribution_type_t type,
         void * ptr, size_t size,
         size_t nb,
         size_t h
@@ -150,7 +152,7 @@ typedef struct  xkrt_runtime_t
 
     /* distribute array of segment across all devices */
     void distribute_async(
-        xkrt_distribution_type_t type,
+        distribution_type_t type,
         void ** ptr,
         size_t chunk_size,
         unsigned int n
@@ -158,7 +160,7 @@ typedef struct  xkrt_runtime_t
 
     /* distribute matrix across all devices */
     void distribute_async(
-        xkrt_distribution_type_t type,
+        distribution_type_t type,
         matrix_storage_t storage,
         void * ptr, size_t ld,
         size_t m, size_t n,
@@ -216,39 +218,43 @@ typedef struct  xkrt_runtime_t
     ///////////////////////
 
     /* allocate the chunk0 on the device if not allocated already */
-    void memory_device_preallocate_ensure(const xkrt_device_global_id_t device_global_id, const int memory_id);
+    void memory_device_preallocate_ensure(const device_global_id_t device_global_id, const int memory_id);
 
     /* allocate memory onto chunk0 of the given device memory index */
-    xkrt_area_chunk_t * memory_device_allocate_on(const xkrt_device_global_id_t device_global_id, const size_t size, const int memory_id);
+    area_chunk_t * memory_device_allocate_on(const device_global_id_t device_global_id, const size_t size, const int memory_id);
 
     /* allocate memory onto chunk0 of the given device */
-    xkrt_area_chunk_t * memory_device_allocate(const xkrt_device_global_id_t device_global_id, const size_t size);
+    area_chunk_t * memory_device_allocate(const device_global_id_t device_global_id, const size_t size);
 
     /* deallocate the given chunk */
-    void memory_device_deallocate(const xkrt_device_global_id_t device_global_id, xkrt_area_chunk_t * chunk);
+    void memory_device_deallocate(const device_global_id_t device_global_id, area_chunk_t * chunk);
 
     /* dealloacte all memory previously allocated on the device */
-    void memory_device_deallocate_all(const xkrt_device_global_id_t device_global_id);
+    void memory_device_deallocate_all(const device_global_id_t device_global_id);
 
     /* allocate memory onto the host using the driver given device */
-    void * memory_host_allocate(const xkrt_device_global_id_t device_global_id, const size_t size);
+    void * memory_host_allocate(const device_global_id_t device_global_id, const size_t size);
 
     /* deallocate memory onto the host using the driver of the given device */
-    void memory_host_deallocate(const xkrt_device_global_id_t device_global_id, void * mem, const size_t size);
+    void memory_host_deallocate(const device_global_id_t device_global_id, void * mem, const size_t size);
 
     /* allocate unified memory using the driver of the given device */
-    void * memory_unified_allocate(const xkrt_device_global_id_t device_global_id, const size_t size);
+    void * memory_unified_allocate(const device_global_id_t device_global_id, const size_t size);
 
     /* deallocate unified memory using the driver of the given device */
-    void memory_unified_deallocate(const xkrt_device_global_id_t device_global_id, void * mem, const size_t size);
+    void memory_unified_deallocate(const device_global_id_t device_global_id, void * mem, const size_t size);
 
     ////////////////////////
     // MEMORY REPLICATION //
     ////////////////////////
 
     /* synchronous allocation of a device noncoherent replica */
-    void memory_replicate_noncoherent(xkrt_device_global_id_t device_global_id, void * ptr, size_t size);
-    void memory_replicate_noncoherent(xkrt_device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
+    void memory_replicate_coherent(device_global_id_t device_global_id, void * ptr, size_t size);
+    void memory_replicate_coherent(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
+
+    /* synchronous allocation of a device noncoherent replica */
+    void memory_replicate_noncoherent(device_global_id_t device_global_id, void * ptr, size_t size);
+    void memory_replicate_noncoherent(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
     /////////////////////
     // MEMORY MOVEMENT //
@@ -263,15 +269,27 @@ typedef struct  xkrt_runtime_t
     /////////////////////////
 
     /**
+     *  Memory registration
+     */
+    int memory_register  (void * ptr, size_t size);
+    int memory_unregister(void * ptr, size_t size);
+
+    /**
+     * Memory registration async
+     */
+    int memory_register_async  (void * ptr, size_t size);
+    int memory_unregister_async(void * ptr, size_t size);
+
+    /**
      *  Create 'n' tasks so that each task i in [0..n-1]
      *      - access - commutative write on ptr + i*size/n
      *      - routine - register/unregister/touch [ptr + i*size/n,  MIN(ptr + (i+1)*size/n, ptr+size)]
      *
      *  Note: each task may run several 'cuMemRegister' several time on a single chunk
      */
-    int memory_register_async(xkrt_team_t * team, void * ptr, const size_t size, int n);
-    int memory_unregister_async(xkrt_team_t * team, void * ptr, const size_t size, int n);
-    int memory_touch_async(xkrt_team_t * team, void * ptr, const size_t size, int n);
+    int memory_register_async(team_t * team, void * ptr, const size_t size, int n);
+    int memory_unregister_async(team_t * team, void * ptr, const size_t size, int n);
+    int memory_touch_async(team_t * team, void * ptr, const size_t size, int n);
 
     /////////////////////
     // SYNCHRONIZATION //
@@ -306,22 +324,22 @@ typedef struct  xkrt_runtime_t
      */
     void task_enqueue(task_t * task);
     static inline void
-    task_enqueue(xkrt_runtime_t * runtime, task_t * task)
+    task_enqueue(runtime_t * runtime, task_t * task)
     {
         runtime->task_enqueue(task);
     }
 
     /* enqueue a task to the given thread */
-    void task_thread_enqueue(xkrt_thread_t * thread, task_t * task);
-    static inline void task_thread_enqueue(xkrt_runtime_t * runtime, xkrt_thread_t * thread, task_t * task)
+    void task_thread_enqueue(thread_t * thread, task_t * task);
+    static inline void task_thread_enqueue(runtime_t * runtime, thread_t * thread, task_t * task)
     {
         runtime->task_thread_enqueue(thread, task);
     }
 
     /* enqueue a task to the given team */
-    void task_team_enqueue(xkrt_team_t * team, task_t * task);
+    void task_team_enqueue(team_t * team, task_t * task);
     static inline void
-    task_team_enqueue(xkrt_runtime_t * runtime, xkrt_team_t * team, task_t * task)
+    task_team_enqueue(runtime_t * runtime, team_t * team, task_t * task)
     {
         return runtime->task_team_enqueue(team, task);
     }
@@ -345,7 +363,7 @@ typedef struct  xkrt_runtime_t
         assert(has_split_condition == (split_condition != nullptr));
 
         // retrieve tls
-        xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+        thread_t * tls = thread_t::get_tls();
 
         // create the task
         constexpr task_flag_bitfield_t flags = (ac == 0) ? TASK_FLAG_ZERO : (has_split_condition) ? (TASK_FLAG_DEPENDENT | TASK_FLAG_MOLDABLE) : TASK_FLAG_DEPENDENT;
@@ -394,7 +412,7 @@ typedef struct  xkrt_runtime_t
         assert(task);
 
         // commit the task
-        xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+        thread_t * tls = thread_t::get_tls();
         tls->commit(task, task_enqueue, this);
     }
 
@@ -427,7 +445,7 @@ typedef struct  xkrt_runtime_t
     /* run a task on the given team, using its host routine
      * (do not use unless you know what you are doing, you may want
      * `task_spawn` instead) */
-    void task_run(xkrt_team_t * team, xkrt_thread_t * thread, task_t * task);
+    void task_run(team_t * team, thread_t * thread, task_t * task);
 
     /////////////////////////
     // THREADING - THREADS //
@@ -444,23 +462,23 @@ typedef struct  xkrt_runtime_t
     ///////////////////////
 
     /* create a new thread team */
-    void team_create(xkrt_team_t * team);
+    void team_create(team_t * team);
 
     /* wait until all threads called the barrier */
     template<bool worksteal = false>
-    void team_barrier(xkrt_team_t * team, xkrt_thread_t * thread = NULL);
+    void team_barrier(team_t * team, thread_t * thread = NULL);
 
     /* wait until all threads finished and destroy the team */
-    void team_join(xkrt_team_t * team);
+    void team_join(team_t * team);
 
     /* start a critical section */
-    void team_critical_begin(xkrt_team_t * team);
+    void team_critical_begin(team_t * team);
 
     /* end a critical section */
-    void team_critical_end(xkrt_team_t * team);
+    void team_critical_end(team_t * team);
 
     /* blocking parallel_for region */
-    void team_parallel_for(xkrt_team_t * team, xkrt_team_parallel_for_func_t func);
+    void team_parallel_for(team_t * team, team_parallel_for_func_t func);
 
     /////////////////////////
     // THREADING - TASKING //
@@ -469,7 +487,7 @@ typedef struct  xkrt_runtime_t
     template <task_access_counter_t ac, bool has_set_accesses, bool has_split_condition>
     inline void
     team_task_spawn(
-        xkrt_team_t * team,
+        team_t * team,
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
         const std::function<void(task_t *)> & f
@@ -479,14 +497,14 @@ typedef struct  xkrt_runtime_t
         assert(task);
 
         // commit the task
-        xkrt_thread_t * tls = xkrt_thread_t::get_tls();
+        thread_t * tls = thread_t::get_tls();
         tls->commit(task, task_team_enqueue, this, team);
     }
 
     template <task_access_counter_t ac>
     inline void
     team_task_spawn(
-        xkrt_team_t * team,
+        team_t * team,
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
         const std::function<void(task_t *)> & f
@@ -497,7 +515,7 @@ typedef struct  xkrt_runtime_t
     template <task_access_counter_t ac>
     inline void
     team_task_spawn(
-        xkrt_team_t * team,
+        team_t * team,
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<void(task_t *)> & f
     ) {
@@ -506,7 +524,7 @@ typedef struct  xkrt_runtime_t
 
     inline void
     team_task_spawn(
-        xkrt_team_t * team,
+        team_t * team,
         const std::function<void(task_t *)> & f
     ) {
         this->team_task_spawn<0, false, false>(team, nullptr, nullptr, f);
@@ -517,33 +535,36 @@ typedef struct  xkrt_runtime_t
     //////////////////
 
     /* retrieve the team of thread of the specific driver */
-    xkrt_team_t * team_get(const xkrt_driver_type_t type);
+    team_t * team_get(const driver_type_t type);
 
     /* retrieve the first non-null driver' team from the passed bitfield */
-    xkrt_team_t * team_get_any(const xkrt_driver_type_bitfield_t types);
+    team_t * team_get_any(const driver_type_bitfield_t types);
 
     ////////////
     // ENERGY //
     ////////////
 
     /* start recording energy usage */
-    void power_start(const xkrt_device_global_id_t device_global_id, xkrt_power_t * pwr);
+    void power_start(const device_global_id_t device_global_id, power_t * pwr);
 
     /* stop recording and return energy usage */
-    void power_stop(const xkrt_device_global_id_t device_global_id, xkrt_power_t * pwr);
+    void power_stop(const device_global_id_t device_global_id, power_t * pwr);
 
     ///////////////
     // UTILITIES //
     ///////////////
 
     /* get driver */
-    xkrt_driver_t * driver_get(const xkrt_driver_type_t type);
+    driver_t * driver_get(const driver_type_t type);
 
     /* get device */
-    xkrt_device_t * device_get(const xkrt_device_global_id_t device_global_id);
+    device_t * device_get(const device_global_id_t device_global_id);
 
     /* get number of commited devices */
     unsigned int get_ndevices(void);
+
+    /* get maximum number of devices available */
+    unsigned int get_ndevices_max(void);
 
     # if XKRT_SUPPORT_STATS
 
@@ -566,60 +587,66 @@ typedef struct  xkrt_runtime_t
 
     # endif /* XKRT_SUPPORT_STATS */
 
-}               xkrt_runtime_t;
+}; /* runtime_t */
+
+///////////////
+// Utilities //
+///////////////
 
 /* submit a ready task */
-void xkrt_runtime_submit_task(xkrt_runtime_t * runtime, task_t * task);
+void runtime_submit_task(runtime_t * runtime, task_t * task);
 
 /* memory async thread management */
-void xkrt_memory_copy_async_register_format(xkrt_runtime_t * runtime);
+void memory_copy_async_register_format(runtime_t * runtime);
 
 /* host capture task format */
-void xkrt_task_host_capture_register_format(xkrt_runtime_t * runtime);
+void task_host_capture_register_format(runtime_t * runtime);
 
 /* register v2 format */
-void xkrt_memory_async_register_format(xkrt_runtime_t * runtime);
+void memory_async_register_format(runtime_t * runtime);
 
 /* file async format */
-void xkrt_file_async_register_format(xkrt_runtime_t * runtime);
+void file_async_register_format(runtime_t * runtime);
 
 /* Main entry thread created per device */
-void * xkrt_device_thread_main(xkrt_team_t * team, xkrt_thread_t * thread);
+void * device_thread_main(team_t * team, thread_t * thread);
 
 /* initialize drivers */
-void xkrt_drivers_init(xkrt_runtime_t * runtime);
+void drivers_init(runtime_t * runtime);
 
 /* deinitialize drivers */
-void xkrt_drivers_deinit(xkrt_runtime_t * runtime);
+void drivers_deinit(runtime_t * runtime);
 
 /* must be call once task accesses were all fetched */
-void xkrt_device_task_execute(
-    xkrt_runtime_t * runtime,
-    xkrt_device_t * device,
+void device_task_execute(
+    runtime_t * runtime,
+    device_t * device,
     task_t * task
 );
 
 /* report some stats about the runtime */
-void xkrt_runtime_stats_report(xkrt_runtime_t * runtime);
+void runtime_stats_report(runtime_t * runtime);
 
 /* arguments passed to the device team */
-typedef struct  xkrt_device_thread_args_t
+typedef struct  device_thread_args_t
 {
-    xkrt_driver_type_t driver_type;
+    driver_type_t driver_type;
     uint8_t device_driver_id;
-}               xkrt_device_thread_args_t;
+}               device_thread_args_t;
 
-typedef struct  xkrt_device_team_args_t
+typedef struct  device_team_args_t
 {
-    xkrt_runtime_t * runtime;
-    xkrt_device_thread_args_t devices[XKRT_DEVICES_MAX];
+    runtime_t * runtime;
+    device_thread_args_t devices[XKRT_DEVICES_MAX];
     int ndevices;
-}               xkrt_device_team_args_t;
+}               device_team_args_t;
 
 MemoryCoherencyController * task_get_memory_controller(
-    xkrt_runtime_t * runtime,
+    runtime_t * runtime,
     task_t * task,
     const access_t * access
 );
+
+XKRT_NAMESPACE_END
 
 #endif /* __XKRT_RUNTIME_H__ */

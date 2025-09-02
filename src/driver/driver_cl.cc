@@ -60,6 +60,8 @@
 # include <cerrno>
 # include <functional>
 
+XKRT_NAMESPACE_BEGIN
+
 // opencl does not allow pointer arithmetic on device memory, so we hard a
 // virtual address space per device.
 // The device 0 virtual address space is
@@ -78,10 +80,10 @@ static_assert((uintptr_t)(VIRT_MEM_ORIGIN + VIRT_MEM_PER_DEVICE_MAX * XKRT_DEVIC
 static cl_platform_id cl_platforms[XKRT_DEVICES_MAX];
 static cl_device_id cl_devices[XKRT_DEVICES_MAX];
 
-static xkrt_device_cl_t DEVICES[XKRT_DEVICES_MAX];
+static device_cl_t DEVICES[XKRT_DEVICES_MAX];
 static cl_uint cl_n_devices = 0;
 
-static xkrt_device_cl_t *
+static device_cl_t *
 device_cl_get(int device_driver_id)
 {
     assert(device_driver_id >= 0);
@@ -89,7 +91,7 @@ device_cl_get(int device_driver_id)
     return DEVICES + device_driver_id;
 }
 
-static xkrt_device_cl_t *
+static device_cl_t *
 device_cl_get_from_addr(uintptr_t addr)
 {
     // TODO : this can be accelerated with bitwise op, hopefully the compiler notices
@@ -100,15 +102,15 @@ device_cl_get_from_addr(uintptr_t addr)
 }
 
 // retrieve the buffer and the offset in it of the given pointer
-static inline xkrt_device_cl_buffer_t *
-XKRT_DRIVER_ENTRYPOINT(xkrt_buffer_from_addr)(
-    xkrt_device_cl_t * device,
+static inline device_cl_buffer_t *
+XKRT_DRIVER_ENTRYPOINT(buffer_from_addr)(
+    device_cl_t * device,
     uintptr_t addr
 ) {
-    // find which 'xkrt_device_cl_buffer_t' holds the virtual address
+    // find which 'device_cl_buffer_t' holds the virtual address
     for (int i = 0 ; i < device->memory.nbuffers ; ++i)
     {
-        xkrt_device_cl_buffer_t * buffer = device->memory.buffers + i;
+        device_cl_buffer_t * buffer = device->memory.buffers + i;
         if (buffer->addr <= addr && addr < buffer->addr + buffer->size)
             return buffer;
     }
@@ -116,26 +118,26 @@ XKRT_DRIVER_ENTRYPOINT(xkrt_buffer_from_addr)(
 }
 
 void
-xkrt_driver_cl_get_buffer_and_offset_1D(
-    xkrt_device_cl_t * device,
+driver_cl_get_buffer_and_offset_1D(
+    device_cl_t * device,
     uintptr_t addr,
     cl_mem * mem,
     size_t * offset
 ) {
-    xkrt_device_cl_buffer_t * buffer = XKRT_DRIVER_ENTRYPOINT(xkrt_buffer_from_addr)(device, addr);
+    device_cl_buffer_t * buffer = XKRT_DRIVER_ENTRYPOINT(buffer_from_addr)(device, addr);
     *mem = buffer->cl.mem;
     *offset = addr - buffer->addr;
 }
 
 void
-xkrt_driver_cl_get_buffer_and_offset_2D(
-    xkrt_device_cl_t * device,
+driver_cl_get_buffer_and_offset_2D(
+    device_cl_t * device,
     uintptr_t addr,
     size_t pitch,
     cl_mem * mem,
     size_t * offset
 ) {
-    xkrt_device_cl_buffer_t * buffer = XKRT_DRIVER_ENTRYPOINT(xkrt_buffer_from_addr)(device, addr);
+    device_cl_buffer_t * buffer = XKRT_DRIVER_ENTRYPOINT(buffer_from_addr)(device, addr);
     *mem = buffer->cl.mem;
 
     // with 0 <= offset[0] < pitch - we have
@@ -148,7 +150,7 @@ xkrt_driver_cl_get_buffer_and_offset_2D(
     offset[1] = (addr - buffer->addr) / pitch;
 }
 
-static void xkrt_cl_pfn_notify(
+static void cl_pfn_notify(
     const char * errinfo,
     const void * private_info,
     size_t cb,
@@ -190,12 +192,12 @@ XKRT_DRIVER_ENTRYPOINT(init)(
             (cl_context_properties)cl_platforms[i],
             0 // end of properties
         };
-        cl_context context = clCreateContext(properties, ndevices, devices, xkrt_cl_pfn_notify, NULL, &err);
+        cl_context context = clCreateContext(properties, ndevices, devices, cl_pfn_notify, NULL, &err);
         CL_SAFE_CALL(err);
 
         for (cl_uint j = 0; j < ndevices ; ++j)
         {
-            xkrt_device_cl_t * device = DEVICES + cl_n_devices;
+            device_cl_t * device = DEVICES + cl_n_devices;
             device->cl.id = devices[j];
             device->cl.context = context;
 
@@ -231,7 +233,7 @@ XKRT_DRIVER_ENTRYPOINT(get_ndevices_max)(void)
 static int
 XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * schedset, int device_driver_id)
 {
-    xkrt_device_cl_t * device = device_cl_get(device_driver_id);
+    device_cl_t * device = device_cl_get(device_driver_id);
 
     hwloc_cpuset_t cpuset = hwloc_bitmap_alloc();
     HWLOC_SAFE_CALL(hwloc_opencl_get_device_cpuset(topology, device->cl.id, cpuset));
@@ -242,17 +244,17 @@ XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * sch
     return 0;
 }
 
-static xkrt_device_t *
-XKRT_DRIVER_ENTRYPOINT(device_create)(xkrt_driver_t * driver, int device_driver_id)
+static device_t *
+XKRT_DRIVER_ENTRYPOINT(device_create)(driver_t * driver, int device_driver_id)
 {
     assert(device_driver_id >= 0 && device_driver_id < XKRT_DEVICES_MAX);
 
-    xkrt_device_cl_t * device = device_cl_get(device_driver_id);
+    device_cl_t * device = device_cl_get(device_driver_id);
     assert(device->inherited.state == XKRT_DEVICE_STATE_DEALLOCATED);
 
     // nothing to do
 
-    return (xkrt_device_t *) device;
+    return (device_t *) device;
 }
 
 static void
@@ -269,7 +271,7 @@ XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
 
 /* Called for each device of the driver once they all have been initialized */
 static int
-XKRT_DRIVER_ENTRYPOINT(device_commit)(int device_driver_id, xkrt_device_global_id_bitfield_t * affinity)
+XKRT_DRIVER_ENTRYPOINT(device_commit)(int device_driver_id, device_global_id_bitfield_t * affinity)
 {
     return 0;
 }
@@ -280,7 +282,7 @@ XKRT_DRIVER_ENTRYPOINT(device_info)(
     char * buffer,
     size_t size
 ) {
-    xkrt_device_cl_t * device = device_cl_get(device_driver_id);
+    device_cl_t * device = device_cl_get(device_driver_id);
 
     char name[64];
     CL_SAFE_CALL(clGetDeviceInfo(device->cl.id, CL_DEVICE_NAME, sizeof(name), name, NULL));
@@ -309,11 +311,11 @@ XKRT_DRIVER_ENTRYPOINT(device_info)(
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
     int device_driver_id,
-    xkrt_stream_type_t stype
+    stream_type_t stype
 ) {
     switch (stype)
     {
-        case (XKRT_STREAM_TYPE_KERN):
+        case (STREAM_TYPE_KERN):
             return 8;
         default:
             return 2;
@@ -322,11 +324,11 @@ XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
-    xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+    stream_t * istream,
+    stream_instruction_t * instr,
+    stream_instruction_counter_t idx
 ) {
-    xkrt_stream_cl_t * stream = (xkrt_stream_cl_t *) istream;
+    stream_cl_t * stream = (stream_cl_t *) istream;
     assert(stream);
 
     cl_event * event = stream->cl.events + idx;
@@ -352,7 +354,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                 {
                     cl_mem dst_buffer;
                     size_t dst_offset;
-                    xkrt_driver_cl_get_buffer_and_offset_1D(stream->device, (uintptr_t) dst, &dst_buffer, &dst_offset);
+                    driver_cl_get_buffer_and_offset_1D(stream->device, (uintptr_t) dst, &dst_buffer, &dst_offset);
 
                     CL_SAFE_CALL(
                         clEnqueueWriteBuffer(
@@ -374,7 +376,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                 {
                     size_t src_offset;
                     cl_mem src_buffer;
-                    xkrt_driver_cl_get_buffer_and_offset_1D(stream->device, (uintptr_t) src, &src_buffer, &src_offset);
+                    driver_cl_get_buffer_and_offset_1D(stream->device, (uintptr_t) src, &src_buffer, &src_offset);
 
                     CL_SAFE_CALL(
                         clEnqueueReadBuffer(
@@ -396,13 +398,13 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                 {
                     cl_mem src_buffer;
                     size_t src_offset;
-                    xkrt_device_cl_t * src_device = device_cl_get_from_addr(src);
-                    xkrt_driver_cl_get_buffer_and_offset_1D(src_device, (uintptr_t) src, &src_buffer, &src_offset);
+                    device_cl_t * src_device = device_cl_get_from_addr(src);
+                    driver_cl_get_buffer_and_offset_1D(src_device, (uintptr_t) src, &src_buffer, &src_offset);
 
                     cl_mem dst_buffer;
                     size_t dst_offset;
-                    xkrt_device_cl_t * dst_device = device_cl_get_from_addr(dst);
-                    xkrt_driver_cl_get_buffer_and_offset_1D(dst_device, (uintptr_t) dst, &dst_buffer, &dst_offset);
+                    device_cl_t * dst_device = device_cl_get_from_addr(dst);
+                    driver_cl_get_buffer_and_offset_1D(dst_device, (uintptr_t) dst, &dst_buffer, &dst_offset);
 
                     CL_SAFE_CALL(
                         clEnqueueCopyBuffer(
@@ -460,7 +462,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                 case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
                 {
                     cl_mem dst_buffer;
-                    xkrt_driver_cl_get_buffer_and_offset_2D(stream->device, (uintptr_t) dst, dst_row_pitch, &dst_buffer, dst_origin);
+                    driver_cl_get_buffer_and_offset_2D(stream->device, (uintptr_t) dst, dst_row_pitch, &dst_buffer, dst_origin);
 
                     CL_SAFE_CALL(
                         clEnqueueWriteBufferRect(
@@ -486,7 +488,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                 case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
                 {
                     cl_mem src_buffer;
-                    xkrt_driver_cl_get_buffer_and_offset_2D(stream->device, (uintptr_t) src, src_row_pitch, &src_buffer, src_origin);
+                    driver_cl_get_buffer_and_offset_2D(stream->device, (uintptr_t) src, src_row_pitch, &src_buffer, src_origin);
 
                     CL_SAFE_CALL(
                         clEnqueueReadBufferRect(
@@ -512,12 +514,12 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                 case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
                 {
                     cl_mem src_buffer;
-                    xkrt_device_cl_t * src_device = device_cl_get_from_addr(src);
-                    xkrt_driver_cl_get_buffer_and_offset_2D(src_device, (uintptr_t) src, src_row_pitch, &src_buffer, src_origin);
+                    device_cl_t * src_device = device_cl_get_from_addr(src);
+                    driver_cl_get_buffer_and_offset_2D(src_device, (uintptr_t) src, src_row_pitch, &src_buffer, src_origin);
 
                     cl_mem dst_buffer;
-                    xkrt_device_cl_t * dst_device = device_cl_get_from_addr(dst);
-                    xkrt_driver_cl_get_buffer_and_offset_2D(dst_device, (uintptr_t) dst, dst_row_pitch, &dst_buffer, dst_origin);
+                    device_cl_t * dst_device = device_cl_get_from_addr(dst);
+                    driver_cl_get_buffer_and_offset_2D(dst_device, (uintptr_t) dst, dst_row_pitch, &dst_buffer, dst_origin);
 
                     CL_SAFE_CALL(
                         clEnqueueCopyBufferRect(
@@ -560,9 +562,9 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
-    xkrt_stream_cl_t * stream = (xkrt_stream_cl_t *) istream;
+    stream_cl_t * stream = (stream_cl_t *) istream;
     assert(stream);
 
     CL_SAFE_CALL(clFinish(stream->cl.queue));
@@ -571,11 +573,11 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
 
 static inline int
 XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
-    xkrt_stream_t * istream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+    stream_t * istream,
+    stream_instruction_t * instr,
+    stream_instruction_counter_t idx
 ) {
-    xkrt_stream_cl_t * stream = (xkrt_stream_cl_t *) istream;
+    stream_cl_t * stream = (stream_cl_t *) istream;
     assert(stream);
 
     cl_event event = stream->cl.events[idx];
@@ -586,19 +588,19 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
     assert(istream);
 
     int r = 0;
 
-    istream->pending.iterate([&istream, &r] (xkrt_stream_instruction_counter_t p) {
+    istream->pending.iterate([&istream, &r] (stream_instruction_counter_t p) {
 
-        xkrt_stream_instruction_t * instr = istream->pending.instr + p;
+        stream_instruction_t * instr = istream->pending.instr + p;
         if (instr->completed)
             return true;
 
-        xkrt_stream_cl_t * stream = (xkrt_stream_cl_t *) istream;
+        stream_cl_t * stream = (stream_cl_t *) istream;
         cl_event event = stream->cl.events[p];
 
         switch (instr->type)
@@ -635,19 +637,19 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
 }
 
 
-static xkrt_stream_t *
+static stream_t *
 XKRT_DRIVER_ENTRYPOINT(stream_create)(
-    xkrt_device_t * idevice,
-    xkrt_stream_type_t type,
-    xkrt_stream_instruction_counter_t capacity
+    device_t * idevice,
+    stream_type_t type,
+    stream_instruction_counter_t capacity
 ) {
     assert(idevice);
 
-    uint8_t * mem = (uint8_t *) malloc(sizeof(xkrt_stream_cl_t) + sizeof(cl_event) * capacity);
+    uint8_t * mem = (uint8_t *) malloc(sizeof(stream_cl_t) + sizeof(cl_event) * capacity);
     assert(mem);
 
-    xkrt_stream_init(
-        (xkrt_stream_t *) mem,
+    stream_init(
+        (stream_t *) mem,
         type,
         capacity,
         XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
@@ -656,8 +658,8 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
         XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait),
     );
 
-    xkrt_device_cl_t * device = (xkrt_device_cl_t *) idevice;
-    xkrt_stream_cl_t * stream = (xkrt_stream_cl_t *) mem;
+    device_cl_t * device = (device_cl_t *) idevice;
+    stream_cl_t * stream = (stream_cl_t *) mem;
 
     // TODO : no control over the queue type with OpenCL
     (void) type;
@@ -676,7 +678,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
 
     // create events
     stream->cl.events = (cl_event *) (stream + 1);
-    for (xkrt_stream_instruction_counter_t i = 0 ; i < capacity ; ++i)
+    for (stream_instruction_counter_t i = 0 ; i < capacity ; ++i)
     {
         int err;
         stream->cl.events[i] = clCreateUserEvent(device->cl.context, &err);
@@ -686,16 +688,16 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     // save context for later buffer use
     stream->device = device;
 
-    return (xkrt_stream_t *) stream;
+    return (stream_t *) stream;
 }
 
 static void
 XKRT_DRIVER_ENTRYPOINT(stream_delete)(
-    xkrt_stream_t * istream
+    stream_t * istream
 ) {
-    xkrt_stream_cl_t * stream = (xkrt_stream_cl_t *) istream;
+    stream_cl_t * stream = (stream_cl_t *) istream;
 
-    for (xkrt_stream_instruction_counter_t i = 0 ; i < istream->pending.capacity ; ++i)
+    for (stream_instruction_counter_t i = 0 ; i < istream->pending.capacity ; ++i)
         CL_SAFE_CALL(clReleaseEvent(stream->cl.events[i]));
 
     CL_SAFE_CALL(clReleaseCommandQueue(stream->cl.queue));
@@ -712,7 +714,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(int device_driver_id, const size_
 {
     assert(area_idx == 0);
 
-    xkrt_device_cl_t * device = device_cl_get(device_driver_id);
+    device_cl_t * device = device_cl_get(device_driver_id);
 
     if (device->memory.nbuffers >= XKRT_DRIVER_CL_MAX_BUFFERS)
         LOGGER_FATAL("More than `XKRT_DRIVER_CL_MAX_BUFFERS` = %d memory allocations on CL drivers. Increase it and recompile.",
@@ -723,7 +725,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(int device_driver_id, const size_
 
     // create a device-specific virtual memory range
     int err;
-    xkrt_device_cl_buffer_t * buffer = device->memory.buffers + device->memory.nbuffers++;
+    device_cl_buffer_t * buffer = device->memory.buffers + device->memory.nbuffers++;
     buffer->addr = device->memory.head;
     buffer->size = size;
     buffer->cl.mem = clCreateBuffer(device->cl.context, CL_MEM_READ_WRITE, size, NULL, &err);
@@ -738,9 +740,9 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(int device_driver_id, const size_
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(memory_device_info)(int device_driver_id, xkrt_device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX], int * nmemories)
+XKRT_DRIVER_ENTRYPOINT(memory_device_info)(int device_driver_id, device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX], int * nmemories)
 {
-    xkrt_device_cl_t * device = device_cl_get(device_driver_id);
+    device_cl_t * device = device_cl_get(device_driver_id);
 
     cl_ulong max_mem_alloc_size;
     CL_SAFE_CALL(clGetDeviceInfo(device->cl.id, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(cl_ulong), &max_mem_alloc_size, NULL));
@@ -771,10 +773,10 @@ XKRT_DRIVER_ENTRYPOINT(memory_unregister)(
 //////////////////////////
 // Routine registration //
 //////////////////////////
-xkrt_driver_t *
+driver_t *
 XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 {
-    xkrt_driver_cl_t * driver = (xkrt_driver_cl_t *) calloc(1, sizeof(xkrt_driver_cl_t));
+    driver_cl_t * driver = (driver_cl_t *) calloc(1, sizeof(driver_cl_t));
     assert(driver);
 
     # define REGISTER(func) driver->super.f_##func = XKRT_DRIVER_ENTRYPOINT(func)
@@ -811,5 +813,7 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 
     # undef REGISTER
 
-    return (xkrt_driver_t *) driver;
+    return (driver_t *) driver;
 }
+
+XKRT_NAMESPACE_END

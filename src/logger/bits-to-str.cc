@@ -39,7 +39,7 @@
 
 extern "C"
 void
-xkrt_bits_to_str(char * buffer, unsigned char * mem, size_t nbytes)
+bits_to_str(char * buffer, unsigned char * mem, size_t nbytes)
 {
     buffer[8*nbytes] = 0;
     size_t k = 8*nbytes - 1;

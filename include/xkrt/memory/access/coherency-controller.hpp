@@ -41,6 +41,8 @@
 # include <xkrt/consts.h>
 # include <xkrt/memory/access/access.hpp>
 
+XKRT_NAMESPACE_BEGIN
+
 class MemoryCoherencyController {
 
     private:
@@ -68,14 +70,16 @@ class MemoryCoherencyController {
     public:
 
         /* returns a bitfield of devices that owns the most bytes of the given access */
-        virtual xkrt_device_global_id_bitfield_t who_owns(access_t * access) = 0;
+        virtual device_global_id_bitfield_t who_owns(access_t * access) = 0;
 
         /** all replicates must be invalidated */
         virtual void invalidate(void) = 0;
 
         /* fetch the given access on the given device */
-        virtual void fetch(access_t * access, xkrt_device_global_id_t device_global_id) = 0;
+        virtual void fetch(access_t * access, device_global_id_t device_global_id) = 0;
 
 };
+
+XKRT_NAMESPACE_END
 
 #endif /* __MEMORY_TREE_HPP__ */

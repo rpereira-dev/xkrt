@@ -43,8 +43,10 @@
 # include <stdlib.h>
 # include <string.h>
 
+XKRT_NAMESPACE_USE;
+
 static void
-__parse_verbose(xkrt_conf_t * conf, char const * value)
+__parse_verbose(conf_t * conf, char const * value)
 {
     (void) conf;
     if (value)
@@ -52,83 +54,83 @@ __parse_verbose(xkrt_conf_t * conf, char const * value)
 }
 
 static void
-__parse_merge_transfers(xkrt_conf_t * conf, char const * value)
+__parse_merge_transfers(conf_t * conf, char const * value)
 {
     if (value)
         conf->merge_transfers = atoi(value) ? true : false;
 }
 
 static void
-__parse_kern_per_stream(xkrt_conf_t * conf, char const * value)
+__parse_kern_per_stream(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_KERN].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.streams[STREAM_TYPE_KERN].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
-__parse_h2d_per_stream(xkrt_conf_t * conf, char const * value)
+__parse_h2d_per_stream(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_H2D].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.streams[STREAM_TYPE_H2D].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
-__parse_d2h_per_stream(xkrt_conf_t * conf, char const * value)
+__parse_d2h_per_stream(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_D2H].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.streams[STREAM_TYPE_D2H].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
-__parse_d2d_per_stream(xkrt_conf_t * conf, char const * value)
+__parse_d2d_per_stream(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_D2D].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.streams[STREAM_TYPE_D2D].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
-__parse_nstreams_h2d(xkrt_conf_t * conf, char const * value)
+__parse_nstreams_h2d(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_H2D].n = (uint8_t) MAX(atoi(value), 0);
+        conf->device.offloader.streams[STREAM_TYPE_H2D].n = (uint8_t) MAX(atoi(value), 0);
 }
 
 static void
-__parse_nstreams_d2h(xkrt_conf_t * conf, char const * value)
+__parse_nstreams_d2h(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_D2H].n = (uint8_t) MAX(atoi(value), 0);
+        conf->device.offloader.streams[STREAM_TYPE_D2H].n = (uint8_t) MAX(atoi(value), 0);
 }
 
 static void
-__parse_nstreams_d2d(xkrt_conf_t * conf, char const * value)
+__parse_nstreams_d2d(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_D2D].n = (uint8_t) MAX(atoi(value), 0);
+        conf->device.offloader.streams[STREAM_TYPE_D2D].n = (uint8_t) MAX(atoi(value), 0);
 }
 
 static void
-__parse_nstreams_kern(xkrt_conf_t * conf, char const * value)
+__parse_nstreams_kern(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[XKRT_STREAM_TYPE_KERN].n = (uint8_t) MAX(atoi(value), 0);
+        conf->device.offloader.streams[STREAM_TYPE_KERN].n = (uint8_t) MAX(atoi(value), 0);
 }
 
 static void
-__parse_ngpus(xkrt_conf_t * conf, char const * value)
+__parse_ngpus(conf_t * conf, char const * value)
 {
     conf->device.ngpus = value ? (uint8_t) atoi(value) : 1;
 }
 
 static void
-__parse_gpu_mem_percent(xkrt_conf_t * conf, char const * value)
+__parse_gpu_mem_percent(conf_t * conf, char const * value)
 {
     if (value)
         conf->device.gpu_mem_percent = (float) atof(value);
 }
 
 static void
-__parse_offloader_capacity(xkrt_conf_t * conf, char const * value)
+__parse_offloader_capacity(conf_t * conf, char const * value)
 {
     if (value)
     {
@@ -138,27 +140,27 @@ __parse_offloader_capacity(xkrt_conf_t * conf, char const * value)
 }
 
 static void
-__parse_stats(xkrt_conf_t * conf, char const * value)
+__parse_stats(conf_t * conf, char const * value)
 {
     conf->report_stats_on_deinit = value ? atoi(value) : 0;
 }
 
 static void
-__parse_p2p(xkrt_conf_t * conf, char const * value)
+__parse_p2p(conf_t * conf, char const * value)
 {
     if (value)
         conf->device.use_p2p = (bool) atoi(value);
 }
 
 static void
-__parse_warmup(xkrt_conf_t * conf, char const * value)
+__parse_warmup(conf_t * conf, char const * value)
 {
     if (value)
         conf->warmup = (bool) atoi(value);
 }
 
 static void
-__parse_drivers(xkrt_conf_t * conf, char const * value)
+__parse_drivers(conf_t * conf, char const * value)
 {
     if (value)
     {
@@ -188,7 +190,7 @@ __parse_drivers(xkrt_conf_t * conf, char const * value)
             if (nthreads > XKRT_MAX_THREADS_PER_DEVICE)
                 LOGGER_FATAL("Requested too many threads for driver `%s`. Reduce the number of thread, or increase `XKRT_MAX_THREADS_PER_DEVICE` and recompile", driver_name);
 
-            xkrt_driver_type_t driver_type = xkrt_driver_type_from_name(driver_name);
+            driver_type_t driver_type = driver_type_from_name(driver_name);
             if (driver_type == XKRT_DRIVER_TYPE_MAX)
                 LOGGER_FATAL("Invalid `XKAAPI_DRIVERS`");
             conf->drivers.list[driver_type].nthreads_per_device = nthreads;
@@ -201,32 +203,32 @@ __parse_drivers(xkrt_conf_t * conf, char const * value)
 }
 
 static void
-__parse_register_overflow(xkrt_conf_t * conf, char const * value)
+__parse_register_overflow(conf_t * conf, char const * value)
 {
     if (value)
         conf->protect_registered_memory_overflow = atoi(value);
 }
 
 static void
-__parse_task_prefetch(xkrt_conf_t * conf, char const * value)
+__parse_task_prefetch(conf_t * conf, char const * value)
 {
     if (value)
         conf->enable_prefetching = atoi(value);
 }
 
-void __parse_help(xkrt_conf_t * conf, char const * value);
+void __parse_help(conf_t * conf, char const * value);
 
 extern char ** environ;
 
-typedef struct  xkrt_conf_parse_t
+typedef struct  conf_parse_t
 {
     char const * name;
-    void (*parse)(xkrt_conf_t * conf, char const * value);
+    void (*parse)(conf_t * conf, char const * value);
     char const * descr;
-}               xkrt_conf_parse_t;
+}               conf_parse_t;
 
 // variables are parsed in-order
-static xkrt_conf_parse_t CONF_PARSE[] = {
+static conf_parse_t CONF_PARSE[] = {
     {"XKAAPI_CACHE_LIMIT",                      NULL,                       NULL},
     {"XKAAPI_D2D_PER_STREAM",                   __parse_d2d_per_stream,     "Number of concurrent copies per D2D stream before throttling device-thread"},
     {"XKAAPI_D2H_PER_STREAM",                   __parse_d2h_per_stream,     "Number of concurrent copies per D2H stream before throttling device-thread"},
@@ -254,19 +256,19 @@ static xkrt_conf_parse_t CONF_PARSE[] = {
 };
 
 void
-__parse_help(xkrt_conf_t * conf, char const * value)
+__parse_help(conf_t * conf, char const * value)
 {
     (void) conf;
     if (value)
     {
         LOGGER_INFO("Available environment variables");
-        for (xkrt_conf_parse_t * var = CONF_PARSE ; var->name ; ++var)
+        for (conf_parse_t * var = CONF_PARSE ; var->name ; ++var)
             LOGGER_INFO("  '%s' - %s", var->name, var->descr);
     }
 }
 
 void
-__parse_with_respect_to_prefix(xkrt_conf_t * conf, const char* prefix)
+__parse_with_respect_to_prefix(conf_t * conf, const char* prefix)
 {
     // check all environment variable and report unknown variables begining by prefix
     for (char ** s = environ; *s; ++s)
@@ -281,7 +283,7 @@ __parse_with_respect_to_prefix(xkrt_conf_t * conf, const char* prefix)
         if (strncmp(*s, prefix, strlen(prefix)) ==0) error = 1;
         char const * ss = strchr(*s, '=');
         int len = (int)(ss - *s);
-        for (xkrt_conf_parse_t * var = CONF_PARSE ; var->name ; ++var)
+        for (conf_parse_t * var = CONF_PARSE ; var->name ; ++var)
         {
             if (strncmp(*s, var->name, len)==0)
             {
@@ -294,7 +296,7 @@ __parse_with_respect_to_prefix(xkrt_conf_t * conf, const char* prefix)
     }
 
     // set variables
-    for (xkrt_conf_parse_t * var = CONF_PARSE ; var->name ; ++var)
+    for (conf_parse_t * var = CONF_PARSE ; var->name ; ++var)
     {
         if (var->parse)
             var->parse(conf, getenv(var->name));
@@ -303,19 +305,18 @@ __parse_with_respect_to_prefix(xkrt_conf_t * conf, const char* prefix)
     }
 }
 
-
 void
-xkrt_init_conf(xkrt_conf_t * conf)
+conf_t::init(void)
 {
     // set default conf
-    conf->report_stats_on_deinit                = 0;
-    conf->device.ngpus                          = (uint8_t)-1;
-    conf->device.gpu_mem_percent                = (float) 90.0;
-    conf->device.use_p2p                        = true;
-    conf->merge_transfers                       = false;
-    conf->protect_registered_memory_overflow    = true;
-    conf->enable_prefetching                    = false;
-    conf->warmup                                = false;
+    this->report_stats_on_deinit                = 0;
+    this->device.ngpus                          = (uint8_t)-1;
+    this->device.gpu_mem_percent                = (float) 90.0;
+    this->device.use_p2p                        = true;
+    this->merge_transfers                       = false;
+    this->protect_registered_memory_overflow    = true;
+    this->enable_prefetching                    = false;
+    this->warmup                                = false;
 
     //////////////////
     // drivers conf //
@@ -323,32 +324,32 @@ xkrt_init_conf(xkrt_conf_t * conf)
 
     for (int i = 0 ; i < XKRT_DRIVER_TYPE_MAX ; ++i)
     {
-        conf->drivers.list[i].nthreads_per_device = 1;
-        conf->drivers.list[i].used = 1;
+        this->drivers.list[i].nthreads_per_device = 1;
+        this->drivers.list[i].used = 1;
     }
-    conf->drivers.list[XKRT_DRIVER_TYPE_HOST].nthreads_per_device = 4;
+    this->drivers.list[XKRT_DRIVER_TYPE_HOST].nthreads_per_device = 4;
 
     //////////////////
     //  KERNEL CONF //
     //////////////////
-    conf->device.offloader.capacity = 512;
+    this->device.offloader.capacity = 512;
 
     // set to -1 so the driver's stream-suggest API fills these values if not
     // set by an env variable
-    conf->device.offloader.streams[XKRT_STREAM_TYPE_KERN].n = -1;
-    conf->device.offloader.streams[XKRT_STREAM_TYPE_KERN].concurrency = 8;
+    this->device.offloader.streams[STREAM_TYPE_KERN].n = -1;
+    this->device.offloader.streams[STREAM_TYPE_KERN].concurrency = 8;
 
-    conf->device.offloader.streams[XKRT_STREAM_TYPE_D2D].n = -1;
-    conf->device.offloader.streams[XKRT_STREAM_TYPE_D2D].concurrency = 64;
+    this->device.offloader.streams[STREAM_TYPE_D2D].n = -1;
+    this->device.offloader.streams[STREAM_TYPE_D2D].concurrency = 64;
 
-    conf->device.offloader.streams[XKRT_STREAM_TYPE_D2H].n = -1;
-    conf->device.offloader.streams[XKRT_STREAM_TYPE_D2H].concurrency = 64;
+    this->device.offloader.streams[STREAM_TYPE_D2H].n = -1;
+    this->device.offloader.streams[STREAM_TYPE_D2H].concurrency = 64;
 
-    conf->device.offloader.streams[XKRT_STREAM_TYPE_H2D].n = -1;
-    conf->device.offloader.streams[XKRT_STREAM_TYPE_H2D].concurrency = 64;
+    this->device.offloader.streams[STREAM_TYPE_H2D].n = -1;
+    this->device.offloader.streams[STREAM_TYPE_H2D].concurrency = 64;
 
     //////////////////
     //  DEVICE CONF //
     //////////////////
-    __parse_with_respect_to_prefix( conf, "XKAAPI_");
+    __parse_with_respect_to_prefix(this, "XKAAPI_");
 }

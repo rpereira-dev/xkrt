@@ -49,33 +49,35 @@
 # include <sched.h>
 # include <hwloc/glibc-sched.h>
 
+XKRT_NAMESPACE_BEGIN
+
 # pragma message(TODO "Threading layer had been implemented in half a day with naive algorithm. If perf is an issue, reimplement with well-known hierarchical algorithm")
 
-thread_local xkrt_thread_t * __TLS = NULL;
+thread_local thread_t * __TLS = NULL;
 
 void
-xkrt_thread_t::push_tls(xkrt_thread_t * thread)
+thread_t::push_tls(thread_t * thread)
 {
     thread->prev = __TLS;
     __TLS = thread;
 }
 
 void
-xkrt_thread_t::pop_tls(void)
+thread_t::pop_tls(void)
 {
     assert(__TLS);
     __TLS = __TLS->prev;
 }
 
-xkrt_thread_t *
-xkrt_thread_t::get_tls(void)
+thread_t *
+thread_t::get_tls(void)
 {
     assert(__TLS);
     return __TLS;
 }
 
 void
-xkrt_thread_t::warmup(void)
+thread_t::warmup(void)
 {
     // touches every pages to avoid minor page faults later during the execution
     size_t pagesize = (size_t) getpagesize();
@@ -86,9 +88,9 @@ xkrt_thread_t::warmup(void)
 }
 
 task_t *
-xkrt_thread_t::allocate_task(const size_t size)
+thread_t::allocate_task(const size_t size)
 {
-    assert(xkrt_thread_t::get_tls() == this);
+    assert(thread_t::get_tls() == this);
 
     # if 1
     if (this->memory_stack_ptr >= this->memory_stack_bottom + THREAD_MAX_MEMORY)
@@ -107,7 +109,7 @@ xkrt_thread_t::allocate_task(const size_t size)
 }
 
 void
-xkrt_thread_t::deallocate_all_tasks(void)
+thread_t::deallocate_all_tasks(void)
 {
     this->memory_stack_ptr = this->memory_stack_bottom;
 }
@@ -115,20 +117,20 @@ xkrt_thread_t::deallocate_all_tasks(void)
 /////////////////////////////////////////////////////
 
 void
-xkrt_runtime_t::thread_setaffinity(cpu_set_t & cpuset)
+runtime_t::thread_setaffinity(cpu_set_t & cpuset)
 {
     pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
     for (int ii = 0; ii < 10; ++ii) sched_yield();
 }
 
 void
-xkrt_runtime_t::thread_getaffinity(cpu_set_t & cpuset)
+runtime_t::thread_getaffinity(cpu_set_t & cpuset)
 {
     pthread_getaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
 }
 
 static inline int
-team_barrier_fetch(xkrt_team_t * team, int delta)
+team_barrier_fetch(team_t * team, int delta)
 {
     int n = team->priv.barrier.n.fetch_sub(delta, std::memory_order_relaxed) - delta;
     assert(n >= 0);
@@ -147,11 +149,11 @@ team_barrier_fetch(xkrt_team_t * team, int delta)
 
 typedef struct  team_recursive_args_t
 {
-    xkrt_runtime_t * runtime;
-    xkrt_team_t * team;
+    runtime_t * runtime;
+    team_t * team;
     pthread_t pthread;
-    xkrt_device_global_id_t device_global_id;
-    xkrt_thread_place_t place;
+    device_global_id_t device_global_id;
+    thread_place_t place;
     int from;
     int to;
 }               team_recursive_args_t;
@@ -159,8 +161,8 @@ typedef struct  team_recursive_args_t
 /* get the number of threads by default for that team description */
 static int
 team_create_get_nthreads_auto(
-    xkrt_runtime_t * runtime,
-    xkrt_team_t * team
+    runtime_t * runtime,
+    team_t * team
 ) {
     (void) team;
     int depth = hwloc_get_type_depth(runtime->topology, HWLOC_OBJ_CORE);
@@ -171,11 +173,11 @@ team_create_get_nthreads_auto(
 /** Set the cpuset for the given thread */
 static void inline
 team_create_get_place(
-    xkrt_runtime_t * runtime,
-    xkrt_team_t * team,
+    runtime_t * runtime,
+    team_t * team,
     int tid,
-    xkrt_device_global_id_t * device_global_id,
-    xkrt_thread_place_t * place
+    device_global_id_t * device_global_id,
+    thread_place_t * place
 ) {
     switch (team->desc.binding.mode)
     {
@@ -185,8 +187,8 @@ team_create_get_place(
             {
                 case (XKRT_TEAM_BINDING_PLACES_DEVICE):
                 {
-                    *device_global_id = (team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_EXCLUDE_HOST) ? (xkrt_device_global_id_t) (tid + 1) : (xkrt_device_global_id_t) tid;
-                    const xkrt_device_t * device = runtime->device_get(*device_global_id);
+                    *device_global_id = (team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_EXCLUDE_HOST) ? (device_global_id_t) (tid + 1) : (device_global_id_t) tid;
+                    const device_t * device = runtime->device_get(*device_global_id);
                     assert(device);
                     *place = device->threads[0]->place;
                     return ;
@@ -239,7 +241,7 @@ team_create_get_place(
     }
 }
 
-void team_create_recursive_fork(xkrt_runtime_t * runtime, xkrt_team_t * team, int from, int to);
+void team_create_recursive_fork(runtime_t * runtime, team_t * team, int from, int to);
 
 static void *
 team_create_recursive(void * vargs)
@@ -250,13 +252,13 @@ team_create_recursive(void * vargs)
     if (args->from == args->to)
     {
         // init tls
-        xkrt_team_t * team = args->team;
+        team_t * team = args->team;
         int tid = args->from;
-        xkrt_thread_t * thread = team->priv.threads + tid;
-        new (thread) xkrt_thread_t(team, tid, args->pthread, args->device_global_id, args->place);
+        thread_t * thread = team->priv.threads + tid;
+        new (thread) thread_t(team, tid, args->pthread, args->device_global_id, args->place);
 
         // save tls
-        xkrt_thread_t::push_tls(thread);
+        thread_t::push_tls(thread);
 
         // launch routine
         thread->state = XKRT_THREAD_INITIALIZED;
@@ -273,7 +275,7 @@ team_create_recursive(void * vargs)
         {
             // args are allocated on the stack, no need to free
             // but we have to reset previous TLS
-            xkrt_thread_t::pop_tls();
+            thread_t::pop_tls();
 
             // reset cpu set
         }
@@ -303,8 +305,8 @@ team_create_recursive(void * vargs)
 
 void
 team_create_recursive_fork(
-    xkrt_runtime_t * runtime,
-    xkrt_team_t * team,
+    runtime_t * runtime,
+    team_t * team,
     int from,
     int to
 ) {
@@ -313,15 +315,15 @@ team_create_recursive_fork(
 
     // save calling thread cpu set
     cpu_set_t save_set;
-    xkrt_runtime_t::thread_getaffinity(save_set);
+    runtime_t::thread_getaffinity(save_set);
 
     // retrieve cpuset and the global device id
-    xkrt_device_global_id_t device_global_id;
-    xkrt_thread_place_t place;
+    device_global_id_t device_global_id;
+    thread_place_t place;
     team_create_get_place(runtime, team, tid, &device_global_id, &place);
 
     // move thread before allocating future thread-private memory
-    xkrt_runtime_t::thread_setaffinity(place);
+    runtime_t::thread_setaffinity(place);
 
     team_recursive_args_t * args = (team_recursive_args_t *) malloc(sizeof(team_recursive_args_t));
     args->runtime = runtime;
@@ -336,11 +338,11 @@ team_create_recursive_fork(
     assert(r == 0);
 
     // restore calling thread cpu set
-    xkrt_runtime_t::thread_setaffinity(save_set);
+    runtime_t::thread_setaffinity(save_set);
 }
 
 void
-xkrt_runtime_t::team_create(xkrt_team_t * team)
+runtime_t::team_create(team_t * team)
 {
     // only supported modes currently
     assert(
@@ -362,7 +364,7 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
 
     // init priv data
     team->priv.nthreads = nthreads;
-    team->priv.threads = (xkrt_thread_t *) calloc(team->priv.nthreads, sizeof(xkrt_thread_t));
+    team->priv.threads = (thread_t *) calloc(team->priv.nthreads, sizeof(thread_t));
     assert(team->priv.threads);
 
     // init barrier
@@ -391,8 +393,8 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
         {
             // retrieve cpuset and the global device id
             constexpr int tid = 0;
-            xkrt_device_global_id_t device_global_id;
-            xkrt_thread_place_t place;
+            device_global_id_t device_global_id;
+            thread_place_t place;
             team_create_get_place(this, team, tid, &device_global_id, &place);
             team_recursive_args_t args = {
                 .runtime = this,
@@ -407,7 +409,7 @@ xkrt_runtime_t::team_create(xkrt_team_t * team)
             # pragma message(TODO "What is the expected behavior of openmp parallel regions ? should the master thread reset its affinity after each parallel region ? Currently, xkaapi does not")
 
             // move thread before running
-            xkrt_runtime_t::thread_setaffinity(place);
+            runtime_t::thread_setaffinity(place);
 
             // recursively spawn other threads and run the routine
             team_create_recursive(&args);
@@ -447,9 +449,9 @@ get_ith_victim(int tid, int i, int n)
 
 static inline int
 worksteal(
-    xkrt_runtime_t * runtime,
-    xkrt_team_t * team,
-    xkrt_thread_t * thread
+    runtime_t * runtime,
+    team_t * team,
+    thread_t * thread
 ) {
     // if the thread is executing within a team, do hierarchical workstealing
     if (team)
@@ -460,7 +462,7 @@ worksteal(
         for (int i = 0 ; i < n ; ++i)
         {
             const int victim_tid = get_ith_victim(tid, i, n);
-            xkrt_thread_t * victim = team->priv.threads + victim_tid;
+            thread_t * victim = team->priv.threads + victim_tid;
             if (victim->state != XKRT_THREAD_INITIALIZED)
                 continue ;
 
@@ -488,9 +490,9 @@ worksteal(
 }
 
 void
-xkrt_runtime_t::task_wait(void)
+runtime_t::task_wait(void)
 {
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     # define WAIT do { if (thread->current_task->cc.load(std::memory_order_relaxed) == 0) return ; } while (0)
@@ -553,9 +555,9 @@ xkrt_runtime_t::task_wait(void)
 // TODO : reimplement this using team's topology
 template<bool ws>
 void
-xkrt_runtime_t::team_barrier(
-    xkrt_team_t * team,
-    xkrt_thread_t * thread)
+runtime_t::team_barrier(
+    team_t * team,
+    thread_t * thread)
 {
     this->task_wait();
 
@@ -584,14 +586,14 @@ xkrt_runtime_t::team_barrier(
     }
 }
 
-template void xkrt_runtime_t::team_barrier<true>(xkrt_team_t * team, xkrt_thread_t * thread);
-template void xkrt_runtime_t::team_barrier<false>(xkrt_team_t * team, xkrt_thread_t * thread);
+template void runtime_t::team_barrier<true>(team_t * team, thread_t * thread);
+template void runtime_t::team_barrier<false>(team_t * team, thread_t * thread);
 
 static inline void
-xkrt_team_parallel_for_run_f(
-    xkrt_team_t * team,
-    xkrt_thread_t * thread,
-    xkrt_team_parallel_for_func_t f
+team_parallel_for_run_f(
+    team_t * team,
+    thread_t * thread,
+    team_parallel_for_func_t f
 ) {
     ++thread->parallel_for.index;
     f(team, thread);
@@ -614,9 +616,9 @@ xkrt_team_parallel_for_run_f(
 }
 
 void
-xkrt_runtime_t::team_parallel_for(
-    xkrt_team_t * team,
-    xkrt_team_parallel_for_func_t f
+runtime_t::team_parallel_for(
+    team_t * team,
+    team_parallel_for_func_t f
 ) {
     // register the function to run on each thread
     uint32_t index = team->priv.parallel_for.index;
@@ -651,17 +653,17 @@ xkrt_runtime_t::team_parallel_for(
         {
             // retrieve team's tls of the master
             constexpr int tid = 0;
-            xkrt_thread_t * tls = team->priv.threads + tid;
+            thread_t * tls = team->priv.threads + tid;
             assert(tls);
 
             // set the TLS
-            xkrt_thread_t::push_tls(tls);
+            thread_t::push_tls(tls);
 
             // run
-            xkrt_team_parallel_for_run_f(team, tls, f);
+            team_parallel_for_run_f(team, tls, f);
 
             // pop the TLS
-            xkrt_thread_t::pop_tls();
+            thread_t::pop_tls();
         }
         // else busy wait a bit before sleeping
         else
@@ -691,9 +693,9 @@ xkrt_runtime_t::team_parallel_for(
 }
 
 void *
-xkrt_team_parallel_for_main(
-    xkrt_team_t * team,
-    xkrt_thread_t * thread
+team_parallel_for_main(
+    team_t * team,
+    thread_t * thread
 ) {
     if (team->desc.master_is_member && thread->tid == 0)
         return NULL;
@@ -704,10 +706,10 @@ xkrt_team_parallel_for_main(
         while (thread->parallel_for.index < (volatile uint32_t) team->priv.parallel_for.index)
         {
 parallel_for_run:
-            xkrt_team_parallel_for_func_t f = team->priv.parallel_for.f[thread->parallel_for.index % XKRT_TEAM_PARALLEL_FOR_MAX_FUNC];
+            team_parallel_for_func_t f = team->priv.parallel_for.f[thread->parallel_for.index % XKRT_TEAM_PARALLEL_FOR_MAX_FUNC];
             if (f == nullptr)
                 return NULL;
-            xkrt_team_parallel_for_run_f(team, thread, f);
+            team_parallel_for_run_f(team, thread, f);
         }
 
         // some polling before sleeping
@@ -739,7 +741,7 @@ parallel_for_run:
 }
 
 void
-xkrt_runtime_t::team_join(xkrt_team_t * team)
+runtime_t::team_join(team_t * team)
 {
     if (team->desc.routine == XKRT_TEAM_ROUTINE_PARALLEL_FOR)
         this->team_parallel_for(team, nullptr);
@@ -749,7 +751,7 @@ xkrt_runtime_t::team_join(xkrt_team_t * team)
     for (int i = begin ; i < team->priv.nthreads ; ++i)
     {
         // waiting for the thread to spawn before joining
-        while ((volatile xkrt_thread_state_t) team->priv.threads[i].state != XKRT_THREAD_INITIALIZED)
+        while ((volatile thread_state_t) team->priv.threads[i].state != XKRT_THREAD_INITIALIZED)
             ;
         assert(team->priv.threads[i].state == XKRT_THREAD_INITIALIZED);
         int r = pthread_join(team->priv.threads[i].pthread, NULL);
@@ -760,38 +762,40 @@ xkrt_runtime_t::team_join(xkrt_team_t * team)
 }
 
 void
-xkrt_runtime_t::team_critical_begin(xkrt_team_t * team)
+runtime_t::team_critical_begin(team_t * team)
 {
     pthread_mutex_lock(&team->priv.critical.mtx);
 }
 
 void
-xkrt_runtime_t::team_critical_end(xkrt_team_t * team)
+runtime_t::team_critical_end(team_t * team)
 {
     pthread_mutex_unlock(&team->priv.critical.mtx);
 }
 
-xkrt_team_t *
-xkrt_runtime_t::team_get(const xkrt_driver_type_t type)
+team_t *
+runtime_t::team_get(const driver_type_t type)
 {
-    xkrt_driver_t * driver = this->driver_get(type);
+    driver_t * driver = this->driver_get(type);
     assert(driver);
 
     return &driver->team;
 }
 
-xkrt_team_t *
-xkrt_runtime_t::team_get_any(const xkrt_driver_type_bitfield_t types)
+team_t *
+runtime_t::team_get_any(const driver_type_bitfield_t types)
 {
     for (uint8_t i = 0 ; i < XKRT_DRIVER_TYPE_MAX ; ++i)
     {
         if (types & (1 << i))
         {
-            xkrt_driver_type_t type = (xkrt_driver_type_t) i;
-            xkrt_driver_t * driver = this->driver_get(type);
+            driver_type_t type = (driver_type_t) i;
+            driver_t * driver = this->driver_get(type);
             if (driver && driver->team.priv.nthreads)
                 return &driver->team;
         }
     }
     return NULL;
 }
+
+XKRT_NAMESPACE_END

@@ -40,11 +40,15 @@
 
 # include <pthread.h>
 
-typedef struct  xkrt_mutex_t
-{
-    pthread_mutex_t _pthread_mutex;
+XKRT_NAMESPACE_BEGIN
 
-}               xkrt_mutex_t;
+    typedef struct  mutex_t
+    {
+        pthread_mutex_t _pthread_mutex;
+
+    }               mutex_t;
+
+XKRT_NAMESPACE_END
 
 # define XKRT_MUTEX_INITIALIZER { ._pthread_mutex=PTHREAD_MUTEX_INITIALIZER }
 # define XKRT_MUTEX_INIT(L) { L._pthread_mutex=PTHREAD_MUTEX_INITIALIZER; }

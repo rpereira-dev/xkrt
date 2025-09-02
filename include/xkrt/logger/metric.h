@@ -40,17 +40,13 @@
 #  include <stddef.h>
 #  include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-# endif /* __cplusplus */
-    uint64_t xkrt_get_nanotime(void);
+# include <xkrt/namespace.h>
+XKRT_NAMESPACE_BEGIN
 
-    void xkrt_metric_byte(char * buffer, int bufsize, size_t nbytes);
-    void xkrt_metric_time(char * buffer, int bufsize, uint64_t ns);
-    void xkrt_metric_bandwidth(char * buffer, int bufsize, size_t byte_per_sec);
-#ifdef __cplusplus
-};
-# endif /* __cplusplus */
+uint64_t get_nanotime(void);
+void metric_byte(char * buffer, int bufsize, size_t nbytes);
+void metric_time(char * buffer, int bufsize, uint64_t ns);
+void metric_bandwidth(char * buffer, int bufsize, size_t byte_per_sec);
 
 typedef enum    metric_t
 {
@@ -60,19 +56,19 @@ typedef enum    metric_t
     METRIC_MAX
 }               metric_t;
 
-typedef struct  xkrt_power_counter_t
+typedef struct  power_counter_t
 {
     uint64_t b1, b2, b3 ,b4;
-}               xkrt_power_counter_t;
+}               power_counter_t;
 
-typedef struct  xkrt_power_t
+typedef struct  power_t
 {
     struct {
         /* start/stop times */
         uint64_t t1, t2;
 
         /* power values */
-        xkrt_power_counter_t c1, c2;
+        power_counter_t c1, c2;
     } priv;
 
     /* delta time between a start/stop */
@@ -81,6 +77,8 @@ typedef struct  xkrt_power_t
     /* power (J/s <=> Watt) between a start/stop */
     double P;
 
-}               xkrt_power_t;
+}               power_t;
+
+XKRT_NAMESPACE_END
 
 # endif /* __METRICS_H__ */

@@ -41,16 +41,18 @@
 # include <xkrt/memory/access/blas/memory-tree.hpp>
 # include <xkrt/memory/access/blas/dependency-tree.hpp>
 
+XKRT_NAMESPACE_BEGIN
+
 using fetch_list_t = KBLASMemoryTree<2>::fetch_list_t;
 using fetch_t      = KBLASMemoryTree<2>::fetch_t;
 
 // args for 'runtime->coherent_async'
 typedef struct alignas(CACHE_LINE_SIZE) args_t
 {
-    xkrt_runtime_t * runtime;
+    runtime_t * runtime;
     std::atomic<int> counter;
 
-    args_t(xkrt_runtime_t * runtime) : runtime(runtime), counter(0) {}
+    args_t(runtime_t * runtime) : runtime(runtime), counter(0) {}
     ~args_t() {}
 }                                       args_t;
 
@@ -58,7 +60,7 @@ typedef struct alignas(CACHE_LINE_SIZE) args_t
 // Memory coherency //
 //////////////////////
 
-//  How 'xkrt_memory_coherent_async' works
+//  How 'memory_coherent_async' works
 //      - create one successor Yi task per conflicting tasks Xi - to be executed on the helper thread
 //      - when Xi complete, it makes Yi ready
 //      - When Yi executes,
@@ -67,16 +69,15 @@ typedef struct alignas(CACHE_LINE_SIZE) args_t
 //      - Zi is scheduled on the device thread queue, and will launch the asynchronous fetch
 //          - Yi completion is deferred to Zi completion
 
-extern "C"
 void
-xkrt_coherent2D_async(
-    xkrt_runtime_t * runtime,
+coherent2D_async(
+    runtime_t * runtime,
     matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
     size_t sizeof_type
 ) {
-    // LOGGER_IMPL("in `xkrt_memory_coherent_async` - uplo and memflag parameters not supported");
+    // LOGGER_IMPL("in `memory_coherent_async` - uplo and memflag parameters not supported");
 
     // TODO : currently creating 1x task per previously spawned tasks on that region
     // Instead, spawn 1x task with pre-fetching + partitionned accesses
@@ -84,7 +85,7 @@ xkrt_coherent2D_async(
     # if 0
     // implementation with a single copy once all partites are ready
 
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     # define AC 1
@@ -115,7 +116,7 @@ xkrt_coherent2D_async(
     // For instance, two continuous partites may end-up being coherent on two different devices, thus cannot be merged
     // Therefore, this impl creates 1 copy per partite (it is not even trivial that merging can improve perf.)
 
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
     assert(thread->current_task);
 
@@ -128,7 +129,7 @@ xkrt_coherent2D_async(
     std::vector<void *> conflicts;
     ((BLASDependencyTree *) domain)->conflicting(&conflicts, &access);
 
-    LOGGER_DEBUG("`xkrt_memory_coherent_async` found %zu conflicts", conflicts.size());
+    LOGGER_DEBUG("`memory_coherent_async` found %zu conflicts", conflicts.size());
 
     /* create one task per conflict responsible to fetch the node */
     # define AC 1
@@ -160,7 +161,7 @@ xkrt_coherent2D_async(
         new (dep) task_dep_info_t(AC);
 
         #ifndef NDEBUG
-        strncpy(task->label, "xkrt_memory_coherent_async", sizeof(task->label));
+        strncpy(task->label, "memory_coherent_async", sizeof(task->label));
         #endif /* NDEBUG */
 
         access_t * accesses = TASK_ACCESSES(task, flags);
@@ -197,13 +198,12 @@ xkrt_coherent2D_async(
     # endif /* single copy vs one per partite */
 }
 
-extern "C"
 void
-xkrt_coherent1D_async(
-    xkrt_runtime_t * runtime,
+coherent1D_async(
+    runtime_t * runtime,
     void * ptr, size_t size
 ) {
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     # define AC 1
@@ -232,14 +232,13 @@ xkrt_coherent1D_async(
 }
 
 /* Allocate incoherent memory replicates onto the passed device */
-extern "C"
 void
-xkrt_incoherent_allocate_1D(
-    xkrt_runtime_t * runtime,
-    xkrt_device_global_id_t device_global_id,
+incoherent_allocate_1D(
+    runtime_t * runtime,
+    device_global_id_t device_global_id,
     void * ptr, size_t size
 ) {
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
     assert(thread->current_task);
 
@@ -254,15 +253,15 @@ xkrt_incoherent_allocate_1D(
 /* Allocate incoherent memory replicates onto the passed device */
 extern "C"
 void
-xkrt_incoherent_allocate_2D(
-    xkrt_runtime_t * runtime,
-    xkrt_device_global_id_t device_global_id,
+incoherent_allocate_2D(
+    runtime_t * runtime,
+    device_global_id_t device_global_id,
     matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
     size_t sizeof_type
 ) {
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
     assert(thread->current_task);
 
@@ -273,37 +272,83 @@ xkrt_incoherent_allocate_2D(
 }
 
 void
-xkrt_runtime_t::memory_replicate_noncoherent(
-    xkrt_device_global_id_t device_global_id,
+runtime_t::memory_replicate_noncoherent(
+    device_global_id_t device_global_id,
     void * ptr, size_t size
 ) {
-    xkrt_incoherent_allocate_1D(this, device_global_id, ptr, size);
+    incoherent_allocate_1D(this, device_global_id, ptr, size);
 }
 
 void
-xkrt_runtime_t::memory_replicate_noncoherent(
-    xkrt_device_global_id_t device_global_id,
+runtime_t::memory_replicate_noncoherent(
+    device_global_id_t device_global_id,
     matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
     size_t sizeof_type
 ) {
-    xkrt_incoherent_allocate_2D(this, device_global_id, storage, ptr, ld, m, n, sizeof_type);
+    incoherent_allocate_2D(this, device_global_id, storage, ptr, ld, m, n, sizeof_type);
 }
 
+# if 0
 void
-xkrt_runtime_t::memory_host_coherent_async(
-    void * ptr, size_t size
-) {
-    xkrt_coherent1D_async(this, ptr, size);
-}
-
-void
-xkrt_runtime_t::memory_host_coherent_async(
+runtime_t::memory_replicate_async(
     matrix_storage_t storage,
     void * ptr, size_t ld,
     size_t m, size_t n,
     size_t sizeof_type
 ) {
-    xkrt_coherent2D_async(this, storage, ptr, ld, m, n, sizeof_type);
+    assert(runtime->drivers.devices.n >= 2);
+
+    thread_t * thread = thread_t::get_tls();
+    assert(thread);
+
+    for (device_global_id_t device_global_id = 1 ; device_global_id < runtime->drivers.devices.n ; ++device_global_id)
+    {
+        # define AC 1
+        constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT | TASK_FLAG_DEVICE;
+        constexpr size_t task_size = task_compute_size(flags, AC);
+
+        task_t * task = thread->allocate_task(task_size);
+        new(task) task_t(TASK_FORMAT_NULL, flags);
+
+        task_dep_info_t * dep = TASK_DEP_INFO(task);
+        new (dep) task_dep_info_t(AC);
+
+        task_dev_info_t * dev = TASK_DEV_INFO(task);
+        new (dev) task_dev_info_t(device_global_id, UNSPECIFIED_TASK_ACCESS);
+
+        access_t * accesses = TASK_ACCESSES(task);
+        new(accesses + 0) access_t(task, storage, ptr, ld, m, n, sizeof_type, ACCESS_MODE_R);
+
+        thread->resolve<AC>(task, accesses);
+        # undef AC
+
+        #ifndef NDEBUG
+        snprintf(task->label, sizeof(task->label), "replicate_cyclic_2d_async");
+        #endif /* NDEBUG */
+
+        runtime->task_commit(task);
+    }
 }
+
+# endif
+
+void
+runtime_t::memory_host_coherent_async(
+    void * ptr, size_t size
+) {
+    coherent1D_async(this, ptr, size);
+}
+
+void
+runtime_t::memory_host_coherent_async(
+    matrix_storage_t storage,
+    void * ptr, size_t ld,
+    size_t m, size_t n,
+    size_t sizeof_type
+) {
+    coherent2D_async(this, storage, ptr, ld, m, n, sizeof_type);
+}
+
+XKRT_NAMESPACE_END

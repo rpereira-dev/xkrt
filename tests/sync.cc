@@ -3,7 +3,7 @@
 /*   sync.cc                                                      .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/01/30 00:16:18 by Romain Pereira          __/_*_*(_        */
-/*   Updated: 2025/06/03 18:13:34 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/08/23 00:12:34 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -14,16 +14,18 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include <xkrt/xkrt.h>
+# include <xkrt/runtime.h>
 # include <assert.h>
+
+XKRT_NAMESPACE_USE;
 
 int
 main(void)
 {
-    xkrt_runtime_t runtime;
-    assert(xkrt_init(&runtime) == 0);
-    assert(xkrt_sync(&runtime) == 0);
-    assert(xkrt_deinit(&runtime) == 0);
+    runtime_t runtime;
+    assert(runtime.init() == 0);
+    runtime.task_wait();
+    assert(runtime.deinit() == 0);
 
     return 0;
 }

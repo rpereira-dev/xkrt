@@ -41,7 +41,7 @@
 # include <xkrt/memory/access/common/khp-tree.hpp>
 
 //  TODO : the design of this is terrible with a cyclic ownership with
-//  'xkrt_runtime_t' Redesign me !! This should be fully independent with
+//  'runtime_t' Redesign me !! This should be fully independent with
 //  callbacks that can be parametrized, raised with global device ids
 
 # include <xkrt/logger/logger.h>
@@ -61,6 +61,8 @@
 # include <cstdint>
 # include <functional>
 # include <numeric> // std::iota
+
+XKRT_NAMESPACE_BEGIN
 
 /*
  *  Set to '1' to enable the following heuristic :
@@ -106,13 +108,13 @@ class KMemoryForward {
         access_t * access;
 
         /* dst chunk */
-        xkrt_area_chunk_t * chunk;
+        area_chunk_t * chunk;
 
         /* the dst rect */
         Hyperrect dst_hyperrect;
 
         /* the dst device */
-        xkrt_device_global_id_t device_global_id;
+        device_global_id_t device_global_id;
 
         /* the dst view */
         memory_replica_view_t device_view;
@@ -121,9 +123,9 @@ class KMemoryForward {
 
         KMemoryForward(
             access_t * access,
-            xkrt_area_chunk_t * chunk,
+            area_chunk_t * chunk,
             const Hyperrect & dst_hyperrect,
-            xkrt_device_global_id_t device_global_id,
+            device_global_id_t device_global_id,
             memory_replica_view_t & device_view
         ) :
             access(access),
@@ -146,7 +148,7 @@ class KMemoryReplicateAllocationView {
     public:
 
         /* the device memory chunk */
-        xkrt_area_chunk_t * chunk;
+        area_chunk_t * chunk;
 
         /* the address of that view in [allocation, allocation + allocation->size[ */
         memory_replica_view_t view;
@@ -165,7 +167,7 @@ class KMemoryReplicateAllocationView {
     public:
 
         KMemoryReplicateAllocationView(
-            xkrt_area_chunk_t * chunk,
+            area_chunk_t * chunk,
             const uintptr_t addr,
             const size_t ld
         ) :
@@ -255,10 +257,10 @@ class KMemoryBlock {
         MemoryReplicate replicates[XKRT_DEVICES_MAX];
 
         /* coherent devices (i.e. devices with at least one coherent allocation) */
-        volatile xkrt_device_global_id_bitfield_t coherency;
+        volatile device_global_id_bitfield_t coherency;
 
         /* fetching devices (i.e. devices with at least one fetching allocation) */
-        volatile xkrt_device_global_id_bitfield_t fetching;
+        volatile device_global_id_bitfield_t fetching;
 
         # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
         /* true/false whether the block is registered */
@@ -294,7 +296,7 @@ class KMemoryBlock {
             //  DUPPLICATE REPLICATE INFOS  //
             //////////////////////////////////
 
-            for (xkrt_device_global_id_t device_global_id = 0 ; device_global_id < XKRT_DEVICES_MAX ; ++device_global_id)
+            for (device_global_id_t device_global_id = 0 ; device_global_id < XKRT_DEVICES_MAX ; ++device_global_id)
             {
                 // retrieve this device replicate
                       MemoryReplicate *            replicate =            this->replicates + device_global_id;
@@ -368,7 +370,7 @@ class KBLASMemoryTreeNodeSearch {
                 const Hyperrect hyperrect;
 
                 /* dst device */
-                xkrt_device_global_id_t dst_device_global_id;
+                device_global_id_t dst_device_global_id;
 
                 /* replicate allocation to use as dst (in MemoryReplicate::allocations) */
                 memory_allocation_view_id_t dst_allocation_view_id;
@@ -377,7 +379,7 @@ class KBLASMemoryTreeNodeSearch {
                 memory_replica_view_t dst_view;
 
                 /* source device */
-                xkrt_device_global_id_t src_device_global_id;
+                device_global_id_t src_device_global_id;
 
                 /* replicate allocation to use as src (in MemoryReplicate::allocations) */
                 memory_allocation_view_id_t src_allocation_view_id;
@@ -386,7 +388,7 @@ class KBLASMemoryTreeNodeSearch {
                 memory_replica_view_t src_view;
 
                 /* the source chunk for that partite */
-                xkrt_area_chunk_t * src_chunk;
+                area_chunk_t * src_chunk;
 
                 /* true if this block is already being fetched by a concurrent read access */
                 bool must_fetch;
@@ -446,7 +448,7 @@ class KBLASMemoryTreeNodeSearch {
                 std::vector<Partite> partites;
 
                 /* the dst chunk onto the device, where all partites should write disjointly */
-                xkrt_area_chunk_t * chunk;
+                area_chunk_t * chunk;
 
             public:
                 Partition() : partites(), chunk(nullptr) {}
@@ -496,7 +498,7 @@ class KBLASMemoryTreeNodeSearch {
        Type type;
 
         /* device global id, on which we are looking for coherent blocks or making coherent blocks */
-       const xkrt_device_global_id_t device_global_id;
+       const device_global_id_t device_global_id;
 
        //////////////////////////////////////////////////////
        // used if type == INSERTING_BLOCKS //
@@ -518,7 +520,7 @@ class KBLASMemoryTreeNodeSearch {
         ///////////////////////////////////////////
         // used if type == SEARCH_FETCHED //
         ///////////////////////////////////////////
-        xkrt_area_chunk_t * chunk;
+        area_chunk_t * chunk;
         struct {
             std::vector<access_t *> accesses;
             std::vector<MemoryForward> forwards;
@@ -533,7 +535,7 @@ class KBLASMemoryTreeNodeSearch {
        KBLASMemoryTreeNodeSearch() : KBLASMemoryTreeNodeSearch(HOST_DEVICE_GLOBAL_ID) {}
 
        KBLASMemoryTreeNodeSearch(
-           xkrt_device_global_id_t devid
+           device_global_id_t devid
        ) :
            type(INSERTING_BLOCKS),
            device_global_id(devid),
@@ -561,7 +563,7 @@ class KBLASMemoryTreeNodeSearch {
        }
 
        void
-       prepare_search_fetched(xkrt_area_chunk_t * chunk)
+       prepare_search_fetched(area_chunk_t * chunk)
        {
            this->chunk = chunk;
            this->type = SEARCH_FETCHED;
@@ -650,7 +652,7 @@ class KBLASMemoryTreeNode : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>::Nod
         {
             // Base::dump_hyperrect_str(f);
 
-            for (xkrt_device_global_id_t device_global_id = 0 ; device_global_id < XKRT_DEVICES_MAX ; ++device_global_id)
+            for (device_global_id_t device_global_id = 0 ; device_global_id < XKRT_DEVICES_MAX ; ++device_global_id)
             {
                 const int devbit = (1 << device_global_id);
                 fprintf(f, "\\\\ dev %d - coherent=%d",
@@ -681,7 +683,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
     public:
 
         KBLASMemoryTree(
-            xkrt_runtime_t * runtime,
+            runtime_t * runtime,
             const size_t ld,
             const size_t sizeof_type,
             const bool merge_transfers
@@ -697,7 +699,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         ~KBLASMemoryTree() {}
 
         /* the runtime so the tree can launch data movements */
-        xkrt_runtime_t * runtime;
+        runtime_t * runtime;
 
         /* the router */
         Router * router;
@@ -725,16 +727,16 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             memory_view_t host_view;
 
             /* src device id */
-            xkrt_device_global_id_t src_device_global_id;
+            device_global_id_t src_device_global_id;
 
             /* src view */
             memory_replica_view_t src_view;
 
             /* mark 'fetched' all the tasks awaiting on that allocation */
-            xkrt_area_chunk_t * dst_chunk;
+            area_chunk_t * dst_chunk;
 
             /* dst device id */
-            xkrt_device_global_id_t dst_device_global_id;
+            device_global_id_t dst_device_global_id;
 
             /* dst view */
             memory_replica_view_t dst_view;
@@ -923,7 +925,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
         static inline void
         fetch_callback_access(
-            xkrt_runtime_t * runtime,
+            runtime_t * runtime,
             fetch_t * fetch,
             access_t * access
         ) {
@@ -932,9 +934,9 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                     access->task->label, (void *) (fetch->dst_chunk ? fetch->dst_chunk->ptr : NULL), fetch->dst_device_global_id);
             access->state = ACCESS_STATE_FETCHED;
 
-            xkrt_device_t * device = runtime->device_get(fetch->dst_device_global_id);
+            device_t * device = runtime->device_get(fetch->dst_device_global_id);
             assert(device);
-            __task_fetched(1, access->task, xkrt_device_task_execute, runtime, device);
+            __task_fetched(1, access->task, device_task_execute, runtime, device);
         }
 
         static inline fetch_list_t *
@@ -951,7 +953,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         {
             assert(XKRT_CALLBACK_ARGS_MAX >= 4);
 
-            xkrt_runtime_t * runtime = (xkrt_runtime_t *) args[0];
+            runtime_t * runtime = (runtime_t *) args[0];
             assert(runtime);
 
             access_t * access = (access_t *) args[1];
@@ -1106,7 +1108,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         fetch_list_to_host_setup_partition(Partition & partition)
         {
             assert(this->is_locked());
-            const xkrt_device_global_id_bitfield_t devbit = (xkrt_device_global_id_bitfield_t) (1 << HOST_DEVICE_GLOBAL_ID);
+            const device_global_id_bitfield_t devbit = (device_global_id_bitfield_t) (1 << HOST_DEVICE_GLOBAL_ID);
 
             /* launch fetch on each device */
             for (Partite & partite : partition.partites)
@@ -1133,8 +1135,8 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                 // so continuous partites are on the same device and allocation
                 // for merging them later
 
-                // xkrt_device_global_id_t src = __random_set_bit(partite.block->coherency) - 1;
-                xkrt_device_global_id_t src = (xkrt_device_global_id_t) (__builtin_ffs(partite.block->coherency) - 1);
+                // device_global_id_t src = __random_set_bit(partite.block->coherency) - 1;
+                device_global_id_t src = (device_global_id_t) (__builtin_ffs(partite.block->coherency) - 1);
                 assert(src >= 0);
 
                 // Get a coherent allocation on that device
@@ -1209,11 +1211,11 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
         inline void
         fetch_access_allocate_eviction(
-            xkrt_device_global_id_t device_global_id,
+            device_global_id_t device_global_id,
             size_t size
         ) {
 
-            /* adapted from 'xkrt_memory_cache_evict_fromlist' */
+            /* adapted from 'memory_cache_evict_fromlist' */
             LOGGER_DEBUG("Evicting memory...");
 
             // TODO : currently deallocating as much as possible, maybe stop when there is a chunk big-enough of 'size'
@@ -1227,7 +1229,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
                 MemoryBlock & block = node->block;
 
-                const xkrt_device_global_id_bitfield_t devbit = (xkrt_device_global_id_bitfield_t) (1 << device_global_id);
+                const device_global_id_bitfield_t devbit = (device_global_id_bitfield_t) (1 << device_global_id);
 
                 const bool coherent_on_any_device        = block.coherency != 0;
                 const bool coherent_on_device            = block.coherency &  devbit;
@@ -1264,7 +1266,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                     replicate.coherency     = 0;
                     assert(replicate.fetching == 0);
 
-                    block.coherency &= (xkrt_device_global_id_bitfield_t) ~devbit;
+                    block.coherency &= (device_global_id_bitfield_t) ~devbit;
 
                     stop = freed >= 16*size;
                     // stop = false;
@@ -1279,17 +1281,17 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             this->foreach_node_until(f, NULL);
         }
 
-        inline xkrt_area_chunk_t *
+        inline area_chunk_t *
         fetch_access_allocate(
             access_t * access,
-            xkrt_device_global_id_t device_global_id
+            device_global_id_t device_global_id
         ) {
             //////////////////////////
             // Allocate a new chunk //
             //////////////////////////
 
             const size_t size = access->host_view.m * access->host_view.n * access->host_view.sizeof_type;
-            xkrt_area_chunk_t * chunk = nullptr;
+            area_chunk_t * chunk = nullptr;
             int retry_cnt = 0;
 
             do {
@@ -1299,10 +1301,10 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                     return chunk;
 
                 // TODO : polling is risky here, because it may take a lock on the
-                // memory tree, and 'xkrt_memory_allocate' is called within a
+                // memory tree, and 'memory_allocate' is called within a
                 // memory-tree lock => double-lock deadlock
 
-                // xkrt_device_poll(device);
+                // device_poll(device);
                 fetch_access_allocate_eviction(device_global_id, size);
 
             } while (++retry_cnt < 32);
@@ -1316,9 +1318,9 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         inline void
         fetch_access_create_allocation_views(
             access_t * access,
-            xkrt_device_global_id_t device_global_id,
+            device_global_id_t device_global_id,
             Partition & partition,
-            xkrt_area_chunk_t * chunk
+            area_chunk_t * chunk
         ) {
             assert(chunk);
 
@@ -1361,9 +1363,9 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         }
 
         /* look for a continuous allocation that can store 'access' for the given partition */
-        inline xkrt_area_chunk_t *
+        inline area_chunk_t *
         fetch_access_find_allocation_continuous(
-            xkrt_device_global_id_t device_global_id,
+            device_global_id_t device_global_id,
             Partition & partition
         ) {
             assert(this->is_locked());
@@ -1417,13 +1419,13 @@ next_view:
         inline void
         fetch_access_find_allocation(
             access_t * access,
-            xkrt_device_global_id_t device_global_id,
+            device_global_id_t device_global_id,
             Partition & partition
         ) {
             assert(this->is_locked());
 
             /* lookfor a continuous allocation already existing for that access block partitioning */
-            xkrt_area_chunk_t * chunk = this->fetch_access_find_allocation_continuous(device_global_id, partition);
+            area_chunk_t * chunk = this->fetch_access_find_allocation_continuous(device_global_id, partition);
             if (chunk == nullptr)
             {
                 /* no continuous allocation found, make a new one */
@@ -1441,7 +1443,7 @@ next_view:
         inline void
         fetch_access_setup_replicates(
             access_t * access,
-            xkrt_device_global_id_t device_global_id,
+            device_global_id_t device_global_id,
             Search & search
         ) {
             assert(this->is_locked());
@@ -1460,7 +1462,7 @@ next_view:
         inline void
         fetch_access_setup_copies(
             access_t * access,
-            xkrt_device_global_id_t device_global_id,
+            device_global_id_t device_global_id,
             Partition & partition
         ) {
             assert(this->is_locked());
@@ -1469,7 +1471,7 @@ next_view:
             // if read mode is set
             if (access->mode & ACCESS_MODE_R)
             {
-                const xkrt_device_global_id_bitfield_t dst_devbit = (xkrt_device_global_id_bitfield_t) (1 << device_global_id);
+                const device_global_id_bitfield_t dst_devbit = (device_global_id_bitfield_t) (1 << device_global_id);
 
                 // for each block of that access
                 for (Partite & partite : partition.partites)
@@ -1533,7 +1535,7 @@ next_view:
                         partite.dst_view = dst_allocation_view->view;
 
                         /* get a coherent source */
-                        xkrt_device_global_id_t src = this->runtime->router.get_source(device_global_id, partite.block->coherency);
+                        device_global_id_t src = this->runtime->router.get_source(device_global_id, partite.block->coherency);
                         assert(partite.block->coherency & (1 << src));
 
                         /* Get the first coherent allocation on that device */
@@ -1564,7 +1566,7 @@ next_view:
                         partite.must_fetch = false;
 
                         /* one device is already fetching, add a D2D forward callback */
-                        xkrt_device_global_id_t fetching_device_global_id = this->runtime->router.get_source(device_global_id, partite.block->fetching);
+                        device_global_id_t fetching_device_global_id = this->runtime->router.get_source(device_global_id, partite.block->fetching);
                         assert(0 <= fetching_device_global_id && fetching_device_global_id < XKRT_DEVICES_MAX);
                         assert(partite.block->fetching & (1 << fetching_device_global_id));
 
@@ -1622,7 +1624,7 @@ next_view:
         inline void
         fetch_access_set_coherent(
             access_t * access,
-            xkrt_device_global_id_t device_global_id,
+            device_global_id_t device_global_id,
             Partition & partition
         ) {
             assert(this->is_locked());
@@ -1630,14 +1632,14 @@ next_view:
             /* if access has a write mode, make all copies incoherent */
             if (access->mode & ACCESS_MODE_W)
             {
-                const xkrt_device_global_id_bitfield_t devbit = (xkrt_device_global_id_bitfield_t) (1 << device_global_id);
+                const device_global_id_bitfield_t devbit = (device_global_id_bitfield_t) (1 << device_global_id);
                 for (Partite & partite : partition.partites)
                 {
                     const memory_allocation_view_id_bitfield_t allocbit = (memory_allocation_view_id_bitfield_t) (1 << partite.dst_allocation_view_id);
 
                     /* make all replicates incoherent */
                     # pragma message(TODO "Can coherency be managed in a lazier way ?")
-                    for (xkrt_device_global_id_t device_global_id = 0 ;
+                    for (device_global_id_t device_global_id = 0 ;
                             device_global_id < XKRT_DEVICES_MAX ;
                             ++device_global_id)
                     {
@@ -1675,7 +1677,7 @@ next_view:
 
             /* callback setup */
             assert(XKRT_CALLBACK_ARGS_MAX >= 4);
-            xkrt_callback_t callback;
+            callback_t callback;
             callback.func = fetch_callback;
             callback.args[0] = this->runtime;
             callback.args[1] = access;
@@ -1684,7 +1686,7 @@ next_view:
 
             /* the device on which a stream will perform the device - use the dst device if not the host */
             assert(fetch->src_device_global_id != HOST_DEVICE_GLOBAL_ID || fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID);
-            xkrt_device_global_id_t device_global_id = (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID) ? fetch->dst_device_global_id : fetch->src_device_global_id;
+            device_global_id_t device_global_id = (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID) ? fetch->dst_device_global_id : fetch->src_device_global_id;
 
             /* launch asynchronous copy */
             if (access->type == ACCESS_TYPE_INTERVAL)
@@ -1728,7 +1730,7 @@ next_view:
         inline fetch_list_t *
         fetch_list_to_device(
             access_t * access,
-            xkrt_device_global_id_t device_global_id
+            device_global_id_t device_global_id
         ) {
             // run the coherency protocol
             Search search(device_global_id);
@@ -1791,7 +1793,7 @@ next_view:
         void
         fetch(
             access_t * access,
-            xkrt_device_global_id_t device_global_id
+            device_global_id_t device_global_id
         ) {
             if (access->state == ACCESS_STATE_FETCHING || access->state == ACCESS_STATE_FETCHED)
                 return ;
@@ -1843,7 +1845,7 @@ next_view:
         void
         allocate_to_device(
             access_t * access,
-            xkrt_device_global_id_t device_global_id
+            device_global_id_t device_global_id
         ) {
             assert(access->task == NULL);
             assert(device_global_id != HOST_DEVICE_GLOBAL_ID);
@@ -1864,7 +1866,7 @@ next_view:
         //  OCR     //
         //////////////
 
-        xkrt_device_global_id_bitfield_t
+        device_global_id_bitfield_t
         who_owns(access_t * access)
         {
             // find how much bytes are owned per device
@@ -1879,18 +1881,18 @@ next_view:
             this->unlock();
 
             // find devices which owns the most bytes
-            xkrt_device_global_id_bitfield_t owners = 0;
+            device_global_id_bitfield_t owners = 0;
             size_t bytes_owned_max = 0;
-            for (xkrt_device_global_id_t device_global_id = 0 ; device_global_id < XKRT_DEVICES_MAX ; ++device_global_id)
+            for (device_global_id_t device_global_id = 0 ; device_global_id < XKRT_DEVICES_MAX ; ++device_global_id)
             {
                 const size_t bytes_owned = search.bytes_owned[device_global_id];
                 if (bytes_owned_max < bytes_owned)
                 {
                     bytes_owned_max = bytes_owned;
-                    owners = (xkrt_device_global_id_bitfield_t) (1 << device_global_id);
+                    owners = (device_global_id_bitfield_t) (1 << device_global_id);
                 }
                 else if (bytes_owned_max && bytes_owned_max == bytes_owned)
-                    owners |= (xkrt_device_global_id_bitfield_t) (1 << device_global_id);
+                    owners |= (device_global_id_bitfield_t) (1 << device_global_id);
             }
 
             return owners;
@@ -2030,7 +2032,7 @@ next_view:
                  * allocation */
                 case (Search::Type::SEARCH_FETCHED):
                 {
-                    const xkrt_device_global_id_bitfield_t devbit = (xkrt_device_global_id_bitfield_t) (1 << search.device_global_id);
+                    const device_global_id_bitfield_t devbit = (device_global_id_bitfield_t) (1 << search.device_global_id);
                     MemoryReplicate & replicate = node->block.replicates[search.device_global_id];
 
                     if (search.device_global_id != HOST_DEVICE_GLOBAL_ID)
@@ -2096,7 +2098,7 @@ next_view:
                     Hyperrect intersect;
                     Hyperrect::intersection(&intersect, h, node->hyperrect);
                     const size_t bytes = intersect.size();
-                    for (xkrt_device_global_id_t device_global_id = 0 ; device_global_id < XKRT_DEVICES_MAX ; ++device_global_id)
+                    for (device_global_id_t device_global_id = 0 ; device_global_id < XKRT_DEVICES_MAX ; ++device_global_id)
                         if (node->block.coherency & (1 << device_global_id))
                             search.bytes_owned[device_global_id] += bytes;
                     break ;
@@ -2208,5 +2210,7 @@ next_view:
 };
 
 using BLASMemoryTree = KBLASMemoryTree<2>;
+
+XKRT_NAMESPACE_END
 
 #endif /* __MEMORY_TREE_HPP__ */

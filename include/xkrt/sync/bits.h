@@ -38,9 +38,11 @@
 
 # include <xkrt/consts.h>
 
+XKRT_NAMESPACE_BEGIN
+
 /* utility: return the index+1 of random bit set to '1' */
-static inline xkrt_device_global_id_t
-__random_set_bit(xkrt_device_global_id_bitfield_t bitfield)
+static inline device_global_id_t
+__random_set_bit(device_global_id_bitfield_t bitfield)
 {
     static unsigned int seed = 0x42;
 
@@ -48,18 +50,20 @@ __random_set_bit(xkrt_device_global_id_bitfield_t bitfield)
         LOGGER_FATAL("Tried to get a random bit from a NULL bitfield");
 
     /* must be true, as 'builtin_popcount' works on 'int' type */
-    static_assert(sizeof(xkrt_device_global_id_bitfield_t) <= sizeof(int));
+    static_assert(sizeof(device_global_id_bitfield_t) <= sizeof(int));
 
     const int nb = __builtin_popcount(bitfield);
-    xkrt_device_global_id_t idx = 0;
+    device_global_id_t idx = 0;
     int k = rand_r(&seed) % nb;
     for (int i = 0; i <= k; ++i)
     {
-        idx = static_cast<xkrt_device_global_id_t>(__builtin_ffs(static_cast<int>(bitfield)));
+        idx = static_cast<device_global_id_t>(__builtin_ffs(static_cast<int>(bitfield)));
         bitfield &= ~(1u << (idx - 1));
     }
 
     return idx;
 }
+
+XKRT_NAMESPACE_END
 
 #endif /* __BITS_H__ */
