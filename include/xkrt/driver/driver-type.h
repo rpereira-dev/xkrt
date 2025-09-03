@@ -40,22 +40,9 @@
 
 # include <stdint.h>
 # include <xkrt/namespace.h>
+# include <xkrt/types.h>
 
 XKRT_NAMESPACE_BEGIN
-
-    typedef enum    driver_type_t : uint8_t
-    {
-        XKRT_DRIVER_TYPE_HOST   = 0,  // cpu driver
-        XKRT_DRIVER_TYPE_CUDA   = 1,  // cuda devices driver
-        XKRT_DRIVER_TYPE_ZE     = 2,  // level zero devices driver
-        XKRT_DRIVER_TYPE_CL     = 3,  // opencl driver
-        XKRT_DRIVER_TYPE_HIP    = 4,  // hip driver
-        XKRT_DRIVER_TYPE_SYCL   = 5,  // sycl driver
-        XKRT_DRIVER_TYPE_MAX    = 6
-    }               driver_type_t;
-
-    typedef uint8_t driver_type_bitfield_t;
-    static_assert(XKRT_DRIVER_TYPE_MAX <= sizeof(driver_type_bitfield_t)*8);
 
     /* get driver name by type */
     const char * driver_name(driver_type_t driver_type);

@@ -37,7 +37,6 @@
 **/
 
 # include <xkrt/runtime.h>
-# include <xkrt/xkrt.h>
 # include <xkrt/memory/access/blas/dependency-tree.hpp>
 
 XKRT_NAMESPACE_BEGIN

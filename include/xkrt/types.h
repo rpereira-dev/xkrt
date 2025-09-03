@@ -52,6 +52,9 @@ typedef xkrt_task_access_counter_type_t         task_access_counter_t;
 typedef xkrt_device_global_id_t                 device_global_id_t;
 typedef xkrt_device_global_id_bitfield_t        device_global_id_bitfield_t;
 
+typedef xkrt_driver_type_t                      driver_type_t;
+typedef xkrt_driver_type_bitfield_t             driver_type_bitfield_t;
+
 XKRT_NAMESPACE_END
 
 # endif /* __XKRT_TASK_HPP__ */
