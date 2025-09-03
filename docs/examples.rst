@@ -94,7 +94,34 @@ Spawning tasks
 
 C
 ---------------------
-TODO
+
+The C API follows the C++ api prefixing types and methods with `xkrt_`.
+
+.. code-block:: c
+
+    # include <xkrt/xkrt.h>
+
+    static void f(xkrt_task_t * task, void * data)
+    {
+        *((int *) data) = 42;
+    }
+
+    int main(void)
+    {
+        xkrt_runtime_t runtime;
+
+        xkrt_init(&runtime);
+
+        int x = 0;
+        xkrt_task_spawn(&runtime, f, &x);
+        xkrt_task_wait(&runtime);
+
+        xkrt_deinit(&runtime);
+
+        assert(x == 42);
+
+        return 0;
+    }
 
 
 Julia

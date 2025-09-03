@@ -34,7 +34,6 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-# include <xkrt/xkrt.h>
 # include <xkrt/runtime.h>
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>

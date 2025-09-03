@@ -316,9 +316,6 @@ struct  runtime_t
     /* wait for children tasks of the current task to complete */
     void task_wait(void);
 
-    /* schedule a ready task, and return 1 if one task was found, 0 otherwise */
-    int task_schedule(void);
-
     /* enqueue a task to :
      *  - the current thread if its within a team
      *  - or the host driver team if the current thread has no team

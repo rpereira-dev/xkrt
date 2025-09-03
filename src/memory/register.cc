@@ -36,7 +36,6 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-# include <xkrt/xkrt.h>
 # include <xkrt/runtime.h>
 # include <xkrt/memory/pageas.h>
 # include <xkrt/memory/access/blas/memory-tree.hpp>
