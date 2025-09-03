@@ -1,0 +1,758 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="consts_8h" kind="file" language="C++">
+    <compoundname>consts.h</compoundname>
+    <includes local="no">stdint.h</includes>
+    <includes local="no">stdlib.h</includes>
+    <includedby refid="distribution_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/distribution/distribution.h</includedby>
+    <includedby refid="driver_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver.h</includedby>
+    <includedby refid="stream-instruction_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h</includedby>
+    <includedby refid="coherency-controller_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/coherency-controller.hpp</includedby>
+    <includedby refid="dependency-domain_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dependency-domain.hpp</includedby>
+    <includedby refid="dummy-coherency-controller_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp</includedby>
+    <includedby refid="router-affinity_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp</includedby>
+    <includedby refid="router-cfs_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-cfs.hpp</includedby>
+    <includedby refid="router_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router.hpp</includedby>
+    <includedby refid="bits_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/sync/bits.h</includedby>
+    <includedby refid="task_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp</includedby>
+    <includedby refid="deque_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/deque.hpp</includedby>
+    <includedby refid="thread_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h</includedby>
+    <includedby refid="types_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/types.h</includedby>
+    <incdepgraph>
+      <node id="2">
+        <label>stdint.h</label>
+      </node>
+      <node id="3">
+        <label>stdlib.h</label>
+      </node>
+      <node id="1">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h</label>
+        <link refid="consts_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="12">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h</label>
+        <link refid="stream_8h_source"/>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="32">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/types.h</label>
+        <link refid="types_8h_source"/>
+        <childnode refid="33" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="26">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp</label>
+        <link refid="router-affinity_8hpp_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="14">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp</label>
+        <link refid="device_8hpp_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="30">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/sync/bits.h</label>
+        <link refid="bits_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="29" relation="include">
+        </childnode>
+      </node>
+      <node id="28">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router.hpp</label>
+        <link refid="router_8hpp_source"/>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="29" relation="include">
+        </childnode>
+      </node>
+      <node id="29">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-random.hpp</label>
+        <link refid="router-random_8hpp_source"/>
+      </node>
+      <node id="7">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-host.h</label>
+        <link refid="driver-host_8h_source"/>
+      </node>
+      <node id="8">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h</label>
+        <link refid="driver-sycl_8h_source"/>
+      </node>
+      <node id="22">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp</label>
+        <link refid="dependency-map_8hpp_source"/>
+      </node>
+      <node id="1">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h</label>
+        <link refid="consts_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="32" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp</label>
+        <link refid="memory-tree_8hpp_source"/>
+      </node>
+      <node id="6">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cu.h</label>
+        <link refid="driver-cu_8h_source"/>
+      </node>
+      <node id="10">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-ze-blas.h</label>
+        <link refid="driver-ze-blas_8h_source"/>
+      </node>
+      <node id="3">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h</label>
+        <link refid="runtime_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="20">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h</label>
+        <link refid="thread_8h_source"/>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="15">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cl.h</label>
+        <link refid="driver-cl_8h_source"/>
+      </node>
+      <node id="24">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dependency-domain.hpp</label>
+        <link refid="dependency-domain_8hpp_source"/>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="23">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/register.h</label>
+        <link refid="register_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="11">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h</label>
+        <link refid="stream-instruction_8h_source"/>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="21">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp</label>
+        <link refid="interval_2dependency-tree_8hpp_source"/>
+      </node>
+      <node id="25">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp</label>
+        <link refid="dummy-coherency-controller_8hpp_source"/>
+      </node>
+      <node id="9">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-ze.h</label>
+        <link refid="driver-ze_8h_source"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h</label>
+        <link refid="conf_8h_source"/>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/distribution/distribution.h</label>
+        <link refid="distribution_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="31">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/deque.hpp</label>
+        <link refid="deque_8hpp_source"/>
+        <childnode refid="20" relation="include">
+        </childnode>
+      </node>
+      <node id="18">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp</label>
+        <link refid="task_8hpp_source"/>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+      </node>
+      <node id="17">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/coherency-controller.hpp</label>
+        <link refid="coherency-controller_8hpp_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="33">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-type.h</label>
+        <link refid="driver-type_8h_source"/>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="27">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-cfs.hpp</label>
+        <link refid="router-cfs_8hpp_source"/>
+      </node>
+      <node id="19">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/dependency-tree.hpp</label>
+        <link refid="blas_2dependency-tree_8hpp_source"/>
+        <childnode refid="20" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver.h</label>
+        <link refid="driver_8h_source"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="16">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-hip.h</label>
+        <link refid="driver-hip_8h_source"/>
+      </node>
+    </invincdepgraph>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="consts_8h_1a3b9b4350b6fc859cb2e801220b971357" prot="public" static="no">
+        <name>XKRT_DEVICES_MAX</name>
+        <initializer>(16)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="47" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="47" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="consts_8h_1a6ec50d702241d793dba18dcca440d169" prot="public" static="no">
+        <name>XKRT_DEVICE_MEMORIES_MAX</name>
+        <initializer>(1)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="50" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="consts_8h_1a9972d6748c63b59d24f11e57b7919baf" prot="public" static="no">
+        <name>XKRT_DEVICES_PERF_RANK_MAX</name>
+        <initializer>(4)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="53" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="consts_8h_1a8af69dc43b52fcb5338a02505a14f4aa" prot="public" static="no">
+        <name>HOST_DEVICE_GLOBAL_ID</name>
+        <initializer>(0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="56" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="consts_8h_1aecc63145dc51484990e1babee2b7eb5d" prot="public" static="no">
+        <name>UNSPECIFIED_DEVICE_GLOBAL_ID</name>
+        <initializer>(XKRT_DEVICES_MAX)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="59" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="consts_8h_1ae084e38b901f799b81cda23d80bbee78" prot="public" static="no">
+        <name>XKRT_DEVICES_MASK_ALL</name>
+        <initializer>(~((device_global_id_bitfield_t)0))</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="62" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="consts_8h_1a5e6669aea0610344ed975fffd1660cf6" prot="public" static="no">
+        <name>XKRT_MAX_THREADS_PER_DEVICE</name>
+        <initializer>(16)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="65" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="consts_8h_1a97136f1ec0c5079233f82c0e271eb0dd" prot="public" static="no">
+        <name>THREAD_MAX_MEMORY</name>
+        <initializer>((size_t)4*1024*1024*1024)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="68" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="68" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="consts_8h_1afcadc8b60feab4e7f9bcaa46fe03ff30" prot="public" static="no">
+        <name>UNSPECIFIED_TASK_ACCESS</name>
+        <initializer>((task_access_counter_t)-1)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="70" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="consts_8h_1a96c7de9287661c420e1a57b3fbca7753" prot="public" static="no">
+        <name>TASK_MAX_ACCESSES</name>
+        <initializer>(1024)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="71" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="consts_8h_1af236039d4eac12c454238e2651925dcb" prot="public" static="no" strong="no">
+        <type></type>
+        <name>xkrt_driver_type_t</name>
+        <enumvalue id="consts_8h_1af236039d4eac12c454238e2651925dcbace5b893983926c762b4b08be215ed2b1" prot="public">
+          <name>XKRT_DRIVER_TYPE_HOST</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="consts_8h_1af236039d4eac12c454238e2651925dcba64d0d94b0c3020695310064af2d8d833" prot="public">
+          <name>XKRT_DRIVER_TYPE_CUDA</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="consts_8h_1af236039d4eac12c454238e2651925dcbadcf47e0e07675af929e1466227db08c8" prot="public">
+          <name>XKRT_DRIVER_TYPE_ZE</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="consts_8h_1af236039d4eac12c454238e2651925dcba764de9527023b26a426e440c94a418ae" prot="public">
+          <name>XKRT_DRIVER_TYPE_CL</name>
+          <initializer>= 3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="consts_8h_1af236039d4eac12c454238e2651925dcbad1971f13a324c28eeb34138730a2b568" prot="public">
+          <name>XKRT_DRIVER_TYPE_HIP</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="consts_8h_1af236039d4eac12c454238e2651925dcbaa4eee0e51ecbf07026b7b2ab97c5fc50" prot="public">
+          <name>XKRT_DRIVER_TYPE_SYCL</name>
+          <initializer>= 5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="consts_8h_1af236039d4eac12c454238e2651925dcbaf09fce94afed2573c90f68ada96aa16d" prot="public">
+          <name>XKRT_DRIVER_TYPE_MAX</name>
+          <initializer>= 6</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="84" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="85" bodyend="93"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="consts_8h_1ae8ff952c07444578ebab910d31ba97a7" prot="public" static="no">
+        <type>uint8_t</type>
+        <definition>typedef uint8_t xkrt_device_global_id_t</definition>
+        <argsstring></argsstring>
+        <name>xkrt_device_global_id_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="73" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="consts_8h_1ae1d6d9ec38048c9ee68e39d748a4cd69" prot="public" static="no">
+        <type>uint16_t</type>
+        <definition>typedef uint16_t xkrt_device_global_id_bitfield_t</definition>
+        <argsstring></argsstring>
+        <name>xkrt_device_global_id_bitfield_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="76" column="18" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="consts_8h_1a26bb2955f2b3f3faa251f32f4dedcb16" prot="public" static="no">
+        <type>uint16_t</type>
+        <definition>typedef uint16_t xkrt_task_wait_counter_type_t</definition>
+        <argsstring></argsstring>
+        <name>xkrt_task_wait_counter_type_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="80" column="18" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="consts_8h_1add5a4382ce45349d2a1be34657371274" prot="public" static="no">
+        <type>uint16_t</type>
+        <definition>typedef uint16_t xkrt_task_access_counter_type_t</definition>
+        <argsstring></argsstring>
+        <name>xkrt_task_access_counter_type_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="81" column="18" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="81" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="consts_8h_1af1f4c1280322dfeb8def2115a4807de2" prot="public" static="no">
+        <type>enum xkrt_driver_type_t</type>
+        <definition>typedef enum xkrt_driver_type_t xkrt_driver_type_t</definition>
+        <argsstring></argsstring>
+        <name>xkrt_driver_type_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="93" column="34"/>
+      </memberdef>
+      <memberdef kind="typedef" id="consts_8h_1a0f5a0ef45fe9f1d967d8ed593565c6c0" prot="public" static="no">
+        <type>uint8_t</type>
+        <definition>typedef uint8_t xkrt_driver_type_bitfield_t</definition>
+        <argsstring></argsstring>
+        <name>xkrt_driver_type_bitfield_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="95" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" bodystart="95" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="consts_8h_1a0253cb3495d38f21f37f8f748602468f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>_Static_assert</definition>
+        <argsstring>(XKRT_DEVICES_MAX&lt;=(1UL&lt;&lt;(sizeof(xkrt_device_global_id_t) *8)), &quot;&quot;)</argsstring>
+        <name>_Static_assert</name>
+        <param>
+          <type>XKRT_DEVICES_MAX&lt;=</type>
+          <array>1UL&lt;&lt;(sizeof(xkrt_device_global_id_t) *8)</array>
+        </param>
+        <param>
+          <type>&quot;&quot;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="74" column="1" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" declline="74" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="consts_8h_1a94aca8a84d0770e2baae981672454e32" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>_Static_assert</definition>
+        <argsstring>(XKRT_DEVICES_MAX&lt;=sizeof(xkrt_device_global_id_bitfield_t) *8, &quot;&quot;)</argsstring>
+        <name>_Static_assert</name>
+        <param>
+          <type>XKRT_DEVICES_MAX&lt;=sizeof(xkrt_device_global_id_bitfield_t) *</type>
+          <declname>8</declname>
+        </param>
+        <param>
+          <type>&quot;&quot;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="77" column="1" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" declline="77" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="consts_8h_1a7133451c1bed5a125f42f2605c00b22b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>_Static_assert</definition>
+        <argsstring>(TASK_MAX_ACCESSES&lt;(1&lt;&lt; 8 *sizeof(xkrt_task_access_counter_type_t)), &quot;&quot;)</argsstring>
+        <name>_Static_assert</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="82" column="1" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" declline="82" declcolumn="1"/>
+      </memberdef>
+      <memberdef kind="function" id="consts_8h_1a2aad8828ea9ff2a9fd655e670be5d32d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>_Static_assert</definition>
+        <argsstring>(XKRT_DRIVER_TYPE_MAX&lt;=sizeof(xkrt_driver_type_bitfield_t) *8, &quot;&quot;)</argsstring>
+        <name>_Static_assert</name>
+        <param>
+          <type>XKRT_DRIVER_TYPE_MAX&lt;=sizeof(xkrt_driver_type_bitfield_t) *</type>
+          <declname>8</declname>
+        </param>
+        <param>
+          <type>&quot;&quot;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" line="96" column="1" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h" declline="96" declcolumn="1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="2"><highlight class="comment">**<sp/>Copyright<sp/>2024,2025<sp/>INRIA</highlight></codeline>
+<codeline lineno="3"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="4"><highlight class="comment">**<sp/>Contributors<sp/>:</highlight></codeline>
+<codeline lineno="5"><highlight class="comment">**<sp/>Thierry<sp/>Gautier,<sp/>thierry.gautier@inrialpes.fr</highlight></codeline>
+<codeline lineno="6"><highlight class="comment">**<sp/>Romain<sp/>PEREIRA,<sp/>romain.pereira@inria.fr<sp/>+<sp/>rpereira@anl.gov</highlight></codeline>
+<codeline lineno="7"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="8"><highlight class="comment">**<sp/>This<sp/>software<sp/>is<sp/>a<sp/>computer<sp/>program<sp/>whose<sp/>purpose<sp/>is<sp/>to<sp/>execute</highlight></codeline>
+<codeline lineno="9"><highlight class="comment">**<sp/>blas<sp/>subroutines<sp/>on<sp/>multi-GPUs<sp/>system.</highlight></codeline>
+<codeline lineno="10"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="11"><highlight class="comment">**<sp/>This<sp/>software<sp/>is<sp/>governed<sp/>by<sp/>the<sp/>CeCILL-C<sp/>license<sp/>under<sp/>French<sp/>law<sp/>and</highlight></codeline>
+<codeline lineno="12"><highlight class="comment">**<sp/>abiding<sp/>by<sp/>the<sp/>rules<sp/>of<sp/>distribution<sp/>of<sp/>free<sp/>software.<sp/><sp/>You<sp/>can<sp/><sp/>use,</highlight></codeline>
+<codeline lineno="13"><highlight class="comment">**<sp/>modify<sp/>and/<sp/>or<sp/>redistribute<sp/>the<sp/>software<sp/>under<sp/>the<sp/>terms<sp/>of<sp/>the<sp/>CeCILL-C</highlight></codeline>
+<codeline lineno="14"><highlight class="comment">**<sp/>license<sp/>as<sp/>circulated<sp/>by<sp/>CEA,<sp/>CNRS<sp/>and<sp/>INRIA<sp/>at<sp/>the<sp/>following<sp/>URL</highlight></codeline>
+<codeline lineno="15"><highlight class="comment">**<sp/>&quot;http://www.cecill.info&quot;.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"></highlight></codeline>
+<codeline lineno="17"><highlight class="comment">**<sp/>As<sp/>a<sp/>counterpart<sp/>to<sp/>the<sp/>access<sp/>to<sp/>the<sp/>source<sp/>code<sp/>and<sp/><sp/>rights<sp/>to<sp/>copy,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment">**<sp/>modify<sp/>and<sp/>redistribute<sp/>granted<sp/>by<sp/>the<sp/>license,<sp/>users<sp/>are<sp/>provided<sp/>only</highlight></codeline>
+<codeline lineno="19"><highlight class="comment">**<sp/>with<sp/>a<sp/>limited<sp/>warranty<sp/><sp/>and<sp/>the<sp/>software&apos;s<sp/>author,<sp/><sp/>the<sp/>holder<sp/>of<sp/>the</highlight></codeline>
+<codeline lineno="20"><highlight class="comment">**<sp/>economic<sp/>rights,<sp/><sp/>and<sp/>the<sp/>successive<sp/>licensors<sp/><sp/>have<sp/>only<sp/><sp/>limited</highlight></codeline>
+<codeline lineno="21"><highlight class="comment">**<sp/>liability.</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"></highlight></codeline>
+<codeline lineno="23"><highlight class="comment">**<sp/>In<sp/>this<sp/>respect,<sp/>the<sp/>user&apos;s<sp/>attention<sp/>is<sp/>drawn<sp/>to<sp/>the<sp/>risks<sp/>associated</highlight></codeline>
+<codeline lineno="24"><highlight class="comment">**<sp/>with<sp/>loading,<sp/><sp/>using,<sp/><sp/>modifying<sp/>and/or<sp/>developing<sp/>or<sp/>reproducing<sp/>the</highlight></codeline>
+<codeline lineno="25"><highlight class="comment">**<sp/>software<sp/>by<sp/>the<sp/>user<sp/>in<sp/>light<sp/>of<sp/>its<sp/>specific<sp/>status<sp/>of<sp/>free<sp/>software,</highlight></codeline>
+<codeline lineno="26"><highlight class="comment">**<sp/>that<sp/>may<sp/>mean<sp/><sp/>that<sp/>it<sp/>is<sp/>complicated<sp/>to<sp/>manipulate,<sp/><sp/>and<sp/><sp/>that<sp/><sp/>also</highlight></codeline>
+<codeline lineno="27"><highlight class="comment">**<sp/>therefore<sp/>means<sp/><sp/>that<sp/>it<sp/>is<sp/>reserved<sp/>for<sp/>developers<sp/><sp/>and<sp/><sp/>experienced</highlight></codeline>
+<codeline lineno="28"><highlight class="comment">**<sp/>professionals<sp/>having<sp/>in-depth<sp/>computer<sp/>knowledge.<sp/>Users<sp/>are<sp/>therefore</highlight></codeline>
+<codeline lineno="29"><highlight class="comment">**<sp/>encouraged<sp/>to<sp/>load<sp/>and<sp/>test<sp/>the<sp/>software&apos;s<sp/>suitability<sp/>as<sp/>regards<sp/>their</highlight></codeline>
+<codeline lineno="30"><highlight class="comment">**<sp/>requirements<sp/>in<sp/>conditions<sp/>enabling<sp/>the<sp/>security<sp/>of<sp/>their<sp/>systems<sp/>and/or</highlight></codeline>
+<codeline lineno="31"><highlight class="comment">**<sp/>data<sp/>to<sp/>be<sp/>ensured<sp/>and,<sp/><sp/>more<sp/>generally,<sp/>to<sp/>use<sp/>and<sp/>operate<sp/>it<sp/>in<sp/>the</highlight></codeline>
+<codeline lineno="32"><highlight class="comment">**<sp/>same<sp/>conditions<sp/>as<sp/>regards<sp/>security.</highlight></codeline>
+<codeline lineno="33"><highlight class="comment"></highlight></codeline>
+<codeline lineno="34"><highlight class="comment">**<sp/>The<sp/>fact<sp/>that<sp/>you<sp/>are<sp/>presently<sp/>reading<sp/>this<sp/>means<sp/>that<sp/>you<sp/>have<sp/>had</highlight></codeline>
+<codeline lineno="35"><highlight class="comment">**<sp/>knowledge<sp/>of<sp/>the<sp/>CeCILL-C<sp/>license<sp/>and<sp/>that<sp/>you<sp/>accept<sp/>its<sp/>terms.</highlight></codeline>
+<codeline lineno="36"><highlight class="comment">**/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="comment">//<sp/>this<sp/>file<sp/>should<sp/>remain<sp/>C-compliant<sp/>for<sp/>generating<sp/>bindings</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__CONSTS_H__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>__CONSTS_H__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>maximum<sp/>number<sp/>of<sp/>devices<sp/>in<sp/>total<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>XKRT_DEVICES_MAX<sp/>(16)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>maximum<sp/>number<sp/>of<sp/>memory<sp/>per<sp/>device<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>XKRT_DEVICE_MEMORIES_MAX<sp/>(1)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>maximum<sp/>number<sp/>of<sp/>performance<sp/>ranks<sp/>between<sp/>devices.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>XKRT_DEVICES_PERF_RANK_MAX<sp/>(4)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>an<sp/>ID<sp/>representing<sp/>the<sp/>host<sp/>device<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>HOST_DEVICE_GLOBAL_ID<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>an<sp/>ID<sp/>representing<sp/>an<sp/>unspecified<sp/>device<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>UNSPECIFIED_DEVICE_GLOBAL_ID<sp/>(XKRT_DEVICES_MAX)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>a<sp/>bitmask<sp/>that<sp/>represents<sp/>all<sp/>devices<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>XKRT_DEVICES_MASK_ALL<sp/>(~((device_global_id_bitfield_t)0))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>maximum<sp/>number<sp/>of<sp/>threads<sp/>per<sp/>device<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>XKRT_MAX_THREADS_PER_DEVICE<sp/>(16)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>maximum<sp/>number<sp/>of<sp/>memory<sp/>per<sp/>thread<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>THREAD_MAX_MEMORY<sp/>((size_t)4*1024*1024*1024)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>UNSPECIFIED_TASK_ACCESS<sp/>((task_access_counter_t)-1)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>TASK_MAX_ACCESSES<sp/>(1024)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>uint8_t<sp/>xkrt_device_global_id_t;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal">_Static_assert(XKRT_DEVICES_MAX<sp/>&lt;=<sp/>(1UL<sp/>&lt;&lt;<sp/>(</highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(xkrt_device_global_id_t)*8)),<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>uint16_t<sp/>xkrt_device_global_id_bitfield_t;</highlight></codeline>
+<codeline lineno="77"><highlight class="normal">_Static_assert(XKRT_DEVICES_MAX<sp/>&lt;=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(xkrt_device_global_id_bitfield_t)*8,<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight><highlight class="comment">//<sp/>TODO:<sp/>using<sp/>smaller<sp/>type<sp/>here<sp/>can<sp/>improve<sp/>perf</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>uint16_t<sp/>xkrt_task_wait_counter_type_t;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>uint16_t<sp/>xkrt_task_access_counter_type_t;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal">_Static_assert(TASK_MAX_ACCESSES<sp/>&lt;<sp/>(1<sp/>&lt;&lt;<sp/>8*</highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(xkrt_task_access_counter_type_t)),<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><sp/><sp/><sp/>xkrt_driver_type_t</highlight></codeline>
+<codeline lineno="85"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/>XKRT_DRIVER_TYPE_HOST<sp/><sp/><sp/>=<sp/>0,<sp/><sp/></highlight><highlight class="comment">//<sp/>cpu<sp/>driver</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/>XKRT_DRIVER_TYPE_CUDA<sp/><sp/><sp/>=<sp/>1,<sp/><sp/></highlight><highlight class="comment">//<sp/>cuda<sp/>devices<sp/>driver</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/>XKRT_DRIVER_TYPE_ZE<sp/><sp/><sp/><sp/><sp/>=<sp/>2,<sp/><sp/></highlight><highlight class="comment">//<sp/>level<sp/>zero<sp/>devices<sp/>driver</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/>XKRT_DRIVER_TYPE_CL<sp/><sp/><sp/><sp/><sp/>=<sp/>3,<sp/><sp/></highlight><highlight class="comment">//<sp/>opencl<sp/>driver</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/>XKRT_DRIVER_TYPE_HIP<sp/><sp/><sp/><sp/>=<sp/>4,<sp/><sp/></highlight><highlight class="comment">//<sp/>hip<sp/>driver</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/>XKRT_DRIVER_TYPE_SYCL<sp/><sp/><sp/>=<sp/>5,<sp/><sp/></highlight><highlight class="comment">//<sp/>sycl<sp/>driver</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/>XKRT_DRIVER_TYPE_MAX<sp/><sp/><sp/><sp/>=<sp/>6</highlight></codeline>
+<codeline lineno="93"><highlight class="normal">}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>xkrt_driver_type_t;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>uint8_t<sp/>xkrt_driver_type_bitfield_t;</highlight></codeline>
+<codeline lineno="96"><highlight class="normal">_Static_assert(XKRT_DRIVER_TYPE_MAX<sp/>&lt;=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(xkrt_driver_type_bitfield_t)*8,<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>__CONSTS_H__<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/consts.h"/>
+  </compounddef>
+</doxygen>

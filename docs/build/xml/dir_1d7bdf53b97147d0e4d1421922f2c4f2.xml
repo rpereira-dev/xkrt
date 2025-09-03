@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="dir_1d7bdf53b97147d0e4d1421922f2c4f2" kind="dir">
+    <compoundname>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing</compoundname>
+    <innerfile refid="router-affinity_8hpp">router-affinity.hpp</innerfile>
+    <innerfile refid="router-cfs_8hpp">router-cfs.hpp</innerfile>
+    <innerfile refid="router-random_8hpp">router-random.hpp</innerfile>
+    <innerfile refid="router_8hpp">router.hpp</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/"/>
+  </compounddef>
+</doxygen>

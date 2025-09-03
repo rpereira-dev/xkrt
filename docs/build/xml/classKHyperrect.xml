@@ -1,0 +1,418 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classKHyperrect" kind="class" language="C++" prot="public">
+    <compoundname>KHyperrect</compoundname>
+    <templateparamlist>
+      <param>
+        <type>int</type>
+        <declname>K</declname>
+        <defname>K</defname>
+      </param>
+    </templateparamlist>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classKHyperrect_1accde8101f274b9f898cd1b14197789c2" prot="public" static="no" mutable="no">
+        <type><ref refid="classInterval" kindref="compound">Interval</ref></type>
+        <definition>Interval KHyperrect&lt; K &gt;::list[K]</definition>
+        <argsstring>[K]</argsstring>
+        <name>list</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="55" column="18" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classKHyperrect_1ae65f172721db7d9bc1439a33e453d286" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>KHyperrect&lt; K &gt;::KHyperrect</definition>
+        <argsstring>()</argsstring>
+        <name>KHyperrect</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="59" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="59" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1a419befe17f68472c27a03e5eb8f67d2f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>KHyperrect&lt; K &gt;::KHyperrect</definition>
+        <argsstring>(const Interval list[K])</argsstring>
+        <name>KHyperrect</name>
+        <param>
+          <type>const <ref refid="classInterval" kindref="compound">Interval</ref></type>
+          <declname>list</declname>
+          <array>[K]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="61" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="61" bodyend="64"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1a2ea765c7ecdafcf83222e42a865a7de5" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>KHyperrect&lt; K &gt;::KHyperrect</definition>
+        <argsstring>(const KHyperrect &amp;copy)</argsstring>
+        <name>KHyperrect</name>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> &amp;</type>
+          <declname>copy</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="66" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="66" bodyend="69"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1af0104654dbe19590473b6c3c4c3864d8" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type></type>
+        <definition>virtual KHyperrect&lt; K &gt;::~KHyperrect</definition>
+        <argsstring>()</argsstring>
+        <name>~KHyperrect</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="71" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="71" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1a7cc081ac9b879d00d6f4dbc24d2c93d5" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHyperrect&lt; K &gt;::copy</definition>
+        <argsstring>(const KHyperrect &amp;other)</argsstring>
+        <name>copy</name>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="74" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="74" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1afc37e2a1abeb61570a7246f669980c94" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHyperrect&lt; K &gt;::set_list</definition>
+        <argsstring>(const Interval src[K])</argsstring>
+        <name>set_list</name>
+        <param>
+          <type>const <ref refid="classInterval" kindref="compound">Interval</ref></type>
+          <declname>src</declname>
+          <array>[K]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="80" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="80" bodyend="89"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1a2e0b4c9582b64ff330d2ad5ec07cd47e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classInterval" kindref="compound">Interval</ref></type>
+        <definition>Interval KHyperrect&lt; K &gt;::operator[]</definition>
+        <argsstring>(int i) const</argsstring>
+        <name>operator[]</name>
+        <param>
+          <type>int</type>
+          <declname>i</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="91" column="20" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="91" bodyend="91"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1aec199552ae06f312b636b64ab27e9c0d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classInterval" kindref="compound">Interval</ref> &amp;</type>
+        <definition>Interval&amp; KHyperrect&lt; K &gt;::operator[]</definition>
+        <argsstring>(int i)</argsstring>
+        <name>operator[]</name>
+        <param>
+          <type>int</type>
+          <declname>i</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="92" column="19" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="92" bodyend="92"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1a62da73726441322d4f9cf7e5086056e7" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHyperrect&lt; K &gt;::tostring</definition>
+        <argsstring>(char *buffer, int size) const</argsstring>
+        <name>tostring</name>
+        <param>
+          <type>char *</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="95" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="95" bodyend="106"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1a3fa1a956b270e0fb87087a63238aefff" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool KHyperrect&lt; K &gt;::intersects</definition>
+        <argsstring>(const KHyperrect &amp;intervals) const</argsstring>
+        <name>intersects</name>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> &amp;</type>
+          <declname>intervals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="110" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="110" bodyend="119"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1a5a823511645af86bacf6d4b4b4ef8759" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool KHyperrect&lt; K &gt;::intersects</definition>
+        <argsstring>(const KHyperrect *&amp;intervals) const</argsstring>
+        <name>intersects</name>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> *&amp;</type>
+          <declname>intervals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="135" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="135" bodyend="138"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1a65898d77c0d6e0678661ba7a149615bd" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool KHyperrect&lt; K &gt;::equals</definition>
+        <argsstring>(const KHyperrect &amp;intervals) const</argsstring>
+        <name>equals</name>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> &amp;</type>
+          <declname>intervals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="141" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="141" bodyend="150"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1aefa9783cf314ee1906d50283f7f60aa0" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool KHyperrect&lt; K &gt;::includes</definition>
+        <argsstring>(const KHyperrect &amp;intervals, int k) const</argsstring>
+        <name>includes</name>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> &amp;</type>
+          <declname>intervals</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="153" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="153" bodyend="162"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1aca2c3cd0edec007cfe4f8566560c6f06" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool KHyperrect&lt; K &gt;::includes</definition>
+        <argsstring>(const KHyperrect &amp;intervals) const</argsstring>
+        <name>includes</name>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> &amp;</type>
+          <declname>intervals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="165" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="165" bodyend="168"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1a13dec6311ffcf2d15f0b7ffaa6817fb3" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool KHyperrect&lt; K &gt;::is_empty</definition>
+        <argsstring>(void) const</argsstring>
+        <name>is_empty</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="171" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="171" bodyend="177"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1a477faf8cd7a6b7a68ef1cf1b99239ca4" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>uint64_t</type>
+        <definition>uint64_t KHyperrect&lt; K &gt;::size</definition>
+        <argsstring>(void) const</argsstring>
+        <name>size</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="180" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="180" bodyend="186"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classKHyperrect_1a663c44e0886c6c9432d13afd87a060b7" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void KHyperrect&lt; K &gt;::intersection</definition>
+        <argsstring>(KHyperrect *dst, const KHyperrect &amp;x, const KHyperrect &amp;y)</argsstring>
+        <name>intersection</name>
+        <param>
+          <type><ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> &amp;</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> &amp;</type>
+          <declname>y</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="122" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="122" bodyend="132"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHyperrect_1acdda069ee5daaa5b84ed29cac6a97ff9" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void KHyperrect&lt; K &gt;::distance_manhattan</definition>
+        <argsstring>(const KHyperrect &amp;x, const KHyperrect &amp;y, INTERVAL_DIFF_TYPE_T d[K])</argsstring>
+        <name>distance_manhattan</name>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> &amp;</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> &amp;</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>INTERVAL_DIFF_TYPE_T</type>
+          <declname>d</declname>
+          <array>[K]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="191" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="191" bodyend="198"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="friend">
+      <memberdef kind="friend" id="classKHyperrect_1accd46f393dff61c1c3275930c3464143" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::ostream &amp;</type>
+        <definition>std::ostream&amp; operator&lt;&lt;</definition>
+        <argsstring>(std::ostream &amp;os, const KHyperrect &amp;intervals)</argsstring>
+        <name>operator&lt;&lt;</name>
+        <param>
+          <type>std::ostream &amp;</type>
+          <declname>os</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">KHyperrect</ref> &amp;</type>
+          <declname>intervals</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="200" column="16" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="201" bodyend="210"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>Interval</label>
+        <link refid="classInterval"/>
+      </node>
+      <node id="1">
+        <label>KHyperrect&lt; K &gt;</label>
+        <link refid="classKHyperrect"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>list</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" line="51" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/hyperrect.hpp" bodystart="51" bodyend="212"/>
+    <listofallmembers>
+      <member refid="classKHyperrect_1a7cc081ac9b879d00d6f4dbc24d2c93d5" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>copy</name></member>
+      <member refid="classKHyperrect_1acdda069ee5daaa5b84ed29cac6a97ff9" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>distance_manhattan</name></member>
+      <member refid="classKHyperrect_1a65898d77c0d6e0678661ba7a149615bd" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>equals</name></member>
+      <member refid="classKHyperrect_1aefa9783cf314ee1906d50283f7f60aa0" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>includes</name></member>
+      <member refid="classKHyperrect_1aca2c3cd0edec007cfe4f8566560c6f06" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>includes</name></member>
+      <member refid="classKHyperrect_1a663c44e0886c6c9432d13afd87a060b7" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>intersection</name></member>
+      <member refid="classKHyperrect_1a3fa1a956b270e0fb87087a63238aefff" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>intersects</name></member>
+      <member refid="classKHyperrect_1a5a823511645af86bacf6d4b4b4ef8759" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>intersects</name></member>
+      <member refid="classKHyperrect_1a13dec6311ffcf2d15f0b7ffaa6817fb3" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>is_empty</name></member>
+      <member refid="classKHyperrect_1ae65f172721db7d9bc1439a33e453d286" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>KHyperrect</name></member>
+      <member refid="classKHyperrect_1a419befe17f68472c27a03e5eb8f67d2f" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>KHyperrect</name></member>
+      <member refid="classKHyperrect_1a2ea765c7ecdafcf83222e42a865a7de5" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>KHyperrect</name></member>
+      <member refid="classKHyperrect_1accde8101f274b9f898cd1b14197789c2" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>list</name></member>
+      <member refid="classKHyperrect_1accd46f393dff61c1c3275930c3464143" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>operator&lt;&lt;</name></member>
+      <member refid="classKHyperrect_1a2e0b4c9582b64ff330d2ad5ec07cd47e" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>operator[]</name></member>
+      <member refid="classKHyperrect_1aec199552ae06f312b636b64ab27e9c0d" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>operator[]</name></member>
+      <member refid="classKHyperrect_1afc37e2a1abeb61570a7246f669980c94" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>set_list</name></member>
+      <member refid="classKHyperrect_1a477faf8cd7a6b7a68ef1cf1b99239ca4" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>size</name></member>
+      <member refid="classKHyperrect_1a62da73726441322d4f9cf7e5086056e7" prot="public" virt="non-virtual"><scope>KHyperrect</scope><name>tostring</name></member>
+      <member refid="classKHyperrect_1af0104654dbe19590473b6c3c4c3864d8" prot="public" virt="virtual"><scope>KHyperrect</scope><name>~KHyperrect</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

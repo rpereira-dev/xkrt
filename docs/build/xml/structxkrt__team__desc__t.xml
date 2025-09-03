@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__team__desc__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_team_desc_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__team__desc__t_1ac955deb17d3d91395b294cf9101b5478" prot="public" static="no" mutable="no">
+        <type>void *(*</type>
+        <definition>void*(* xkrt_team_desc_t::routine) (struct xkrt_team_t *team, struct xkrt_thread_t *thread)</definition>
+        <argsstring>)(struct xkrt_team_t *team, struct xkrt_thread_t *thread)</argsstring>
+        <name>routine</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="433" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="433" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__team__desc__t_1a028e4f415cda04d9f53eb5720262fad3" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* xkrt_team_desc_t::args</definition>
+        <argsstring></argsstring>
+        <name>args</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="436" column="11" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="436" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__team__desc__t_1af55555ce1dd2c2a6121fa69601c7821d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int xkrt_team_desc_t::nthreads</definition>
+        <argsstring></argsstring>
+        <name>nthreads</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="439" column="9" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="439" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__team__desc__t_1a1a3c5a0223afd35a3cfe1165e59b56eb" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__team__binding__t" kindref="compound">xkrt_team_binding_t</ref></type>
+        <definition>xkrt_team_binding_t xkrt_team_desc_t::binding</definition>
+        <argsstring></argsstring>
+        <name>binding</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="442" column="25" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="442" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__team__desc__t_1af12e7d69987aa177e13da621ff51b3e5" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool xkrt_team_desc_t::master_is_member</definition>
+        <argsstring></argsstring>
+        <name>master_is_member</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="445" column="10" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="445" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>xkrt_team_desc_t</label>
+        <link refid="structxkrt__team__desc__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>binding</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>xkrt_team_binding_t</label>
+        <link refid="structxkrt__team__binding__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="430" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="431" bodyend="447"/>
+    <listofallmembers>
+      <member refid="structxkrt__team__desc__t_1a028e4f415cda04d9f53eb5720262fad3" prot="public" virt="non-virtual"><scope>xkrt_team_desc_t</scope><name>args</name></member>
+      <member refid="structxkrt__team__desc__t_1a1a3c5a0223afd35a3cfe1165e59b56eb" prot="public" virt="non-virtual"><scope>xkrt_team_desc_t</scope><name>binding</name></member>
+      <member refid="structxkrt__team__desc__t_1af12e7d69987aa177e13da621ff51b3e5" prot="public" virt="non-virtual"><scope>xkrt_team_desc_t</scope><name>master_is_member</name></member>
+      <member refid="structxkrt__team__desc__t_1af55555ce1dd2c2a6121fa69601c7821d" prot="public" virt="non-virtual"><scope>xkrt_team_desc_t</scope><name>nthreads</name></member>
+      <member refid="structxkrt__team__desc__t_1ac955deb17d3d91395b294cf9101b5478" prot="public" virt="non-virtual"><scope>xkrt_team_desc_t</scope><name>routine</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

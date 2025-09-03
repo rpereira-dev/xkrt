@@ -1,0 +1,84 @@
+\hypertarget{classKBLASMemoryTreeNodeSearch}{}\doxysection{KBLASMemory\+Tree\+Node\+Search$<$ K $>$ Class Template Reference}
+\label{classKBLASMemoryTreeNodeSearch}\index{KBLASMemoryTreeNodeSearch$<$ K $>$@{KBLASMemoryTreeNodeSearch$<$ K $>$}}
+
+
+Collaboration diagram for KBLASMemory\+Tree\+Node\+Search$<$ K $>$\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classKBLASMemoryTreeNodeSearch__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classKBLASMemoryTreeNodeSearch_1_1Partite}{Partite}}
+\item 
+class \mbox{\hyperlink{classKBLASMemoryTreeNodeSearch_1_1Partition}{Partition}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_a63d2f13afe58a89b221bc49be7925d58}\label{classKBLASMemoryTreeNodeSearch_a63d2f13afe58a89b221bc49be7925d58}} 
+enum {\bfseries Type} \+: uint8\+\_\+t \{ {\bfseries INSERTING\+\_\+\+BLOCKS} = 0
+, {\bfseries SEARCH\+\_\+\+FOR\+\_\+\+PARTITION} = 1
+, {\bfseries SEARCH\+\_\+\+FETCHED} = 2
+, {\bfseries SEARCH\+\_\+\+OWNERS} = 3
+ \}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_a58ea42e433feb5aba5de7c02ce6cfe6a}\label{classKBLASMemoryTreeNodeSearch_a58ea42e433feb5aba5de7c02ce6cfe6a}} 
+{\bfseries KBLASMemory\+Tree\+Node\+Search} (device\+\_\+global\+\_\+id\+\_\+t devid)
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_ac438e1f7a170bdfe110015126b100176}\label{classKBLASMemoryTreeNodeSearch_ac438e1f7a170bdfe110015126b100176}} 
+void {\bfseries prepare\+\_\+insert} (\mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$a)
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_ae40fbd6b6291773944e161fdbb972687}\label{classKBLASMemoryTreeNodeSearch_ae40fbd6b6291773944e161fdbb972687}} 
+void {\bfseries prepare\+\_\+search\+\_\+partition} (void)
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_a5c37b27492512458574ed725065955d0}\label{classKBLASMemoryTreeNodeSearch_a5c37b27492512458574ed725065955d0}} 
+void {\bfseries prepare\+\_\+search\+\_\+fetched} (\mbox{\hyperlink{structarea__chunk__t}{area\+\_\+chunk\+\_\+t}} $\ast$chunk)
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_a69ceb89ef5b4da9e630c8cb87ee7fef4}\label{classKBLASMemoryTreeNodeSearch_a69ceb89ef5b4da9e630c8cb87ee7fef4}} 
+void {\bfseries prepare\+\_\+search\+\_\+owners} (void)
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_aa7baab78c430b91d4c35827a213c1c5d}\label{classKBLASMemoryTreeNodeSearch_aa7baab78c430b91d4c35827a213c1c5d}} 
+void {\bfseries prepare} (Type t)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_a6ad09cbe9a0062d725223953e87f4750}\label{classKBLASMemoryTreeNodeSearch_a6ad09cbe9a0062d725223953e87f4750}} 
+Type {\bfseries type}
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_ac88a3c8b59accea5837aca379801153b}\label{classKBLASMemoryTreeNodeSearch_ac88a3c8b59accea5837aca379801153b}} 
+const device\+\_\+global\+\_\+id\+\_\+t {\bfseries device\+\_\+global\+\_\+id}
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_adf411b4c7eb3be0d4af2dbf0eb1c92a7}\label{classKBLASMemoryTreeNodeSearch_adf411b4c7eb3be0d4af2dbf0eb1c92a7}} 
+\mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$ {\bfseries access}
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_a0853aeb0701fbe59c495ae3480248778}\label{classKBLASMemoryTreeNodeSearch_a0853aeb0701fbe59c495ae3480248778}} 
+\mbox{\hyperlink{classKBLASMemoryTreeNodeSearch_1_1Partition}{Partition}} {\bfseries partition}
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_a4f4ab54424d1a8260946710693a016c6}\label{classKBLASMemoryTreeNodeSearch_a4f4ab54424d1a8260946710693a016c6}} 
+\mbox{\hyperlink{structarea__chunk__t}{area\+\_\+chunk\+\_\+t}} $\ast$ {\bfseries chunk}
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_a06c415614a26cac70145657eb264e627}\label{classKBLASMemoryTreeNodeSearch_a06c415614a26cac70145657eb264e627}} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>std::vector$<$ \mbox{\hyperlink{classaccess__t}{access\_t}} $\ast$ $>$ {\bfseries accesses}\\
+\>std::vector$<$ \mbox{\hyperlink{classKMemoryForward}{MemoryForward}} $>$ {\bfseries forwards}\\
+\} {\bfseries awaiting}\\
+
+\end{tabbing}\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNodeSearch_a4bfcbfce846c5116a41b7622fbd7c4db}\label{classKBLASMemoryTreeNodeSearch_a4bfcbfce846c5116a41b7622fbd7c4db}} 
+size\+\_\+t {\bfseries bytes\+\_\+owned} \mbox{[}XKRT\+\_\+\+DEVICES\+\_\+\+MAX\mbox{]}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-\/tree.\+hpp\end{DoxyCompactItemize}

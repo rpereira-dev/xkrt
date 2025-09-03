@@ -1,0 +1,693 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classaccess__t" kind="class" language="C++" prot="public">
+    <compoundname>access_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classaccess__t_1ad261ef22964e15e49b6d8d0956a28c88" prot="public" static="no" mutable="no">
+        <type>access_state_t</type>
+        <definition>access_state_t access_t::state</definition>
+        <argsstring></argsstring>
+        <name>state</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="317" column="24" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="317" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1a33b08723d5f2791d2976e43688596ed0" prot="public" static="no" mutable="no">
+        <type>access_mode_t</type>
+        <definition>access_mode_t access_t::mode</definition>
+        <argsstring></argsstring>
+        <name>mode</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="324" column="23" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="324" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1ab88f0b45c407de54a36db458117a8cc4" prot="public" static="no" mutable="no">
+        <type>access_concurrency_t</type>
+        <definition>access_concurrency_t access_t::concurrency</definition>
+        <argsstring></argsstring>
+        <name>concurrency</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="327" column="30" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="327" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1a2d0e19b90e0874031765a4aa11017a76" prot="public" static="no" mutable="no">
+        <type>access_scope_t</type>
+        <definition>access_scope_t access_t::scope</definition>
+        <argsstring></argsstring>
+        <name>scope</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="330" column="24" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="330" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1a0973de1119566dc8e52e6eea2577c876" prot="public" static="no" mutable="no">
+        <type>access_type_t</type>
+        <definition>access_type_t access_t::type</definition>
+        <argsstring></argsstring>
+        <name>type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="333" column="23" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="333" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1ac664b70fa8ede08b79a1b92254b09286" prot="public" static="no" mutable="no">
+        <type>const void *</type>
+        <definition>const void* access_t::point</definition>
+        <argsstring></argsstring>
+        <name>point</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="346" column="29" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="346" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1ac5ac3cd6942d75615e9aefd1211658aa" prot="public" static="no" mutable="no">
+        <type><ref refid="classKHyperrect" kindref="compound">Segment</ref></type>
+        <definition>Segment access_t::segment</definition>
+        <argsstring></argsstring>
+        <name>segment</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="354" column="25" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="354" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1a051aacb419c1034ca2e13a93ba4d4db4" prot="public" static="no" mutable="no">
+        <type><ref refid="classKHyperrect" kindref="compound">Rect</ref></type>
+        <definition>Rect access_t::rects[3]</definition>
+        <argsstring>[3]</argsstring>
+        <name>rects</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>BLAS matrices have 2 rects in their frame of reference (ld, s) <ref refid="classInterval" kindref="compound">Interval</ref> accesses have 3 rects different on each frame of reference (ld, s) </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="366" column="22" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="366" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1a9567aee5eb39c3bacfe328369915629b" prot="public" static="no" mutable="no">
+        <type>union access_t::@41</type>
+        <definition>union access_t::@41 access_t::@42</definition>
+        <argsstring></argsstring>
+        <name>@42</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="369" column="9"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1aa4fa8b7b4ce8f3ba1c5709977acb1a1a" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classaccess__t" kindref="compound">access_t</ref> * &gt;</type>
+        <definition>std::vector&lt;access_t *&gt; access_t::successors</definition>
+        <argsstring></argsstring>
+        <name>successors</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="378" column="21" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="378" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1aa6931904c6b75823e49b4ccfa21faaf1" prot="public" static="no" mutable="no">
+        <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+        <definition>task_t* access_t::task</definition>
+        <argsstring></argsstring>
+        <name>task</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="385" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="385" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1a4c4ce937845f00017885fba8c0b42b0d" prot="public" static="no" mutable="no">
+        <type><ref refid="structmatrix__tile__t" kindref="compound">memory_view_t</ref></type>
+        <definition>memory_view_t access_t::host_view</definition>
+        <argsstring></argsstring>
+        <name>host_view</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="388" column="23" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="388" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classaccess__t_1a364edb51abf0b9e6b8559dac01b8b21c" prot="public" static="no" mutable="no">
+        <type><ref refid="structmemory__replica__view__t" kindref="compound">memory_replica_view_t</ref></type>
+        <definition>memory_replica_view_t access_t::device_view</definition>
+        <argsstring></argsstring>
+        <name>device_view</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="391" column="31" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="391" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classaccess__t_1aad3ce1cfcb0c448267ae67dc840cf7dd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>static bool access_t::intersects</definition>
+        <argsstring>(access_t *x, access_t *y)</argsstring>
+        <name>intersects</name>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>y</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>return true if the two access intersects </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="399" column="21"/>
+      </memberdef>
+      <memberdef kind="function" id="classaccess__t_1a0691cca02455dc47dfd769dbd5c2786e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>static bool access_t::conflicts</definition>
+        <argsstring>(access_t *x, access_t *y)</argsstring>
+        <name>conflicts</name>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>y</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>return true if the two accesses conflict </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="402" column="21"/>
+      </memberdef>
+      <memberdef kind="function" id="classaccess__t_1afc162858801627afecc50e54b371cd65" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void access_t::split</definition>
+        <argsstring>(access_t *x, access_t *y, task_t *y_task, access_split_mode_t mode=ACCESS_SPLIT_MODE_HALVES)</argsstring>
+        <name>split</name>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>y_task</declname>
+        </param>
+        <param>
+          <type>access_split_mode_t</type>
+          <declname>mode</declname>
+          <defval>ACCESS_SPLIT_MODE_HALVES</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Shrink the passed access x to halves (x, y) </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="405" column="21"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classaccess__t_1a91d0bf8bd7df4e2760c08d615e58ecc6" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>access_t::access_t</definition>
+        <argsstring>(task_t *task, const void *addr, access_mode_t mode, access_concurrency_t concurrency=ACCESS_CONCURRENCY_SEQUENTIAL, access_scope_t scope=ACCESS_SCOPE_NONUNIFIED)</argsstring>
+        <name>access_t</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <param>
+          <type>const void *</type>
+          <declname>addr</declname>
+        </param>
+        <param>
+          <type>access_mode_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>access_concurrency_t</type>
+          <declname>concurrency</declname>
+          <defval>ACCESS_CONCURRENCY_SEQUENTIAL</defval>
+        </param>
+        <param>
+          <type>access_scope_t</type>
+          <declname>scope</declname>
+          <defval>ACCESS_SCOPE_NONUNIFIED</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="418" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="418" bodyend="438"/>
+      </memberdef>
+      <memberdef kind="function" id="classaccess__t_1a6ef795d978d18014aca806e934105d6c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>access_t::access_t</definition>
+        <argsstring>(task_t *task, const uintptr_t a, const uintptr_t b, access_mode_t mode, access_concurrency_t concurrency=ACCESS_CONCURRENCY_SEQUENTIAL, access_scope_t scope=ACCESS_SCOPE_NONUNIFIED)</argsstring>
+        <name>access_t</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <param>
+          <type>const uintptr_t</type>
+          <declname>a</declname>
+        </param>
+        <param>
+          <type>const uintptr_t</type>
+          <declname>b</declname>
+        </param>
+        <param>
+          <type>access_mode_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>access_concurrency_t</type>
+          <declname>concurrency</declname>
+          <defval>ACCESS_CONCURRENCY_SEQUENTIAL</defval>
+        </param>
+        <param>
+          <type>access_scope_t</type>
+          <declname>scope</declname>
+          <defval>ACCESS_SCOPE_NONUNIFIED</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="444" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="444" bodyend="469"/>
+      </memberdef>
+      <memberdef kind="function" id="classaccess__t_1a636423d493ce5859431b2e95788c26fd" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>access_t::access_t</definition>
+        <argsstring>(task_t *task, const void *ptr, const size_t n, const size_t sizeof_type, access_mode_t mode, access_concurrency_t concurrency=ACCESS_CONCURRENCY_SEQUENTIAL, access_scope_t scope=ACCESS_SCOPE_NONUNIFIED)</argsstring>
+        <name>access_t</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <param>
+          <type>const void *</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>sizeof_type</declname>
+        </param>
+        <param>
+          <type>access_mode_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>access_concurrency_t</type>
+          <declname>concurrency</declname>
+          <defval>ACCESS_CONCURRENCY_SEQUENTIAL</defval>
+        </param>
+        <param>
+          <type>access_scope_t</type>
+          <declname>scope</declname>
+          <defval>ACCESS_SCOPE_NONUNIFIED</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="471" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="471" bodyend="488"/>
+      </memberdef>
+      <memberdef kind="function" id="classaccess__t_1a2ea1f7e2ecfc5c3f565b44afd61d5816" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>access_t::access_t</definition>
+        <argsstring>(task_t *task, const matrix_storage_t &amp;storage, const void *addr, const size_t ld, const size_t offset_m, const size_t offset_n, const size_t m, const size_t n, const size_t s, access_mode_t mode, access_concurrency_t concurrency=ACCESS_CONCURRENCY_SEQUENTIAL, access_scope_t scope=ACCESS_SCOPE_NONUNIFIED)</argsstring>
+        <name>access_t</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <param>
+          <type>const matrix_storage_t &amp;</type>
+          <declname>storage</declname>
+        </param>
+        <param>
+          <type>const void *</type>
+          <declname>addr</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>ld</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>offset_m</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>offset_n</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>m</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>s</declname>
+        </param>
+        <param>
+          <type>access_mode_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>access_concurrency_t</type>
+          <declname>concurrency</declname>
+          <defval>ACCESS_CONCURRENCY_SEQUENTIAL</defval>
+        </param>
+        <param>
+          <type>access_scope_t</type>
+          <declname>scope</declname>
+          <defval>ACCESS_SCOPE_NONUNIFIED</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="494" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="494" bodyend="531"/>
+      </memberdef>
+      <memberdef kind="function" id="classaccess__t_1ade5f2259e81c500c13004117a8f9ceb4" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>access_t::access_t</definition>
+        <argsstring>(task_t *task, const matrix_storage_t &amp;storage, const void *addr, const size_t ld, const size_t m, const size_t n, const size_t s, access_mode_t mode, access_concurrency_t concurrency=ACCESS_CONCURRENCY_SEQUENTIAL, access_scope_t scope=ACCESS_SCOPE_NONUNIFIED)</argsstring>
+        <name>access_t</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <param>
+          <type>const matrix_storage_t &amp;</type>
+          <declname>storage</declname>
+        </param>
+        <param>
+          <type>const void *</type>
+          <declname>addr</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>ld</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>m</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>s</declname>
+        </param>
+        <param>
+          <type>access_mode_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>access_concurrency_t</type>
+          <declname>concurrency</declname>
+          <defval>ACCESS_CONCURRENCY_SEQUENTIAL</defval>
+        </param>
+        <param>
+          <type>access_scope_t</type>
+          <declname>scope</declname>
+          <defval>ACCESS_SCOPE_NONUNIFIED</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="533" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="533" bodyend="544"/>
+      </memberdef>
+      <memberdef kind="function" id="classaccess__t_1a0d37bd323a62a25a6bbe59ea4552802f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>access_t::access_t</definition>
+        <argsstring>(task_t *task, const matrix_storage_t &amp;storage, const Rect &amp;h, const size_t ld, const size_t s, access_mode_t mode, access_concurrency_t concurrency=ACCESS_CONCURRENCY_SEQUENTIAL, access_scope_t scope=ACCESS_SCOPE_NONUNIFIED)</argsstring>
+        <name>access_t</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <param>
+          <type>const matrix_storage_t &amp;</type>
+          <declname>storage</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Rect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>ld</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>s</declname>
+        </param>
+        <param>
+          <type>access_mode_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>access_concurrency_t</type>
+          <declname>concurrency</declname>
+          <defval>ACCESS_CONCURRENCY_SEQUENTIAL</defval>
+        </param>
+        <param>
+          <type>access_scope_t</type>
+          <declname>scope</declname>
+          <defval>ACCESS_SCOPE_NONUNIFIED</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="546" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="546" bodyend="576"/>
+      </memberdef>
+      <memberdef kind="function" id="classaccess__t_1a2a63a5f0c90a50fe728eb33762fdc8f0" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>access_t::access_t</definition>
+        <argsstring>(task_t *task, const access_t *other, access_mode_t mode, access_concurrency_t concurrency=ACCESS_CONCURRENCY_SEQUENTIAL, access_scope_t scope=ACCESS_SCOPE_NONUNIFIED)</argsstring>
+        <name>access_t</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>other</declname>
+        </param>
+        <param>
+          <type>access_mode_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>access_concurrency_t</type>
+          <declname>concurrency</declname>
+          <defval>ACCESS_CONCURRENCY_SEQUENTIAL</defval>
+        </param>
+        <param>
+          <type>access_scope_t</type>
+          <declname>scope</declname>
+          <defval>ACCESS_SCOPE_NONUNIFIED</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="578" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="578" bodyend="597"/>
+      </memberdef>
+      <memberdef kind="function" id="classaccess__t_1a4251b5b547050e5269da69e97bf8bf5f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>access_t::access_t</definition>
+        <argsstring>(task_t *task, access_mode_t mode, access_concurrency_t concurrency=ACCESS_CONCURRENCY_SEQUENTIAL, access_scope_t scope=ACCESS_SCOPE_NONUNIFIED)</argsstring>
+        <name>access_t</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <param>
+          <type>access_mode_t</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>access_concurrency_t</type>
+          <declname>concurrency</declname>
+          <defval>ACCESS_CONCURRENCY_SEQUENTIAL</defval>
+        </param>
+        <param>
+          <type>access_scope_t</type>
+          <declname>scope</declname>
+          <defval>ACCESS_SCOPE_NONUNIFIED</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="603" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="603" bodyend="624"/>
+      </memberdef>
+      <memberdef kind="function" id="classaccess__t_1a9cf0a0e7fd1978ad19135ba3e4c84733" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>access_t::~access_t</definition>
+        <argsstring>()</argsstring>
+        <name>~access_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="626" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="626" bodyend="626"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="3">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="4">
+        <label>KHyperrect&lt; 1 &gt;</label>
+        <link refid="classKHyperrect"/>
+      </node>
+      <node id="6">
+        <label>matrix_tile_t</label>
+        <link refid="structmatrix__tile__t"/>
+      </node>
+      <node id="2">
+        <label>task_t</label>
+        <link refid="structtask__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>KHyperrect&lt; 2 &gt;</label>
+        <link refid="classKHyperrect"/>
+      </node>
+      <node id="1">
+        <label>access_t</label>
+        <link refid="classaccess__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>task</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>device_view</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>segment</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>rects</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>host_view</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" line="308" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/access.hpp" bodystart="309" bodyend="628"/>
+    <listofallmembers>
+      <member refid="classaccess__t_1a91d0bf8bd7df4e2760c08d615e58ecc6" prot="public" virt="non-virtual"><scope>access_t</scope><name>access_t</name></member>
+      <member refid="classaccess__t_1a6ef795d978d18014aca806e934105d6c" prot="public" virt="non-virtual"><scope>access_t</scope><name>access_t</name></member>
+      <member refid="classaccess__t_1a636423d493ce5859431b2e95788c26fd" prot="public" virt="non-virtual"><scope>access_t</scope><name>access_t</name></member>
+      <member refid="classaccess__t_1a2ea1f7e2ecfc5c3f565b44afd61d5816" prot="public" virt="non-virtual"><scope>access_t</scope><name>access_t</name></member>
+      <member refid="classaccess__t_1ade5f2259e81c500c13004117a8f9ceb4" prot="public" virt="non-virtual"><scope>access_t</scope><name>access_t</name></member>
+      <member refid="classaccess__t_1a0d37bd323a62a25a6bbe59ea4552802f" prot="public" virt="non-virtual"><scope>access_t</scope><name>access_t</name></member>
+      <member refid="classaccess__t_1a2a63a5f0c90a50fe728eb33762fdc8f0" prot="public" virt="non-virtual"><scope>access_t</scope><name>access_t</name></member>
+      <member refid="classaccess__t_1a4251b5b547050e5269da69e97bf8bf5f" prot="public" virt="non-virtual"><scope>access_t</scope><name>access_t</name></member>
+      <member refid="classaccess__t_1ab88f0b45c407de54a36db458117a8cc4" prot="public" virt="non-virtual"><scope>access_t</scope><name>concurrency</name></member>
+      <member refid="classaccess__t_1a0691cca02455dc47dfd769dbd5c2786e" prot="public" virt="non-virtual"><scope>access_t</scope><name>conflicts</name></member>
+      <member refid="classaccess__t_1a364edb51abf0b9e6b8559dac01b8b21c" prot="public" virt="non-virtual"><scope>access_t</scope><name>device_view</name></member>
+      <member refid="classaccess__t_1a4c4ce937845f00017885fba8c0b42b0d" prot="public" virt="non-virtual"><scope>access_t</scope><name>host_view</name></member>
+      <member refid="classaccess__t_1aad3ce1cfcb0c448267ae67dc840cf7dd" prot="public" virt="non-virtual"><scope>access_t</scope><name>intersects</name></member>
+      <member refid="classaccess__t_1a33b08723d5f2791d2976e43688596ed0" prot="public" virt="non-virtual"><scope>access_t</scope><name>mode</name></member>
+      <member refid="classaccess__t_1ac664b70fa8ede08b79a1b92254b09286" prot="public" virt="non-virtual"><scope>access_t</scope><name>point</name></member>
+      <member refid="classaccess__t_1a051aacb419c1034ca2e13a93ba4d4db4" prot="public" virt="non-virtual"><scope>access_t</scope><name>rects</name></member>
+      <member refid="classaccess__t_1a2d0e19b90e0874031765a4aa11017a76" prot="public" virt="non-virtual"><scope>access_t</scope><name>scope</name></member>
+      <member refid="classaccess__t_1ac5ac3cd6942d75615e9aefd1211658aa" prot="public" virt="non-virtual"><scope>access_t</scope><name>segment</name></member>
+      <member refid="classaccess__t_1afc162858801627afecc50e54b371cd65" prot="public" virt="non-virtual"><scope>access_t</scope><name>split</name></member>
+      <member refid="classaccess__t_1ad261ef22964e15e49b6d8d0956a28c88" prot="public" virt="non-virtual"><scope>access_t</scope><name>state</name></member>
+      <member refid="classaccess__t_1aa4fa8b7b4ce8f3ba1c5709977acb1a1a" prot="public" virt="non-virtual"><scope>access_t</scope><name>successors</name></member>
+      <member refid="classaccess__t_1aa6931904c6b75823e49b4ccfa21faaf1" prot="public" virt="non-virtual"><scope>access_t</scope><name>task</name></member>
+      <member refid="classaccess__t_1a0973de1119566dc8e52e6eea2577c876" prot="public" virt="non-virtual"><scope>access_t</scope><name>type</name></member>
+      <member refid="classaccess__t_1a9cf0a0e7fd1978ad19135ba3e4c84733" prot="public" virt="non-virtual"><scope>access_t</scope><name>~access_t</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

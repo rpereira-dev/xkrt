@@ -1,0 +1,782 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="conf_8h" kind="file" language="C++">
+    <compoundname>conf.h</compoundname>
+    <includes local="no">stdint.h</includes>
+    <includes refid="todo_8h" local="no">xkrt/logger/todo.h</includes>
+    <includes refid="driver-type_8h" local="no">xkrt/driver/driver-type.h</includes>
+    <includes refid="stream_8h" local="no">xkrt/driver/stream.h</includes>
+    <includedby refid="device_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp</includedby>
+    <includedby refid="runtime_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h</includedby>
+    <incdepgraph>
+      <node id="62">
+        <label>list</label>
+      </node>
+      <node id="15">
+        <label>xkrt/memory/access/blas/matrix.h</label>
+        <link refid="matrix_8h_source"/>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>atomic</label>
+      </node>
+      <node id="60">
+        <label>xkrt/thread/naive-queue.hpp</label>
+        <link refid="naive-queue_8hpp_source"/>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="61" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="62" relation="include">
+        </childnode>
+      </node>
+      <node id="10">
+        <label>xkrt/driver/stream.h</label>
+        <link refid="stream_8h_source"/>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="32">
+        <label>xkrt/memory/access/common/khp-tree.hpp</label>
+        <link refid="khp-tree_8hpp_source"/>
+        <childnode refid="33" relation="include">
+        </childnode>
+        <childnode refid="34" relation="include">
+        </childnode>
+        <childnode refid="35" relation="include">
+        </childnode>
+        <childnode refid="36" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="37" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="38" relation="include">
+        </childnode>
+        <childnode refid="39" relation="include">
+        </childnode>
+        <childnode refid="40" relation="include">
+        </childnode>
+        <childnode refid="41" relation="include">
+        </childnode>
+        <childnode refid="42" relation="include">
+        </childnode>
+        <childnode refid="43" relation="include">
+        </childnode>
+        <childnode refid="45" relation="include">
+        </childnode>
+      </node>
+      <node id="57">
+        <label>xkrt/memory/alignas.h</label>
+        <link refid="alignas_8h_source"/>
+      </node>
+      <node id="6">
+        <label>xkrt/types.h</label>
+        <link refid="types_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="24">
+        <label>functional</label>
+      </node>
+      <node id="28">
+        <label>xkrt/sync/spinlock.h</label>
+        <link refid="spinlock_8h_source"/>
+        <childnode refid="29" relation="include">
+        </childnode>
+      </node>
+      <node id="16">
+        <label>assert.h</label>
+      </node>
+      <node id="22">
+        <label>xkrt/sync/mutex.h</label>
+        <link refid="mutex_8h_source"/>
+        <childnode refid="23" relation="include">
+        </childnode>
+      </node>
+      <node id="41">
+        <label>cstdint</label>
+      </node>
+      <node id="2">
+        <label>stdint.h</label>
+      </node>
+      <node id="9">
+        <label>stdlib.h</label>
+      </node>
+      <node id="33">
+        <label>cassert</label>
+      </node>
+      <node id="42">
+        <label>xkrt/utils/min-max.h</label>
+        <link refid="min-max_8h_source"/>
+      </node>
+      <node id="52">
+        <label>xkrt/memory/access/mode.h</label>
+        <link refid="mode_8h_source"/>
+      </node>
+      <node id="45">
+        <label>xkrt/sync/direction.h</label>
+        <link refid="direction_8h_source"/>
+      </node>
+      <node id="51">
+        <label>xkrt/memory/access/access.hpp</label>
+        <link refid="access_8hpp_source"/>
+        <childnode refid="52" relation="include">
+        </childnode>
+        <childnode refid="43" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>xkrt/namespace.h</label>
+        <link refid="namespace_8h_source"/>
+      </node>
+      <node id="47">
+        <label>xkrt/logger/logger.h</label>
+        <link refid="logger_8h_source"/>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="48" relation="include">
+        </childnode>
+        <childnode refid="49" relation="include">
+        </childnode>
+        <childnode refid="50" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="17">
+        <label>stddef.h</label>
+      </node>
+      <node id="39">
+        <label>ostream</label>
+      </node>
+      <node id="29">
+        <label>xkrt/sync/mem.h</label>
+        <link refid="mem_8h_source"/>
+      </node>
+      <node id="14">
+        <label>xkrt/memory/view.hpp</label>
+        <link refid="view_8hpp_source"/>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>xkrt/consts.h</label>
+        <link refid="consts_8h_source"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>xkrt/logger/todo.h</label>
+        <link refid="todo_8h_source"/>
+      </node>
+      <node id="11">
+        <label>xkrt/support.h</label>
+        <link refid="support_8h_source"/>
+      </node>
+      <node id="63">
+        <label>random</label>
+      </node>
+      <node id="20">
+        <label>xkrt/driver/stream-instruction-type.h</label>
+        <link refid="stream-instruction-type_8h_source"/>
+      </node>
+      <node id="23">
+        <label>pthread.h</label>
+      </node>
+      <node id="64">
+        <label>linux/futex.h</label>
+      </node>
+      <node id="18">
+        <label>sys/types.h</label>
+      </node>
+      <node id="30">
+        <label>xkrt/thread/thread.h</label>
+        <link refid="thread_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+        <childnode refid="53" relation="include">
+        </childnode>
+        <childnode refid="57" relation="include">
+        </childnode>
+        <childnode refid="58" relation="include">
+        </childnode>
+        <childnode refid="60" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="63" relation="include">
+        </childnode>
+        <childnode refid="64" relation="include">
+        </childnode>
+        <childnode refid="65" relation="include">
+        </childnode>
+        <childnode refid="49" relation="include">
+        </childnode>
+      </node>
+      <node id="34">
+        <label>cstdio</label>
+      </node>
+      <node id="43">
+        <label>xkrt/memory/access/common/hyperrect.hpp</label>
+        <link refid="hyperrect_8hpp_source"/>
+        <childnode refid="42" relation="include">
+        </childnode>
+        <childnode refid="44" relation="include">
+        </childnode>
+        <childnode refid="33" relation="include">
+        </childnode>
+        <childnode refid="36" relation="include">
+        </childnode>
+        <childnode refid="39" relation="include">
+        </childnode>
+        <childnode refid="40" relation="include">
+        </childnode>
+        <childnode refid="35" relation="include">
+        </childnode>
+      </node>
+      <node id="44">
+        <label>xkrt/memory/access/common/interval.hpp</label>
+        <link refid="interval_8hpp_source"/>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="49">
+        <label>unistd.h</label>
+      </node>
+      <node id="19">
+        <label>vector</label>
+      </node>
+      <node id="46">
+        <label>xkrt/memory/access/dependency-domain.hpp</label>
+        <link refid="dependency-domain_8hpp_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="47" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="51" relation="include">
+        </childnode>
+      </node>
+      <node id="59">
+        <label>new</label>
+      </node>
+      <node id="25">
+        <label>xkrt/driver/stream-type.h</label>
+        <link refid="stream-type_8h_source"/>
+      </node>
+      <node id="21">
+        <label>xkrt/memory/cache-line-size.hpp</label>
+        <link refid="cache-line-size_8hpp_source"/>
+      </node>
+      <node id="12">
+        <label>xkrt/driver/stream-instruction.h</label>
+        <link refid="stream-instruction_8h_source"/>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>xkrt/callback.h</label>
+        <link refid="callback_8h_source"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="48">
+        <label>time.h</label>
+      </node>
+      <node id="26">
+        <label>xkrt/stats/stats.h</label>
+        <link refid="stats_8h_source"/>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="36">
+        <label>cstdlib</label>
+      </node>
+      <node id="40">
+        <label>iostream</label>
+      </node>
+      <node id="56">
+        <label>unordered_map</label>
+      </node>
+      <node id="1">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h</label>
+        <link refid="conf_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="58">
+        <label>xkrt/thread/deque.hpp</label>
+        <link refid="deque_8hpp_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="57" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="59" relation="include">
+        </childnode>
+      </node>
+      <node id="37">
+        <label>climits</label>
+      </node>
+      <node id="53">
+        <label>xkrt/task/task.hpp</label>
+        <link refid="task_8hpp_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="46" relation="include">
+        </childnode>
+        <childnode refid="54" relation="include">
+        </childnode>
+        <childnode refid="47" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="51" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="55" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+      </node>
+      <node id="55">
+        <label>xkrt/memory/access/coherency-controller.hpp</label>
+        <link refid="coherency-controller_8hpp_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="51" relation="include">
+        </childnode>
+      </node>
+      <node id="27">
+        <label>xkrt/sync/lockable.hpp</label>
+        <link refid="lockable_8hpp_source"/>
+        <childnode refid="28" relation="include">
+        </childnode>
+      </node>
+      <node id="61">
+        <label>xkrt/driver/iqueue.hpp</label>
+        <link refid="iqueue_8hpp_source"/>
+      </node>
+      <node id="4">
+        <label>xkrt/driver/driver-type.h</label>
+        <link refid="driver-type_8h_source"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="65">
+        <label>sys/syscall.h</label>
+      </node>
+      <node id="31">
+        <label>xkrt/memory/access/blas/dependency-tree.hpp</label>
+        <link refid="blas_2dependency-tree_8hpp_source"/>
+        <childnode refid="32" relation="include">
+        </childnode>
+        <childnode refid="46" relation="include">
+        </childnode>
+        <childnode refid="53" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="56" relation="include">
+        </childnode>
+      </node>
+      <node id="38">
+        <label>type_traits</label>
+      </node>
+      <node id="54">
+        <label>xkrt/task/task-format.h</label>
+        <link refid="task-format_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="50">
+        <label>stdio.h</label>
+      </node>
+      <node id="35">
+        <label>cstring</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp</label>
+        <link refid="device_8hpp_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-host.h</label>
+        <link refid="driver-host_8h_source"/>
+      </node>
+      <node id="3">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h</label>
+        <link refid="driver-sycl_8h_source"/>
+      </node>
+      <node id="9">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp</label>
+        <link refid="memory-tree_8hpp_source"/>
+      </node>
+      <node id="7">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cu.h</label>
+        <link refid="driver-cu_8h_source"/>
+      </node>
+      <node id="5">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-ze-blas.h</label>
+        <link refid="driver-ze-blas_8h_source"/>
+      </node>
+      <node id="10">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h</label>
+        <link refid="runtime_8h_source"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-ze.h</label>
+        <link refid="driver-ze_8h_source"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h</label>
+        <link refid="conf_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver.h</label>
+        <link refid="driver_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structconf__stream__t" prot="public">conf_stream_t</innerclass>
+    <innerclass refid="structconf__offloader__t" prot="public">conf_offloader_t</innerclass>
+    <innerclass refid="structconf__device__t" prot="public">conf_device_t</innerclass>
+    <innerclass refid="structconf__driver__t" prot="public">conf_driver_t</innerclass>
+    <innerclass refid="structconf__drivers__t" prot="public">conf_drivers_t</innerclass>
+    <innerclass refid="structconf__s" prot="public">conf_s</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="conf_8h_1ac9c39d349dad39d58014f8540caae400" prot="public" static="no">
+        <type>XKRT_NAMESPACE_BEGIN struct <ref refid="structconf__stream__t" kindref="compound">conf_stream_t</ref></type>
+        <definition>typedef XKRT_NAMESPACE_BEGIN struct conf_stream_t conf_stream_t</definition>
+        <argsstring></argsstring>
+        <name>conf_stream_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="62" column="29"/>
+      </memberdef>
+      <memberdef kind="typedef" id="conf_8h_1a7d0019e6500ffd5445683f7cc85803bd" prot="public" static="no">
+        <type>struct <ref refid="structconf__offloader__t" kindref="compound">conf_offloader_t</ref></type>
+        <definition>typedef struct conf_offloader_t conf_offloader_t</definition>
+        <argsstring></argsstring>
+        <name>conf_offloader_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="69" column="32"/>
+      </memberdef>
+      <memberdef kind="typedef" id="conf_8h_1aca3bf404b2c25d3698b58b1cf4c6f0de" prot="public" static="no">
+        <type>struct <ref refid="structconf__device__t" kindref="compound">conf_device_t</ref></type>
+        <definition>typedef struct conf_device_t conf_device_t</definition>
+        <argsstring></argsstring>
+        <name>conf_device_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="77" column="29"/>
+      </memberdef>
+      <memberdef kind="typedef" id="conf_8h_1a853f35c71d8ddfc8560e32d67cb03e94" prot="public" static="no">
+        <type>struct <ref refid="structconf__driver__t" kindref="compound">conf_driver_t</ref></type>
+        <definition>typedef struct conf_driver_t conf_driver_t</definition>
+        <argsstring></argsstring>
+        <name>conf_driver_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="83" column="29"/>
+      </memberdef>
+      <memberdef kind="typedef" id="conf_8h_1ac2989f38c056f73b2ae6b7ca92d2b9e0" prot="public" static="no">
+        <type>struct <ref refid="structconf__drivers__t" kindref="compound">conf_drivers_t</ref></type>
+        <definition>typedef struct conf_drivers_t conf_drivers_t</definition>
+        <argsstring></argsstring>
+        <name>conf_drivers_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="89" column="30"/>
+      </memberdef>
+      <memberdef kind="typedef" id="conf_8h_1a002b4600581316db04054ac33fdc5338" prot="public" static="no">
+        <type>struct <ref refid="structconf__s" kindref="compound">conf_s</ref></type>
+        <definition>typedef struct conf_s conf_t</definition>
+        <argsstring></argsstring>
+        <name>conf_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="115" column="22"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="2"><highlight class="comment">**<sp/>Copyright<sp/>2024<sp/>INRIA</highlight></codeline>
+<codeline lineno="3"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="4"><highlight class="comment">**<sp/>Contributors<sp/>:</highlight></codeline>
+<codeline lineno="5"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="6"><highlight class="comment">**<sp/>Romain<sp/>PEREIRA,<sp/>romain.pereira@inria.fr</highlight></codeline>
+<codeline lineno="7"><highlight class="comment">**<sp/>Romain<sp/>PEREIRA,<sp/>rpereira@anl.gov</highlight></codeline>
+<codeline lineno="8"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="9"><highlight class="comment">**<sp/>This<sp/>software<sp/>is<sp/>a<sp/>computer<sp/>program<sp/>whose<sp/>purpose<sp/>is<sp/>to<sp/>execute</highlight></codeline>
+<codeline lineno="10"><highlight class="comment">**<sp/>blas<sp/>subroutines<sp/>on<sp/>multi-GPUs<sp/>system.</highlight></codeline>
+<codeline lineno="11"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="12"><highlight class="comment">**<sp/>This<sp/>software<sp/>is<sp/>governed<sp/>by<sp/>the<sp/>CeCILL-C<sp/>license<sp/>under<sp/>French<sp/>law<sp/>and</highlight></codeline>
+<codeline lineno="13"><highlight class="comment">**<sp/>abiding<sp/>by<sp/>the<sp/>rules<sp/>of<sp/>distribution<sp/>of<sp/>free<sp/>software.<sp/><sp/>You<sp/>can<sp/><sp/>use,</highlight></codeline>
+<codeline lineno="14"><highlight class="comment">**<sp/>modify<sp/>and/<sp/>or<sp/>redistribute<sp/>the<sp/>software<sp/>under<sp/>the<sp/>terms<sp/>of<sp/>the<sp/>CeCILL-C</highlight></codeline>
+<codeline lineno="15"><highlight class="comment">**<sp/>license<sp/>as<sp/>circulated<sp/>by<sp/>CEA,<sp/>CNRS<sp/>and<sp/>INRIA<sp/>at<sp/>the<sp/>following<sp/>URL</highlight></codeline>
+<codeline lineno="16"><highlight class="comment">**<sp/>&quot;http://www.cecill.info&quot;.</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"></highlight></codeline>
+<codeline lineno="18"><highlight class="comment">**<sp/>As<sp/>a<sp/>counterpart<sp/>to<sp/>the<sp/>access<sp/>to<sp/>the<sp/>source<sp/>code<sp/>and<sp/><sp/>rights<sp/>to<sp/>copy,</highlight></codeline>
+<codeline lineno="19"><highlight class="comment">**<sp/>modify<sp/>and<sp/>redistribute<sp/>granted<sp/>by<sp/>the<sp/>license,<sp/>users<sp/>are<sp/>provided<sp/>only</highlight></codeline>
+<codeline lineno="20"><highlight class="comment">**<sp/>with<sp/>a<sp/>limited<sp/>warranty<sp/><sp/>and<sp/>the<sp/>software&apos;s<sp/>author,<sp/><sp/>the<sp/>holder<sp/>of<sp/>the</highlight></codeline>
+<codeline lineno="21"><highlight class="comment">**<sp/>economic<sp/>rights,<sp/><sp/>and<sp/>the<sp/>successive<sp/>licensors<sp/><sp/>have<sp/>only<sp/><sp/>limited</highlight></codeline>
+<codeline lineno="22"><highlight class="comment">**<sp/>liability.</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"></highlight></codeline>
+<codeline lineno="24"><highlight class="comment">**<sp/>In<sp/>this<sp/>respect,<sp/>the<sp/>user&apos;s<sp/>attention<sp/>is<sp/>drawn<sp/>to<sp/>the<sp/>risks<sp/>associated</highlight></codeline>
+<codeline lineno="25"><highlight class="comment">**<sp/>with<sp/>loading,<sp/><sp/>using,<sp/><sp/>modifying<sp/>and/or<sp/>developing<sp/>or<sp/>reproducing<sp/>the</highlight></codeline>
+<codeline lineno="26"><highlight class="comment">**<sp/>software<sp/>by<sp/>the<sp/>user<sp/>in<sp/>light<sp/>of<sp/>its<sp/>specific<sp/>status<sp/>of<sp/>free<sp/>software,</highlight></codeline>
+<codeline lineno="27"><highlight class="comment">**<sp/>that<sp/>may<sp/>mean<sp/><sp/>that<sp/>it<sp/>is<sp/>complicated<sp/>to<sp/>manipulate,<sp/><sp/>and<sp/><sp/>that<sp/><sp/>also</highlight></codeline>
+<codeline lineno="28"><highlight class="comment">**<sp/>therefore<sp/>means<sp/><sp/>that<sp/>it<sp/>is<sp/>reserved<sp/>for<sp/>developers<sp/><sp/>and<sp/><sp/>experienced</highlight></codeline>
+<codeline lineno="29"><highlight class="comment">**<sp/>professionals<sp/>having<sp/>in-depth<sp/>computer<sp/>knowledge.<sp/>Users<sp/>are<sp/>therefore</highlight></codeline>
+<codeline lineno="30"><highlight class="comment">**<sp/>encouraged<sp/>to<sp/>load<sp/>and<sp/>test<sp/>the<sp/>software&apos;s<sp/>suitability<sp/>as<sp/>regards<sp/>their</highlight></codeline>
+<codeline lineno="31"><highlight class="comment">**<sp/>requirements<sp/>in<sp/>conditions<sp/>enabling<sp/>the<sp/>security<sp/>of<sp/>their<sp/>systems<sp/>and/or</highlight></codeline>
+<codeline lineno="32"><highlight class="comment">**<sp/>data<sp/>to<sp/>be<sp/>ensured<sp/>and,<sp/><sp/>more<sp/>generally,<sp/>to<sp/>use<sp/>and<sp/>operate<sp/>it<sp/>in<sp/>the</highlight></codeline>
+<codeline lineno="33"><highlight class="comment">**<sp/>same<sp/>conditions<sp/>as<sp/>regards<sp/>security.</highlight></codeline>
+<codeline lineno="34"><highlight class="comment"></highlight></codeline>
+<codeline lineno="35"><highlight class="comment">**<sp/>The<sp/>fact<sp/>that<sp/>you<sp/>are<sp/>presently<sp/>reading<sp/>this<sp/>means<sp/>that<sp/>you<sp/>have<sp/>had</highlight></codeline>
+<codeline lineno="36"><highlight class="comment">**<sp/>knowledge<sp/>of<sp/>the<sp/>CeCILL-C<sp/>license<sp/>and<sp/>that<sp/>you<sp/>accept<sp/>its<sp/>terms.</highlight></codeline>
+<codeline lineno="37"><highlight class="comment">**/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__XKRT_CONF_H__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>__XKRT_CONF_H__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;xkrt/logger/todo.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;xkrt/driver/driver-type.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;xkrt/driver/stream.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal">XKRT_NAMESPACE_BEGIN</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="comment">//<sp/><sp/>DEVICE<sp/>CONF<sp/>//</highlight></codeline>
+<codeline lineno="53"><highlight class="comment"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54" refid="structconf__stream__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/><sp/></highlight><highlight class="normal"><ref refid="structconf__stream__t" kindref="compound">conf_stream_t</ref></highlight></codeline>
+<codeline lineno="55"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>number<sp/>of<sp/>stream<sp/>per<sp/>operation<sp/>(&lt;=&gt;<sp/>cuda<sp/>stream)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/>int8_t<sp/>n;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>number<sp/>of<sp/>concurrent<sp/>operations<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>uint32_t<sp/>concurrency;</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal">}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structconf__stream__t" kindref="compound">conf_stream_t</ref>;</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64" refid="structconf__offloader__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/><sp/></highlight><highlight class="normal"><ref refid="structconf__offloader__t" kindref="compound">conf_offloader_t</ref></highlight></codeline>
+<codeline lineno="65"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structconf__stream__t" kindref="compound">conf_stream_t</ref><sp/>streams[STREAM_TYPE_ALL];</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/>uint16_t<sp/>capacity;</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal">}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structconf__offloader__t" kindref="compound">conf_offloader_t</ref>;</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71" refid="structconf__device__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/><sp/></highlight><highlight class="normal"><ref refid="structconf__device__t" kindref="compound">conf_device_t</ref></highlight></codeline>
+<codeline lineno="72"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>gpu_mem_percent;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>%<sp/>of<sp/>gpu<sp/>memory<sp/>to<sp/>allocate<sp/>initially<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ngpus;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>number<sp/>of<sp/>GPU<sp/>for<sp/>this<sp/>node<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>use_p2p;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>enable/disable<sp/>p2p<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structconf__offloader__t" kindref="compound">conf_offloader_t</ref><sp/>offloader;<sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>offloader<sp/>conf<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal">}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structconf__device__t" kindref="compound">conf_device_t</ref>;</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight></codeline>
+<codeline lineno="79" refid="structconf__driver__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/><sp/></highlight><highlight class="normal"><ref refid="structconf__driver__t" kindref="compound">conf_driver_t</ref></highlight></codeline>
+<codeline lineno="80"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>nthreads_per_device;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>used;</highlight></codeline>
+<codeline lineno="83"><highlight class="normal">}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structconf__driver__t" kindref="compound">conf_driver_t</ref>;</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85" refid="structconf__drivers__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/><sp/></highlight><highlight class="normal"><ref refid="structconf__drivers__t" kindref="compound">conf_drivers_t</ref></highlight></codeline>
+<codeline lineno="86"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structconf__driver__t" kindref="compound">conf_driver_t</ref><sp/>list[XKRT_DRIVER_TYPE_MAX];</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal">}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structconf__drivers__t" kindref="compound">conf_drivers_t</ref>;</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight></codeline>
+<codeline lineno="93" refid="structconf__s" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/><sp/></highlight><highlight class="normal"><ref refid="structconf__s" kindref="compound">conf_s</ref></highlight></codeline>
+<codeline lineno="94"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structconf__device__t" kindref="compound">conf_device_t</ref><sp/>device;<sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>device<sp/>conf<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structconf__drivers__t" kindref="compound">conf_drivers_t</ref><sp/>drivers;<sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>driver<sp/>conf<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>merge_transfers;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>attempt<sp/>to<sp/>merge<sp/>continuous<sp/>memory<sp/>to<sp/>a<sp/>single<sp/>transfer<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>report_stats_on_deinit;<sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>report<sp/>stats<sp/>on<sp/>deinit<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>keep<sp/>track<sp/>of<sp/>registered<sp/>memory,<sp/>and<sp/>split<sp/>transfers<sp/>for<sp/>each<sp/>registered</highlight></codeline>
+<codeline lineno="101"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/>*<sp/>segment<sp/>to<sp/>avoid<sp/>cuda<sp/>crashing<sp/>while<sp/>transfering<sp/>memory<sp/>that<sp/>is</highlight></codeline>
+<codeline lineno="102"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/>*<sp/>partially<sp/>registered<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>protect_registered_memory_overflow;</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>prefetch<sp/>memory:<sp/>when<sp/>completing<sp/>a<sp/>predecessor,<sp/>if<sp/>the<sp/>successor<sp/>place</highlight></codeline>
+<codeline lineno="106"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/>*<sp/>of<sp/>execution<sp/>is<sp/>known,<sp/>and<sp/>its<sp/>a<sp/>WaR<sp/>dependency,<sp/>then<sp/>initiate<sp/>data</highlight></codeline>
+<codeline lineno="107"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/>*<sp/>transfer<sp/>now<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>enable_prefetching;</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>to<sp/>warmup<sp/>threads/devices<sp/>on<sp/>init<sp/>(touch<sp/>memory<sp/>pages,<sp/>allocate<sp/>device<sp/>memory...)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>warmup;</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>init(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"></highlight></codeline>
+<codeline lineno="115"><highlight class="normal">}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structconf__s" kindref="compound">conf_t</ref>;</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal">XKRT_NAMESPACE_END</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>__XKRT_CONF_H__<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="dir_b64b710ecde48141110d5891b2f2f4ce" kind="dir">
+    <compoundname>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread</compoundname>
+    <innerfile refid="deque_8hpp">deque.hpp</innerfile>
+    <innerfile refid="naive-queue_8hpp">naive-queue.hpp</innerfile>
+    <innerfile refid="thread_8h">thread.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/"/>
+  </compounddef>
+</doxygen>

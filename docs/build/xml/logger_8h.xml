@@ -1,0 +1,770 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="logger_8h" kind="file" language="C++">
+    <compoundname>logger.h</compoundname>
+    <includes refid="support_8h" local="no">xkrt/support.h</includes>
+    <includes refid="spinlock_8h" local="no">xkrt/sync/spinlock.h</includes>
+    <includes local="no">time.h</includes>
+    <includes local="no">unistd.h</includes>
+    <includes local="no">stdio.h</includes>
+    <includes local="no">stdlib.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includedby refid="logger-aml_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-aml.h</includedby>
+    <includedby refid="logger-cl_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-cl.h</includedby>
+    <includedby refid="logger-clblast_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-clblast.h</includedby>
+    <includedby refid="logger-cu_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-cu.h</includedby>
+    <includedby refid="logger-cublas_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-cublas.h</includedby>
+    <includedby refid="logger-hip_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-hip.h</includedby>
+    <includedby refid="logger-hipblas_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-hipblas.h</includedby>
+    <includedby refid="logger-hwloc_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-hwloc.h</includedby>
+    <includedby refid="logger-nvml_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-nvml.h</includedby>
+    <includedby refid="logger-xkrt_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-xkrt.h</includedby>
+    <includedby refid="logger-ze_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-ze.h</includedby>
+    <includedby refid="memory-tree_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp</includedby>
+    <includedby refid="dependency-domain_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dependency-domain.hpp</includedby>
+    <includedby refid="dummy-coherency-controller_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp</includedby>
+    <includedby refid="task_8hpp" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp</includedby>
+    <incdepgraph>
+      <node id="3">
+        <label>xkrt/sync/spinlock.h</label>
+        <link refid="spinlock_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>stdint.h</label>
+      </node>
+      <node id="8">
+        <label>stdlib.h</label>
+      </node>
+      <node id="1">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h</label>
+        <link refid="logger_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>xkrt/sync/mem.h</label>
+        <link refid="mem_8h_source"/>
+      </node>
+      <node id="2">
+        <label>xkrt/support.h</label>
+        <link refid="support_8h_source"/>
+      </node>
+      <node id="6">
+        <label>unistd.h</label>
+      </node>
+      <node id="5">
+        <label>time.h</label>
+      </node>
+      <node id="7">
+        <label>stdio.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="17">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h</label>
+        <link refid="stream_8h_source"/>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-cl.h</label>
+        <link refid="logger-cl_8h_source"/>
+      </node>
+      <node id="19">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp</label>
+        <link refid="device_8hpp_source"/>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+      </node>
+      <node id="11">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-xkrt.h</label>
+        <link refid="logger-xkrt_8h_source"/>
+      </node>
+      <node id="1">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h</label>
+        <link refid="logger_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="33" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+      </node>
+      <node id="25">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-host.h</label>
+        <link refid="driver-host_8h_source"/>
+      </node>
+      <node id="20">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h</label>
+        <link refid="driver-sycl_8h_source"/>
+      </node>
+      <node id="12">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-ze.h</label>
+        <link refid="logger-ze_8h_source"/>
+      </node>
+      <node id="30">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp</label>
+        <link refid="dependency-map_8hpp_source"/>
+      </node>
+      <node id="13">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp</label>
+        <link refid="memory-tree_8hpp_source"/>
+      </node>
+      <node id="24">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cu.h</label>
+        <link refid="driver-cu_8h_source"/>
+      </node>
+      <node id="22">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-ze-blas.h</label>
+        <link refid="driver-ze-blas_8h_source"/>
+      </node>
+      <node id="26">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h</label>
+        <link refid="runtime_8h_source"/>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="16">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h</label>
+        <link refid="thread_8h_source"/>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-hip.h</label>
+        <link refid="logger-hip_8h_source"/>
+      </node>
+      <node id="27">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cl.h</label>
+        <link refid="driver-cl_8h_source"/>
+      </node>
+      <node id="9">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-hwloc.h</label>
+        <link refid="logger-hwloc_8h_source"/>
+      </node>
+      <node id="14">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dependency-domain.hpp</label>
+        <link refid="dependency-domain_8hpp_source"/>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="29" relation="include">
+        </childnode>
+        <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+      </node>
+      <node id="32">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/register.h</label>
+        <link refid="register_8h_source"/>
+        <childnode refid="26" relation="include">
+        </childnode>
+      </node>
+      <node id="29">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp</label>
+        <link refid="interval_2dependency-tree_8hpp_source"/>
+      </node>
+      <node id="33">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp</label>
+        <link refid="dummy-coherency-controller_8hpp_source"/>
+      </node>
+      <node id="21">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-ze.h</label>
+        <link refid="driver-ze_8h_source"/>
+        <childnode refid="22" relation="include">
+        </childnode>
+      </node>
+      <node id="18">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h</label>
+        <link refid="conf_8h_source"/>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-clblast.h</label>
+        <link refid="logger-clblast_8h_source"/>
+      </node>
+      <node id="31">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp</label>
+        <link refid="task_8hpp_source"/>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="29" relation="include">
+        </childnode>
+        <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="32" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+      </node>
+      <node id="15">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/dependency-tree.hpp</label>
+        <link refid="blas_2dependency-tree_8hpp_source"/>
+        <childnode refid="16" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-cublas.h</label>
+        <link refid="logger-cublas_8h_source"/>
+      </node>
+      <node id="10">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-nvml.h</label>
+        <link refid="logger-nvml_8h_source"/>
+      </node>
+      <node id="5">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-cu.h</label>
+        <link refid="logger-cu_8h_source"/>
+      </node>
+      <node id="2">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-aml.h</label>
+        <link refid="logger-aml_8h_source"/>
+      </node>
+      <node id="23">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver.h</label>
+        <link refid="driver_8h_source"/>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+      </node>
+      <node id="28">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-hip.h</label>
+        <link refid="driver-hip_8h_source"/>
+      </node>
+      <node id="8">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-hipblas.h</label>
+        <link refid="logger-hipblas_8h_source"/>
+      </node>
+    </invincdepgraph>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="logger_8h_1acfd4f2fbd8788e61fbbc18101f3c0dea" prot="public" static="no">
+        <name>LOGGER_FD</name>
+        <initializer>stderr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="52" column="11" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="52" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1ab599161764197f7c384ff62944ff2d09" prot="public" static="no">
+        <name>LOGGER_HEADER</name>
+        <initializer>&quot;LOGGER&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="56" column="11" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1a8dc1a3ee1e9e52260dda5de32d472701" prot="public" static="no">
+        <name>LOGGER_PRINT_FATAL_ID</name>
+        <initializer>0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="59" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1ac7e511d14a2b474f2697b722aa597eda" prot="public" static="no">
+        <name>LOGGER_PRINT_ERROR_ID</name>
+        <initializer>1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="60" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="60" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1aa590b94ee823a85a7ea7c84c8a5735f0" prot="public" static="no">
+        <name>LOGGER_PRINT_WARN_ID</name>
+        <initializer>2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="61" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1a76c3338275b0466134f2351233142e18" prot="public" static="no">
+        <name>LOGGER_PRINT_INFO_ID</name>
+        <initializer>3</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="62" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1aa295bf5013b6b725a66a1bb803a6fe3f" prot="public" static="no">
+        <name>LOGGER_PRINT_IMPL_ID</name>
+        <initializer>4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="63" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="63" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1ad72691bc5425cce0715344290b16a24d" prot="public" static="no">
+        <name>LOGGER_PRINT_DEBUG_ID</name>
+        <initializer>5</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="64" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1a056064fb5fbebcf09c9b341847aa672d" prot="public" static="no">
+        <name>LOGGER_PRINT_LINE</name>
+        <param></param>
+        <initializer>    fprintf(LOGGER_FD, &quot;%s:%d (%s)\n&quot;, __FILE__, __LINE__, __func__);</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="80" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1ab3df9c25ee79681591044f2543466a20" prot="public" static="no">
+        <name>LOGGER_PRINT</name>
+        <param><defname>LVL</defname></param>
+        <param><defname>...</defname></param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="83" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="83" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1af16297df2f2d7a87946dc1f13432dcfb" prot="public" static="no">
+        <name>LOGGER_NOT_IMPLEMENTED_WARN</name>
+        <param><defname>S</defname></param>
+        <initializer>    LOGGER_IMPL(&quot;&apos;%s&apos; at %s:%d in %s()&quot;,                                \
+            S, __FILE__, __LINE__, __func__);</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="127" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="127" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1a0f99cf1e65e53b2dc9d7ba8d9ccf7764" prot="public" static="no">
+        <name>LOGGER_NOT_SUPPORTED</name>
+        <param></param>
+        <initializer>LOGGER_NOT_IMPLEMENTED_WARN(&quot;Not supported&quot;)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="131" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="131" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1ab1d6dd2d9a32c826b4086d3212c89359" prot="public" static="no">
+        <name>LOGGER_NOT_IMPLEMENTED</name>
+        <param></param>
+        <initializer>LOGGER_NOT_IMPLEMENTED_WARN(&quot;Not implemented&quot;)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="132" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="132" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1af4a846e40bb8c1d12d9022914b0b4495" prot="public" static="no">
+        <name>LOGGER_INFO</name>
+        <param><defname>...</defname></param>
+        <initializer>LOGGER_PRINT(LOGGER_PRINT_INFO_ID,  __VA_ARGS__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="134" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="134" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1af9d477fa2a8dfc9f6530643362e67043" prot="public" static="no">
+        <name>LOGGER_WARN</name>
+        <param><defname>...</defname></param>
+        <initializer>LOGGER_PRINT(LOGGER_PRINT_WARN_ID,  __VA_ARGS__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="135" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="135" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1a9202a44e5e364eb224b9fbb86b30677c" prot="public" static="no">
+        <name>LOGGER_ERROR</name>
+        <param><defname>...</defname></param>
+        <initializer>LOGGER_PRINT(LOGGER_PRINT_ERROR_ID, __VA_ARGS__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="136" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1a224e450d2f24ee393c22dc39e6ad6f0f" prot="public" static="no">
+        <name>LOGGER_IMPL</name>
+        <param><defname>...</defname></param>
+        <initializer>LOGGER_PRINT(LOGGER_PRINT_IMPL_ID,  __VA_ARGS__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="137" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="137" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1ac64dacae71cdff35dfb797c836670a8a" prot="public" static="no">
+        <name>LOGGER_DEBUG</name>
+        <param><defname>...</defname></param>
+        <initializer>LOGGER_PRINT(LOGGER_PRINT_DEBUG_ID, __VA_ARGS__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="139" column="11" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="139" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="logger_8h_1ad9ae191b6a8a90f8067e463168bc2a2c" prot="public" static="no">
+        <name>LOGGER_FATAL</name>
+        <param><defname>...</defname></param>
+        <initializer>LOGGER_PRINT(LOGGER_PRINT_FATAL_ID, __VA_ARGS__)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="143" column="12" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" bodystart="143" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="logger_8h_1a826d59a4780964a4464659429090e712" prot="public" static="no" mutable="no">
+        <type>spinlock_t</type>
+        <definition>spinlock_t LOGGER_PRINT_MTX</definition>
+        <argsstring></argsstring>
+        <name>LOGGER_PRINT_MTX</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="49" column="19" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" declline="49" declcolumn="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="logger_8h_1a43c4e26cbcaa576c4893bb2ac436d52e" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* LOGGER_PRINT_COLORS[6]</definition>
+        <argsstring>[6]</argsstring>
+        <name>LOGGER_PRINT_COLORS</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="66" column="14" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" declline="66" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="variable" id="logger_8h_1ac7bde978900b18c63cede003a0eaff58" prot="public" static="no" mutable="no">
+        <type>char *</type>
+        <definition>char* LOGGER_PRINT_HEADERS[6]</definition>
+        <argsstring>[6]</argsstring>
+        <name>LOGGER_PRINT_HEADERS</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="67" column="14" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" declline="67" declcolumn="14"/>
+      </memberdef>
+      <memberdef kind="variable" id="logger_8h_1a5a5bb670a307a7c41cf0c7d3a1c6fb6d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int LOGGER_VERBOSE</definition>
+        <argsstring></argsstring>
+        <name>LOGGER_VERBOSE</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="69" column="12" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" declline="69" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="variable" id="logger_8h_1a5ded3205ebdb0df5d7571cc8c453836c" prot="public" static="no" mutable="no">
+        <type>double</type>
+        <definition>volatile double LOGGER_TIME_ELAPSED</definition>
+        <argsstring></argsstring>
+        <name>LOGGER_TIME_ELAPSED</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="71" column="26" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" declline="71" declcolumn="26"/>
+      </memberdef>
+      <memberdef kind="variable" id="logger_8h_1af0b3a30139f1f5a3aa7dd80cce1dae93" prot="public" static="no" mutable="no">
+        <type>uint64_t</type>
+        <definition>volatile uint64_t LOGGER_LAST_TIME</definition>
+        <argsstring></argsstring>
+        <name>LOGGER_LAST_TIME</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" line="72" column="26" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h" declline="72" declcolumn="26"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="2"><highlight class="comment">**<sp/>Copyright<sp/>2024,2025<sp/>INRIA</highlight></codeline>
+<codeline lineno="3"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="4"><highlight class="comment">**<sp/>Contributors<sp/>:</highlight></codeline>
+<codeline lineno="5"><highlight class="comment">**<sp/>Romain<sp/>PEREIRA,<sp/>romain.pereira@inria.fr<sp/>+<sp/>rpereira@anl.gov</highlight></codeline>
+<codeline lineno="6"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="7"><highlight class="comment">**<sp/>This<sp/>software<sp/>is<sp/>a<sp/>computer<sp/>program<sp/>whose<sp/>purpose<sp/>is<sp/>to<sp/>execute</highlight></codeline>
+<codeline lineno="8"><highlight class="comment">**<sp/>blas<sp/>subroutines<sp/>on<sp/>multi-GPUs<sp/>system.</highlight></codeline>
+<codeline lineno="9"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="10"><highlight class="comment">**<sp/>This<sp/>software<sp/>is<sp/>governed<sp/>by<sp/>the<sp/>CeCILL-C<sp/>license<sp/>under<sp/>French<sp/>law<sp/>and</highlight></codeline>
+<codeline lineno="11"><highlight class="comment">**<sp/>abiding<sp/>by<sp/>the<sp/>rules<sp/>of<sp/>distribution<sp/>of<sp/>free<sp/>software.<sp/><sp/>You<sp/>can<sp/><sp/>use,</highlight></codeline>
+<codeline lineno="12"><highlight class="comment">**<sp/>modify<sp/>and/<sp/>or<sp/>redistribute<sp/>the<sp/>software<sp/>under<sp/>the<sp/>terms<sp/>of<sp/>the<sp/>CeCILL-C</highlight></codeline>
+<codeline lineno="13"><highlight class="comment">**<sp/>license<sp/>as<sp/>circulated<sp/>by<sp/>CEA,<sp/>CNRS<sp/>and<sp/>INRIA<sp/>at<sp/>the<sp/>following<sp/>URL</highlight></codeline>
+<codeline lineno="14"><highlight class="comment">**<sp/>&quot;http://www.cecill.info&quot;.</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"></highlight></codeline>
+<codeline lineno="16"><highlight class="comment">**<sp/>As<sp/>a<sp/>counterpart<sp/>to<sp/>the<sp/>access<sp/>to<sp/>the<sp/>source<sp/>code<sp/>and<sp/><sp/>rights<sp/>to<sp/>copy,</highlight></codeline>
+<codeline lineno="17"><highlight class="comment">**<sp/>modify<sp/>and<sp/>redistribute<sp/>granted<sp/>by<sp/>the<sp/>license,<sp/>users<sp/>are<sp/>provided<sp/>only</highlight></codeline>
+<codeline lineno="18"><highlight class="comment">**<sp/>with<sp/>a<sp/>limited<sp/>warranty<sp/><sp/>and<sp/>the<sp/>software&apos;s<sp/>author,<sp/><sp/>the<sp/>holder<sp/>of<sp/>the</highlight></codeline>
+<codeline lineno="19"><highlight class="comment">**<sp/>economic<sp/>rights,<sp/><sp/>and<sp/>the<sp/>successive<sp/>licensors<sp/><sp/>have<sp/>only<sp/><sp/>limited</highlight></codeline>
+<codeline lineno="20"><highlight class="comment">**<sp/>liability.</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"></highlight></codeline>
+<codeline lineno="22"><highlight class="comment">**<sp/>In<sp/>this<sp/>respect,<sp/>the<sp/>user&apos;s<sp/>attention<sp/>is<sp/>drawn<sp/>to<sp/>the<sp/>risks<sp/>associated</highlight></codeline>
+<codeline lineno="23"><highlight class="comment">**<sp/>with<sp/>loading,<sp/><sp/>using,<sp/><sp/>modifying<sp/>and/or<sp/>developing<sp/>or<sp/>reproducing<sp/>the</highlight></codeline>
+<codeline lineno="24"><highlight class="comment">**<sp/>software<sp/>by<sp/>the<sp/>user<sp/>in<sp/>light<sp/>of<sp/>its<sp/>specific<sp/>status<sp/>of<sp/>free<sp/>software,</highlight></codeline>
+<codeline lineno="25"><highlight class="comment">**<sp/>that<sp/>may<sp/>mean<sp/><sp/>that<sp/>it<sp/>is<sp/>complicated<sp/>to<sp/>manipulate,<sp/><sp/>and<sp/><sp/>that<sp/><sp/>also</highlight></codeline>
+<codeline lineno="26"><highlight class="comment">**<sp/>therefore<sp/>means<sp/><sp/>that<sp/>it<sp/>is<sp/>reserved<sp/>for<sp/>developers<sp/><sp/>and<sp/><sp/>experienced</highlight></codeline>
+<codeline lineno="27"><highlight class="comment">**<sp/>professionals<sp/>having<sp/>in-depth<sp/>computer<sp/>knowledge.<sp/>Users<sp/>are<sp/>therefore</highlight></codeline>
+<codeline lineno="28"><highlight class="comment">**<sp/>encouraged<sp/>to<sp/>load<sp/>and<sp/>test<sp/>the<sp/>software&apos;s<sp/>suitability<sp/>as<sp/>regards<sp/>their</highlight></codeline>
+<codeline lineno="29"><highlight class="comment">**<sp/>requirements<sp/>in<sp/>conditions<sp/>enabling<sp/>the<sp/>security<sp/>of<sp/>their<sp/>systems<sp/>and/or</highlight></codeline>
+<codeline lineno="30"><highlight class="comment">**<sp/>data<sp/>to<sp/>be<sp/>ensured<sp/>and,<sp/><sp/>more<sp/>generally,<sp/>to<sp/>use<sp/>and<sp/>operate<sp/>it<sp/>in<sp/>the</highlight></codeline>
+<codeline lineno="31"><highlight class="comment">**<sp/>same<sp/>conditions<sp/>as<sp/>regards<sp/>security.</highlight></codeline>
+<codeline lineno="32"><highlight class="comment"></highlight></codeline>
+<codeline lineno="33"><highlight class="comment">**<sp/>The<sp/>fact<sp/>that<sp/>you<sp/>are<sp/>presently<sp/>reading<sp/>this<sp/>means<sp/>that<sp/>you<sp/>have<sp/>had</highlight></codeline>
+<codeline lineno="34"><highlight class="comment">**<sp/>knowledge<sp/>of<sp/>the<sp/>CeCILL-C<sp/>license<sp/>and<sp/>that<sp/>you<sp/>accept<sp/>its<sp/>terms.</highlight></codeline>
+<codeline lineno="35"><highlight class="comment">**/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__LOGGER_H__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>__LOGGER_H__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;xkrt/support.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;xkrt/sync/spinlock.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;time.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;unistd.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/>spinlock_t<sp/>LOGGER_PRINT_MTX;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>ifndef<sp/>LOGGER_FD</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>LOGGER_FD<sp/>stderr</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>ifndef<sp/>LOGGER_HEADER</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>LOGGER_HEADER<sp/>&quot;LOGGER&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_PRINT_FATAL_ID<sp/><sp/><sp/><sp/><sp/><sp/>0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_PRINT_ERROR_ID<sp/><sp/><sp/><sp/><sp/><sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_PRINT_WARN_ID<sp/><sp/><sp/><sp/><sp/><sp/><sp/>2</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_PRINT_INFO_ID<sp/><sp/><sp/><sp/><sp/><sp/><sp/>3</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_PRINT_IMPL_ID<sp/><sp/><sp/><sp/><sp/><sp/><sp/>4</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_PRINT_DEBUG_ID<sp/><sp/><sp/><sp/><sp/><sp/>5</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<sp/>LOGGER_PRINT_COLORS[6];</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<sp/>LOGGER_PRINT_HEADERS[6];</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>LOGGER_VERBOSE;</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">volatile</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><sp/><sp/>LOGGER_TIME_ELAPSED;</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">volatile</highlight><highlight class="normal"><sp/>uint64_t<sp/>LOGGER_LAST_TIME;</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>if<sp/>LOGGER_SHUT_UP</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>LOGGER_PRINT(...)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>else<sp/></highlight><highlight class="comment">/*<sp/>LOGGER_SHUT_UP<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_PRINT_LINE()<sp/>\</highlight></codeline>
+<codeline lineno="81"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>fprintf(LOGGER_FD,<sp/>&quot;%s:%d<sp/>(%s)\n&quot;</highlight><highlight class="normal">,<sp/>__FILE__,<sp/>__LINE__,<sp/>__func__);</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_PRINT(LVL,<sp/>...)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="84"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>do<sp/>{<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="85"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(LVL<sp/>&lt;=<sp/>LOGGER_VERBOSE)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="86"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="87"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>SPINLOCK_LOCK(LOGGER_PRINT_MTX);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="88"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>struct<sp/>timespec<sp/>_ts;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="89"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>clock_gettime(CLOCK_MONOTONIC,<sp/>&amp;_ts);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="90"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint64_t<sp/>t<sp/>=<sp/>(uint64_t)(_ts.tv_sec<sp/>*<sp/>1000000000)<sp/>+<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="91"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(uint64_t)<sp/>_ts.tv_nsec;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="92"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(LOGGER_LAST_TIME<sp/>!=<sp/>0)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="93"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>LOGGER_TIME_ELAPSED<sp/>+=<sp/>(double)<sp/>(t<sp/>-<sp/>LOGGER_LAST_TIME)<sp/>/<sp/>1e9;<sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="94"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>LOGGER_LAST_TIME<sp/>=<sp/>t;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="95"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(isatty(STDOUT_FILENO))<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="96"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fprintf(LOGGER_FD,<sp/>&quot;[%8lf]<sp/>&quot;</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;[TID=%d]<sp/>&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;[\033[1;37m&quot;<sp/>LOGGER_HEADER<sp/>&quot;\033[0m]<sp/>&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;[%s%s\033[0m]<sp/>&quot;,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>LOGGER_TIME_ELAPSED,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>gettid(),<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>LOGGER_PRINT_COLORS[LVL],<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>LOGGER_PRINT_HEADERS[LVL]);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>else<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fprintf(LOGGER_FD,<sp/>&quot;[%8lf]&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;[TID=%d]<sp/>&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;[&quot;<sp/>LOGGER_HEADER<sp/>&quot;]<sp/>&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;[%s]<sp/>&quot;,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>LOGGER_TIME_ELAPSED,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>gettid(),<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>LOGGER_PRINT_HEADERS[LVL]);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fprintf(LOGGER_FD,<sp/>__VA_ARGS__);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fprintf(LOGGER_FD,<sp/>&quot;\n&quot;);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fflush(LOGGER_FD);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>SPINLOCK_UNLOCK(LOGGER_PRINT_MTX);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(LVL<sp/>==<sp/>LOGGER_PRINT_FATAL_ID)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>LOGGER_PRINT_LINE();<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fflush(LOGGER_FD);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>abort();<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/>while<sp/>(0)</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>endif<sp/></highlight><highlight class="comment">/*<sp/>LOGGER_SHUT_UP<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_NOT_IMPLEMENTED_WARN(S)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="128"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>LOGGER_IMPL(&quot;&apos;%s&apos;<sp/>at<sp/>%s:%d<sp/>in<sp/>%s()&quot;</highlight><highlight class="normal">,<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>S,<sp/>__FILE__,<sp/>__LINE__,<sp/>__func__);</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_NOT_SUPPORTED()<sp/><sp/><sp/>LOGGER_NOT_IMPLEMENTED_WARN(&quot;Not<sp/>supported&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_NOT_IMPLEMENTED()<sp/>LOGGER_NOT_IMPLEMENTED_WARN(&quot;Not<sp/>implemented&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_INFO(...)<sp/><sp/>LOGGER_PRINT(LOGGER_PRINT_INFO_ID,<sp/><sp/>__VA_ARGS__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_WARN(...)<sp/><sp/>LOGGER_PRINT(LOGGER_PRINT_WARN_ID,<sp/><sp/>__VA_ARGS__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_ERROR(...)<sp/>LOGGER_PRINT(LOGGER_PRINT_ERROR_ID,<sp/>__VA_ARGS__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_IMPL(...)<sp/><sp/>LOGGER_PRINT(LOGGER_PRINT_IMPL_ID,<sp/><sp/>__VA_ARGS__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>ifndef<sp/>NDEBUG</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>LOGGER_DEBUG(...)<sp/>LOGGER_PRINT(LOGGER_PRINT_DEBUG_ID,<sp/>__VA_ARGS__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>LOGGER_DEBUG(...)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="142"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="143"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>LOGGER_FATAL(...)<sp/>LOGGER_PRINT(LOGGER_PRINT_FATAL_ID,<sp/>__VA_ARGS__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="144"><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>__LOGGER_H__*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h"/>
+  </compounddef>
+</doxygen>

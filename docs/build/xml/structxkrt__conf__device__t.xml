@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__conf__device__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_conf_device_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__conf__device__t_1a51fe78c1461e5f779627b7996722c149" prot="public" static="no" mutable="no">
+        <type>float</type>
+        <definition>float xkrt_conf_device_t::gpu_mem_percent</definition>
+        <argsstring></argsstring>
+        <name>gpu_mem_percent</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="71" column="11" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__conf__device__t_1ac49ec6624d0822e901aa3256e3a0e74e" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int xkrt_conf_device_t::ngpus</definition>
+        <argsstring></argsstring>
+        <name>ngpus</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="72" column="9" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__conf__device__t_1a69c82d2dd955d9f2c6225c5e9b7c1e4f" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool xkrt_conf_device_t::use_p2p</definition>
+        <argsstring></argsstring>
+        <name>use_p2p</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="73" column="10" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__conf__device__t_1ac9724b4b7dd700104d00cfedbbc2b73e" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__conf__offloader__t" kindref="compound">xkrt_conf_offloader_t</ref></type>
+        <definition>xkrt_conf_offloader_t xkrt_conf_device_t::offloader</definition>
+        <argsstring></argsstring>
+        <name>offloader</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="74" column="27" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>xkrt_conf_device_t</label>
+        <link refid="structxkrt__conf__device__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>offloader</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>xkrt_conf_stream_t</label>
+        <link refid="structxkrt__conf__stream__t"/>
+      </node>
+      <node id="2">
+        <label>xkrt_conf_offloader_t</label>
+        <link refid="structxkrt__conf__offloader__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>streams</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="69" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="70" bodyend="75"/>
+    <listofallmembers>
+      <member refid="structxkrt__conf__device__t_1a51fe78c1461e5f779627b7996722c149" prot="public" virt="non-virtual"><scope>xkrt_conf_device_t</scope><name>gpu_mem_percent</name></member>
+      <member refid="structxkrt__conf__device__t_1ac49ec6624d0822e901aa3256e3a0e74e" prot="public" virt="non-virtual"><scope>xkrt_conf_device_t</scope><name>ngpus</name></member>
+      <member refid="structxkrt__conf__device__t_1ac9724b4b7dd700104d00cfedbbc2b73e" prot="public" virt="non-virtual"><scope>xkrt_conf_device_t</scope><name>offloader</name></member>
+      <member refid="structxkrt__conf__device__t_1a69c82d2dd955d9f2c6225c5e9b7c1e4f" prot="public" virt="non-virtual"><scope>xkrt_conf_device_t</scope><name>use_p2p</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

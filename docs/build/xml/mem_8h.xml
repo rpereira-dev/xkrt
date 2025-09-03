@@ -1,0 +1,456 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="mem_8h" kind="file" language="C++">
+    <compoundname>mem.h</compoundname>
+    <includedby refid="spinlock_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/sync/spinlock.h</includedby>
+    <invincdepgraph>
+      <node id="38">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp</label>
+        <link refid="naive-queue_8hpp_source"/>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="19">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h</label>
+        <link refid="stream_8h_source"/>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="29" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-cl.h</label>
+        <link refid="logger-cl_8h_source"/>
+      </node>
+      <node id="2">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/sync/spinlock.h</label>
+        <link refid="spinlock_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="36" relation="include">
+        </childnode>
+        <childnode refid="33" relation="include">
+        </childnode>
+        <childnode refid="37" relation="include">
+        </childnode>
+        <childnode refid="38" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="21">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp</label>
+        <link refid="device_8hpp_source"/>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-xkrt.h</label>
+        <link refid="logger-xkrt_8h_source"/>
+      </node>
+      <node id="3">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger.h</label>
+        <link refid="logger_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="35" relation="include">
+        </childnode>
+        <childnode refid="33" relation="include">
+        </childnode>
+      </node>
+      <node id="27">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-host.h</label>
+        <link refid="driver-host_8h_source"/>
+      </node>
+      <node id="22">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h</label>
+        <link refid="driver-sycl_8h_source"/>
+      </node>
+      <node id="14">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-ze.h</label>
+        <link refid="logger-ze_8h_source"/>
+      </node>
+      <node id="1">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/sync/mem.h</label>
+        <link refid="mem_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="32">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp</label>
+        <link refid="dependency-map_8hpp_source"/>
+      </node>
+      <node id="15">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp</label>
+        <link refid="memory-tree_8hpp_source"/>
+      </node>
+      <node id="26">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cu.h</label>
+        <link refid="driver-cu_8h_source"/>
+      </node>
+      <node id="24">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-ze-blas.h</label>
+        <link refid="driver-ze-blas_8h_source"/>
+      </node>
+      <node id="28">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h</label>
+        <link refid="runtime_8h_source"/>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="18">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h</label>
+        <link refid="thread_8h_source"/>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-hip.h</label>
+        <link refid="logger-hip_8h_source"/>
+      </node>
+      <node id="29">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cl.h</label>
+        <link refid="driver-cl_8h_source"/>
+      </node>
+      <node id="11">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-hwloc.h</label>
+        <link refid="logger-hwloc_8h_source"/>
+      </node>
+      <node id="16">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dependency-domain.hpp</label>
+        <link refid="dependency-domain_8hpp_source"/>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+        <childnode refid="32" relation="include">
+        </childnode>
+        <childnode refid="33" relation="include">
+        </childnode>
+      </node>
+      <node id="34">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/register.h</label>
+        <link refid="register_8h_source"/>
+        <childnode refid="28" relation="include">
+        </childnode>
+      </node>
+      <node id="31">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp</label>
+        <link refid="interval_2dependency-tree_8hpp_source"/>
+      </node>
+      <node id="35">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp</label>
+        <link refid="dummy-coherency-controller_8hpp_source"/>
+      </node>
+      <node id="23">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-ze.h</label>
+        <link refid="driver-ze_8h_source"/>
+        <childnode refid="24" relation="include">
+        </childnode>
+      </node>
+      <node id="20">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h</label>
+        <link refid="conf_8h_source"/>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-clblast.h</label>
+        <link refid="logger-clblast_8h_source"/>
+      </node>
+      <node id="37">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/deque.hpp</label>
+        <link refid="deque_8hpp_source"/>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="33">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp</label>
+        <link refid="task_8hpp_source"/>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+        <childnode refid="32" relation="include">
+        </childnode>
+        <childnode refid="34" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="36">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/sync/lockable.hpp</label>
+        <link refid="lockable_8hpp_source"/>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="17">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/dependency-tree.hpp</label>
+        <link refid="blas_2dependency-tree_8hpp_source"/>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-cublas.h</label>
+        <link refid="logger-cublas_8h_source"/>
+      </node>
+      <node id="12">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-nvml.h</label>
+        <link refid="logger-nvml_8h_source"/>
+      </node>
+      <node id="7">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-cu.h</label>
+        <link refid="logger-cu_8h_source"/>
+      </node>
+      <node id="4">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-aml.h</label>
+        <link refid="logger-aml_8h_source"/>
+      </node>
+      <node id="25">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver.h</label>
+        <link refid="driver_8h_source"/>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+      </node>
+      <node id="30">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-hip.h</label>
+        <link refid="driver-hip_8h_source"/>
+      </node>
+      <node id="10">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/logger-hipblas.h</label>
+        <link refid="logger-hipblas_8h_source"/>
+      </node>
+    </invincdepgraph>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="mem_8h_1a5cb2f4ae5be160f29f55b7eaec56ac33" prot="public" static="no">
+        <name>mem_pause</name>
+        <param></param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieved from xkrt_atomic.h </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/sync/mem.h" line="52" column="12" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/sync/mem.h" bodystart="52" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="2"><highlight class="comment">**<sp/>Copyright<sp/>2024,2025<sp/>INRIA</highlight></codeline>
+<codeline lineno="3"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="4"><highlight class="comment">**<sp/>Contributors<sp/>:</highlight></codeline>
+<codeline lineno="5"><highlight class="comment">**<sp/>Thierry<sp/>Gautier,<sp/>thierry.gautier@inrialpes.fr</highlight></codeline>
+<codeline lineno="6"><highlight class="comment">**<sp/>Romain<sp/>PEREIRA,<sp/>romain.pereira@inria.fr<sp/>+<sp/>rpereira@anl.gov</highlight></codeline>
+<codeline lineno="7"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="8"><highlight class="comment">**<sp/>This<sp/>software<sp/>is<sp/>a<sp/>computer<sp/>program<sp/>whose<sp/>purpose<sp/>is<sp/>to<sp/>execute</highlight></codeline>
+<codeline lineno="9"><highlight class="comment">**<sp/>blas<sp/>subroutines<sp/>on<sp/>multi-GPUs<sp/>system.</highlight></codeline>
+<codeline lineno="10"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="11"><highlight class="comment">**<sp/>This<sp/>software<sp/>is<sp/>governed<sp/>by<sp/>the<sp/>CeCILL-C<sp/>license<sp/>under<sp/>French<sp/>law<sp/>and</highlight></codeline>
+<codeline lineno="12"><highlight class="comment">**<sp/>abiding<sp/>by<sp/>the<sp/>rules<sp/>of<sp/>distribution<sp/>of<sp/>free<sp/>software.<sp/><sp/>You<sp/>can<sp/><sp/>use,</highlight></codeline>
+<codeline lineno="13"><highlight class="comment">**<sp/>modify<sp/>and/<sp/>or<sp/>redistribute<sp/>the<sp/>software<sp/>under<sp/>the<sp/>terms<sp/>of<sp/>the<sp/>CeCILL-C</highlight></codeline>
+<codeline lineno="14"><highlight class="comment">**<sp/>license<sp/>as<sp/>circulated<sp/>by<sp/>CEA,<sp/>CNRS<sp/>and<sp/>INRIA<sp/>at<sp/>the<sp/>following<sp/>URL</highlight></codeline>
+<codeline lineno="15"><highlight class="comment">**<sp/>&quot;http://www.cecill.info&quot;.</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"></highlight></codeline>
+<codeline lineno="17"><highlight class="comment">**<sp/>As<sp/>a<sp/>counterpart<sp/>to<sp/>the<sp/>access<sp/>to<sp/>the<sp/>source<sp/>code<sp/>and<sp/><sp/>rights<sp/>to<sp/>copy,</highlight></codeline>
+<codeline lineno="18"><highlight class="comment">**<sp/>modify<sp/>and<sp/>redistribute<sp/>granted<sp/>by<sp/>the<sp/>license,<sp/>users<sp/>are<sp/>provided<sp/>only</highlight></codeline>
+<codeline lineno="19"><highlight class="comment">**<sp/>with<sp/>a<sp/>limited<sp/>warranty<sp/><sp/>and<sp/>the<sp/>software&apos;s<sp/>author,<sp/><sp/>the<sp/>holder<sp/>of<sp/>the</highlight></codeline>
+<codeline lineno="20"><highlight class="comment">**<sp/>economic<sp/>rights,<sp/><sp/>and<sp/>the<sp/>successive<sp/>licensors<sp/><sp/>have<sp/>only<sp/><sp/>limited</highlight></codeline>
+<codeline lineno="21"><highlight class="comment">**<sp/>liability.</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"></highlight></codeline>
+<codeline lineno="23"><highlight class="comment">**<sp/>In<sp/>this<sp/>respect,<sp/>the<sp/>user&apos;s<sp/>attention<sp/>is<sp/>drawn<sp/>to<sp/>the<sp/>risks<sp/>associated</highlight></codeline>
+<codeline lineno="24"><highlight class="comment">**<sp/>with<sp/>loading,<sp/><sp/>using,<sp/><sp/>modifying<sp/>and/or<sp/>developing<sp/>or<sp/>reproducing<sp/>the</highlight></codeline>
+<codeline lineno="25"><highlight class="comment">**<sp/>software<sp/>by<sp/>the<sp/>user<sp/>in<sp/>light<sp/>of<sp/>its<sp/>specific<sp/>status<sp/>of<sp/>free<sp/>software,</highlight></codeline>
+<codeline lineno="26"><highlight class="comment">**<sp/>that<sp/>may<sp/>mean<sp/><sp/>that<sp/>it<sp/>is<sp/>complicated<sp/>to<sp/>manipulate,<sp/><sp/>and<sp/><sp/>that<sp/><sp/>also</highlight></codeline>
+<codeline lineno="27"><highlight class="comment">**<sp/>therefore<sp/>means<sp/><sp/>that<sp/>it<sp/>is<sp/>reserved<sp/>for<sp/>developers<sp/><sp/>and<sp/><sp/>experienced</highlight></codeline>
+<codeline lineno="28"><highlight class="comment">**<sp/>professionals<sp/>having<sp/>in-depth<sp/>computer<sp/>knowledge.<sp/>Users<sp/>are<sp/>therefore</highlight></codeline>
+<codeline lineno="29"><highlight class="comment">**<sp/>encouraged<sp/>to<sp/>load<sp/>and<sp/>test<sp/>the<sp/>software&apos;s<sp/>suitability<sp/>as<sp/>regards<sp/>their</highlight></codeline>
+<codeline lineno="30"><highlight class="comment">**<sp/>requirements<sp/>in<sp/>conditions<sp/>enabling<sp/>the<sp/>security<sp/>of<sp/>their<sp/>systems<sp/>and/or</highlight></codeline>
+<codeline lineno="31"><highlight class="comment">**<sp/>data<sp/>to<sp/>be<sp/>ensured<sp/>and,<sp/><sp/>more<sp/>generally,<sp/>to<sp/>use<sp/>and<sp/>operate<sp/>it<sp/>in<sp/>the</highlight></codeline>
+<codeline lineno="32"><highlight class="comment">**<sp/>same<sp/>conditions<sp/>as<sp/>regards<sp/>security.</highlight></codeline>
+<codeline lineno="33"><highlight class="comment"></highlight></codeline>
+<codeline lineno="34"><highlight class="comment">**<sp/>The<sp/>fact<sp/>that<sp/>you<sp/>are<sp/>presently<sp/>reading<sp/>this<sp/>means<sp/>that<sp/>you<sp/>have<sp/>had</highlight></codeline>
+<codeline lineno="35"><highlight class="comment">**<sp/>knowledge<sp/>of<sp/>the<sp/>CeCILL-C<sp/>license<sp/>and<sp/>that<sp/>you<sp/>accept<sp/>its<sp/>terms.</highlight></codeline>
+<codeline lineno="36"><highlight class="comment">**/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>__MEM_H__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>define<sp/>__MEM_H__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__i386__)||<sp/>defined(__x86_64)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>if<sp/>!defined(__MIC__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/><sp/><sp/><sp/><sp/>define<sp/>mem_pause()<sp/>do<sp/>{<sp/>__asm__<sp/>__volatile__(&quot;pause\n\t&quot;</highlight><highlight class="normal">);<sp/>}<sp/>while<sp/>(0)</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/><sp/><sp/>define<sp/>mem_pause()<sp/>do<sp/>{<sp/>__asm__<sp/>__volatile__(&quot;mov<sp/>$20,<sp/>%rax;<sp/>delay<sp/>%rax\n\t&quot;</highlight><highlight class="normal">);<sp/>__asm__<sp/>__volatile__<sp/>(&quot;&quot;:::&quot;memory&quot;);<sp/>}<sp/>while<sp/>(0)</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>mem_pause()</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__APPLE__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>include<sp/>&lt;libkern/OSAtomic.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>writemem_barrier()</highlight></codeline>
+<codeline lineno="58"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>if<sp/>defined(__x86_64)<sp/>||<sp/>defined(__i386__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>not<sp/>need<sp/>sfence<sp/>on<sp/>X86<sp/>archi:<sp/>write<sp/>are<sp/>ordered<sp/>__asm__<sp/>__volatile__<sp/>(&quot;sfence&quot;:::&quot;memory&quot;);<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/>__asm__<sp/>__volatile__<sp/>(</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">:::</highlight><highlight class="stringliteral">&quot;memory&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/>OSMemoryBarrier();</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>readmem_barrier()</highlight></codeline>
+<codeline lineno="68"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>if<sp/>defined(__x86_64)<sp/>||<sp/>defined(__i386__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/>__asm__<sp/>__volatile__<sp/>(</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">:::</highlight><highlight class="stringliteral">&quot;memory&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="comment">//<sp/><sp/>__asm__<sp/>__volatile__<sp/>(&quot;lfence&quot;:::&quot;memory&quot;);</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/>OSMemoryBarrier();</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>should<sp/>be<sp/>both<sp/>read<sp/>&amp;<sp/>write<sp/>barrier<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mem_barrier()</highlight></codeline>
+<codeline lineno="79"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>if<sp/>defined(__x86_64)<sp/>||<sp/>defined(__i386__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>!defined(__MIC__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/>__asm__<sp/>__volatile__<sp/>(</highlight><highlight class="stringliteral">&quot;mfence&quot;</highlight><highlight class="normal">:::</highlight><highlight class="stringliteral">&quot;memory&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/>OSMemoryBarrier();</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>defined(__linux__)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>defined(__APPLE__)<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>writemem_barrier()</highlight></codeline>
+<codeline lineno="94"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>if<sp/>defined(__x86_64)<sp/>||<sp/>defined(__i386__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>not<sp/>need<sp/>sfence<sp/>on<sp/>X86<sp/>archi:<sp/>write<sp/>are<sp/>ordered<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/>__asm__<sp/>__volatile__<sp/>(</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">:::</highlight><highlight class="stringliteral">&quot;memory&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>elif<sp/>defined(__GNUC__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/>__sync_synchronize();</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>error<sp/>&quot;Compiler<sp/>not<sp/>supported&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>xlC<sp/>-&gt;__lwsync()<sp/>/<sp/>bultin<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>readmem_barrier()</highlight></codeline>
+<codeline lineno="107"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>if<sp/>defined(__x86_64)<sp/>||<sp/>defined(__i386__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>not<sp/>need<sp/>lfence<sp/>on<sp/>X86<sp/>archi:<sp/>read<sp/>are<sp/>ordered<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/>__asm__<sp/>__volatile__<sp/>(</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">:::</highlight><highlight class="stringliteral">&quot;memory&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>elif<sp/>defined(__GNUC__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/>__sync_synchronize();</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>error<sp/>&quot;Compiler<sp/>not<sp/>supported&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>xlC<sp/>-&gt;__lwsync()<sp/>/<sp/>bultin<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>should<sp/>be<sp/>both<sp/>read<sp/>&amp;<sp/>write<sp/>barrier<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mem_barrier()</highlight></codeline>
+<codeline lineno="121"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>if<sp/>defined(__GNUC__)<sp/>||<sp/>defined(__ICC)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/>__sync_synchronize();</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>elif<sp/>defined(__x86_64)<sp/>||<sp/>defined(__i386__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/>__asm__<sp/>__volatile__<sp/>(</highlight><highlight class="stringliteral">&quot;mfence&quot;</highlight><highlight class="normal">:::</highlight><highlight class="stringliteral">&quot;memory&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>defined(__arm__)<sp/>||<sp/>defined(__aarch64__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/>__asm__<sp/>__volatile__<sp/>(</highlight><highlight class="stringliteral">&quot;dmb<sp/>ish&quot;</highlight><highlight class="normal">:::</highlight><highlight class="stringliteral">&quot;memory&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/><sp/>error<sp/>&quot;Compiler<sp/>not<sp/>supported&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>bultin<sp/>??<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="132"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>defined(_WIN32)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>writemem_barrier()</highlight></codeline>
+<codeline lineno="136"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Compiler<sp/>fence<sp/>to<sp/>keep<sp/>operations<sp/>from<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>not<sp/>need<sp/>sfence<sp/>on<sp/>X86<sp/>archi:<sp/>write<sp/>are<sp/>ordered<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/>__asm__<sp/>__volatile__<sp/>(</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">:::</highlight><highlight class="stringliteral">&quot;memory&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="140"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight></codeline>
+<codeline lineno="142"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>readmem_barrier()</highlight></codeline>
+<codeline lineno="143"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Compiler<sp/>fence<sp/>to<sp/>keep<sp/>operations<sp/>from<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>not<sp/>need<sp/>lfence<sp/>on<sp/>X86<sp/>archi:<sp/>read<sp/>are<sp/>ordered<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/>__asm__<sp/>__volatile__<sp/>(</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">:::</highlight><highlight class="stringliteral">&quot;memory&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="147"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="150"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>error<sp/>&quot;Undefined<sp/>barrier&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="151"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="152"><highlight class="normal"></highlight></codeline>
+<codeline lineno="153"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>__MEM_H__<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/sync/mem.h"/>
+  </compounddef>
+</doxygen>

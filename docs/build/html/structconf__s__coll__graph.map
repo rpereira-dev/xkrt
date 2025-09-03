@@ -1,0 +1,8 @@
+<map id="conf_s" name="conf_s">
+<area shape="rect" id="node1" title=" " alt="" coords="91,273,152,300"/>
+<area shape="rect" id="node2" href="$structconf__drivers__t.html" title=" " alt="" coords="5,184,109,211"/>
+<area shape="rect" id="node3" href="$structconf__driver__t.html" title=" " alt="" coords="7,95,105,121"/>
+<area shape="rect" id="node4" href="$structconf__device__t.html" title=" " alt="" coords="134,184,237,211"/>
+<area shape="rect" id="node5" href="$structconf__offloader__t.html" title=" " alt="" coords="129,95,244,121"/>
+<area shape="rect" id="node6" href="$structconf__stream__t.html" title=" " alt="" coords="134,5,239,32"/>
+</map>

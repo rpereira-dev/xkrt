@@ -1,0 +1,148 @@
+\hypertarget{structxkrt__thread__t}{}\doxysection{xkrt\+\_\+thread\+\_\+t Struct Reference}
+\label{structxkrt__thread__t}\index{xkrt\_thread\_t@{xkrt\_thread\_t}}
+
+
+Collaboration diagram for xkrt\+\_\+thread\+\_\+t\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{structxkrt__thread__t__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a574a2a35011d4f840c67072a82c5aad9}\label{structxkrt__thread__t_a574a2a35011d4f840c67072a82c5aad9}} 
+{\bfseries xkrt\+\_\+thread\+\_\+t} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, int tid, pthread\+\_\+t pthread, xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, xkrt\+\_\+thread\+\_\+place\+\_\+t place)
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a360ee91e598cf542066b869d247fa747}\label{structxkrt__thread__t_a360ee91e598cf542066b869d247fa747}} 
+{\footnotesize template$<$typename Func $>$ }\\void {\bfseries pause} (Func \&\&test)
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a150423cfc94d18ed0012fd7375f9c9b2}\label{structxkrt__thread__t_a150423cfc94d18ed0012fd7375f9c9b2}} 
+void {\bfseries wakeup} (void)
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_afc2ecd6485f7fe283c1273c2b1dba7e3}\label{structxkrt__thread__t_afc2ecd6485f7fe283c1273c2b1dba7e3}} 
+void {\bfseries warmup} (void)
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a4534bd73ba2dc0899d7fee76f8c138c6}\label{structxkrt__thread__t_a4534bd73ba2dc0899d7fee76f8c138c6}} 
+\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$ {\bfseries allocate\+\_\+task} (const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a786ef559e21555b281a41b2521a64572}\label{structxkrt__thread__t_a786ef559e21555b281a41b2521a64572}} 
+void {\bfseries deallocate\+\_\+all\+\_\+tasks} (void)
+\item 
+{\footnotesize template$<$task\+\_\+access\+\_\+counter\+\_\+t AC$>$ }\\void \mbox{\hyperlink{structxkrt__thread__t_a4a092be3e78a15053ce177854dfcfe02}{resolve}} (\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$accesses)
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_ad0de9c1fb1e50f6a625eb58ebd10c672}\label{structxkrt__thread__t_ad0de9c1fb1e50f6a625eb58ebd10c672}} 
+void {\bfseries resolve} (\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$accesses, task\+\_\+access\+\_\+counter\+\_\+t AC)
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a54576ed84f3a9e89cd667929cbb62436}\label{structxkrt__thread__t_a54576ed84f3a9e89cd667929cbb62436}} 
+{\footnotesize template$<$typename... Args$>$ }\\void {\bfseries commit} (\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task, void($\ast$F)(Args..., \mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$), Args... args)
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a1f2b0ab61f0378df5c718bb579cc42cc}\label{structxkrt__thread__t_a1f2b0ab61f0378df5c718bb579cc42cc}} 
+void {\bfseries dump\+\_\+tasks} (FILE $\ast$f)
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a1a77ebe556ed066db97833bcccd66551}\label{structxkrt__thread__t_a1a77ebe556ed066db97833bcccd66551}} 
+static void {\bfseries push\+\_\+tls} (\mbox{\hyperlink{structxkrt__thread__t}{xkrt\+\_\+thread\+\_\+t}} $\ast$thread)
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a04db01c01403d58ce050571f9efd99fc}\label{structxkrt__thread__t_a04db01c01403d58ce050571f9efd99fc}} 
+static void {\bfseries pop\+\_\+tls} (void)
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a9cd52a985e94358f68094c5386544c95}\label{structxkrt__thread__t_a9cd52a985e94358f68094c5386544c95}} 
+static \mbox{\hyperlink{structxkrt__thread__t}{xkrt\+\_\+thread\+\_\+t}} $\ast$ {\bfseries get\+\_\+tls} (void)
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a03824f24e4f2b1f3ab31b5925a78a37e}\label{structxkrt__thread__t_a03824f24e4f2b1f3ab31b5925a78a37e}} 
+static void {\bfseries dump\+\_\+tasks} (FILE $\ast$f, std\+::vector$<$ \mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$ $>$ \&tasks)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a00b9656bd1c68a14f5db9ad54c18ccbc}\label{structxkrt__thread__t_a00b9656bd1c68a14f5db9ad54c18ccbc}} 
+\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$ {\bfseries team}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a4978aea7332f36102d16832b5ccc6dc7}\label{structxkrt__thread__t_a4978aea7332f36102d16832b5ccc6dc7}} 
+xkrt\+\_\+thread\+\_\+place\+\_\+t {\bfseries place}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_aafef96de0aeab9d276b3678f415d2884}\label{structxkrt__thread__t_aafef96de0aeab9d276b3678f415d2884}} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\mbox{\hyperlink{structtask__t}{task\_t}} {\bfseries implicit\_task}\\
+\>char {\bfseries \_implicit\_task\_buffer} \mbox{[}task\_compute\_size(TASK\_FLAG\_DOMAIN, 0)\mbox{]}\\
+\}; \\
+
+\end{tabbing}\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a462d36d65c0ef56d5ac46dff12dca18a}\label{structxkrt__thread__t_a462d36d65c0ef56d5ac46dff12dca18a}} 
+\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$ {\bfseries current\+\_\+task}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_acef906e8e9947f20cae72f48627bcff7}\label{structxkrt__thread__t_acef906e8e9947f20cae72f48627bcff7}} 
+std\+::vector$<$ \mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$ $>$ {\bfseries tasks}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_afbec94778aba4ce9b4f46c8c1c0e2563}\label{structxkrt__thread__t_afbec94778aba4ce9b4f46c8c1c0e2563}} 
+xkrt\+\_\+thread\+\_\+state\+\_\+t {\bfseries state}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a55baee1f016067f910660bc5e461ae47}\label{structxkrt__thread__t_a55baee1f016067f910660bc5e461ae47}} 
+pthread\+\_\+t {\bfseries pthread}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a21fb0aa8fedf250669d47d24e1d1cebc}\label{structxkrt__thread__t_a21fb0aa8fedf250669d47d24e1d1cebc}} 
+int {\bfseries gtid}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a9ba8ea308aa7d4aedf94e282003d390f}\label{structxkrt__thread__t_a9ba8ea308aa7d4aedf94e282003d390f}} 
+int {\bfseries tid}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_abb463c6d0dd688e72b7446fce402531f}\label{structxkrt__thread__t_abb463c6d0dd688e72b7446fce402531f}} 
+xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t {\bfseries device\+\_\+global\+\_\+id}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a471d502a4017cb8f1e4d10ee73ee66f8}\label{structxkrt__thread__t_a471d502a4017cb8f1e4d10ee73ee66f8}} 
+\mbox{\hyperlink{structxkrt__deque__t}{xkrt\+\_\+deque\+\_\+t}}$<$ \mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, 4096 $>$ {\bfseries deque}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_ab93d8711c4026c4dcb0f30b7fcdff82c}\label{structxkrt__thread__t_ab93d8711c4026c4dcb0f30b7fcdff82c}} 
+uint8\+\_\+t $\ast$ {\bfseries memory\+\_\+stack\+\_\+bottom}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a6ff1a90a44ccf12c9062b466ae5677ff}\label{structxkrt__thread__t_a6ff1a90a44ccf12c9062b466ae5677ff}} 
+uint8\+\_\+t $\ast$ {\bfseries memory\+\_\+stack\+\_\+ptr}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_adf4615f2296a773b2ff32fc88adea327}\label{structxkrt__thread__t_adf4615f2296a773b2ff32fc88adea327}} 
+size\+\_\+t {\bfseries memory\+\_\+stack\+\_\+capacity}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_a22897ab8a0f96bbaa658b2a5a63f4892}\label{structxkrt__thread__t_a22897ab8a0f96bbaa658b2a5a63f4892}} 
+std\+::minstd\+\_\+rand {\bfseries rng}
+\item 
+\mbox{\Hypertarget{structxkrt__thread__t_acc7703a3c16fe81e4444b5a874e2c328}\label{structxkrt__thread__t_acc7703a3c16fe81e4444b5a874e2c328}} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>pthread\_mutex\_t {\bfseries lock}\\
+\>pthread\_cond\_t {\bfseries cond}\\
+\>volatile bool {\bfseries sleeping}\\
+\} {\bfseries sleep}\\
+
+\end{tabbing}\item 
+\mbox{\Hypertarget{structxkrt__thread__t_ad47b13b4a00506c8f447ba77b800575b}\label{structxkrt__thread__t_ad47b13b4a00506c8f447ba77b800575b}} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>uint32\_t {\bfseries index}\\
+\} {\bfseries parallel\_for}\\
+
+\end{tabbing}\item 
+\mbox{\Hypertarget{structxkrt__thread__t_aba3b0dddf0e57b8f777ce3decb46fe29}\label{structxkrt__thread__t_aba3b0dddf0e57b8f777ce3decb46fe29}} 
+\mbox{\hyperlink{structxkrt__thread__t}{xkrt\+\_\+thread\+\_\+t}} $\ast$ {\bfseries prev}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{structxkrt__thread__t_a4a092be3e78a15053ce177854dfcfe02}\label{structxkrt__thread__t_a4a092be3e78a15053ce177854dfcfe02}} 
+\index{xkrt\_thread\_t@{xkrt\_thread\_t}!resolve@{resolve}}
+\index{resolve@{resolve}!xkrt\_thread\_t@{xkrt\_thread\_t}}
+\doxysubsubsection{\texorpdfstring{resolve()}{resolve()}}
+{\footnotesize\ttfamily template$<$task\+\_\+access\+\_\+counter\+\_\+t AC$>$ \\
+void xkrt\+\_\+thread\+\_\+t\+::resolve (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$}]{task,  }\item[{\mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$}]{accesses }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Find conflicts and insert accesses in the dependency tree 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/rpereira/repo/xktrucs-\/new/xkaapi/include/xkrt/thread/thread.\+h\end{DoxyCompactItemize}

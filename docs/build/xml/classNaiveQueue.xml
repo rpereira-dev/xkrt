@@ -1,0 +1,179 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classNaiveQueue" kind="class" language="C++" prot="public">
+    <compoundname>NaiveQueue</compoundname>
+    <basecompoundref refid="classIQueue" prot="private" virt="non-virtual">IQueue&lt; T &gt;</basecompoundref>
+    <includes refid="naive-queue_8hpp" local="no">naive-queue.hpp</includes>
+    <templateparamlist>
+      <param>
+        <type>typename T</type>
+      </param>
+    </templateparamlist>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classNaiveQueue_1ae1b30ce01c0b0f4ce6a61152fb4d890d" prot="private" static="no" mutable="no">
+        <type>std::list&lt; T &gt;</type>
+        <definition>std::list&lt;T&gt; NaiveQueue&lt; T &gt;::list</definition>
+        <argsstring></argsstring>
+        <name>list</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" line="103" column="19" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNaiveQueue_1a7cd4421180d3c05a77e374b281edfcb4" prot="private" static="no" mutable="no">
+        <type>spinlock_t</type>
+        <definition>spinlock_t NaiveQueue&lt; T &gt;::lock</definition>
+        <argsstring></argsstring>
+        <name>lock</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" line="104" column="20" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" bodystart="104" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classNaiveQueue_1a282d4f3d331acf7abdc550bf95e3cafc" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>NaiveQueue&lt; T &gt;::NaiveQueue</definition>
+        <argsstring>()</argsstring>
+        <name>NaiveQueue</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" line="58" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" bodystart="58" bodyend="58"/>
+      </memberdef>
+      <memberdef kind="function" id="classNaiveQueue_1acbf6f4e9f4063cb74902c73012e4a074" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>NaiveQueue&lt; T &gt;::~NaiveQueue</definition>
+        <argsstring>()</argsstring>
+        <name>~NaiveQueue</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" line="59" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" bodystart="59" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="function" id="classNaiveQueue_1a8d7f3df275571e65686bae63870aa8b5" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>void</type>
+        <definition>void NaiveQueue&lt; T &gt;::push</definition>
+        <argsstring>(const T &amp;t)</argsstring>
+        <name>push</name>
+        <reimplements refid="classIQueue_1a3d0d52de90eb1933ff8510b645d0ec71">push</reimplements>
+        <param>
+          <type>const T &amp;</type>
+          <declname>obj</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Add a new object to the deque (by the worker </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" line="62" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" bodystart="62" bodyend="69"/>
+      </memberdef>
+      <memberdef kind="function" id="classNaiveQueue_1a846f35cce81036f350f5cf50f2526f1e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>T</type>
+        <definition>T NaiveQueue&lt; T &gt;::pop</definition>
+        <argsstring>(void)</argsstring>
+        <name>pop</name>
+        <reimplements refid="classIQueue_1ae3256c734320a798575c8d4245c88888">pop</reimplements>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" line="72" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" bodystart="72" bodyend="88"/>
+      </memberdef>
+      <memberdef kind="function" id="classNaiveQueue_1afcdf0c4172cf32b50a1c1e696746ec52" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>T</type>
+        <definition>T NaiveQueue&lt; T &gt;::steal</definition>
+        <argsstring>(void)</argsstring>
+        <name>steal</name>
+        <reimplements refid="classIQueue_1ac8691f8cb1a8fff4ca8b27bb8de5afbb">steal</reimplements>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" line="91" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" bodystart="91" bodyend="94"/>
+      </memberdef>
+      <memberdef kind="function" id="classNaiveQueue_1a76644610240b784500583d2467c75665" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="virtual">
+        <type>bool</type>
+        <definition>bool NaiveQueue&lt; T &gt;::is_empty</definition>
+        <argsstring>(void) const</argsstring>
+        <name>is_empty</name>
+        <reimplements refid="classIQueue_1a87148bd086e76611da324a1c0f10e8f8">is_empty</reimplements>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" line="97" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" bodystart="97" bodyend="100"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>A naive list implementation with a lock, to be used for debugging purposes of the lock-free list </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>IQueue&lt; T &gt;</label>
+        <link refid="classIQueue"/>
+      </node>
+      <node id="1">
+        <label>NaiveQueue&lt; T &gt;</label>
+        <link refid="classNaiveQueue"/>
+        <childnode refid="2" relation="private-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="2">
+        <label>IQueue&lt; T &gt;</label>
+        <link refid="classIQueue"/>
+      </node>
+      <node id="1">
+        <label>NaiveQueue&lt; T &gt;</label>
+        <link refid="classNaiveQueue"/>
+        <childnode refid="2" relation="private-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" line="54" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/naive-queue.hpp" bodystart="55" bodyend="105"/>
+    <listofallmembers>
+      <member refid="classNaiveQueue_1a76644610240b784500583d2467c75665" prot="public" virt="virtual"><scope>NaiveQueue</scope><name>is_empty</name></member>
+      <member refid="classNaiveQueue_1ae1b30ce01c0b0f4ce6a61152fb4d890d" prot="private" virt="non-virtual"><scope>NaiveQueue</scope><name>list</name></member>
+      <member refid="classNaiveQueue_1a7cd4421180d3c05a77e374b281edfcb4" prot="private" virt="non-virtual"><scope>NaiveQueue</scope><name>lock</name></member>
+      <member refid="classNaiveQueue_1a282d4f3d331acf7abdc550bf95e3cafc" prot="public" virt="non-virtual"><scope>NaiveQueue</scope><name>NaiveQueue</name></member>
+      <member refid="classNaiveQueue_1a846f35cce81036f350f5cf50f2526f1e" prot="public" virt="virtual"><scope>NaiveQueue</scope><name>pop</name></member>
+      <member refid="classNaiveQueue_1a8d7f3df275571e65686bae63870aa8b5" prot="public" virt="virtual"><scope>NaiveQueue</scope><name>push</name></member>
+      <member refid="classNaiveQueue_1afcdf0c4172cf32b50a1c1e696746ec52" prot="public" virt="virtual"><scope>NaiveQueue</scope><name>steal</name></member>
+      <member refid="classNaiveQueue_1acbf6f4e9f4063cb74902c73012e4a074" prot="public" virt="non-virtual"><scope>NaiveQueue</scope><name>~NaiveQueue</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

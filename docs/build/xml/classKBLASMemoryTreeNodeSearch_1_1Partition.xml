@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classKBLASMemoryTreeNodeSearch_1_1Partition" kind="class" language="C++" prot="public">
+    <compoundname>KBLASMemoryTreeNodeSearch::Partition</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classKBLASMemoryTreeNodeSearch_1_1Partition_1ab527a82de22fe904e344755a0aae8152" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classKBLASMemoryTreeNodeSearch_1_1Partite" kindref="compound">Partite</ref> &gt;</type>
+        <definition>std::vector&lt;Partite&gt; KBLASMemoryTreeNodeSearch&lt; K &gt;::Partition::partites</definition>
+        <argsstring></argsstring>
+        <name>partites</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="448" column="29" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="448" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classKBLASMemoryTreeNodeSearch_1_1Partition_1a71e9b50150841eced6d27c3607e015a4" prot="public" static="no" mutable="no">
+        <type><ref refid="structarea__chunk__t" kindref="compound">area_chunk_t</ref> *</type>
+        <definition>area_chunk_t* KBLASMemoryTreeNodeSearch&lt; K &gt;::Partition::chunk</definition>
+        <argsstring></argsstring>
+        <name>chunk</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="451" column="31" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="451" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classKBLASMemoryTreeNodeSearch_1_1Partition_1aa0b70b06b04a64604c9d698ef05b6956" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>KBLASMemoryTreeNodeSearch&lt; K &gt;::Partition::Partition</definition>
+        <argsstring>()</argsstring>
+        <name>Partition</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="454" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="454" bodyend="454"/>
+      </memberdef>
+      <memberdef kind="function" id="classKBLASMemoryTreeNodeSearch_1_1Partition_1a92dc7ebf06275da92514269fd6da9f1b" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>KBLASMemoryTreeNodeSearch&lt; K &gt;::Partition::~Partition</definition>
+        <argsstring>()</argsstring>
+        <name>~Partition</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="455" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="455" bodyend="455"/>
+      </memberdef>
+      <memberdef kind="function" id="classKBLASMemoryTreeNodeSearch_1_1Partition_1accb57bdddcb0517e7446db98113ac4ae" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classKBLASMemoryTreeNodeSearch_1_1Partite" kindref="compound">Partite</ref> &amp;</type>
+        <definition>Partite&amp; KBLASMemoryTreeNodeSearch&lt; K &gt;::Partition::get_leftmost_uppermost_block</definition>
+        <argsstring>(void)</argsstring>
+        <name>get_leftmost_uppermost_block</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="459" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="459" bodyend="473"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>KBLASMemoryTreeNodeSearch&lt; K &gt;::Partition</label>
+        <link refid="classKBLASMemoryTreeNodeSearch_1_1Partition"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>chunk</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>area_chunk_t</label>
+        <link refid="structarea__chunk__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>freelink</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>prev</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="443" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="443" bodyend="475"/>
+    <listofallmembers>
+      <member refid="classKBLASMemoryTreeNodeSearch_1_1Partition_1a71e9b50150841eced6d27c3607e015a4" prot="public" virt="non-virtual"><scope>KBLASMemoryTreeNodeSearch::Partition</scope><name>chunk</name></member>
+      <member refid="classKBLASMemoryTreeNodeSearch_1_1Partition_1accb57bdddcb0517e7446db98113ac4ae" prot="public" virt="non-virtual"><scope>KBLASMemoryTreeNodeSearch::Partition</scope><name>get_leftmost_uppermost_block</name></member>
+      <member refid="classKBLASMemoryTreeNodeSearch_1_1Partition_1ab527a82de22fe904e344755a0aae8152" prot="public" virt="non-virtual"><scope>KBLASMemoryTreeNodeSearch::Partition</scope><name>partites</name></member>
+      <member refid="classKBLASMemoryTreeNodeSearch_1_1Partition_1aa0b70b06b04a64604c9d698ef05b6956" prot="public" virt="non-virtual"><scope>KBLASMemoryTreeNodeSearch::Partition</scope><name>Partition</name></member>
+      <member refid="classKBLASMemoryTreeNodeSearch_1_1Partition_1a92dc7ebf06275da92514269fd6da9f1b" prot="public" virt="non-virtual"><scope>KBLASMemoryTreeNodeSearch::Partition</scope><name>~Partition</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

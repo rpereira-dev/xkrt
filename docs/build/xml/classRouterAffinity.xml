@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classRouterAffinity" kind="class" language="C++" prot="public">
+    <compoundname>RouterAffinity</compoundname>
+    <basecompoundref refid="classRouter" prot="public" virt="non-virtual">Router</basecompoundref>
+    <includes refid="router-affinity_8hpp" local="no">router-affinity.hpp</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classRouterAffinity_1a8ce0b8956ded9e3823ac415d34662288" prot="public" static="no" mutable="no">
+        <type>device_global_id_bitfield_t</type>
+        <definition>device_global_id_bitfield_t RouterAffinity::affinity[XKRT_DEVICES_MAX][XKRT_DEVICES_PERF_RANK_MAX]</definition>
+        <argsstring>[XKRT_DEVICES_MAX][XKRT_DEVICES_PERF_RANK_MAX]</argsstring>
+        <name>affinity</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Given a destinatary device global id &apos;i&apos; - affinity[i][j] is a bitmask of with &apos;1&apos; on the source devices of affinity &apos;j&apos;. The lowest the affinity, the higher the performance. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp" line="35" column="37" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classRouterAffinity_1aa5e9c866ad5ef466f988cd900a83d100" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>RouterAffinity::RouterAffinity</definition>
+        <argsstring>()</argsstring>
+        <name>RouterAffinity</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp" line="39" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp" bodystart="39" bodyend="39"/>
+      </memberdef>
+      <memberdef kind="function" id="classRouterAffinity_1a014246e06d87d5db23a8362f3422f4fc" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>RouterAffinity::~RouterAffinity</definition>
+        <argsstring>()</argsstring>
+        <name>~RouterAffinity</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp" line="40" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp" bodystart="40" bodyend="40"/>
+      </memberdef>
+      <memberdef kind="function" id="classRouterAffinity_1afd30ab4b9f043ccb8b87418d4a230769" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="virtual">
+        <type>device_global_id_t</type>
+        <definition>device_global_id_t RouterAffinity::get_source</definition>
+        <argsstring>(const device_global_id_t dst, const device_global_id_bitfield_t valid) const override</argsstring>
+        <name>get_source</name>
+        <reimplements refid="classRouter_1a14d741803525216149e2cddb98dacde0">get_source</reimplements>
+        <param>
+          <type>const device_global_id_t</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>const device_global_id_bitfield_t</type>
+          <declname>valid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieve the source to use for a data transfer to &apos;dst&apos; where the valid sources are amongst the &apos;valid&apos; bitfield </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp" line="44" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp" bodystart="44" bodyend="67"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>The higher the rank, the lower the performance </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>RouterAffinity</label>
+        <link refid="classRouterAffinity"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>Router</label>
+        <link refid="classRouter"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>RouterAffinity</label>
+        <link refid="classRouterAffinity"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>Router</label>
+        <link refid="classRouter"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp" line="27" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-affinity.hpp" bodystart="28" bodyend="69"/>
+    <listofallmembers>
+      <member refid="classRouterAffinity_1a8ce0b8956ded9e3823ac415d34662288" prot="public" virt="non-virtual"><scope>RouterAffinity</scope><name>affinity</name></member>
+      <member refid="classRouterAffinity_1afd30ab4b9f043ccb8b87418d4a230769" prot="public" virt="virtual"><scope>RouterAffinity</scope><name>get_source</name></member>
+      <member refid="classRouter_1a555428efbf07e22776889b8d9b88027f" prot="public" virt="non-virtual"><scope>RouterAffinity</scope><name>Router</name></member>
+      <member refid="classRouterAffinity_1aa5e9c866ad5ef466f988cd900a83d100" prot="public" virt="non-virtual"><scope>RouterAffinity</scope><name>RouterAffinity</name></member>
+      <member refid="classRouter_1a85cb1b453f3ce1fe6abcefe84b5ca63d" prot="public" virt="virtual"><scope>RouterAffinity</scope><name>~Router</name></member>
+      <member refid="classRouterAffinity_1a014246e06d87d5db23a8362f3422f4fc" prot="public" virt="non-virtual"><scope>RouterAffinity</scope><name>~RouterAffinity</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

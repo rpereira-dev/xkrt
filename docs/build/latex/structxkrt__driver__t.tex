@@ -1,0 +1,136 @@
+\hypertarget{structxkrt__driver__t}{}\doxysection{xkrt\+\_\+driver\+\_\+t Struct Reference}
+\label{structxkrt__driver__t}\index{xkrt\_driver\_t@{xkrt\_driver\_t}}
+
+
+Collaboration diagram for xkrt\+\_\+driver\+\_\+t\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{structxkrt__driver__t__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a31f883cf369264d39600a9dfb9676eac}\label{structxkrt__driver__t_a31f883cf369264d39600a9dfb9676eac}} 
+xkrt\+\_\+driver\+\_\+type\+\_\+t {\bfseries type}
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_ab902f5371215ef0f08e87acd00816baa}\label{structxkrt__driver__t_ab902f5371215ef0f08e87acd00816baa}} 
+\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} {\bfseries team}
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a95f613a836484b157d8a6bcb3d4ff326}\label{structxkrt__driver__t_a95f613a836484b157d8a6bcb3d4ff326}} 
+pthread\+\_\+barrier\+\_\+t {\bfseries barrier}
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a03543453b1ab4fdd729f281c5c6b8ef3}\label{structxkrt__driver__t_a03543453b1ab4fdd729f281c5c6b8ef3}} 
+\mbox{\hyperlink{structxkrt__device__t}{xkrt\+\_\+device\+\_\+t}} $\ast$ {\bfseries devices} \mbox{[}XKRT\+\_\+\+DEVICES\+\_\+\+MAX\mbox{]}
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a115f10745d0616882652f466847f9642}\label{structxkrt__driver__t_a115f10745d0616882652f466847f9642}} 
+std\+::atomic$<$ int $>$ {\bfseries ndevices\+\_\+commited}
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_af74068108be0febd7fcb29bb4dbd0904}\label{structxkrt__driver__t_af74068108be0febd7fcb29bb4dbd0904}} 
+const char $\ast$($\ast$ {\bfseries f\+\_\+get\+\_\+name} )(void)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a05d53e845e63c222a3d8800632fc2344}\label{structxkrt__driver__t_a05d53e845e63c222a3d8800632fc2344}} 
+unsigned int($\ast$ {\bfseries f\+\_\+get\+\_\+ndevices\+\_\+max} )(void)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a35b8169621aa047d4a28f5fb521b7511}\label{structxkrt__driver__t_a35b8169621aa047d4a28f5fb521b7511}} 
+int($\ast$ {\bfseries f\+\_\+init} )(unsigned int ndevices, bool use\+\_\+p2p)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_aa60ae8bd6b86a09e2fd97cf0722321f1}\label{structxkrt__driver__t_aa60ae8bd6b86a09e2fd97cf0722321f1}} 
+void($\ast$ {\bfseries f\+\_\+finalize} )(void)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a6b3b0c1128c692ffb5fa71397f3f074f}\label{structxkrt__driver__t_a6b3b0c1128c692ffb5fa71397f3f074f}} 
+\mbox{\hyperlink{structxkrt__device__t}{xkrt\+\_\+device\+\_\+t}} $\ast$($\ast$ {\bfseries f\+\_\+device\+\_\+create} )(\mbox{\hyperlink{structxkrt__driver__t}{xkrt\+\_\+driver\+\_\+t}} $\ast$, int)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a07d0be871af17c91a20c1a870aa07f0e}\label{structxkrt__driver__t_a07d0be871af17c91a20c1a870aa07f0e}} 
+void($\ast$ {\bfseries f\+\_\+device\+\_\+init} )(int device\+\_\+driver\+\_\+id)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a3045b24aad3b761468da94210ce37cda}\label{structxkrt__driver__t_a3045b24aad3b761468da94210ce37cda}} 
+int($\ast$ {\bfseries f\+\_\+device\+\_\+commit} )(int device\+\_\+driver\+\_\+id, xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+bitfield\+\_\+t $\ast$affinity)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_acce40cb699a5e35f8f1ea4edd1318fc1}\label{structxkrt__driver__t_acce40cb699a5e35f8f1ea4edd1318fc1}} 
+int($\ast$ {\bfseries f\+\_\+device\+\_\+destroy} )(int device\+\_\+driver\+\_\+id)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a2dcf3b511e91095bef1b1bcb6130aac4}\label{structxkrt__driver__t_a2dcf3b511e91095bef1b1bcb6130aac4}} 
+void($\ast$ {\bfseries f\+\_\+device\+\_\+info} )(int device\+\_\+driver\+\_\+id, char $\ast$buffer, size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a8e2b86a1b1333ee378f61ad58e27caff}\label{structxkrt__driver__t_a8e2b86a1b1333ee378f61ad58e27caff}} 
+void($\ast$ {\bfseries f\+\_\+memory\+\_\+device\+\_\+info} )(int device\+\_\+driver\+\_\+id, \mbox{\hyperlink{structxkrt__device__memory__info__t}{xkrt\+\_\+device\+\_\+memory\+\_\+info\+\_\+t}} info\mbox{[}XKRT\+\_\+\+DEVICE\+\_\+\+MEMORIES\+\_\+\+MAX\mbox{]}, int $\ast$nmemories)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a30003a22c3671d120690024f3b39a28d}\label{structxkrt__driver__t_a30003a22c3671d120690024f3b39a28d}} 
+void $\ast$($\ast$ {\bfseries f\+\_\+memory\+\_\+device\+\_\+allocate} )(int device\+\_\+driver\+\_\+id, const size\+\_\+t size, int area\+\_\+idx)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a6e2ab668c01d6d76b4ce288332d4be79}\label{structxkrt__driver__t_a6e2ab668c01d6d76b4ce288332d4be79}} 
+void($\ast$ {\bfseries f\+\_\+memory\+\_\+device\+\_\+deallocate} )(int device\+\_\+driver\+\_\+id, void $\ast$ptr, const size\+\_\+t size, int area\+\_\+idx)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_abc0d7f14e9617ad542a310fd0d968b01}\label{structxkrt__driver__t_abc0d7f14e9617ad542a310fd0d968b01}} 
+void $\ast$($\ast$ {\bfseries f\+\_\+memory\+\_\+host\+\_\+allocate} )(int device\+\_\+driver\+\_\+id, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_aedb29a65b30f02b19adafa4330639f1c}\label{structxkrt__driver__t_aedb29a65b30f02b19adafa4330639f1c}} 
+void($\ast$ {\bfseries f\+\_\+memory\+\_\+host\+\_\+deallocate} )(int device\+\_\+driver\+\_\+id, void $\ast$mem, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a3b6b3d9e6c21e2a7b62ecd03f66d393a}\label{structxkrt__driver__t_a3b6b3d9e6c21e2a7b62ecd03f66d393a}} 
+void $\ast$($\ast$ {\bfseries f\+\_\+memory\+\_\+unified\+\_\+allocate} )(int device\+\_\+driver\+\_\+id, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_aa880858507fe57d7bb6f8b0af544a329}\label{structxkrt__driver__t_aa880858507fe57d7bb6f8b0af544a329}} 
+void($\ast$ {\bfseries f\+\_\+memory\+\_\+unified\+\_\+deallocate} )(int device\+\_\+driver\+\_\+id, void $\ast$mem, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a782a71e98bfb96f389a97f9604cd3489}\label{structxkrt__driver__t_a782a71e98bfb96f389a97f9604cd3489}} 
+int($\ast$ {\bfseries f\+\_\+memory\+\_\+host\+\_\+register} )(void $\ast$mem, uint64\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a2ce6d29598e7370cc55e374efb708d74}\label{structxkrt__driver__t_a2ce6d29598e7370cc55e374efb708d74}} 
+int($\ast$ {\bfseries f\+\_\+memory\+\_\+host\+\_\+unregister} )(void $\ast$mem, uint64\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_aa9d75520f9dce6de0da4eaea092f476e}\label{structxkrt__driver__t_aa9d75520f9dce6de0da4eaea092f476e}} 
+int($\ast$ {\bfseries f\+\_\+transfer\+\_\+h2d} )(void $\ast$dst, void $\ast$src, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a46a4f7f7b0265a5a563c0874f0c737d8}\label{structxkrt__driver__t_a46a4f7f7b0265a5a563c0874f0c737d8}} 
+int($\ast$ {\bfseries f\+\_\+transfer\+\_\+d2h} )(void $\ast$dst, void $\ast$src, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a0c59be8de717f0ce93aa21117a00ac98}\label{structxkrt__driver__t_a0c59be8de717f0ce93aa21117a00ac98}} 
+int($\ast$ {\bfseries f\+\_\+transfer\+\_\+d2d} )(void $\ast$dst, void $\ast$src, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a20f9913129d0a94f091ff355ca334cb7}\label{structxkrt__driver__t_a20f9913129d0a94f091ff355ca334cb7}} 
+int($\ast$ {\bfseries f\+\_\+transfer\+\_\+h2d\+\_\+async} )(void $\ast$dst, void $\ast$src, const size\+\_\+t size, \mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$istream)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a00590df7bbd6153884f6c14605097d7f}\label{structxkrt__driver__t_a00590df7bbd6153884f6c14605097d7f}} 
+int($\ast$ {\bfseries f\+\_\+transfer\+\_\+d2h\+\_\+async} )(void $\ast$dst, void $\ast$src, const size\+\_\+t size, \mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$istream)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a05ab0309e1a374996526b16877073cc9}\label{structxkrt__driver__t_a05ab0309e1a374996526b16877073cc9}} 
+int($\ast$ {\bfseries f\+\_\+transfer\+\_\+d2d\+\_\+async} )(void $\ast$dst, void $\ast$src, const size\+\_\+t size, \mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$istream)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_af06714e9e6fd27c8a5841bf44c71ea1a}\label{structxkrt__driver__t_af06714e9e6fd27c8a5841bf44c71ea1a}} 
+int($\ast$ {\bfseries f\+\_\+kernel\+\_\+launch} )(\mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$istream, xkrt\+\_\+stream\+\_\+instruction\+\_\+counter\+\_\+t idx, const xkrt\+\_\+driver\+\_\+module\+\_\+fn\+\_\+t $\ast$fn, const unsigned int gx, const unsigned int gy, const unsigned int gz, const unsigned int bx, const unsigned int by, const unsigned int bz, const unsigned int shared\+\_\+memory\+\_\+bytes, void $\ast$args, const size\+\_\+t args\+\_\+size)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a027c127269367837cfe26aa7bbf5ab82}\label{structxkrt__driver__t_a027c127269367837cfe26aa7bbf5ab82}} 
+int($\ast$ {\bfseries f\+\_\+device\+\_\+cpuset} )(hwloc\+\_\+topology\+\_\+t, cpu\+\_\+set\+\_\+t $\ast$, int)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_ae1f2bc11bb0859199efb93c562b754a8}\label{structxkrt__driver__t_ae1f2bc11bb0859199efb93c562b754a8}} 
+int($\ast$ {\bfseries f\+\_\+stream\+\_\+suggest} )(int device\+\_\+driver\+\_\+id, xkrt\+\_\+stream\+\_\+type\+\_\+t stype)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_aedff55e8c5d06a1d48442cdcd95877a1}\label{structxkrt__driver__t_aedff55e8c5d06a1d48442cdcd95877a1}} 
+\mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$($\ast$ {\bfseries f\+\_\+stream\+\_\+create} )(\mbox{\hyperlink{structxkrt__device__t}{xkrt\+\_\+device\+\_\+t}} $\ast$device, xkrt\+\_\+stream\+\_\+type\+\_\+t type, xkrt\+\_\+stream\+\_\+instruction\+\_\+counter\+\_\+t capacity)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a094ce948dff01543d56ba9be865898f1}\label{structxkrt__driver__t_a094ce948dff01543d56ba9be865898f1}} 
+void($\ast$ {\bfseries f\+\_\+stream\+\_\+delete} )(\mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$istream)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_abf556db0c50b475739d6cb69b3cfd6ae}\label{structxkrt__driver__t_abf556db0c50b475739d6cb69b3cfd6ae}} 
+xkrt\+\_\+driver\+\_\+module\+\_\+t($\ast$ {\bfseries f\+\_\+module\+\_\+load} )(int device\+\_\+driver\+\_\+id, uint8\+\_\+t $\ast$bin, size\+\_\+t binsize, xkrt\+\_\+driver\+\_\+module\+\_\+format\+\_\+t format)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a873a78d98e0ed5e04a548744af6940fb}\label{structxkrt__driver__t_a873a78d98e0ed5e04a548744af6940fb}} 
+void($\ast$ {\bfseries f\+\_\+module\+\_\+unload} )(xkrt\+\_\+driver\+\_\+module\+\_\+t module)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_a677c0d9892ae9fe8bb28b24fec80473a}\label{structxkrt__driver__t_a677c0d9892ae9fe8bb28b24fec80473a}} 
+xkrt\+\_\+driver\+\_\+module\+\_\+fn\+\_\+t($\ast$ {\bfseries f\+\_\+module\+\_\+get\+\_\+fn} )(xkrt\+\_\+driver\+\_\+module\+\_\+t module, const char $\ast$name)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_ab588f3e1d3ee62395b8f7004f2850c88}\label{structxkrt__driver__t_ab588f3e1d3ee62395b8f7004f2850c88}} 
+void($\ast$ {\bfseries f\+\_\+power\+\_\+start} )(int device\+\_\+driver\+\_\+id, \mbox{\hyperlink{structxkrt__power__t}{xkrt\+\_\+power\+\_\+t}} $\ast$pwr)
+\item 
+\mbox{\Hypertarget{structxkrt__driver__t_ab2d925427370f7105d07d20bdbcd480c}\label{structxkrt__driver__t_ab2d925427370f7105d07d20bdbcd480c}} 
+void($\ast$ {\bfseries f\+\_\+power\+\_\+stop} )(int device\+\_\+driver\+\_\+id, \mbox{\hyperlink{structxkrt__power__t}{xkrt\+\_\+power\+\_\+t}} $\ast$pwr)
+\end{DoxyCompactItemize}
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/rpereira/repo/xktrucs-\/new/xkaapi/include/xkrt/driver/driver.\+h\end{DoxyCompactItemize}

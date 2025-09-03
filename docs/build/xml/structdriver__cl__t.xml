@@ -1,0 +1,234 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structdriver__cl__t" kind="struct" language="C++" prot="public">
+    <compoundname>driver_cl_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structdriver__cl__t_1ae030bcee81cfcabb452d3d907fc4a38a" prot="public" static="no" mutable="no">
+        <type><ref refid="structdriver__t" kindref="compound">driver_t</ref></type>
+        <definition>driver_t driver_cl_t::super</definition>
+        <argsstring></argsstring>
+        <name>super</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cl.h" line="90" column="14" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cl.h" bodystart="90" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="3">
+        <label>team_t</label>
+        <link refid="structteam__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>threads</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>desc</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>Lockable</label>
+        <link refid="classLockable"/>
+      </node>
+      <node id="12">
+        <label>stream_instruction_t</label>
+        <link refid="structstream__instruction__t"/>
+        <childnode refid="13" relation="usage">
+          <edgelabel>file</edgelabel>
+        </childnode>
+        <childnode refid="14" relation="usage">
+          <edgelabel>copy_2D</edgelabel>
+        </childnode>
+        <childnode refid="16" relation="usage">
+          <edgelabel>callback</edgelabel>
+        </childnode>
+        <childnode refid="17" relation="usage">
+          <edgelabel>copy_1D</edgelabel>
+        </childnode>
+        <childnode refid="18" relation="usage">
+          <edgelabel>kern</edgelabel>
+        </childnode>
+      </node>
+      <node id="26">
+        <label>conf_stream_t</label>
+        <link refid="structconf__stream__t"/>
+      </node>
+      <node id="4">
+        <label>thread_t</label>
+        <link refid="structthread__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>prev</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>team</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>deque</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>current_task</edgelabel>
+          <edgelabel>implicit_task</edgelabel>
+        </childnode>
+      </node>
+      <node id="17">
+        <label>stream_instruction_copy_1D_t</label>
+        <link refid="structstream__instruction__copy__1D__t"/>
+      </node>
+      <node id="16">
+        <label>callback_t</label>
+        <link refid="structcallback__t"/>
+      </node>
+      <node id="13">
+        <label>stream_instruction_file_t</label>
+        <link refid="structstream__instruction__file__t"/>
+      </node>
+      <node id="1">
+        <label>driver_cl_t</label>
+        <link refid="structdriver__cl__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>super</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>stream_instruction_queue_t</label>
+        <link refid="classstream__instruction__queue__t"/>
+        <childnode refid="12" relation="usage">
+          <edgelabel>instr</edgelabel>
+        </childnode>
+      </node>
+      <node id="21">
+        <label>area_t</label>
+        <link refid="structarea__t"/>
+        <childnode refid="22" relation="usage">
+          <edgelabel>chunk0</edgelabel>
+          <edgelabel>free_chunk_list</edgelabel>
+        </childnode>
+        <childnode refid="23" relation="usage">
+          <edgelabel>lock</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>deque_t&lt; task_t *, 4096 &gt;</label>
+        <link refid="structdeque__t"/>
+      </node>
+      <node id="14">
+        <label>stream_instruction_copy_2D_t</label>
+        <link refid="structstream__instruction__copy__2D__t"/>
+        <childnode refid="15" relation="usage">
+          <edgelabel>dst_device_view</edgelabel>
+          <edgelabel>src_device_view</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>team_binding_t</label>
+        <link refid="structteam__binding__t"/>
+      </node>
+      <node id="20">
+        <label>device_memory_info_t</label>
+        <link refid="structdevice__memory__info__t"/>
+        <childnode refid="21" relation="usage">
+          <edgelabel>area</edgelabel>
+        </childnode>
+      </node>
+      <node id="18">
+        <label>stream_instruction_kernel_t</label>
+        <link refid="structstream__instruction__kernel__t"/>
+      </node>
+      <node id="15">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="24">
+        <label>conf_device_t</label>
+        <link refid="structconf__device__t"/>
+        <childnode refid="25" relation="usage">
+          <edgelabel>offloader</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>stream_t</label>
+        <link refid="classstream__t"/>
+        <childnode refid="10" relation="public-inheritance">
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>pending</edgelabel>
+          <edgelabel>ready</edgelabel>
+        </childnode>
+      </node>
+      <node id="23">
+        <label>mutex_t</label>
+        <link refid="structmutex__t"/>
+      </node>
+      <node id="6">
+        <label>task_t</label>
+        <link refid="structtask__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="19">
+        <label>device_t</label>
+        <link refid="structdevice__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>threads</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>streams</edgelabel>
+        </childnode>
+        <childnode refid="20" relation="usage">
+          <edgelabel>memories</edgelabel>
+        </childnode>
+        <childnode refid="24" relation="usage">
+          <edgelabel>conf</edgelabel>
+        </childnode>
+      </node>
+      <node id="25">
+        <label>conf_offloader_t</label>
+        <link refid="structconf__offloader__t"/>
+        <childnode refid="26" relation="usage">
+          <edgelabel>streams</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>team_desc_t</label>
+        <link refid="structteam__desc__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>binding</edgelabel>
+        </childnode>
+      </node>
+      <node id="22">
+        <label>area_chunk_t</label>
+        <link refid="structarea__chunk__t"/>
+        <childnode refid="22" relation="usage">
+          <edgelabel>freelink</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>prev</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>driver_t</label>
+        <link refid="structdriver__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>team</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>f_stream_create</edgelabel>
+        </childnode>
+        <childnode refid="19" relation="usage">
+          <edgelabel>devices</edgelabel>
+          <edgelabel>f_device_create</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cl.h" line="88" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cl.h" bodystart="89" bodyend="91"/>
+    <listofallmembers>
+      <member refid="structdriver__cl__t_1ae030bcee81cfcabb452d3d907fc4a38a" prot="public" virt="non-virtual"><scope>driver_cl_t</scope><name>super</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

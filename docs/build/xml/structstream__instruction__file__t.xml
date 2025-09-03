@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structstream__instruction__file__t" kind="struct" language="C++" prot="public">
+    <compoundname>stream_instruction_file_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structstream__instruction__file__t_1af2dad2b616fc96377464f8f032dcbc27" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int stream_instruction_file_t::fd</definition>
+        <argsstring></argsstring>
+        <name>fd</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h" line="88" column="13" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstream__instruction__file__t_1a0800582fd266bb3186e23b3a0264d349" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* stream_instruction_file_t::buffer</definition>
+        <argsstring></argsstring>
+        <name>buffer</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h" line="89" column="15" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstream__instruction__file__t_1ab325dc205c7e6a68f67887cd61a0df8d" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t stream_instruction_file_t::n</definition>
+        <argsstring></argsstring>
+        <name>n</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h" line="90" column="16" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="90" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstream__instruction__file__t_1ae62dd19cb6b9ba2972dcb348f68c3dcc" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t stream_instruction_file_t::offset</definition>
+        <argsstring></argsstring>
+        <name>offset</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h" line="91" column="16" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="91" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h" line="86" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="87" bodyend="92"/>
+    <listofallmembers>
+      <member refid="structstream__instruction__file__t_1a0800582fd266bb3186e23b3a0264d349" prot="public" virt="non-virtual"><scope>stream_instruction_file_t</scope><name>buffer</name></member>
+      <member refid="structstream__instruction__file__t_1af2dad2b616fc96377464f8f032dcbc27" prot="public" virt="non-virtual"><scope>stream_instruction_file_t</scope><name>fd</name></member>
+      <member refid="structstream__instruction__file__t_1ab325dc205c7e6a68f67887cd61a0df8d" prot="public" virt="non-virtual"><scope>stream_instruction_file_t</scope><name>n</name></member>
+      <member refid="structstream__instruction__file__t_1ae62dd19cb6b9ba2972dcb348f68c3dcc" prot="public" virt="non-virtual"><scope>stream_instruction_file_t</scope><name>offset</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

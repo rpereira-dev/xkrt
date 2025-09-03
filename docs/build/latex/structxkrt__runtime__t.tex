@@ -1,0 +1,277 @@
+\hypertarget{structxkrt__runtime__t}{}\doxysection{xkrt\+\_\+runtime\+\_\+t Struct Reference}
+\label{structxkrt__runtime__t}\index{xkrt\_runtime\_t@{xkrt\_runtime\_t}}
+
+
+Collaboration diagram for xkrt\+\_\+runtime\+\_\+t\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{structxkrt__runtime__t__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_ae6e94b3b9cb563adfa08678968e197dd}\label{structxkrt__runtime__t_ae6e94b3b9cb563adfa08678968e197dd}} 
+int {\bfseries init} (void)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a7da6f651b88ff1cbc2a995c98fa4043f}\label{structxkrt__runtime__t_a7da6f651b88ff1cbc2a995c98fa4043f}} 
+int {\bfseries deinit} (void)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a48643a204a501173da7cf36ec70ebe84}\label{structxkrt__runtime__t_a48643a204a501173da7cf36ec70ebe84}} 
+void {\bfseries reset} (void)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_aaa9e1d97be3630aaa2d548ecaae16845}\label{structxkrt__runtime__t_aaa9e1d97be3630aaa2d548ecaae16845}} 
+\mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$ {\bfseries copy} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, const size\+\_\+t size, const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t dst\+\_\+device\+\_\+global\+\_\+id, const uintptr\+\_\+t dst\+\_\+device\+\_\+addr, const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t src\+\_\+device\+\_\+global\+\_\+id, const uintptr\+\_\+t src\+\_\+device\+\_\+addr, const \mbox{\hyperlink{structxkrt__callback__t}{xkrt\+\_\+callback\+\_\+t}} \&callback)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a504fab6159693a0ad6401eb70891d735}\label{structxkrt__runtime__t_a504fab6159693a0ad6401eb70891d735}} 
+\mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$ {\bfseries copy} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, const \mbox{\hyperlink{structmatrix__tile__t}{memory\+\_\+view\+\_\+t}} \&host\+\_\+view, const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t dst\+\_\+device\+\_\+global\+\_\+id, const \mbox{\hyperlink{structmemory__replica__view__t}{memory\+\_\+replica\+\_\+view\+\_\+t}} \&dst\+\_\+device\+\_\+view, const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t src\+\_\+device\+\_\+global\+\_\+id, const \mbox{\hyperlink{structmemory__replica__view__t}{memory\+\_\+replica\+\_\+view\+\_\+t}} \&src\+\_\+device\+\_\+view, const \mbox{\hyperlink{structxkrt__callback__t}{xkrt\+\_\+callback\+\_\+t}} \&callback)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a4d99f30374668c53f71ffe60982736da}\label{structxkrt__runtime__t_a4d99f30374668c53f71ffe60982736da}} 
+void {\bfseries distribute\+\_\+async} (xkrt\+\_\+distribution\+\_\+type\+\_\+t type, void $\ast$ptr, size\+\_\+t size, size\+\_\+t nb, size\+\_\+t h)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_aa035b7d9e90a8b5b8fcb02f3add6c82d}\label{structxkrt__runtime__t_aa035b7d9e90a8b5b8fcb02f3add6c82d}} 
+void {\bfseries distribute\+\_\+async} (xkrt\+\_\+distribution\+\_\+type\+\_\+t type, void $\ast$$\ast$ptr, size\+\_\+t chunk\+\_\+size, unsigned int n)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a45b214f6cbf20ebc0535e1bb88ec119a}\label{structxkrt__runtime__t_a45b214f6cbf20ebc0535e1bb88ec119a}} 
+void {\bfseries distribute\+\_\+async} (xkrt\+\_\+distribution\+\_\+type\+\_\+t type, matrix\+\_\+storage\+\_\+t storage, void $\ast$ptr, size\+\_\+t ld, size\+\_\+t m, size\+\_\+t n, size\+\_\+t mb, size\+\_\+t nb, size\+\_\+t sizeof\+\_\+type, size\+\_\+t hx, size\+\_\+t hy)
+\item 
+int \mbox{\hyperlink{structxkrt__runtime__t_a77e114d81ccb00c0e38c16dd1bc9fd76}{file\+\_\+read\+\_\+async}} (int fd, void $\ast$buffer, size\+\_\+t n, unsigned int nchunks)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_aa2605afc94f56f1a04d019bbb8248269}\label{structxkrt__runtime__t_aa2605afc94f56f1a04d019bbb8248269}} 
+int {\bfseries file\+\_\+write\+\_\+async} (int fd, void $\ast$buffer, size\+\_\+t n, unsigned int nchunks)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a6c778c734e8dc9f69c7317b33e005613}\label{structxkrt__runtime__t_a6c778c734e8dc9f69c7317b33e005613}} 
+void {\bfseries file\+\_\+foreach\+\_\+chunk} (void $\ast$buffer, const size\+\_\+t total\+\_\+size, size\+\_\+t nchunks, const std\+::function$<$ void(uintptr\+\_\+t, uintptr\+\_\+t)$>$ \&func)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_aa69116117b75b8d05d2d360c6d733971}\label{structxkrt__runtime__t_aa69116117b75b8d05d2d360c6d733971}} 
+void {\bfseries memory\+\_\+device\+\_\+preallocate\+\_\+ensure} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, const int memory\+\_\+id)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a61d19ef9eba674da86a9a04c5617299a}\label{structxkrt__runtime__t_a61d19ef9eba674da86a9a04c5617299a}} 
+\mbox{\hyperlink{structxkrt__area__chunk__t}{xkrt\+\_\+area\+\_\+chunk\+\_\+t}} $\ast$ {\bfseries memory\+\_\+device\+\_\+allocate\+\_\+on} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, const size\+\_\+t size, const int memory\+\_\+id)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a8bdac8e1f6740482ae285f3c1fd229c3}\label{structxkrt__runtime__t_a8bdac8e1f6740482ae285f3c1fd229c3}} 
+\mbox{\hyperlink{structxkrt__area__chunk__t}{xkrt\+\_\+area\+\_\+chunk\+\_\+t}} $\ast$ {\bfseries memory\+\_\+device\+\_\+allocate} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a7b4cc3adb33611c8383fb393d806d9c5}\label{structxkrt__runtime__t_a7b4cc3adb33611c8383fb393d806d9c5}} 
+void {\bfseries memory\+\_\+device\+\_\+deallocate} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, \mbox{\hyperlink{structxkrt__area__chunk__t}{xkrt\+\_\+area\+\_\+chunk\+\_\+t}} $\ast$chunk)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a7bcea337df2b8073eec3a8fc99a020cd}\label{structxkrt__runtime__t_a7bcea337df2b8073eec3a8fc99a020cd}} 
+void {\bfseries memory\+\_\+device\+\_\+deallocate\+\_\+all} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_ae619aa33cca4535d907064db3e5635cc}\label{structxkrt__runtime__t_ae619aa33cca4535d907064db3e5635cc}} 
+void $\ast$ {\bfseries memory\+\_\+host\+\_\+allocate} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a5226f148a0e04188fc89a4177812ccf5}\label{structxkrt__runtime__t_a5226f148a0e04188fc89a4177812ccf5}} 
+void {\bfseries memory\+\_\+host\+\_\+deallocate} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, void $\ast$mem, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a9b40401823cd13623af560c64aded4bf}\label{structxkrt__runtime__t_a9b40401823cd13623af560c64aded4bf}} 
+void $\ast$ {\bfseries memory\+\_\+unified\+\_\+allocate} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_ac000f2b9f6f8939924126e519a344733}\label{structxkrt__runtime__t_ac000f2b9f6f8939924126e519a344733}} 
+void {\bfseries memory\+\_\+unified\+\_\+deallocate} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, void $\ast$mem, const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a902386190b5400f3890b4768f45d024b}\label{structxkrt__runtime__t_a902386190b5400f3890b4768f45d024b}} 
+void {\bfseries memory\+\_\+replicate\+\_\+noncoherent} (xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, void $\ast$ptr, size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_ab0be9ecb383ed8f3ca469eaa8ea802f7}\label{structxkrt__runtime__t_ab0be9ecb383ed8f3ca469eaa8ea802f7}} 
+void {\bfseries memory\+\_\+replicate\+\_\+noncoherent} (xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, matrix\+\_\+storage\+\_\+t storage, void $\ast$ptr, size\+\_\+t ld, size\+\_\+t m, size\+\_\+t n, size\+\_\+t sizeof\+\_\+type)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_ab4305e35f09fe74d60092a5fde4ccc07}\label{structxkrt__runtime__t_ab4305e35f09fe74d60092a5fde4ccc07}} 
+void {\bfseries memory\+\_\+host\+\_\+coherent\+\_\+async} (void $\ast$ptr, size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_af99ff8a53abe0025e2dbccfc2ee88d2d}\label{structxkrt__runtime__t_af99ff8a53abe0025e2dbccfc2ee88d2d}} 
+void {\bfseries memory\+\_\+host\+\_\+coherent\+\_\+async} (matrix\+\_\+storage\+\_\+t storage, void $\ast$ptr, size\+\_\+t ld, size\+\_\+t m, size\+\_\+t n, size\+\_\+t sizeof\+\_\+type)
+\item 
+int \mbox{\hyperlink{structxkrt__runtime__t_a8b46e3c1c26f7230918ef4145e280da3}{memory\+\_\+register\+\_\+async}} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, void $\ast$ptr, const size\+\_\+t size, int n)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a2d33c59049f7ab248b6921680a3e6603}\label{structxkrt__runtime__t_a2d33c59049f7ab248b6921680a3e6603}} 
+int {\bfseries memory\+\_\+unregister\+\_\+async} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, void $\ast$ptr, const size\+\_\+t size, int n)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a0505a61b3288b96f17fcb3ec8389b133}\label{structxkrt__runtime__t_a0505a61b3288b96f17fcb3ec8389b133}} 
+int {\bfseries memory\+\_\+touch\+\_\+async} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, void $\ast$ptr, const size\+\_\+t size, int n)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a479e9e2160bd5969fb3363495127e852}\label{structxkrt__runtime__t_a479e9e2160bd5969fb3363495127e852}} 
+void {\bfseries task\+\_\+commit} (\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a627e33ac9fea8ee8278c2b043396043f}\label{structxkrt__runtime__t_a627e33ac9fea8ee8278c2b043396043f}} 
+void {\bfseries task\+\_\+detachable\+\_\+decr} (\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a862fac5a5ee00168d4a4982c40da14de}\label{structxkrt__runtime__t_a862fac5a5ee00168d4a4982c40da14de}} 
+void {\bfseries task\+\_\+detachable\+\_\+incr} (\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a501dc341d934a0efcf6f209ed88cc2fb}\label{structxkrt__runtime__t_a501dc341d934a0efcf6f209ed88cc2fb}} 
+void {\bfseries task\+\_\+complete} (\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_adcf9972d56154e8c99907724d195dee0}\label{structxkrt__runtime__t_adcf9972d56154e8c99907724d195dee0}} 
+void {\bfseries task\+\_\+wait} (void)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a5b0f4ba61c248f24391faf5dc77bf55a}\label{structxkrt__runtime__t_a5b0f4ba61c248f24391faf5dc77bf55a}} 
+int {\bfseries task\+\_\+schedule} (void)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a0198e72769c8f2f92a2b1b260817143c}\label{structxkrt__runtime__t_a0198e72769c8f2f92a2b1b260817143c}} 
+void {\bfseries task\+\_\+enqueue} (\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_ab55f752b8d0be590625bdfa102d708e6}\label{structxkrt__runtime__t_ab55f752b8d0be590625bdfa102d708e6}} 
+void {\bfseries task\+\_\+thread\+\_\+enqueue} (\mbox{\hyperlink{structxkrt__thread__t}{xkrt\+\_\+thread\+\_\+t}} $\ast$thread, \mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_af948d608d469f132ac7ad8506c73ca71}\label{structxkrt__runtime__t_af948d608d469f132ac7ad8506c73ca71}} 
+void {\bfseries task\+\_\+team\+\_\+enqueue} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, \mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a21aaf8756e5d33cb7b5fdabd9ed87b56}\label{structxkrt__runtime__t_a21aaf8756e5d33cb7b5fdabd9ed87b56}} 
+\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$ {\bfseries task\+\_\+dup} (const \mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_ad905dad8f5523a95178b8e4e2fdb5ee2}\label{structxkrt__runtime__t_ad905dad8f5523a95178b8e4e2fdb5ee2}} 
+{\footnotesize template$<$task\+\_\+access\+\_\+counter\+\_\+t ac, bool has\+\_\+set\+\_\+accesses, bool has\+\_\+split\+\_\+condition$>$ }\\\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$ {\bfseries task\+\_\+instanciate} (const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&set\+\_\+accesses, const std\+::function$<$ bool(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&split\+\_\+condition, const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$)$>$ \&f)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a60375f541adc93b08bb7378dc119b0c7}\label{structxkrt__runtime__t_a60375f541adc93b08bb7378dc119b0c7}} 
+{\footnotesize template$<$task\+\_\+access\+\_\+counter\+\_\+t ac, bool has\+\_\+set\+\_\+accesses, bool has\+\_\+split\+\_\+condition$>$ }\\void {\bfseries task\+\_\+spawn} (const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&set\+\_\+accesses, const std\+::function$<$ bool(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&split\+\_\+condition, const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$)$>$ \&f)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a663b43f6c0f297c00ea8e13d4ad00e81}\label{structxkrt__runtime__t_a663b43f6c0f297c00ea8e13d4ad00e81}} 
+{\footnotesize template$<$task\+\_\+access\+\_\+counter\+\_\+t ac$>$ }\\void {\bfseries task\+\_\+spawn} (const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&set\+\_\+accesses, const std\+::function$<$ bool(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&split\+\_\+condition, const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$)$>$ \&f)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a421e6d6afc3f15a1ea275f669960bfe6}\label{structxkrt__runtime__t_a421e6d6afc3f15a1ea275f669960bfe6}} 
+{\footnotesize template$<$task\+\_\+access\+\_\+counter\+\_\+t ac$>$ }\\void {\bfseries task\+\_\+spawn} (const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&set\+\_\+accesses, const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$)$>$ \&f)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_aabf902c2140d3e93d4f44168361ccb06}\label{structxkrt__runtime__t_aabf902c2140d3e93d4f44168361ccb06}} 
+void {\bfseries task\+\_\+spawn} (const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$)$>$ \&f)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_af963229259b518e375773ab832b254cd}\label{structxkrt__runtime__t_af963229259b518e375773ab832b254cd}} 
+void {\bfseries task\+\_\+run} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, \mbox{\hyperlink{structxkrt__thread__t}{xkrt\+\_\+thread\+\_\+t}} $\ast$thread, \mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a5364d359fdb8a05d38250e34ad20801c}\label{structxkrt__runtime__t_a5364d359fdb8a05d38250e34ad20801c}} 
+void {\bfseries team\+\_\+create} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a85c97cc3e5c8d190b80786132de4dd89}\label{structxkrt__runtime__t_a85c97cc3e5c8d190b80786132de4dd89}} 
+{\footnotesize template$<$bool worksteal = false$>$ }\\void {\bfseries team\+\_\+barrier} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, \mbox{\hyperlink{structxkrt__thread__t}{xkrt\+\_\+thread\+\_\+t}} $\ast$thread=NULL)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_aec40d1a01a294440bb08d132a1275b28}\label{structxkrt__runtime__t_aec40d1a01a294440bb08d132a1275b28}} 
+void {\bfseries team\+\_\+join} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a32b81659645a22b9d0ae1f6856b26f84}\label{structxkrt__runtime__t_a32b81659645a22b9d0ae1f6856b26f84}} 
+void {\bfseries team\+\_\+critical\+\_\+begin} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a15f5c059b4b3ce132366e89dc28edd6a}\label{structxkrt__runtime__t_a15f5c059b4b3ce132366e89dc28edd6a}} 
+void {\bfseries team\+\_\+critical\+\_\+end} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a48d65fefe4554cb22dd3c1641abec4cc}\label{structxkrt__runtime__t_a48d65fefe4554cb22dd3c1641abec4cc}} 
+void {\bfseries team\+\_\+parallel\+\_\+for} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, xkrt\+\_\+team\+\_\+parallel\+\_\+for\+\_\+func\+\_\+t func)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_adf708b4da3343bdaacd680ff4bcdd1c6}\label{structxkrt__runtime__t_adf708b4da3343bdaacd680ff4bcdd1c6}} 
+{\footnotesize template$<$task\+\_\+access\+\_\+counter\+\_\+t ac, bool has\+\_\+set\+\_\+accesses, bool has\+\_\+split\+\_\+condition$>$ }\\void {\bfseries team\+\_\+task\+\_\+spawn} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&set\+\_\+accesses, const std\+::function$<$ bool(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&split\+\_\+condition, const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$)$>$ \&f)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a758a6b88621cef0b2a186f751cbd0e45}\label{structxkrt__runtime__t_a758a6b88621cef0b2a186f751cbd0e45}} 
+{\footnotesize template$<$task\+\_\+access\+\_\+counter\+\_\+t ac$>$ }\\void {\bfseries team\+\_\+task\+\_\+spawn} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&set\+\_\+accesses, const std\+::function$<$ bool(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&split\+\_\+condition, const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$)$>$ \&f)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a34c373da3e9fb689bdaff73fa2806d29}\label{structxkrt__runtime__t_a34c373da3e9fb689bdaff73fa2806d29}} 
+{\footnotesize template$<$task\+\_\+access\+\_\+counter\+\_\+t ac$>$ }\\void {\bfseries team\+\_\+task\+\_\+spawn} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$, \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$)$>$ \&set\+\_\+accesses, const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$)$>$ \&f)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_ad8a670f979a6ae5fbe76b7c715a13391}\label{structxkrt__runtime__t_ad8a670f979a6ae5fbe76b7c715a13391}} 
+void {\bfseries team\+\_\+task\+\_\+spawn} (\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, const std\+::function$<$ void(\mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$)$>$ \&f)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a538e4c9e2ea56c2fdd723c12601f6a3c}\label{structxkrt__runtime__t_a538e4c9e2ea56c2fdd723c12601f6a3c}} 
+\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$ {\bfseries team\+\_\+get} (const xkrt\+\_\+driver\+\_\+type\+\_\+t type)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a57e0c49b40b5a37d053b58ac574d40e6}\label{structxkrt__runtime__t_a57e0c49b40b5a37d053b58ac574d40e6}} 
+\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$ {\bfseries team\+\_\+get\+\_\+any} (const xkrt\+\_\+driver\+\_\+type\+\_\+bitfield\+\_\+t types)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a24fb85978dcc1fb07ec4f2adf3350c75}\label{structxkrt__runtime__t_a24fb85978dcc1fb07ec4f2adf3350c75}} 
+void {\bfseries power\+\_\+start} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, \mbox{\hyperlink{structxkrt__power__t}{xkrt\+\_\+power\+\_\+t}} $\ast$pwr)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a8fc2db237cf68217d70a6943b320a873}\label{structxkrt__runtime__t_a8fc2db237cf68217d70a6943b320a873}} 
+void {\bfseries power\+\_\+stop} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id, \mbox{\hyperlink{structxkrt__power__t}{xkrt\+\_\+power\+\_\+t}} $\ast$pwr)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a22e661bdfcaffc6e02e73098406f2a7e}\label{structxkrt__runtime__t_a22e661bdfcaffc6e02e73098406f2a7e}} 
+\mbox{\hyperlink{structxkrt__driver__t}{xkrt\+\_\+driver\+\_\+t}} $\ast$ {\bfseries driver\+\_\+get} (const xkrt\+\_\+driver\+\_\+type\+\_\+t type)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a38f50f249d4af076540ef1c201bcb8ef}\label{structxkrt__runtime__t_a38f50f249d4af076540ef1c201bcb8ef}} 
+\mbox{\hyperlink{structxkrt__device__t}{xkrt\+\_\+device\+\_\+t}} $\ast$ {\bfseries device\+\_\+get} (const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t device\+\_\+global\+\_\+id)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a4c392de5274a96cafbca990c9f4a0c81}\label{structxkrt__runtime__t_a4c392de5274a96cafbca990c9f4a0c81}} 
+unsigned int {\bfseries get\+\_\+ndevices} (void)
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a57dea1fab6b84c4cf77262af29f05828}\label{structxkrt__runtime__t_a57dea1fab6b84c4cf77262af29f05828}} 
+static void {\bfseries task\+\_\+enqueue} (\mbox{\hyperlink{structxkrt__runtime__t}{xkrt\+\_\+runtime\+\_\+t}} $\ast$runtime, \mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_ace5c42ff91e44efb04cc42eda09dd2de}\label{structxkrt__runtime__t_ace5c42ff91e44efb04cc42eda09dd2de}} 
+static void {\bfseries task\+\_\+thread\+\_\+enqueue} (\mbox{\hyperlink{structxkrt__runtime__t}{xkrt\+\_\+runtime\+\_\+t}} $\ast$runtime, \mbox{\hyperlink{structxkrt__thread__t}{xkrt\+\_\+thread\+\_\+t}} $\ast$thread, \mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_abb7cc874cc76996989a684fc71951635}\label{structxkrt__runtime__t_abb7cc874cc76996989a684fc71951635}} 
+static void {\bfseries task\+\_\+team\+\_\+enqueue} (\mbox{\hyperlink{structxkrt__runtime__t}{xkrt\+\_\+runtime\+\_\+t}} $\ast$runtime, \mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$team, \mbox{\hyperlink{structtask__t}{task\+\_\+t}} $\ast$task)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a49bbd64d243cd032e5bc69879def106f}\label{structxkrt__runtime__t_a49bbd64d243cd032e5bc69879def106f}} 
+static void {\bfseries thread\+\_\+getaffinity} (cpu\+\_\+set\+\_\+t \&cpuset)
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_aa92b4ff2cd4ed40834fa162626ac7957}\label{structxkrt__runtime__t_aa92b4ff2cd4ed40834fa162626ac7957}} 
+static void {\bfseries thread\+\_\+setaffinity} (cpu\+\_\+set\+\_\+t \&cpuset)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a59f0ada5f2a7f3016357b8cd7579c453}\label{structxkrt__runtime__t_a59f0ada5f2a7f3016357b8cd7579c453}} 
+std\+::atomic$<$ xkrt\+\_\+runtime\+\_\+state\+\_\+t $>$ {\bfseries state}
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a1f23e5f7106337ba758d78a22cffb054}\label{structxkrt__runtime__t_a1f23e5f7106337ba758d78a22cffb054}} 
+\mbox{\hyperlink{structxkrt__drivers__t}{xkrt\+\_\+drivers\+\_\+t}} {\bfseries drivers}
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a72ba6decb1c1c83800e2a52a4a8c6af9}\label{structxkrt__runtime__t_a72ba6decb1c1c83800e2a52a4a8c6af9}} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>\mbox{\hyperlink{structtask__formats__t}{task\_formats\_t}} {\bfseries list}\\
+\>task\_format\_id\_t {\bfseries copy\_async}\\
+\>task\_format\_id\_t {\bfseries host\_capture}\\
+\>task\_format\_id\_t {\bfseries memory\_touch\_async}\\
+\>task\_format\_id\_t {\bfseries memory\_register\_async}\\
+\>task\_format\_id\_t {\bfseries memory\_unregister\_async}\\
+\>task\_format\_id\_t {\bfseries file\_read\_async}\\
+\>task\_format\_id\_t {\bfseries file\_write\_async}\\
+\} {\bfseries formats}\\
+
+\end{tabbing}\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_aab212dabcc0f633b414ef707f866a41b}\label{structxkrt__runtime__t_aab212dabcc0f633b414ef707f866a41b}} 
+\mbox{\hyperlink{structxkrt__conf__s}{xkrt\+\_\+conf\+\_\+t}} {\bfseries conf}
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a206d07aa5f4b16ee988cfa6a474b2340}\label{structxkrt__runtime__t_a206d07aa5f4b16ee988cfa6a474b2340}} 
+\mbox{\hyperlink{classRouterAffinity}{Router\+Affinity}} {\bfseries router}
+\item 
+\mbox{\Hypertarget{structxkrt__runtime__t_a8d5e359eb60bcb101b573a9758b95582}\label{structxkrt__runtime__t_a8d5e359eb60bcb101b573a9758b95582}} 
+hwloc\+\_\+topology\+\_\+t {\bfseries topology}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{structxkrt__runtime__t_a77e114d81ccb00c0e38c16dd1bc9fd76}\label{structxkrt__runtime__t_a77e114d81ccb00c0e38c16dd1bc9fd76}} 
+\index{xkrt\_runtime\_t@{xkrt\_runtime\_t}!file\_read\_async@{file\_read\_async}}
+\index{file\_read\_async@{file\_read\_async}!xkrt\_runtime\_t@{xkrt\_runtime\_t}}
+\doxysubsubsection{\texorpdfstring{file\_read\_async()}{file\_read\_async()}}
+{\footnotesize\ttfamily int xkrt\+\_\+runtime\+\_\+t\+::file\+\_\+read\+\_\+async (\begin{DoxyParamCaption}\item[{int}]{fd,  }\item[{void $\ast$}]{buffer,  }\item[{size\+\_\+t}]{n,  }\item[{unsigned int}]{nchunks }\end{DoxyParamCaption})}
+
+Create a task that reads \textquotesingle{}n\textquotesingle{} bytes from the file descriptor \textquotesingle{}fd\textquotesingle{} , and write to the \textquotesingle{}buffer\textquotesingle{} memory.
+
+Task\textquotesingle{} access is {\ttfamily write\+: \mbox{\hyperlink{classInterval}{Interval(buffer, n)}}}
+
+Dependencies may be released early if nchunks $>$ 1 Example\+: if nchunks == 1, then dependencies are released once \textquotesingle{}n\textquotesingle{} bytes got read if nchunks == 2, then dependencies are released twice, on
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{classInterval}{Interval}}(buffer , n/2) -\/ once it has been read
+\item \mbox{\hyperlink{classInterval}{Interval}}(buffer + n/2, n/2) -\/ once it has been read 
+\end{DoxyItemize}\mbox{\Hypertarget{structxkrt__runtime__t_a8b46e3c1c26f7230918ef4145e280da3}\label{structxkrt__runtime__t_a8b46e3c1c26f7230918ef4145e280da3}} 
+\index{xkrt\_runtime\_t@{xkrt\_runtime\_t}!memory\_register\_async@{memory\_register\_async}}
+\index{memory\_register\_async@{memory\_register\_async}!xkrt\_runtime\_t@{xkrt\_runtime\_t}}
+\doxysubsubsection{\texorpdfstring{memory\_register\_async()}{memory\_register\_async()}}
+{\footnotesize\ttfamily int xkrt\+\_\+runtime\+\_\+t\+::memory\+\_\+register\+\_\+async (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structxkrt__team__t}{xkrt\+\_\+team\+\_\+t}} $\ast$}]{team,  }\item[{void $\ast$}]{ptr,  }\item[{const size\+\_\+t}]{size,  }\item[{int}]{n }\end{DoxyParamCaption})}
+
+Create \textquotesingle{}n\textquotesingle{} tasks so that each task i in \mbox{[}0..n-\/1\mbox{]}
+\begin{DoxyItemize}
+\item access -\/ commutative write on ptr + i$\ast$size/n
+\item routine -\/ register/unregister/touch \mbox{[}ptr + i$\ast$size/n, MIN(ptr + (i+1)$\ast$size/n, ptr+size)\mbox{]}
+\end{DoxyItemize}
+
+Note\+: each task may run several \textquotesingle{}cu\+Mem\+Register\textquotesingle{} several time on a single chunk 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/rpereira/repo/xktrucs-\/new/xkaapi/include/xkrt/runtime.\+h\end{DoxyCompactItemize}

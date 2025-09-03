@@ -1,0 +1,144 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structarea__chunk__t" kind="struct" language="C++" prot="public">
+    <compoundname>area_chunk_t</compoundname>
+    <includes refid="area_8h" local="no">area.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structarea__chunk__t_1af5d0938db93db5763d7f1b483bb77778" prot="public" static="no" mutable="no">
+        <type>uintptr_t</type>
+        <definition>uintptr_t area_chunk_t::ptr</definition>
+        <argsstring></argsstring>
+        <name>ptr</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" line="64" column="19" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structarea__chunk__t_1a2277804eff65461e3983792cd26def78" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t area_chunk_t::size</definition>
+        <argsstring></argsstring>
+        <name>size</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" line="65" column="16" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structarea__chunk__t_1a7501774eb6120c90083eeb0bc7e95c18" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int area_chunk_t::state</definition>
+        <argsstring></argsstring>
+        <name>state</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" line="66" column="13" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structarea__chunk__t_1a49023778abac7f764399aa96af306826" prot="public" static="no" mutable="no">
+        <type>struct <ref refid="structarea__chunk__t" kindref="compound">area_chunk_t</ref> *</type>
+        <definition>struct area_chunk_t* area_chunk_t::prev</definition>
+        <argsstring></argsstring>
+        <name>prev</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" line="67" column="28" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structarea__chunk__t_1a983924212ef644f50605410c1438c6f3" prot="public" static="no" mutable="no">
+        <type>struct <ref refid="structarea__chunk__t" kindref="compound">area_chunk_t</ref> *</type>
+        <definition>struct area_chunk_t* area_chunk_t::next</definition>
+        <argsstring></argsstring>
+        <name>next</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" line="68" column="28" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" bodystart="68" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structarea__chunk__t_1ae919753ac4cda12231de3258c943100d" prot="public" static="no" mutable="no">
+        <type>struct <ref refid="structarea__chunk__t" kindref="compound">area_chunk_t</ref> *</type>
+        <definition>struct area_chunk_t* area_chunk_t::freelink</definition>
+        <argsstring></argsstring>
+        <name>freelink</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" line="69" column="28" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" bodystart="69" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structarea__chunk__t_1ae67a82dfb62697f75c78639f99c08d07" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int area_chunk_t::use_counter</definition>
+        <argsstring></argsstring>
+        <name>use_counter</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" line="70" column="13" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structarea__chunk__t_1a05fc8826bd0a726b90caa3c146fba850" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int area_chunk_t::area_idx</definition>
+        <argsstring></argsstring>
+        <name>area_idx</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" line="71" column="13" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Represent a segment of memory in device memory (used by custom allocator) It is placed in two chained list:<itemizedlist>
+<listitem><para>the list of all chunk in device memory</para>
+</listitem><listitem><para>the list of free chunk in device memory </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>area_chunk_t</label>
+        <link refid="structarea__chunk__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>freelink</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>prev</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" line="62" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/area.h" bodystart="63" bodyend="72"/>
+    <listofallmembers>
+      <member refid="structarea__chunk__t_1a05fc8826bd0a726b90caa3c146fba850" prot="public" virt="non-virtual"><scope>area_chunk_t</scope><name>area_idx</name></member>
+      <member refid="structarea__chunk__t_1ae919753ac4cda12231de3258c943100d" prot="public" virt="non-virtual"><scope>area_chunk_t</scope><name>freelink</name></member>
+      <member refid="structarea__chunk__t_1a983924212ef644f50605410c1438c6f3" prot="public" virt="non-virtual"><scope>area_chunk_t</scope><name>next</name></member>
+      <member refid="structarea__chunk__t_1a49023778abac7f764399aa96af306826" prot="public" virt="non-virtual"><scope>area_chunk_t</scope><name>prev</name></member>
+      <member refid="structarea__chunk__t_1af5d0938db93db5763d7f1b483bb77778" prot="public" virt="non-virtual"><scope>area_chunk_t</scope><name>ptr</name></member>
+      <member refid="structarea__chunk__t_1a2277804eff65461e3983792cd26def78" prot="public" virt="non-virtual"><scope>area_chunk_t</scope><name>size</name></member>
+      <member refid="structarea__chunk__t_1a7501774eb6120c90083eeb0bc7e95c18" prot="public" virt="non-virtual"><scope>area_chunk_t</scope><name>state</name></member>
+      <member refid="structarea__chunk__t_1ae67a82dfb62697f75c78639f99c08d07" prot="public" virt="non-virtual"><scope>area_chunk_t</scope><name>use_counter</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

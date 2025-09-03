@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structmemory__registration__t" kind="struct" language="C++" prot="public">
+    <compoundname>memory_registration_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmemory__registration__t_1a23724a3d1c7ca58b7ba99286be433bee" prot="public" static="no" mutable="no">
+        <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+        <definition>task_t* memory_registration_t::task</definition>
+        <argsstring></argsstring>
+        <name>task</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/register.h" line="48" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/register.h" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmemory__registration__t_1ac1a7e23e5f70320f7bddf824ad3e7c9d" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* memory_registration_t::ptr</definition>
+        <argsstring></argsstring>
+        <name>ptr</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/register.h" line="49" column="15" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/register.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmemory__registration__t_1a4a8680d5e98cceeb9bb2d58625e7de20" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t memory_registration_t::size</definition>
+        <argsstring></argsstring>
+        <name>size</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/register.h" line="50" column="16" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/register.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>memory_registration_t</label>
+        <link refid="structmemory__registration__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>task</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>task_t</label>
+        <link refid="structtask__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>parent</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/register.h" line="46" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/register.h" bodystart="47" bodyend="51"/>
+    <listofallmembers>
+      <member refid="structmemory__registration__t_1ac1a7e23e5f70320f7bddf824ad3e7c9d" prot="public" virt="non-virtual"><scope>memory_registration_t</scope><name>ptr</name></member>
+      <member refid="structmemory__registration__t_1a4a8680d5e98cceeb9bb2d58625e7de20" prot="public" virt="non-virtual"><scope>memory_registration_t</scope><name>size</name></member>
+      <member refid="structmemory__registration__t_1a23724a3d1c7ca58b7ba99286be433bee" prot="public" virt="non-virtual"><scope>memory_registration_t</scope><name>task</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

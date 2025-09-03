@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structdevice__thread__args__t" kind="struct" language="C++" prot="public">
+    <compoundname>device_thread_args_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structdevice__thread__args__t_1abcb4d1a83467ffec8e920402ea16c488" prot="public" static="no" mutable="no">
+        <type>driver_type_t</type>
+        <definition>driver_type_t device_thread_args_t::driver_type</definition>
+        <argsstring></argsstring>
+        <name>driver_type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h" line="631" column="19" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h" bodystart="631" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structdevice__thread__args__t_1a344b0d8d160c9bc3683d59f1edb076cb" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t device_thread_args_t::device_driver_id</definition>
+        <argsstring></argsstring>
+        <name>device_driver_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h" line="632" column="13" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h" bodystart="632" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h" line="629" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h" bodystart="630" bodyend="633"/>
+    <listofallmembers>
+      <member refid="structdevice__thread__args__t_1a344b0d8d160c9bc3683d59f1edb076cb" prot="public" virt="non-virtual"><scope>device_thread_args_t</scope><name>device_driver_id</name></member>
+      <member refid="structdevice__thread__args__t_1abcb4d1a83467ffec8e920402ea16c488" prot="public" virt="non-virtual"><scope>device_thread_args_t</scope><name>driver_type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

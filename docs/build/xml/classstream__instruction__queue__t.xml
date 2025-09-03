@@ -1,0 +1,217 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classstream__instruction__queue__t" kind="class" language="C++" prot="public">
+    <compoundname>stream_instruction_queue_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classstream__instruction__queue__t_1abffd2ef27b42eb823063674983aeae2a" prot="public" static="no" mutable="no">
+        <type><ref refid="structstream__instruction__t" kindref="compound">stream_instruction_t</ref> *</type>
+        <definition>stream_instruction_t* stream_instruction_queue_t::instr</definition>
+        <argsstring></argsstring>
+        <name>instr</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" line="57" column="35" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" bodystart="57" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classstream__instruction__queue__t_1a12f225f902a513ac43e09be6669e856e" prot="public" static="no" mutable="no">
+        <type>stream_instruction_counter_t</type>
+        <definition>stream_instruction_counter_t stream_instruction_queue_t::capacity</definition>
+        <argsstring></argsstring>
+        <name>capacity</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" line="58" column="42" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classstream__instruction__queue__t_1afefa6c28386a0d880bb528760037e549" prot="public" static="no" mutable="no">
+        <type>stream_instruction_counter_t</type>
+        <definition>volatile stream_instruction_counter_t stream_instruction_queue_t::r</definition>
+        <argsstring></argsstring>
+        <name>r</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" line="60" column="55" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" bodystart="60" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classstream__instruction__queue__t_1accbc02a4e22bdde67d9d4e157284f29c" prot="public" static="no" mutable="no">
+        <type>stream_instruction_counter_t</type>
+        <definition>volatile stream_instruction_counter_t stream_instruction_queue_t::w</definition>
+        <argsstring></argsstring>
+        <name>w</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" line="61" column="55" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classstream__instruction__queue__t_1a883e92a743da2bef7fd553b12546a704" prot="public" static="no" mutable="no">
+        <type>struct stream_instruction_queue_t::@39</type>
+        <definition>struct stream_instruction_queue_t::@39 stream_instruction_queue_t::pos</definition>
+        <argsstring></argsstring>
+        <name>pos</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" line="62" column="17"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classstream__instruction__queue__t_1a9034f9d1dc27af690673afb098d1aa57" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>int stream_instruction_queue_t::is_full</definition>
+        <argsstring>(void) const</argsstring>
+        <name>is_full</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" line="68" column="13" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" bodystart="68" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="function" id="classstream__instruction__queue__t_1a083ebd7338859ee747c17ec8a67e9d6a" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>int stream_instruction_queue_t::is_empty</definition>
+        <argsstring>(void) const</argsstring>
+        <name>is_empty</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" line="74" column="13" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" bodystart="74" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="function" id="classstream__instruction__queue__t_1a0928c1721592782bec71c664046f015e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>stream_instruction_counter_t</type>
+        <definition>stream_instruction_counter_t stream_instruction_queue_t::size</definition>
+        <argsstring>(void) const</argsstring>
+        <name>size</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" line="80" column="13" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" bodystart="80" bodyend="86"/>
+      </memberdef>
+      <memberdef kind="function" id="classstream__instruction__queue__t_1a434036ffdd658c9eafeccf67e4a59ae1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename Func</type>
+          </param>
+        </templateparamlist>
+        <type>stream_instruction_counter_t</type>
+        <definition>stream_instruction_counter_t stream_instruction_queue_t::iterate</definition>
+        <argsstring>(Func &amp;&amp;process)</argsstring>
+        <name>iterate</name>
+        <param>
+          <type>Func &amp;&amp;</type>
+          <declname>process</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" line="90" column="13" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" bodystart="90" bodyend="110"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>stream_instruction_t</label>
+        <link refid="structstream__instruction__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>file</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>copy_2D</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>callback</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>copy_1D</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>kern</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stream_instruction_copy_1D_t</label>
+        <link refid="structstream__instruction__copy__1D__t"/>
+      </node>
+      <node id="6">
+        <label>callback_t</label>
+        <link refid="structcallback__t"/>
+      </node>
+      <node id="3">
+        <label>stream_instruction_file_t</label>
+        <link refid="structstream__instruction__file__t"/>
+      </node>
+      <node id="1">
+        <label>stream_instruction_queue_t</label>
+        <link refid="classstream__instruction__queue__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>instr</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>stream_instruction_copy_2D_t</label>
+        <link refid="structstream__instruction__copy__2D__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>dst_device_view</edgelabel>
+          <edgelabel>src_device_view</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>stream_instruction_kernel_t</label>
+        <link refid="structstream__instruction__kernel__t"/>
+      </node>
+      <node id="5">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" line="53" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/stream.h" bodystart="54" bodyend="111"/>
+    <listofallmembers>
+      <member refid="classstream__instruction__queue__t_1a12f225f902a513ac43e09be6669e856e" prot="public" virt="non-virtual"><scope>stream_instruction_queue_t</scope><name>capacity</name></member>
+      <member refid="classstream__instruction__queue__t_1abffd2ef27b42eb823063674983aeae2a" prot="public" virt="non-virtual"><scope>stream_instruction_queue_t</scope><name>instr</name></member>
+      <member refid="classstream__instruction__queue__t_1a083ebd7338859ee747c17ec8a67e9d6a" prot="public" virt="non-virtual"><scope>stream_instruction_queue_t</scope><name>is_empty</name></member>
+      <member refid="classstream__instruction__queue__t_1a9034f9d1dc27af690673afb098d1aa57" prot="public" virt="non-virtual"><scope>stream_instruction_queue_t</scope><name>is_full</name></member>
+      <member refid="classstream__instruction__queue__t_1a434036ffdd658c9eafeccf67e4a59ae1" prot="public" virt="non-virtual"><scope>stream_instruction_queue_t</scope><name>iterate</name></member>
+      <member refid="classstream__instruction__queue__t_1a883e92a743da2bef7fd553b12546a704" prot="public" virt="non-virtual"><scope>stream_instruction_queue_t</scope><name>pos</name></member>
+      <member refid="classstream__instruction__queue__t_1afefa6c28386a0d880bb528760037e549" prot="public" virt="non-virtual"><scope>stream_instruction_queue_t</scope><name>r</name></member>
+      <member refid="classstream__instruction__queue__t_1a0928c1721592782bec71c664046f015e" prot="public" virt="non-virtual"><scope>stream_instruction_queue_t</scope><name>size</name></member>
+      <member refid="classstream__instruction__queue__t_1accbc02a4e22bdde67d9d4e157284f29c" prot="public" virt="non-virtual"><scope>stream_instruction_queue_t</scope><name>w</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

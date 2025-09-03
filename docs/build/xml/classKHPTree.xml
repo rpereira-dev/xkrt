@@ -1,0 +1,1194 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classKHPTree" kind="class" language="C++" prot="public" abstract="yes">
+    <compoundname>KHPTree</compoundname>
+    <includes refid="khp-tree_8hpp" local="no">khp-tree.hpp</includes>
+    <innerclass refid="classKHPTree_1_1Node" prot="public">KHPTree::Node</innerclass>
+    <templateparamlist>
+      <param>
+        <type>int</type>
+        <declname>K</declname>
+        <defname>K</defname>
+      </param>
+      <param>
+        <type>typename T</type>
+      </param>
+      <param>
+        <type>bool</type>
+        <declname>REBALANCE</declname>
+        <defname>REBALANCE</defname>
+        <defval>false</defval>
+      </param>
+      <param>
+        <type>bool</type>
+        <declname>CUT_ON_INSERT</declname>
+        <defname>CUT_ON_INSERT</defname>
+        <defval>false</defval>
+      </param>
+      <param>
+        <type>bool</type>
+        <declname>MAINTAIN_SIZE</declname>
+        <defname>MAINTAIN_SIZE</defname>
+        <defval>false</defval>
+      </param>
+      <param>
+        <type>bool</type>
+        <declname>MAINTAIN_HEIGHT</declname>
+        <defname>MAINTAIN_HEIGHT</defname>
+        <defval>false</defval>
+      </param>
+    </templateparamlist>
+      <sectiondef kind="public-type">
+      <memberdef kind="typedef" id="classKHPTree_1ad426f4eecc3702e6fbbc129e7ffa6f7f" prot="public" static="no">
+        <type><ref refid="classKHyperrect" kindref="compound">KHyperrect</ref>&lt; K &gt;</type>
+        <definition>using KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::Hyperrect =  KHyperrect&lt;K&gt;</definition>
+        <argsstring></argsstring>
+        <name>Hyperrect</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="179" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="179" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classKHPTree_1a49754abfb7705e00e88c954ecf87cf66" prot="public" static="no" mutable="no">
+        <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+        <definition>Node* KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::root</definition>
+        <argsstring></argsstring>
+        <name>root</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="575" column="15" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="575" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classKHPTree_1adad2ef19b85863691f5fb9eea5c5d65a" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> * &gt;</type>
+        <definition>std::vector&lt;Node *&gt; KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::limbs</definition>
+        <argsstring></argsstring>
+        <name>limbs</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="580" column="21" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="580" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classKHPTree_1aa0681deb87db602460de20e6e08b0e3d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::KHPTree</definition>
+        <argsstring>()</argsstring>
+        <name>KHPTree</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="583" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="583" bodyend="586"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a7c687b1db8a555503150dbece0b9fdc7" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::subtree_delete</definition>
+        <argsstring>(Node *node)</argsstring>
+        <name>subtree_delete</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>node</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="589" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="589" bodyend="601"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a645facc2c108221de9f113c7ec393b1e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::cut</definition>
+        <argsstring>(Node *node)</argsstring>
+        <name>cut</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>node</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="604" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="604" bodyend="607"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a32dde4d2ccc1d6f14379be651f474e94" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::cut</definition>
+        <argsstring>(Node *parent, int k, int dir)</argsstring>
+        <name>cut</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>parent</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>dir</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="610" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="610" bodyend="614"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a17110633f10b6e5ded70ff9b1bd43df2" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::garbage_collector_run</definition>
+        <argsstring>(void)</argsstring>
+        <name>garbage_collector_run</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="617" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="617" bodyend="622"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1afc612593c72d1f2136e088264e463b23" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type></type>
+        <definition>virtual KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::~KHPTree</definition>
+        <argsstring>()</argsstring>
+        <name>~KHPTree</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="624" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="624" bodyend="628"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a11b4afa9a929bf83e85e6daa7d80cbe1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename N</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::foreach_k_child</definition>
+        <argsstring>(N *root, int k, std::function&lt; void(N *)&gt; f)</argsstring>
+        <name>foreach_k_child</name>
+        <param>
+          <type>N *</type>
+          <declname>root</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>std::function&lt; void(N *)&gt;</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="635" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="635" bodyend="651"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1af82e0da2d47144b522c31c77dbf9afd6" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::foreach_node</definition>
+        <argsstring>(Node *root, std::function&lt; void(Node *, void *)&gt; f, void *args) const</argsstring>
+        <name>foreach_node</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>root</declname>
+        </param>
+        <param>
+          <type>std::function&lt; void(<ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *, void *)&gt;</type>
+          <declname>f</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="654" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="654" bodyend="665"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a99afa6b6de401ffcbe56c08ed27847a1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::foreach_node</definition>
+        <argsstring>(std::function&lt; void(Node *, void *)&gt; f, void *args)</argsstring>
+        <name>foreach_node</name>
+        <param>
+          <type>std::function&lt; void(<ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *, void *)&gt;</type>
+          <declname>f</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="668" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="668" bodyend="673"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a1995c180e370c129ec42cf14338b14ba" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::foreach_node_until</definition>
+        <argsstring>(Node *root, std::function&lt; void(Node *, void *, bool &amp;)&gt; f, void *args, bool &amp;stop) const</argsstring>
+        <name>foreach_node_until</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>root</declname>
+        </param>
+        <param>
+          <type>std::function&lt; void(<ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *, void *, bool &amp;)&gt;</type>
+          <declname>f</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>args</declname>
+        </param>
+        <param>
+          <type>bool &amp;</type>
+          <declname>stop</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="676" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="676" bodyend="690"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a82847fa5aa750d7a363f8790ca84dd32" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::foreach_node_until</definition>
+        <argsstring>(std::function&lt; void(Node *, void *, bool &amp;)&gt; f, void *args)</argsstring>
+        <name>foreach_node_until</name>
+        <param>
+          <type>std::function&lt; void(<ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *, void *, bool &amp;)&gt;</type>
+          <declname>f</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="693" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="693" bodyend="699"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a9f21fd5772d76128f4f22cae59266397" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>int KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::height</definition>
+        <argsstring>(void) const</argsstring>
+        <name>height</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="702" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="702" bodyend="705"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1af5844384c523593bf037bfebf526506b" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>int KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::size</definition>
+        <argsstring>(void) const</argsstring>
+        <name>size</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="708" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="708" bodyend="711"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a2fce2950146816e0177fc5a0b552cc56" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::export_pdf</definition>
+        <argsstring>(const char *label) const</argsstring>
+        <name>export_pdf</name>
+        <param>
+          <type>const char *</type>
+          <declname>label</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="714" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="714" bodyend="743"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1addbe690b89492d502a241b72121e6a5e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::intersect_from</definition>
+        <argsstring>(T &amp;t, const Hyperrect &amp;h, Node *node) const</argsstring>
+        <name>intersect_from</name>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>node</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="749" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="749" bodyend="770"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a7fc00df50fc440af7c9470f479f245bc" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::intersect</definition>
+        <argsstring>(T &amp;t, const Hyperrect &amp;h) const</argsstring>
+        <name>intersect</name>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="773" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="773" bodyend="780"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a860206216e6006fcf1ebb16c8e1f51cf" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::update</definition>
+        <argsstring>(Node *node)</argsstring>
+        <name>update</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>node</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="788" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="788" bodyend="798"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a28c367df73bb52f2814c50b1dedae754" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::rotate_left</definition>
+        <argsstring>(Node *A, int k)</argsstring>
+        <name>rotate_left</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>A</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>C              A
+</verbatim> / \ / \ A E &lt;- B C / \ / \ B D D E </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="808" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="808" bodyend="843"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1ad42f56fae5c05b0e39823c2324060d1c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::rotate_right</definition>
+        <argsstring>(Node *A, int k)</argsstring>
+        <name>rotate_right</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>A</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>A              B
+</verbatim> / \ / \ B C -&gt; D A / \ / \ D E E C </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="854" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="854" bodyend="889"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a91a979bf33389e18a165481490533098" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::balance_fixup</definition>
+        <argsstring>(int k, Node *z)</argsstring>
+        <name>balance_fixup</name>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>z</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="892" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="892" bodyend="955"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a18a8da3d2e7dad9614e7347fa8cdf04a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::insert_finalize</definition>
+        <argsstring>(Node *node, T &amp;t)</argsstring>
+        <name>insert_finalize</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>node</declname>
+        </param>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="958" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="958" bodyend="964"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a941b298a07a6cd4f97bd666ef413e805" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::insert_fixup</definition>
+        <argsstring>(T &amp;t, const Hyperrect &amp;h, Node *parent, int k, Direction dir, const Node *inherit)</argsstring>
+        <name>insert_fixup</name>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>parent</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>Direction</type>
+          <declname>dir</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>inherit</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="967" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="967" bodyend="993"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a4bc07f3e8421bc2d7a5818b770865220" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::rebalance</definition>
+        <argsstring>(Node *root, int k)</argsstring>
+        <name>rebalance</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>root</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1066" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1066" bodyend="1092"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a8f2376c55bd6ea9ee6c298dc029279ad" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::rebalance</definition>
+        <argsstring>(Node *root)</argsstring>
+        <name>rebalance</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>root</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1095" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1095" bodyend="1102"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a7d13ba376c8c085b4916389cb7072903" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::rebalance</definition>
+        <argsstring>(void)</argsstring>
+        <name>rebalance</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1105" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1105" bodyend="1109"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a5faed503dd9cd8c1de74df65daa9b1f2" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>int</type>
+            <declname>KDIM</declname>
+            <defname>KDIM</defname>
+          </param>
+        </templateparamlist>
+        <type>int</type>
+        <definition>int KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::requires_rebalance</definition>
+        <argsstring>(const int size, const int height) const</argsstring>
+        <name>requires_rebalance</name>
+        <param>
+          <type>const int</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>const int</type>
+          <declname>height</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1114" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1114" bodyend="1119"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a87ea9c2be9c64df30165fc72ca03f1f4" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>int KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::requires_rebalance</definition>
+        <argsstring>(Node *root, int k)</argsstring>
+        <name>requires_rebalance</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>root</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1123" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1123" bodyend="1128"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a90287dda522747eb605ccd36aab54940" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>int KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::requires_rebalance</definition>
+        <argsstring>(Node *root) const</argsstring>
+        <name>requires_rebalance</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>root</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1132" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1132" bodyend="1137"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1ae8fb6cf51851ac60b989b543033ee0ed" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::requires_rebalance</definition>
+        <argsstring>(void) const</argsstring>
+        <name>requires_rebalance</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1141" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1141" bodyend="1144"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1ae56912b4e4e79223f2f60b026db126df" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::post_insert</definition>
+        <argsstring>(const Hyperrect &amp;h)</argsstring>
+        <name>post_insert</name>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1147" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1147" bodyend="1158"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a00dc5307f6f3997ea2b78ca16b1e278a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::insert_from_cut</definition>
+        <argsstring>(T &amp;t, const Hyperrect &amp;h, Node *parent)</argsstring>
+        <name>insert_from_cut</name>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>parent</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1161" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1161" bodyend="1174"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a2e208a987fd2f557133f14de1802f5f2" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::insert_from</definition>
+        <argsstring>(T &amp;t, Hyperrect &amp;h, Node *parent, int k, const Node *inherit)</argsstring>
+        <name>insert_from</name>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <param>
+          <type><ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>parent</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>inherit</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1177" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1177" bodyend="1345"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1ad2cbd49b9a9d99a69ec6b1a49ec5a696" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::insert</definition>
+        <argsstring>(T &amp;t, Hyperrect &amp;h)</argsstring>
+        <name>insert</name>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <param>
+          <type><ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1348" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1348" bodyend="1366"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a645cdbe07df2176280b9ddca1a25f687" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::clear</definition>
+        <argsstring>(void)</argsstring>
+        <name>clear</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1369" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1369" bodyend="1374"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a1df85f0b5fc077fff6e355691e858479" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::dump</definition>
+        <argsstring>(FILE *f) const</argsstring>
+        <name>dump</name>
+        <param>
+          <type>FILE *</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1378" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1378" bodyend="1384"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a85d271e382f536b43fc7d51623af54e6" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::dump_hyperrect</definition>
+        <argsstring>(FILE *f) const</argsstring>
+        <name>dump_hyperrect</name>
+        <param>
+          <type>FILE *</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1388" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1388" bodyend="1407"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1ad74a65d97a18faffe061a9e7c27a7a67" prot="public" static="no" const="yes" explicit="no" inline="no" virt="pure-virtual">
+        <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+        <definition>virtual Node* KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::new_node</definition>
+        <argsstring>(T &amp;t, const Hyperrect &amp;h, const int k, const Color color) const =0</argsstring>
+        <name>new_node</name>
+        <reimplementedby refid="classKBLASDependencyTree_1aa3d996f4420b43b1f1faa376c41c9695">new_node</reimplementedby>
+        <reimplementedby refid="classKBLASMemoryTree_1a405d83e6b992b05cf51cc582a3e278bb">new_node</reimplementedby>
+        <reimplementedby refid="classIntervalDependencyTree_1a1d8d60b7719c93d0a547904790e5a414">new_node</reimplementedby>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <param>
+          <type>const int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>const Color</type>
+          <declname>color</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1677" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1af14dfdeaa506eb34d843c2a5725956a2" prot="public" static="no" const="yes" explicit="no" inline="no" virt="pure-virtual">
+        <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+        <definition>virtual Node* KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::new_node</definition>
+        <argsstring>(T &amp;t, const Hyperrect &amp;h, const int k, const Color color, const Node *inherit) const =0</argsstring>
+        <name>new_node</name>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <param>
+          <type>const int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>const Color</type>
+          <declname>color</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>inherit</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1687" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1ad47d8954f7c55e8bf7c477e878a942aa" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>void</type>
+        <definition>virtual void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::on_insert</definition>
+        <argsstring>(Node *node, T &amp;t)=0</argsstring>
+        <name>on_insert</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>node</declname>
+        </param>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1703" column="22"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a6daa38ff9a3a1f54d87d37c8ec9c7831" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>void</type>
+        <definition>virtual void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::on_shrink</definition>
+        <argsstring>(Node *node, const Interval &amp;interval, int k)=0</argsstring>
+        <name>on_shrink</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>node</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classInterval" kindref="compound">Interval</ref> &amp;</type>
+          <declname>interval</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1706" column="22"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1affa6ba5f1242290c8e41e6c27a7cb4f5" prot="public" static="no" const="yes" explicit="no" inline="no" virt="pure-virtual">
+        <type>bool</type>
+        <definition>virtual bool KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::intersect_stop_test</definition>
+        <argsstring>(Node *node, T &amp;t, const Hyperrect &amp;h) const =0</argsstring>
+        <name>intersect_stop_test</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>node</declname>
+        </param>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1709" column="22"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a1e3e82a2d1c691ea30e49efd98a20b90" prot="public" static="no" const="yes" explicit="no" inline="no" virt="pure-virtual">
+        <type>void</type>
+        <definition>virtual void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::on_intersect</definition>
+        <argsstring>(Node *node, T &amp;t, const Hyperrect &amp;h) const =0</argsstring>
+        <name>on_intersect</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>node</declname>
+        </param>
+        <param>
+          <type>T &amp;</type>
+          <declname>t</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1712" column="22"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classKHPTree_1a8631623f96c170b9667c8b7be7f6d748" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::compress</definition>
+        <argsstring>(Node *root, int k, int m)</argsstring>
+        <name>compress</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>root</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>m</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="996" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="996" bodyend="1010"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1aa728f6af7d1ac082d8b27b8b44690aab" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::vine_to_rbtree</definition>
+        <argsstring>(Node *root, int k, int n)</argsstring>
+        <name>vine_to_rbtree</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>root</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1013" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1013" bodyend="1024"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a851b2c2c93aca372295bf82a4113a535" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::rbtree_to_vine</definition>
+        <argsstring>(Node *root, int k)</argsstring>
+        <name>rbtree_to_vine</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>root</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1027" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1027" bodyend="1047"/>
+      </memberdef>
+      <memberdef kind="function" id="classKHPTree_1a172e16a08bc86ee14fb73d6c54636d83" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::rebalance_fixup</definition>
+        <argsstring>(Node *parent, Node *node, int k, int depth, int height)</argsstring>
+        <name>rebalance_fixup</name>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>parent</declname>
+        </param>
+        <param>
+          <type><ref refid="classKHPTree_1_1Node" kindref="compound">Node</ref> *</type>
+          <declname>node</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>depth</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>height</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="1051" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="1051" bodyend="1062"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>K is the number of dimensions T is search type C is whether to cut included nodes or not </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::Node::includes_t&lt; MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;</label>
+        <link refid="structKHPTree_1_1Node_1_1includes__t"/>
+      </node>
+      <node id="2">
+        <label>KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::Node</label>
+        <link refid="classKHPTree_1_1Node"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>st</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>includes</edgelabel>
+        </childnode>
+        <childnode refid="2" relation="usage">
+          <edgelabel>parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;</label>
+        <link refid="classKHPTree"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>root</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::Node::subtree_t</label>
+        <link refid="unionKHPTree_1_1Node_1_1subtree__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>children</edgelabel>
+          <edgelabel>left</edgelabel>
+          <edgelabel>right</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="154" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="154" bodyend="1713"/>
+    <listofallmembers>
+      <member refid="classKHPTree_1a91a979bf33389e18a165481490533098" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>balance_fixup</name></member>
+      <member refid="classKHPTree_1a645cdbe07df2176280b9ddca1a25f687" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>clear</name></member>
+      <member refid="classKHPTree_1a8631623f96c170b9667c8b7be7f6d748" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>compress</name></member>
+      <member refid="classKHPTree_1a645facc2c108221de9f113c7ec393b1e" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>cut</name></member>
+      <member refid="classKHPTree_1a32dde4d2ccc1d6f14379be651f474e94" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>cut</name></member>
+      <member refid="classKHPTree_1a1df85f0b5fc077fff6e355691e858479" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>dump</name></member>
+      <member refid="classKHPTree_1a85d271e382f536b43fc7d51623af54e6" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>dump_hyperrect</name></member>
+      <member refid="classKHPTree_1a2fce2950146816e0177fc5a0b552cc56" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>export_pdf</name></member>
+      <member refid="classKHPTree_1a11b4afa9a929bf83e85e6daa7d80cbe1" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>foreach_k_child</name></member>
+      <member refid="classKHPTree_1af82e0da2d47144b522c31c77dbf9afd6" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>foreach_node</name></member>
+      <member refid="classKHPTree_1a99afa6b6de401ffcbe56c08ed27847a1" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>foreach_node</name></member>
+      <member refid="classKHPTree_1a1995c180e370c129ec42cf14338b14ba" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>foreach_node_until</name></member>
+      <member refid="classKHPTree_1a82847fa5aa750d7a363f8790ca84dd32" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>foreach_node_until</name></member>
+      <member refid="classKHPTree_1a17110633f10b6e5ded70ff9b1bd43df2" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>garbage_collector_run</name></member>
+      <member refid="classKHPTree_1a9f21fd5772d76128f4f22cae59266397" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>height</name></member>
+      <member refid="classKHPTree_1ad426f4eecc3702e6fbbc129e7ffa6f7f" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>Hyperrect</name></member>
+      <member refid="classKHPTree_1ad2cbd49b9a9d99a69ec6b1a49ec5a696" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>insert</name></member>
+      <member refid="classKHPTree_1a18a8da3d2e7dad9614e7347fa8cdf04a" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>insert_finalize</name></member>
+      <member refid="classKHPTree_1a941b298a07a6cd4f97bd666ef413e805" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>insert_fixup</name></member>
+      <member refid="classKHPTree_1a2e208a987fd2f557133f14de1802f5f2" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>insert_from</name></member>
+      <member refid="classKHPTree_1a00dc5307f6f3997ea2b78ca16b1e278a" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>insert_from_cut</name></member>
+      <member refid="classKHPTree_1a7fc00df50fc440af7c9470f479f245bc" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>intersect</name></member>
+      <member refid="classKHPTree_1addbe690b89492d502a241b72121e6a5e" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>intersect_from</name></member>
+      <member refid="classKHPTree_1affa6ba5f1242290c8e41e6c27a7cb4f5" prot="public" virt="pure-virtual"><scope>KHPTree</scope><name>intersect_stop_test</name></member>
+      <member refid="classKHPTree_1aa0681deb87db602460de20e6e08b0e3d" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>KHPTree</name></member>
+      <member refid="classKHPTree_1adad2ef19b85863691f5fb9eea5c5d65a" prot="private" virt="non-virtual"><scope>KHPTree</scope><name>limbs</name></member>
+      <member refid="classKHPTree_1ad74a65d97a18faffe061a9e7c27a7a67" prot="public" virt="pure-virtual"><scope>KHPTree</scope><name>new_node</name></member>
+      <member refid="classKHPTree_1af14dfdeaa506eb34d843c2a5725956a2" prot="public" virt="pure-virtual"><scope>KHPTree</scope><name>new_node</name></member>
+      <member refid="classKHPTree_1ad47d8954f7c55e8bf7c477e878a942aa" prot="public" virt="pure-virtual"><scope>KHPTree</scope><name>on_insert</name></member>
+      <member refid="classKHPTree_1a1e3e82a2d1c691ea30e49efd98a20b90" prot="public" virt="pure-virtual"><scope>KHPTree</scope><name>on_intersect</name></member>
+      <member refid="classKHPTree_1a6daa38ff9a3a1f54d87d37c8ec9c7831" prot="public" virt="pure-virtual"><scope>KHPTree</scope><name>on_shrink</name></member>
+      <member refid="classKHPTree_1ae56912b4e4e79223f2f60b026db126df" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>post_insert</name></member>
+      <member refid="classKHPTree_1a851b2c2c93aca372295bf82a4113a535" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>rbtree_to_vine</name></member>
+      <member refid="classKHPTree_1a4bc07f3e8421bc2d7a5818b770865220" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>rebalance</name></member>
+      <member refid="classKHPTree_1a8f2376c55bd6ea9ee6c298dc029279ad" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>rebalance</name></member>
+      <member refid="classKHPTree_1a7d13ba376c8c085b4916389cb7072903" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>rebalance</name></member>
+      <member refid="classKHPTree_1a172e16a08bc86ee14fb73d6c54636d83" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>rebalance_fixup</name></member>
+      <member refid="classKHPTree_1a5faed503dd9cd8c1de74df65daa9b1f2" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>requires_rebalance</name></member>
+      <member refid="classKHPTree_1a87ea9c2be9c64df30165fc72ca03f1f4" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>requires_rebalance</name></member>
+      <member refid="classKHPTree_1a90287dda522747eb605ccd36aab54940" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>requires_rebalance</name></member>
+      <member refid="classKHPTree_1ae8fb6cf51851ac60b989b543033ee0ed" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>requires_rebalance</name></member>
+      <member refid="classKHPTree_1a49754abfb7705e00e88c954ecf87cf66" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>root</name></member>
+      <member refid="classKHPTree_1a28c367df73bb52f2814c50b1dedae754" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>rotate_left</name></member>
+      <member refid="classKHPTree_1ad42f56fae5c05b0e39823c2324060d1c" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>rotate_right</name></member>
+      <member refid="classKHPTree_1af5844384c523593bf037bfebf526506b" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>size</name></member>
+      <member refid="classKHPTree_1a7c687b1db8a555503150dbece0b9fdc7" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>subtree_delete</name></member>
+      <member refid="classKHPTree_1a860206216e6006fcf1ebb16c8e1f51cf" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>update</name></member>
+      <member refid="classKHPTree_1aa728f6af7d1ac082d8b27b8b44690aab" prot="public" virt="non-virtual"><scope>KHPTree</scope><name>vine_to_rbtree</name></member>
+      <member refid="classKHPTree_1afc612593c72d1f2136e088264e463b23" prot="public" virt="virtual"><scope>KHPTree</scope><name>~KHPTree</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

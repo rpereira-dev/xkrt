@@ -1,0 +1,227 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classKMemoryForward" kind="class" language="C++" prot="public">
+    <compoundname>KMemoryForward</compoundname>
+    <templateparamlist>
+      <param>
+        <type>int</type>
+        <declname>K</declname>
+        <defname>K</defname>
+      </param>
+    </templateparamlist>
+      <sectiondef kind="public-type">
+      <memberdef kind="typedef" id="classKMemoryForward_1ab2eec453795f475b0aa8849ebb006b6d" prot="public" static="no">
+        <type><ref refid="classKHyperrect" kindref="compound">KHyperrect</ref>&lt; 2 &gt;</type>
+        <definition>using KMemoryForward&lt; K &gt;::Hyperrect =  KHyperrect&lt;2&gt;</definition>
+        <argsstring></argsstring>
+        <name>Hyperrect</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="103" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classKMemoryForward_1a6de0abbb5430f91dfc6469ae8835b4b0" prot="public" static="no" mutable="no">
+        <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+        <definition>access_t* KMemoryForward&lt; K &gt;::access</definition>
+        <argsstring></argsstring>
+        <name>access</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="108" column="19" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="108" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classKMemoryForward_1aeca8de0e54ca54467e3dd6c06459a25d" prot="public" static="no" mutable="no">
+        <type><ref refid="structarea__chunk__t" kindref="compound">area_chunk_t</ref> *</type>
+        <definition>area_chunk_t* KMemoryForward&lt; K &gt;::chunk</definition>
+        <argsstring></argsstring>
+        <name>chunk</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="111" column="23" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="111" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classKMemoryForward_1a33458924620308fe9de93338b1f015bd" prot="public" static="no" mutable="no">
+        <type><ref refid="classKHyperrect" kindref="compound">Hyperrect</ref></type>
+        <definition>Hyperrect KMemoryForward&lt; K &gt;::dst_hyperrect</definition>
+        <argsstring></argsstring>
+        <name>dst_hyperrect</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="114" column="19" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="114" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classKMemoryForward_1aa3d522806f6839e05654421f54f4fade" prot="public" static="no" mutable="no">
+        <type>device_global_id_t</type>
+        <definition>device_global_id_t KMemoryForward&lt; K &gt;::device_global_id</definition>
+        <argsstring></argsstring>
+        <name>device_global_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="117" column="28" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="117" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classKMemoryForward_1a9da163a92886a05b718a560b25d716af" prot="public" static="no" mutable="no">
+        <type><ref refid="structmemory__replica__view__t" kindref="compound">memory_replica_view_t</ref></type>
+        <definition>memory_replica_view_t KMemoryForward&lt; K &gt;::device_view</definition>
+        <argsstring></argsstring>
+        <name>device_view</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="120" column="31" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="120" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classKMemoryForward_1a597e1223203ff426f6de264819e466b6" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>KMemoryForward&lt; K &gt;::KMemoryForward</definition>
+        <argsstring>(access_t *access, area_chunk_t *chunk, const Hyperrect &amp;dst_hyperrect, device_global_id_t device_global_id, memory_replica_view_t &amp;device_view)</argsstring>
+        <name>KMemoryForward</name>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>access</declname>
+        </param>
+        <param>
+          <type><ref refid="structarea__chunk__t" kindref="compound">area_chunk_t</ref> *</type>
+          <declname>chunk</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>dst_hyperrect</declname>
+        </param>
+        <param>
+          <type>device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type><ref refid="structmemory__replica__view__t" kindref="compound">memory_replica_view_t</ref> &amp;</type>
+          <declname>device_view</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="124" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="124" bodyend="136"/>
+      </memberdef>
+      <memberdef kind="function" id="classKMemoryForward_1a89edebd9de54ccc88ee2a43103a37dfe" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>KMemoryForward&lt; K &gt;::~KMemoryForward</definition>
+        <argsstring>()</argsstring>
+        <name>~KMemoryForward</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="138" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="138" bodyend="138"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="4">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="5">
+        <label>KHyperrect&lt; 1 &gt;</label>
+        <link refid="classKHyperrect"/>
+      </node>
+      <node id="7">
+        <label>matrix_tile_t</label>
+        <link refid="structmatrix__tile__t"/>
+      </node>
+      <node id="3">
+        <label>task_t</label>
+        <link refid="structtask__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>KHyperrect&lt; 2 &gt;</label>
+        <link refid="classKHyperrect"/>
+      </node>
+      <node id="8">
+        <label>area_chunk_t</label>
+        <link refid="structarea__chunk__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>freelink</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>prev</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>access_t</label>
+        <link refid="classaccess__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>task</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>device_view</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>segment</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>rects</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>host_view</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>KMemoryForward&lt; K &gt;</label>
+        <link refid="classKMemoryForward"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>access</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>chunk</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>device_view</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>dst_hyperrect</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="100" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="100" bodyend="140"/>
+    <listofallmembers>
+      <member refid="classKMemoryForward_1a6de0abbb5430f91dfc6469ae8835b4b0" prot="public" virt="non-virtual"><scope>KMemoryForward</scope><name>access</name></member>
+      <member refid="classKMemoryForward_1aeca8de0e54ca54467e3dd6c06459a25d" prot="public" virt="non-virtual"><scope>KMemoryForward</scope><name>chunk</name></member>
+      <member refid="classKMemoryForward_1aa3d522806f6839e05654421f54f4fade" prot="public" virt="non-virtual"><scope>KMemoryForward</scope><name>device_global_id</name></member>
+      <member refid="classKMemoryForward_1a9da163a92886a05b718a560b25d716af" prot="public" virt="non-virtual"><scope>KMemoryForward</scope><name>device_view</name></member>
+      <member refid="classKMemoryForward_1a33458924620308fe9de93338b1f015bd" prot="public" virt="non-virtual"><scope>KMemoryForward</scope><name>dst_hyperrect</name></member>
+      <member refid="classKMemoryForward_1ab2eec453795f475b0aa8849ebb006b6d" prot="public" virt="non-virtual"><scope>KMemoryForward</scope><name>Hyperrect</name></member>
+      <member refid="classKMemoryForward_1a597e1223203ff426f6de264819e466b6" prot="public" virt="non-virtual"><scope>KMemoryForward</scope><name>KMemoryForward</name></member>
+      <member refid="classKMemoryForward_1a89edebd9de54ccc88ee2a43103a37dfe" prot="public" virt="non-virtual"><scope>KMemoryForward</scope><name>~KMemoryForward</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

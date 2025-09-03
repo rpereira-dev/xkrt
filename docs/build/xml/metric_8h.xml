@@ -1,0 +1,356 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="metric_8h" kind="file" language="C++">
+    <compoundname>metric.h</compoundname>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includes refid="namespace_8h" local="no">xkrt/namespace.h</includes>
+    <includedby refid="driver_8h" local="no">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver.h</includedby>
+    <incdepgraph>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+      <node id="4">
+        <label>xkrt/namespace.h</label>
+        <link refid="namespace_8h_source"/>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+      <node id="1">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h</label>
+        <link refid="metric_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="4">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-host.h</label>
+        <link refid="driver-host_8h_source"/>
+      </node>
+      <node id="5">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h</label>
+        <link refid="driver-sycl_8h_source"/>
+      </node>
+      <node id="1">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h</label>
+        <link refid="metric_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp</label>
+        <link refid="memory-tree_8hpp_source"/>
+      </node>
+      <node id="3">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-cu.h</label>
+        <link refid="driver-cu_8h_source"/>
+      </node>
+      <node id="7">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-ze-blas.h</label>
+        <link refid="driver-ze-blas_8h_source"/>
+      </node>
+      <node id="9">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/runtime.h</label>
+        <link refid="runtime_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-ze.h</label>
+        <link refid="driver-ze_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver.h</label>
+        <link refid="driver_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structpower__counter__t" prot="public">power_counter_t</innerclass>
+    <innerclass refid="structpower__t" prot="public">power_t</innerclass>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="metric_8h_1ae1248909c8552a338ad715ccb11bc80d" prot="public" static="no" strong="no">
+        <type></type>
+        <name>metric_t</name>
+        <enumvalue id="metric_8h_1ae1248909c8552a338ad715ccb11bc80dac8e70c07d7d6a63da3dd41a379e3534a" prot="public">
+          <name>METRIC_BYTE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="metric_8h_1ae1248909c8552a338ad715ccb11bc80dafc7e3421ad26cbe3baa381c2eff0803c" prot="public">
+          <name>METRIC_TIME</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="metric_8h_1ae1248909c8552a338ad715ccb11bc80da27338a6e23a0a88a526fb05011f36a9e" prot="public">
+          <name>METRIC_BW</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="metric_8h_1ae1248909c8552a338ad715ccb11bc80dae66fc394e4dfe16560309e42de18f99c" prot="public">
+          <name>METRIC_MAX</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" line="51" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" bodystart="52" bodyend="57"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="metric_8h_1a74f98acd67142581f62f00cdd5f37d27" prot="public" static="no">
+        <type>enum metric_t</type>
+        <definition>typedef enum metric_t metric_t</definition>
+        <argsstring></argsstring>
+        <name>metric_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" line="57" column="24"/>
+      </memberdef>
+      <memberdef kind="typedef" id="metric_8h_1abbedb2784816a97f7282443408ae193f" prot="public" static="no">
+        <type>struct <ref refid="structpower__counter__t" kindref="compound">power_counter_t</ref></type>
+        <definition>typedef struct power_counter_t power_counter_t</definition>
+        <argsstring></argsstring>
+        <name>power_counter_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" line="62" column="31"/>
+      </memberdef>
+      <memberdef kind="typedef" id="metric_8h_1a380c40b6ff3a822f99979e5608920680" prot="public" static="no">
+        <type>struct <ref refid="structpower__t" kindref="compound">power_t</ref></type>
+        <definition>typedef struct power_t power_t</definition>
+        <argsstring></argsstring>
+        <name>power_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" line="80" column="23"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="metric_8h_1a4b92a0995addfa860e46f771e862ae65" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>XKRT_NAMESPACE_BEGIN uint64_t</type>
+        <definition>XKRT_NAMESPACE_BEGIN uint64_t get_nanotime</definition>
+        <argsstring>(void)</argsstring>
+        <name>get_nanotime</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" line="46" column="10" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" declline="46" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="metric_8h_1ab48a813b038e8961d8ad3314f5b1040b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void metric_byte</definition>
+        <argsstring>(char *buffer, int bufsize, size_t nbytes)</argsstring>
+        <name>metric_byte</name>
+        <param>
+          <type>char *</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>bufsize</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>nbytes</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" line="47" column="6" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" declline="47" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="metric_8h_1a2f9e49a11cab5ff8efca14b96377761f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void metric_time</definition>
+        <argsstring>(char *buffer, int bufsize, uint64_t ns)</argsstring>
+        <name>metric_time</name>
+        <param>
+          <type>char *</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>bufsize</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>ns</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" line="48" column="6" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" declline="48" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="metric_8h_1a90ae7673df9887cb6d5d5b501422e02f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void metric_bandwidth</definition>
+        <argsstring>(char *buffer, int bufsize, size_t byte_per_sec)</argsstring>
+        <name>metric_bandwidth</name>
+        <param>
+          <type>char *</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>bufsize</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>byte_per_sec</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" line="49" column="6" declfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h" declline="49" declcolumn="6"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*</highlight></codeline>
+<codeline lineno="2"><highlight class="comment">**<sp/>Copyright<sp/>2024,2025<sp/>INRIA</highlight></codeline>
+<codeline lineno="3"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="4"><highlight class="comment">**<sp/>Contributors<sp/>:</highlight></codeline>
+<codeline lineno="5"><highlight class="comment">**<sp/>Romain<sp/>PEREIRA,<sp/>romain.pereira@inria.fr<sp/>+<sp/>rpereira@anl.gov</highlight></codeline>
+<codeline lineno="6"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="7"><highlight class="comment">**<sp/>This<sp/>software<sp/>is<sp/>a<sp/>computer<sp/>program<sp/>whose<sp/>purpose<sp/>is<sp/>to<sp/>execute</highlight></codeline>
+<codeline lineno="8"><highlight class="comment">**<sp/>blas<sp/>subroutines<sp/>on<sp/>multi-GPUs<sp/>system.</highlight></codeline>
+<codeline lineno="9"><highlight class="comment">**</highlight></codeline>
+<codeline lineno="10"><highlight class="comment">**<sp/>This<sp/>software<sp/>is<sp/>governed<sp/>by<sp/>the<sp/>CeCILL-C<sp/>license<sp/>under<sp/>French<sp/>law<sp/>and</highlight></codeline>
+<codeline lineno="11"><highlight class="comment">**<sp/>abiding<sp/>by<sp/>the<sp/>rules<sp/>of<sp/>distribution<sp/>of<sp/>free<sp/>software.<sp/><sp/>You<sp/>can<sp/><sp/>use,</highlight></codeline>
+<codeline lineno="12"><highlight class="comment">**<sp/>modify<sp/>and/<sp/>or<sp/>redistribute<sp/>the<sp/>software<sp/>under<sp/>the<sp/>terms<sp/>of<sp/>the<sp/>CeCILL-C</highlight></codeline>
+<codeline lineno="13"><highlight class="comment">**<sp/>license<sp/>as<sp/>circulated<sp/>by<sp/>CEA,<sp/>CNRS<sp/>and<sp/>INRIA<sp/>at<sp/>the<sp/>following<sp/>URL</highlight></codeline>
+<codeline lineno="14"><highlight class="comment">**<sp/>&quot;http://www.cecill.info&quot;.</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"></highlight></codeline>
+<codeline lineno="16"><highlight class="comment">**<sp/>As<sp/>a<sp/>counterpart<sp/>to<sp/>the<sp/>access<sp/>to<sp/>the<sp/>source<sp/>code<sp/>and<sp/><sp/>rights<sp/>to<sp/>copy,</highlight></codeline>
+<codeline lineno="17"><highlight class="comment">**<sp/>modify<sp/>and<sp/>redistribute<sp/>granted<sp/>by<sp/>the<sp/>license,<sp/>users<sp/>are<sp/>provided<sp/>only</highlight></codeline>
+<codeline lineno="18"><highlight class="comment">**<sp/>with<sp/>a<sp/>limited<sp/>warranty<sp/><sp/>and<sp/>the<sp/>software&apos;s<sp/>author,<sp/><sp/>the<sp/>holder<sp/>of<sp/>the</highlight></codeline>
+<codeline lineno="19"><highlight class="comment">**<sp/>economic<sp/>rights,<sp/><sp/>and<sp/>the<sp/>successive<sp/>licensors<sp/><sp/>have<sp/>only<sp/><sp/>limited</highlight></codeline>
+<codeline lineno="20"><highlight class="comment">**<sp/>liability.</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"></highlight></codeline>
+<codeline lineno="22"><highlight class="comment">**<sp/>In<sp/>this<sp/>respect,<sp/>the<sp/>user&apos;s<sp/>attention<sp/>is<sp/>drawn<sp/>to<sp/>the<sp/>risks<sp/>associated</highlight></codeline>
+<codeline lineno="23"><highlight class="comment">**<sp/>with<sp/>loading,<sp/><sp/>using,<sp/><sp/>modifying<sp/>and/or<sp/>developing<sp/>or<sp/>reproducing<sp/>the</highlight></codeline>
+<codeline lineno="24"><highlight class="comment">**<sp/>software<sp/>by<sp/>the<sp/>user<sp/>in<sp/>light<sp/>of<sp/>its<sp/>specific<sp/>status<sp/>of<sp/>free<sp/>software,</highlight></codeline>
+<codeline lineno="25"><highlight class="comment">**<sp/>that<sp/>may<sp/>mean<sp/><sp/>that<sp/>it<sp/>is<sp/>complicated<sp/>to<sp/>manipulate,<sp/><sp/>and<sp/><sp/>that<sp/><sp/>also</highlight></codeline>
+<codeline lineno="26"><highlight class="comment">**<sp/>therefore<sp/>means<sp/><sp/>that<sp/>it<sp/>is<sp/>reserved<sp/>for<sp/>developers<sp/><sp/>and<sp/><sp/>experienced</highlight></codeline>
+<codeline lineno="27"><highlight class="comment">**<sp/>professionals<sp/>having<sp/>in-depth<sp/>computer<sp/>knowledge.<sp/>Users<sp/>are<sp/>therefore</highlight></codeline>
+<codeline lineno="28"><highlight class="comment">**<sp/>encouraged<sp/>to<sp/>load<sp/>and<sp/>test<sp/>the<sp/>software&apos;s<sp/>suitability<sp/>as<sp/>regards<sp/>their</highlight></codeline>
+<codeline lineno="29"><highlight class="comment">**<sp/>requirements<sp/>in<sp/>conditions<sp/>enabling<sp/>the<sp/>security<sp/>of<sp/>their<sp/>systems<sp/>and/or</highlight></codeline>
+<codeline lineno="30"><highlight class="comment">**<sp/>data<sp/>to<sp/>be<sp/>ensured<sp/>and,<sp/><sp/>more<sp/>generally,<sp/>to<sp/>use<sp/>and<sp/>operate<sp/>it<sp/>in<sp/>the</highlight></codeline>
+<codeline lineno="31"><highlight class="comment">**<sp/>same<sp/>conditions<sp/>as<sp/>regards<sp/>security.</highlight></codeline>
+<codeline lineno="32"><highlight class="comment"></highlight></codeline>
+<codeline lineno="33"><highlight class="comment">**<sp/>The<sp/>fact<sp/>that<sp/>you<sp/>are<sp/>presently<sp/>reading<sp/>this<sp/>means<sp/>that<sp/>you<sp/>have<sp/>had</highlight></codeline>
+<codeline lineno="34"><highlight class="comment">**<sp/>knowledge<sp/>of<sp/>the<sp/>CeCILL-C<sp/>license<sp/>and<sp/>that<sp/>you<sp/>accept<sp/>its<sp/>terms.</highlight></codeline>
+<codeline lineno="35"><highlight class="comment">**/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>ifndef<sp/>__METRICS_H__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>__METRICS_H__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>include<sp/>&lt;xkrt/namespace.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal">XKRT_NAMESPACE_BEGIN</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal">uint64_t<sp/>get_nanotime(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>metric_byte(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<sp/>buffer,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>bufsize,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>nbytes);</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>metric_time(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<sp/>buffer,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>bufsize,<sp/>uint64_t<sp/>ns);</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>metric_bandwidth(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<sp/>buffer,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>bufsize,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>byte_per_sec);</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><sp/><sp/><sp/>metric_t</highlight></codeline>
+<codeline lineno="52"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/>METRIC_BYTE,</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>METRIC_TIME,</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/>METRIC_BW,</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/>METRIC_MAX</highlight></codeline>
+<codeline lineno="57"><highlight class="normal">}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>metric_t;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="structpower__counter__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/><sp/></highlight><highlight class="normal"><ref refid="structpower__counter__t" kindref="compound">power_counter_t</ref></highlight></codeline>
+<codeline lineno="60"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/>uint64_t<sp/>b1,<sp/>b2,<sp/>b3<sp/>,b4;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal">}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structpower__counter__t" kindref="compound">power_counter_t</ref>;</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64" refid="structpower__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/><sp/></highlight><highlight class="normal"><ref refid="structpower__t" kindref="compound">power_t</ref></highlight></codeline>
+<codeline lineno="65"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>start/stop<sp/>times<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint64_t<sp/>t1,<sp/>t2;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>power<sp/>values<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structpower__counter__t" kindref="compound">power_counter_t</ref><sp/>c1,<sp/>c2;</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/>priv;</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>delta<sp/>time<sp/>between<sp/>a<sp/>start/stop<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>dt;</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>power<sp/>(J/s<sp/>&lt;=&gt;<sp/>Watt)<sp/>between<sp/>a<sp/>start/stop<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>P;</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal">}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structpower__t" kindref="compound">power_t</ref>;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal">XKRT_NAMESPACE_END</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/>endif<sp/></highlight><highlight class="comment">/*<sp/>__METRICS_H__<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/logger/metric.h"/>
+  </compounddef>
+</doxygen>

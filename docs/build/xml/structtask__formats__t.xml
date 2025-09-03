@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structtask__formats__t" kind="struct" language="C++" prot="public">
+    <compoundname>task_formats_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structtask__formats__t_1ab7f0cd499484cac0af18cc39847bc43b" prot="public" static="no" mutable="no">
+        <type><ref refid="structtask__format__t" kindref="compound">task_format_t</ref></type>
+        <definition>task_format_t task_formats_t::list[TASK_FORMAT_MAX]</definition>
+        <argsstring>[TASK_FORMAT_MAX]</argsstring>
+        <name>list</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task-format.h" line="79" column="19" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task-format.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__formats__t_1acd116b9f063d4df516580d18960a7aa8" prot="public" static="no" mutable="no">
+        <type>std::atomic&lt; task_format_id_t &gt;</type>
+        <definition>std::atomic&lt;task_format_id_t&gt; task_formats_t::next_fmtid</definition>
+        <argsstring></argsstring>
+        <name>next_fmtid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task-format.h" line="80" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task-format.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>task_formats_t</label>
+        <link refid="structtask__formats__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>list</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>task_format_t</label>
+        <link refid="structtask__format__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task-format.h" line="77" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task-format.h" bodystart="78" bodyend="81"/>
+    <listofallmembers>
+      <member refid="structtask__formats__t_1ab7f0cd499484cac0af18cc39847bc43b" prot="public" virt="non-virtual"><scope>task_formats_t</scope><name>list</name></member>
+      <member refid="structtask__formats__t_1acd116b9f063d4df516580d18960a7aa8" prot="public" virt="non-virtual"><scope>task_formats_t</scope><name>next_fmtid</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

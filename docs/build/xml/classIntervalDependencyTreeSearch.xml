@@ -1,0 +1,208 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classIntervalDependencyTreeSearch" kind="class" language="C++" prot="public">
+    <compoundname>IntervalDependencyTreeSearch</compoundname>
+      <sectiondef kind="public-type">
+      <memberdef kind="enum" id="classIntervalDependencyTreeSearch_1a93d20cb009a9f5ad5f2ec91a8f837a4a" prot="public" static="no" strong="no">
+        <type></type>
+        <name>Type</name>
+        <enumvalue id="classIntervalDependencyTreeSearch_1a93d20cb009a9f5ad5f2ec91a8f837a4aafcc9d24efa0383a075cc6b8511217158" prot="public">
+          <name>SEARCH_TYPE_RESOLVE</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classIntervalDependencyTreeSearch_1a93d20cb009a9f5ad5f2ec91a8f837a4aad668e7a6eadbe490b06c3b106205cc55" prot="public">
+          <name>SEARCH_TYPE_CONFLICTING</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="54" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="55" bodyend="58"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classIntervalDependencyTreeSearch_1a50709b323d95efbeee559a35fe03e964" prot="public" static="no" mutable="no">
+        <type>Type</type>
+        <definition>Type IntervalDependencyTreeSearch::type</definition>
+        <argsstring></argsstring>
+        <name>type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="61" column="14" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classIntervalDependencyTreeSearch_1ab5adbe18e8bc4d187d997fd94d9418c7" prot="public" static="no" mutable="no">
+        <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+        <definition>access_t* IntervalDependencyTreeSearch::access</definition>
+        <argsstring></argsstring>
+        <name>access</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="64" column="19" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classIntervalDependencyTreeSearch_1a3533f0638cf99d763fc65b05ba702dc5" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; void * &gt; *</type>
+        <definition>std::vector&lt;void *&gt;* IntervalDependencyTreeSearch::conflicts</definition>
+        <argsstring></argsstring>
+        <name>conflicts</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="67" column="22" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classIntervalDependencyTreeSearch_1a14b904107a1e58ed62cc680dc34d6431" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>IntervalDependencyTreeSearch::IntervalDependencyTreeSearch</definition>
+        <argsstring>()</argsstring>
+        <name>IntervalDependencyTreeSearch</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="70" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="70" bodyend="70"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTreeSearch_1ab7506fdd13df5b3ea567c29c86ec57f9" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>IntervalDependencyTreeSearch::~IntervalDependencyTreeSearch</definition>
+        <argsstring>()</argsstring>
+        <name>~IntervalDependencyTreeSearch</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="71" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="71" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTreeSearch_1ae3377645fffdeef5d028815ff468e40a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void IntervalDependencyTreeSearch::prepare_resolve</definition>
+        <argsstring>(access_t *access)</argsstring>
+        <name>prepare_resolve</name>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>access</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="76" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="76" bodyend="80"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTreeSearch_1aa61e90f885eac58c9f578aab379533fd" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void IntervalDependencyTreeSearch::prepare_conflicting</definition>
+        <argsstring>(std::vector&lt; void * &gt; *conflicts, access_t *access)</argsstring>
+        <name>prepare_conflicting</name>
+        <param>
+          <type>std::vector&lt; void * &gt; *</type>
+          <declname>conflicts</declname>
+        </param>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>access</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="83" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="83" bodyend="90"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>IntervalDependencyTreeSearch</label>
+        <link refid="classIntervalDependencyTreeSearch"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>access</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="5">
+        <label>KHyperrect&lt; 1 &gt;</label>
+        <link refid="classKHyperrect"/>
+      </node>
+      <node id="7">
+        <label>matrix_tile_t</label>
+        <link refid="structmatrix__tile__t"/>
+      </node>
+      <node id="3">
+        <label>task_t</label>
+        <link refid="structtask__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>KHyperrect&lt; 2 &gt;</label>
+        <link refid="classKHyperrect"/>
+      </node>
+      <node id="2">
+        <label>access_t</label>
+        <link refid="classaccess__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>task</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>device_view</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>segment</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>rects</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>host_view</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="51" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="52" bodyend="92"/>
+    <listofallmembers>
+      <member refid="classIntervalDependencyTreeSearch_1ab5adbe18e8bc4d187d997fd94d9418c7" prot="public" virt="non-virtual"><scope>IntervalDependencyTreeSearch</scope><name>access</name></member>
+      <member refid="classIntervalDependencyTreeSearch_1a3533f0638cf99d763fc65b05ba702dc5" prot="public" virt="non-virtual"><scope>IntervalDependencyTreeSearch</scope><name>conflicts</name></member>
+      <member refid="classIntervalDependencyTreeSearch_1a14b904107a1e58ed62cc680dc34d6431" prot="public" virt="non-virtual"><scope>IntervalDependencyTreeSearch</scope><name>IntervalDependencyTreeSearch</name></member>
+      <member refid="classIntervalDependencyTreeSearch_1aa61e90f885eac58c9f578aab379533fd" prot="public" virt="non-virtual"><scope>IntervalDependencyTreeSearch</scope><name>prepare_conflicting</name></member>
+      <member refid="classIntervalDependencyTreeSearch_1ae3377645fffdeef5d028815ff468e40a" prot="public" virt="non-virtual"><scope>IntervalDependencyTreeSearch</scope><name>prepare_resolve</name></member>
+      <member refid="classIntervalDependencyTreeSearch_1a93d20cb009a9f5ad5f2ec91a8f837a4aad668e7a6eadbe490b06c3b106205cc55" prot="public" virt="non-virtual"><scope>IntervalDependencyTreeSearch</scope><name>SEARCH_TYPE_CONFLICTING</name></member>
+      <member refid="classIntervalDependencyTreeSearch_1a93d20cb009a9f5ad5f2ec91a8f837a4aafcc9d24efa0383a075cc6b8511217158" prot="public" virt="non-virtual"><scope>IntervalDependencyTreeSearch</scope><name>SEARCH_TYPE_RESOLVE</name></member>
+      <member refid="classIntervalDependencyTreeSearch_1a93d20cb009a9f5ad5f2ec91a8f837a4a" prot="public" virt="non-virtual"><scope>IntervalDependencyTreeSearch</scope><name>Type</name></member>
+      <member refid="classIntervalDependencyTreeSearch_1a50709b323d95efbeee559a35fe03e964" prot="public" virt="non-virtual"><scope>IntervalDependencyTreeSearch</scope><name>type</name></member>
+      <member refid="classIntervalDependencyTreeSearch_1ab7506fdd13df5b3ea567c29c86ec57f9" prot="public" virt="non-virtual"><scope>IntervalDependencyTreeSearch</scope><name>~IntervalDependencyTreeSearch</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structdevice__memory__info__t" kind="struct" language="C++" prot="public">
+    <compoundname>device_memory_info_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structdevice__memory__info__t_1a347e076e2a0d2649632cd57821e17c31" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t device_memory_info_t::capacity</definition>
+        <argsstring></argsstring>
+        <name>capacity</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" line="76" column="12" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structdevice__memory__info__t_1aae342b47de12ec42745f4afda609f129" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t device_memory_info_t::used</definition>
+        <argsstring></argsstring>
+        <name>used</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" line="79" column="12" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structdevice__memory__info__t_1a8a8cc1b9dde1e2541c5e25274b246e24" prot="public" static="no" mutable="no">
+        <type>char</type>
+        <definition>char device_memory_info_t::name[32]</definition>
+        <argsstring>[32]</argsstring>
+        <name>name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" line="82" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" bodystart="82" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structdevice__memory__info__t_1a90ae162cac0c0baa7520729f5ac73922" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int device_memory_info_t::allocated</definition>
+        <argsstring></argsstring>
+        <name>allocated</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" line="89" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structdevice__memory__info__t_1a92bf290a46ec7c617fafc860af20ae95" prot="public" static="no" mutable="no">
+        <type><ref refid="structarea__t" kindref="compound">area_t</ref></type>
+        <definition>area_t device_memory_info_t::area</definition>
+        <argsstring></argsstring>
+        <name>area</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" line="92" column="12" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" bodystart="92" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>area_t</label>
+        <link refid="structarea__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>chunk0</edgelabel>
+          <edgelabel>free_chunk_list</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>lock</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>device_memory_info_t</label>
+        <link refid="structdevice__memory__info__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>area</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>mutex_t</label>
+        <link refid="structmutex__t"/>
+      </node>
+      <node id="3">
+        <label>area_chunk_t</label>
+        <link refid="structarea__chunk__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>freelink</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>prev</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" line="69" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/device.hpp" bodystart="70" bodyend="94"/>
+    <listofallmembers>
+      <member refid="structdevice__memory__info__t_1a90ae162cac0c0baa7520729f5ac73922" prot="public" virt="non-virtual"><scope>device_memory_info_t</scope><name>allocated</name></member>
+      <member refid="structdevice__memory__info__t_1a92bf290a46ec7c617fafc860af20ae95" prot="public" virt="non-virtual"><scope>device_memory_info_t</scope><name>area</name></member>
+      <member refid="structdevice__memory__info__t_1a347e076e2a0d2649632cd57821e17c31" prot="public" virt="non-virtual"><scope>device_memory_info_t</scope><name>capacity</name></member>
+      <member refid="structdevice__memory__info__t_1a8a8cc1b9dde1e2541c5e25274b246e24" prot="public" virt="non-virtual"><scope>device_memory_info_t</scope><name>name</name></member>
+      <member refid="structdevice__memory__info__t_1aae342b47de12ec42745f4afda609f129" prot="public" virt="non-virtual"><scope>device_memory_info_t</scope><name>used</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structteam__desc__t" kind="struct" language="C++" prot="public">
+    <compoundname>team_desc_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structteam__desc__t_1af01b8e7f1b63f2edfe8c3aaf571eaaf6" prot="public" static="no" mutable="no">
+        <type>void *(*</type>
+        <definition>void*(* team_desc_t::routine) (struct team_t *team, struct thread_t *thread)</definition>
+        <argsstring>)(struct team_t *team, struct thread_t *thread)</argsstring>
+        <name>routine</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" line="450" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" bodystart="450" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structteam__desc__t_1a4ebd94e369c6c162ba12bcf2bc3a901a" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* team_desc_t::args</definition>
+        <argsstring></argsstring>
+        <name>args</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" line="453" column="15" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" bodystart="453" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structteam__desc__t_1a8c05c3dc37e21f2b387cb56a555353db" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int team_desc_t::nthreads</definition>
+        <argsstring></argsstring>
+        <name>nthreads</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" line="456" column="13" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" bodystart="456" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structteam__desc__t_1a36950a86fe6cc958834e5c546b7be0fb" prot="public" static="no" mutable="no">
+        <type><ref refid="structteam__binding__t" kindref="compound">team_binding_t</ref></type>
+        <definition>team_binding_t team_desc_t::binding</definition>
+        <argsstring></argsstring>
+        <name>binding</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" line="459" column="24" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" bodystart="459" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structteam__desc__t_1a98b49dfd83ddd0a274ca408f92276c2c" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool team_desc_t::master_is_member</definition>
+        <argsstring></argsstring>
+        <name>master_is_member</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" line="462" column="14" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" bodystart="462" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="structteam__desc__t_1ad9079872ff9641f70d475b87417688f4" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>team_desc_t::team_desc_t</definition>
+        <argsstring>()</argsstring>
+        <name>team_desc_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" line="442" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" bodystart="442" bodyend="447"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>team_binding_t</label>
+        <link refid="structteam__binding__t"/>
+      </node>
+      <node id="1">
+        <label>team_desc_t</label>
+        <link refid="structteam__desc__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>binding</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" line="440" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.h" bodystart="441" bodyend="463"/>
+    <listofallmembers>
+      <member refid="structteam__desc__t_1a4ebd94e369c6c162ba12bcf2bc3a901a" prot="public" virt="non-virtual"><scope>team_desc_t</scope><name>args</name></member>
+      <member refid="structteam__desc__t_1a36950a86fe6cc958834e5c546b7be0fb" prot="public" virt="non-virtual"><scope>team_desc_t</scope><name>binding</name></member>
+      <member refid="structteam__desc__t_1a98b49dfd83ddd0a274ca408f92276c2c" prot="public" virt="non-virtual"><scope>team_desc_t</scope><name>master_is_member</name></member>
+      <member refid="structteam__desc__t_1a8c05c3dc37e21f2b387cb56a555353db" prot="public" virt="non-virtual"><scope>team_desc_t</scope><name>nthreads</name></member>
+      <member refid="structteam__desc__t_1af01b8e7f1b63f2edfe8c3aaf571eaaf6" prot="public" virt="non-virtual"><scope>team_desc_t</scope><name>routine</name></member>
+      <member refid="structteam__desc__t_1ad9079872ff9641f70d475b87417688f4" prot="public" virt="non-virtual"><scope>team_desc_t</scope><name>team_desc_t</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="dir_a621cdb92dda2135954b170f821b3b03" kind="dir">
+    <compoundname>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas</compoundname>
+    <innerfile refid="blas_2dependency-tree_8hpp">dependency-tree.hpp</innerfile>
+    <innerfile refid="matrix_8h">matrix.h</innerfile>
+    <innerfile refid="memory-tree_8hpp">memory-tree.hpp</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/"/>
+  </compounddef>
+</doxygen>

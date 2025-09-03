@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classDummyMemoryCoherencyController" kind="class" language="C++" prot="public">
+    <compoundname>DummyMemoryCoherencyController</compoundname>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classDummyMemoryCoherencyController_1a25138633103689d07d941fd732edbd81" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>xkrt_device_global_id_bitfield_t</type>
+        <definition>xkrt_device_global_id_bitfield_t DummyMemoryCoherencyController::who_owns</definition>
+        <argsstring>(access_t *access)</argsstring>
+        <name>who_owns</name>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>access</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp" line="50" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp" bodystart="50" bodyend="53"/>
+      </memberdef>
+      <memberdef kind="function" id="classDummyMemoryCoherencyController_1a4995b6f83ed905b28e9fa70b83977682" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void DummyMemoryCoherencyController::invalidate</definition>
+        <argsstring>(void)</argsstring>
+        <name>invalidate</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>all replicates must be invalidated </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp" line="57" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp" bodystart="57" bodyend="60"/>
+      </memberdef>
+      <memberdef kind="function" id="classDummyMemoryCoherencyController_1a7fbe5e411cf44d16f3a5a31c8d55f654" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void DummyMemoryCoherencyController::fetch</definition>
+        <argsstring>(access_t *access, xkrt_device_global_id_t device_global_id)</argsstring>
+        <name>fetch</name>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>access</declname>
+        </param>
+        <param>
+          <type>xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp" line="64" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp" bodystart="64" bodyend="69"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp" line="44" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/dummy-coherency-controller.hpp" bodystart="44" bodyend="71"/>
+    <listofallmembers>
+      <member refid="classDummyMemoryCoherencyController_1a7fbe5e411cf44d16f3a5a31c8d55f654" prot="public" virt="non-virtual"><scope>DummyMemoryCoherencyController</scope><name>fetch</name></member>
+      <member refid="classDummyMemoryCoherencyController_1a4995b6f83ed905b28e9fa70b83977682" prot="public" virt="non-virtual"><scope>DummyMemoryCoherencyController</scope><name>invalidate</name></member>
+      <member refid="classDummyMemoryCoherencyController_1a25138633103689d07d941fd732edbd81" prot="public" virt="non-virtual"><scope>DummyMemoryCoherencyController</scope><name>who_owns</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

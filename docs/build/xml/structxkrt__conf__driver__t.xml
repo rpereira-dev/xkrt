@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__conf__driver__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_conf_driver_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__conf__driver__t_1a93c41bf6a413ec3d7aa224ca350359ce" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int xkrt_conf_driver_t::nthreads_per_device</definition>
+        <argsstring></argsstring>
+        <name>nthreads_per_device</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="79" column="9" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__conf__driver__t_1a375673da9d0eb0e4a5aaa4212a3606c1" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int xkrt_conf_driver_t::used</definition>
+        <argsstring></argsstring>
+        <name>used</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="80" column="9" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="77" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="78" bodyend="81"/>
+    <listofallmembers>
+      <member refid="structxkrt__conf__driver__t_1a93c41bf6a413ec3d7aa224ca350359ce" prot="public" virt="non-virtual"><scope>xkrt_conf_driver_t</scope><name>nthreads_per_device</name></member>
+      <member refid="structxkrt__conf__driver__t_1a375673da9d0eb0e4a5aaa4212a3606c1" prot="public" virt="non-virtual"><scope>xkrt_conf_driver_t</scope><name>used</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

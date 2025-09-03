@@ -1,0 +1,97 @@
+\hypertarget{classKHPTree_1_1Node}{}\doxysection{KHPTree$<$ K, T, REBALANCE, CUT\+\_\+\+ON\+\_\+\+INSERT, MAINTAIN\+\_\+\+SIZE, MAINTAIN\+\_\+\+HEIGHT $>$\+::Node Class Reference}
+\label{classKHPTree_1_1Node}\index{KHPTree$<$ K, T, REBALANCE, CUT\_ON\_INSERT, MAINTAIN\_SIZE, MAINTAIN\_HEIGHT $>$::Node@{KHPTree$<$ K, T, REBALANCE, CUT\_ON\_INSERT, MAINTAIN\_SIZE, MAINTAIN\_HEIGHT $>$::Node}}
+
+
+Collaboration diagram for KHPTree$<$ K, T, REBALANCE, CUT\+\_\+\+ON\+\_\+\+INSERT, MAINTAIN\+\_\+\+SIZE, MAINTAIN\+\_\+\+HEIGHT $>$\+::Node\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classKHPTree_1_1Node__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structKHPTree_1_1Node_1_1includes__t}{includes\+\_\+t}}
+\item 
+struct \mbox{\hyperlink{structKHPTree_1_1Node_1_1includes__t_3_01false_00_01false_01_4}{includes\+\_\+t$<$ false, false $>$}}
+\item 
+struct \mbox{\hyperlink{structKHPTree_1_1Node_1_1includes__t_3_01false_00_01true_01_4}{includes\+\_\+t$<$ false, true $>$}}
+\item 
+struct \mbox{\hyperlink{structKHPTree_1_1Node_1_1includes__t_3_01true_00_01false_01_4}{includes\+\_\+t$<$ true, false $>$}}
+\item 
+struct \mbox{\hyperlink{structKHPTree_1_1Node_1_1includes__t_3_01true_00_01true_01_4}{includes\+\_\+t$<$ true, true $>$}}
+\item 
+union \mbox{\hyperlink{unionKHPTree_1_1Node_1_1subtree__t}{subtree\+\_\+t}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_a64333e8b576bca53bb320daac5a237ac}\label{classKHPTree_1_1Node_a64333e8b576bca53bb320daac5a237ac}} 
+{\bfseries Node} (const \mbox{\hyperlink{classKHyperrect}{Hyperrect}} \&h, const int k, const Color color)
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_a94b7cfc4e13848a01f68402ac58ce1b4}\label{classKHPTree_1_1Node_a94b7cfc4e13848a01f68402ac58ce1b4}} 
+\mbox{\hyperlink{classKHPTree_1_1Node}{Node}} $\ast$ {\bfseries get\+\_\+child} (int k, Direction dir) const
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_a5016dd640cb5bdc5a76c851b2e9279f2}\label{classKHPTree_1_1Node_a5016dd640cb5bdc5a76c851b2e9279f2}} 
+void {\bfseries update\+\_\+includes\+\_\+size} (void) requires MAINTAIN\+\_\+\+SIZE
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_a935e122bba691f82056c3fa7fdfb76b6}\label{classKHPTree_1_1Node_a935e122bba691f82056c3fa7fdfb76b6}} 
+int {\bfseries size} (const int k) const
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_a7780a663865c27387e4ee3db055fbc27}\label{classKHPTree_1_1Node_a7780a663865c27387e4ee3db055fbc27}} 
+int {\bfseries size} (void) const
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_a833100044f749f9e7c6b8cbf762e8940}\label{classKHPTree_1_1Node_a833100044f749f9e7c6b8cbf762e8940}} 
+void {\bfseries update\+\_\+includes\+\_\+height} (void) requires MAINTAIN\+\_\+\+HEIGHT
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_af0c74122b67117c06934687855546b9b}\label{classKHPTree_1_1Node_af0c74122b67117c06934687855546b9b}} 
+int {\bfseries height} (int k) const
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_a470cb46e2b291a37c1b2f7f1f45c3ee6}\label{classKHPTree_1_1Node_a470cb46e2b291a37c1b2f7f1f45c3ee6}} 
+int {\bfseries height} (void) const
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_aa00982d5bdc039d86e7a7e8ea6463fd2}\label{classKHPTree_1_1Node_aa00982d5bdc039d86e7a7e8ea6463fd2}} 
+void {\bfseries update\+\_\+includes\+\_\+interval} (void)
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_adc8df27fde80862737da414995901533}\label{classKHPTree_1_1Node_adc8df27fde80862737da414995901533}} 
+virtual void {\bfseries update\+\_\+includes} (void)
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_ac135f65472b40a329d8f696211649fec}\label{classKHPTree_1_1Node_ac135f65472b40a329d8f696211649fec}} 
+void {\bfseries dump} (FILE $\ast$f) const
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_af25a18e61a5642358009d78327fda612}\label{classKHPTree_1_1Node_af25a18e61a5642358009d78327fda612}} 
+virtual void {\bfseries dump\+\_\+str} (FILE $\ast$f) const
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_aac26d277780759a35f3f9fafa0ef940d}\label{classKHPTree_1_1Node_aac26d277780759a35f3f9fafa0ef940d}} 
+void {\bfseries dump\+\_\+hyperrect} (FILE $\ast$f) const
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_aa408d3d93bf063f5cd2c20ea65aafa57}\label{classKHPTree_1_1Node_aa408d3d93bf063f5cd2c20ea65aafa57}} 
+virtual void {\bfseries dump\+\_\+hyperrect\+\_\+str} (FILE $\ast$f) const
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_a85f4d11eaafa130566ef72a6733ad186}\label{classKHPTree_1_1Node_a85f4d11eaafa130566ef72a6733ad186}} 
+\mbox{\hyperlink{classKHPTree_1_1Node}{Node}} $\ast$ {\bfseries parent}
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_a4fcd92651ffa1b047e7aa85088f2fac5}\label{classKHPTree_1_1Node_a4fcd92651ffa1b047e7aa85088f2fac5}} 
+Color {\bfseries colors} \mbox{[}K\mbox{]}
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_aea192e0b2844aa497715bd6ee32c70f6}\label{classKHPTree_1_1Node_aea192e0b2844aa497715bd6ee32c70f6}} 
+\mbox{\hyperlink{classKHyperrect}{Hyperrect}} {\bfseries hyperrect}
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_a0c63b8b1be947244c0024c27a36ea133}\label{classKHPTree_1_1Node_a0c63b8b1be947244c0024c27a36ea133}} 
+int {\bfseries k}
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_ad8de77d7e74e69d0c74ec45aaebcdc6b}\label{classKHPTree_1_1Node_ad8de77d7e74e69d0c74ec45aaebcdc6b}} 
+\mbox{\hyperlink{unionKHPTree_1_1Node_1_1subtree__t}{subtree\+\_\+t}} {\bfseries st} \mbox{[}K\mbox{]}
+\item 
+\mbox{\Hypertarget{classKHPTree_1_1Node_ae4ccd607f08fe1f3c9862a2d6eb242e7}\label{classKHPTree_1_1Node_ae4ccd607f08fe1f3c9862a2d6eb242e7}} 
+\mbox{\hyperlink{structKHPTree_1_1Node_1_1includes__t}{includes\+\_\+t}}$<$ MAINTAIN\+\_\+\+SIZE, MAINTAIN\+\_\+\+HEIGHT $>$ {\bfseries includes}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-\/tree.\+hpp\end{DoxyCompactItemize}

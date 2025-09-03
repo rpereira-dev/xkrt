@@ -1,0 +1,174 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classDependencyMap" kind="class" language="C++" prot="public">
+    <compoundname>DependencyMap</compoundname>
+    <basecompoundref refid="classDependencyDomain" prot="public" virt="non-virtual">DependencyDomain</basecompoundref>
+    <innerclass refid="classDependencyMap_1_1Node" prot="private">DependencyMap::Node</innerclass>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classDependencyMap_1a99a6f4e53da81062f38da3e063456f3a" prot="private" static="no" mutable="no">
+        <type>std::unordered_map&lt; const void *, Node &gt;</type>
+        <definition>std::unordered_map&lt;const void *, Node&gt; DependencyMap::map</definition>
+        <argsstring></argsstring>
+        <name>map</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" line="58" column="28" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classDependencyMap_1acb674cfe02d2a3a441d8a9f9cf671a29" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>DependencyMap::DependencyMap</definition>
+        <argsstring>(const int n=4096)</argsstring>
+        <name>DependencyMap</name>
+        <param>
+          <type>const int</type>
+          <declname>n</declname>
+          <defval>4096</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" line="61" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" bodystart="61" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="function" id="classDependencyMap_1af3c41c2c22fc79637f319548c2c7eab3" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>DependencyMap::~DependencyMap</definition>
+        <argsstring>()</argsstring>
+        <name>~DependencyMap</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" line="67" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" bodystart="67" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="function" id="classDependencyMap_1ab2f22cdf12b6e546805726e5adcf3522" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void DependencyMap::insert_empty_write</definition>
+        <argsstring>(const void *point)</argsstring>
+        <name>insert_empty_write</name>
+        <param>
+          <type>const void *</type>
+          <declname>point</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" line="72" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" bodystart="72" bodyend="119"/>
+      </memberdef>
+      <memberdef kind="function" id="classDependencyMap_1af072e9e6446f9ee6d159c4552c8ed8c3" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>void</type>
+        <definition>void DependencyMap::link</definition>
+        <argsstring>(access_t *access)</argsstring>
+        <name>link</name>
+        <reimplements refid="classDependencyDomain_1a848990d8e5b4300880c5fd931c6b749a">link</reimplements>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>access</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+<para>seq-r : O O O |/ seq-w: X // &lt;- insert that extra node / \ conc-w: O O // &lt;- inserting this</para>
+<para>conc-w: O O O |/ seq-w: X // &lt;- insert that extra node / \ seq-r: O O // &lt;- inserting this</para>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" line="170" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" bodystart="170" bodyend="260"/>
+      </memberdef>
+      <memberdef kind="function" id="classDependencyMap_1a36ebd5babf2ad6ecf322eb77b707f1d7" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>void</type>
+        <definition>void DependencyMap::put</definition>
+        <argsstring>(access_t *access)</argsstring>
+        <name>put</name>
+        <reimplements refid="classDependencyDomain_1a75d424a9237138b4991a9c364df278de">put</reimplements>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>access</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" line="263" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" bodystart="263" bodyend="302"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classDependencyMap_1a377d62c34770214ba31c48cd27eddaae" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void DependencyMap::link_or_pop</definition>
+        <argsstring>(std::vector&lt; access_t * &gt; &amp;list, access_t *succ)</argsstring>
+        <name>link_or_pop</name>
+        <param>
+          <type>std::vector&lt; <ref refid="classaccess__t" kindref="compound">access_t</ref> * &gt; &amp;</type>
+          <declname>list</declname>
+        </param>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>succ</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" line="124" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" bodystart="124" bodyend="161"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>DependencyDomain</label>
+        <link refid="classDependencyDomain"/>
+      </node>
+      <node id="1">
+        <label>DependencyMap</label>
+        <link refid="classDependencyMap"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="2">
+        <label>DependencyDomain</label>
+        <link refid="classDependencyDomain"/>
+      </node>
+      <node id="1">
+        <label>DependencyMap</label>
+        <link refid="classDependencyMap"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" line="30" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/point/dependency-map.hpp" bodystart="31" bodyend="304"/>
+    <listofallmembers>
+      <member refid="classDependencyMap_1acb674cfe02d2a3a441d8a9f9cf671a29" prot="public" virt="non-virtual"><scope>DependencyMap</scope><name>DependencyMap</name></member>
+      <member refid="classDependencyMap_1ab2f22cdf12b6e546805726e5adcf3522" prot="public" virt="non-virtual"><scope>DependencyMap</scope><name>insert_empty_write</name></member>
+      <member refid="classDependencyMap_1af072e9e6446f9ee6d159c4552c8ed8c3" prot="public" virt="virtual"><scope>DependencyMap</scope><name>link</name></member>
+      <member refid="classDependencyMap_1a377d62c34770214ba31c48cd27eddaae" prot="public" virt="non-virtual"><scope>DependencyMap</scope><name>link_or_pop</name></member>
+      <member refid="classDependencyMap_1a99a6f4e53da81062f38da3e063456f3a" prot="private" virt="non-virtual"><scope>DependencyMap</scope><name>map</name></member>
+      <member refid="classDependencyMap_1a36ebd5babf2ad6ecf322eb77b707f1d7" prot="public" virt="virtual"><scope>DependencyMap</scope><name>put</name></member>
+      <member refid="classDependencyDomain_1a485c7510d57308830148f95e0ababb8e" prot="public" virt="non-virtual"><scope>DependencyMap</scope><name>resolve</name></member>
+      <member refid="classDependencyDomain_1a49ff6695523cb1b7c2647b0ae3621ac5" prot="public" virt="virtual"><scope>DependencyMap</scope><name>~DependencyDomain</name></member>
+      <member refid="classDependencyMap_1af3c41c2c22fc79637f319548c2c7eab3" prot="public" virt="non-virtual"><scope>DependencyMap</scope><name>~DependencyMap</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

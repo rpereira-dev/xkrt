@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classRouter" kind="class" language="C++" prot="public" abstract="yes">
+    <compoundname>Router</compoundname>
+    <derivedcompoundref refid="classRouterAffinity" prot="public" virt="non-virtual">RouterAffinity</derivedcompoundref>
+    <derivedcompoundref refid="classRouterCFS" prot="public" virt="non-virtual">RouterCFS</derivedcompoundref>
+    <derivedcompoundref refid="classRouterRandom" prot="public" virt="non-virtual">RouterRandom</derivedcompoundref>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classRouter_1a555428efbf07e22776889b8d9b88027f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>Router::Router</definition>
+        <argsstring>()</argsstring>
+        <name>Router</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router.hpp" line="27" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router.hpp" bodystart="27" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="function" id="classRouter_1a85cb1b453f3ce1fe6abcefe84b5ca63d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type></type>
+        <definition>virtual Router::~Router</definition>
+        <argsstring>()</argsstring>
+        <name>~Router</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router.hpp" line="28" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router.hpp" bodystart="28" bodyend="28"/>
+      </memberdef>
+      <memberdef kind="function" id="classRouter_1a14d741803525216149e2cddb98dacde0" prot="public" static="no" const="yes" explicit="no" inline="no" virt="pure-virtual">
+        <type>device_global_id_t</type>
+        <definition>virtual device_global_id_t Router::get_source</definition>
+        <argsstring>(const device_global_id_t dst, const device_global_id_bitfield_t valid) const =0</argsstring>
+        <name>get_source</name>
+        <reimplementedby refid="classRouterAffinity_1afd30ab4b9f043ccb8b87418d4a230769">get_source</reimplementedby>
+        <reimplementedby refid="classRouterCFS_1a620ead664538d4a187c2a776043104c3">get_source</reimplementedby>
+        <reimplementedby refid="classRouterRandom_1a589f3d54e66d769056d5f5dba14f5e69">get_source</reimplementedby>
+        <param>
+          <type>const device_global_id_t</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>const device_global_id_bitfield_t</type>
+          <declname>valid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieve the source to use for a data transfer to &apos;dst&apos; where the valid sources are amongst the &apos;valid&apos; bitfield </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router.hpp" line="35" column="9"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="4">
+        <label>RouterRandom</label>
+        <link refid="classRouterRandom"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>RouterCFS</label>
+        <link refid="classRouterCFS"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>RouterAffinity</label>
+        <link refid="classRouterAffinity"/>
+        <childnode refid="1" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>Router</label>
+        <link refid="classRouter"/>
+      </node>
+    </inheritancegraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router.hpp" line="24" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router.hpp" bodystart="25" bodyend="40"/>
+    <listofallmembers>
+      <member refid="classRouter_1a14d741803525216149e2cddb98dacde0" prot="public" virt="pure-virtual"><scope>Router</scope><name>get_source</name></member>
+      <member refid="classRouter_1a555428efbf07e22776889b8d9b88027f" prot="public" virt="non-virtual"><scope>Router</scope><name>Router</name></member>
+      <member refid="classRouter_1a85cb1b453f3ce1fe6abcefe84b5ca63d" prot="public" virt="virtual"><scope>Router</scope><name>~Router</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structtask__t" kind="struct" language="C++" prot="public">
+    <compoundname>task_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structtask__t_1afd943293b0bcc61e33fdb10f285fbd73" prot="public" static="no" mutable="no">
+        <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+        <definition>task_t* task_t::parent</definition>
+        <argsstring></argsstring>
+        <name>parent</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="143" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="143" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__t_1aea8402a1d29c807dda948d74ff3f8362" prot="public" static="no" mutable="no">
+        <type>std::atomic&lt; uint32_t &gt;</type>
+        <definition>std::atomic&lt;uint32_t&gt; task_t::cc</definition>
+        <argsstring></argsstring>
+        <name>cc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="146" column="21" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="146" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__t_1ab28e0eb04abac53cf42967f6deec8bbc" prot="public" static="no" mutable="no">
+        <type>spinlock_t</type>
+        <definition>spinlock_t task_t::lock</definition>
+        <argsstring></argsstring>
+        <name>lock</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="150" column="29" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="150" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__t_1a5fca8de21b88867df688990f9ce7c0aa" prot="public" static="no" mutable="no">
+        <type>task_state_t</type>
+        <definition>task_state_t task_t::value</definition>
+        <argsstring></argsstring>
+        <name>value</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="151" column="29" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="151" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__t_1ade84914a78248800a3c2e877d97aa437" prot="public" static="no" mutable="no">
+        <type>struct task_t::@55</type>
+        <definition>struct task_t::@55 task_t::state</definition>
+        <argsstring></argsstring>
+        <name>state</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="152" column="15"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__t_1adb7a6de660f798f08d7a93ad44024c68" prot="public" static="no" mutable="no">
+        <type>task_format_id_t</type>
+        <definition>task_format_id_t task_t::fmtid</definition>
+        <argsstring></argsstring>
+        <name>fmtid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="155" column="26" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="155" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__t_1aef3c22597d84783f8ee1ff20a6b984a3" prot="public" static="no" mutable="no">
+        <type>task_flag_bitfield_t</type>
+        <definition>task_flag_bitfield_t task_t::flags</definition>
+        <argsstring></argsstring>
+        <name>flags</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="158" column="30" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="158" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__t_1a5f76ca55c745727a4e0325b0dec90ba7" prot="public" static="no" mutable="no">
+        <type>char</type>
+        <definition>char task_t::label[128]</definition>
+        <argsstring>[128]</argsstring>
+        <name>label</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="161" column="14" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="161" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="structtask__t_1a9dafdd14268419df4e93a5403d312998" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>task_t::task_t</definition>
+        <argsstring>(task_format_id_t fmtid, task_flag_bitfield_t flags)</argsstring>
+        <name>task_t</name>
+        <param>
+          <type>task_format_id_t</type>
+          <declname>fmtid</declname>
+        </param>
+        <param>
+          <type>task_flag_bitfield_t</type>
+          <declname>flags</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="166" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="166" bodyend="172"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>task_t</label>
+        <link refid="structtask__t"/>
+        <childnode refid="1" relation="usage">
+          <edgelabel>parent</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="138" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="139" bodyend="174"/>
+    <listofallmembers>
+      <member refid="structtask__t_1aea8402a1d29c807dda948d74ff3f8362" prot="public" virt="non-virtual"><scope>task_t</scope><name>cc</name></member>
+      <member refid="structtask__t_1aef3c22597d84783f8ee1ff20a6b984a3" prot="public" virt="non-virtual"><scope>task_t</scope><name>flags</name></member>
+      <member refid="structtask__t_1adb7a6de660f798f08d7a93ad44024c68" prot="public" virt="non-virtual"><scope>task_t</scope><name>fmtid</name></member>
+      <member refid="structtask__t_1a5f76ca55c745727a4e0325b0dec90ba7" prot="public" virt="non-virtual"><scope>task_t</scope><name>label</name></member>
+      <member refid="structtask__t_1ab28e0eb04abac53cf42967f6deec8bbc" prot="public" virt="non-virtual"><scope>task_t</scope><name>lock</name></member>
+      <member refid="structtask__t_1afd943293b0bcc61e33fdb10f285fbd73" prot="public" virt="non-virtual"><scope>task_t</scope><name>parent</name></member>
+      <member refid="structtask__t_1ade84914a78248800a3c2e877d97aa437" prot="public" virt="non-virtual"><scope>task_t</scope><name>state</name></member>
+      <member refid="structtask__t_1a9dafdd14268419df4e93a5403d312998" prot="public" virt="non-virtual"><scope>task_t</scope><name>task_t</name></member>
+      <member refid="structtask__t_1a5fca8de21b88867df688990f9ce7c0aa" prot="public" virt="non-virtual"><scope>task_t</scope><name>value</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

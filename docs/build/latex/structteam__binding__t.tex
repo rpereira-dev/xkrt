@@ -1,0 +1,34 @@
+\hypertarget{structteam__binding__t}{}\doxysection{team\+\_\+binding\+\_\+t Struct Reference}
+\label{structteam__binding__t}\index{team\_binding\_t@{team\_binding\_t}}
+
+
+{\ttfamily \#include $<$thread.\+h$>$}
+
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structteam__binding__t_a962d4e72d7f75b1e77c45a7a28fdef9b}\label{structteam__binding__t_a962d4e72d7f75b1e77c45a7a28fdef9b}} 
+team\+\_\+binding\+\_\+mode\+\_\+t {\bfseries mode}
+\item 
+\mbox{\Hypertarget{structteam__binding__t_a01648f184e7665298617cd40f0e77c55}\label{structteam__binding__t_a01648f184e7665298617cd40f0e77c55}} 
+team\+\_\+binding\+\_\+places\+\_\+t {\bfseries places}
+\item 
+\mbox{\Hypertarget{structteam__binding__t_a32622b4016d6fb85910001d77b751b2a}\label{structteam__binding__t_a32622b4016d6fb85910001d77b751b2a}} 
+thread\+\_\+place\+\_\+t $\ast$ {\bfseries places\+\_\+list}
+\item 
+\mbox{\Hypertarget{structteam__binding__t_aec8542f80d8ca9ebcf3d0534e81879f6}\label{structteam__binding__t_aec8542f80d8ca9ebcf3d0534e81879f6}} 
+int {\bfseries nplaces}
+\item 
+\mbox{\Hypertarget{structteam__binding__t_a644b52591fb6493ed58d74e17b9df887}\label{structteam__binding__t_a644b52591fb6493ed58d74e17b9df887}} 
+team\+\_\+binding\+\_\+flag\+\_\+t {\bfseries flags}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The supported combinations are\+: (mode = COMPACT, places = DEVICE) -\/$>$ that will compactly bind 1 thread per device
+
+(mode = SPREAD, places = MACHINE) with any nthreads -\/$>$ that will spread threads across all cores of the machine 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/thread/thread.\+h\end{DoxyCompactItemize}

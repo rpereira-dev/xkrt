@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__power__counter__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_power_counter_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__power__counter__t_1a5aff4c3ceaa5bd2b002ffcc4e41a122d" prot="public" static="no" mutable="no">
+        <type>uint64_t</type>
+        <definition>uint64_t xkrt_power_counter_t::b1</definition>
+        <argsstring></argsstring>
+        <name>b1</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/logger/metric.h" line="65" column="14" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/logger/metric.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__power__counter__t_1a3c7f6f2b0afbd6b7f1b8bd937f88c2a5" prot="public" static="no" mutable="no">
+        <type>uint64_t</type>
+        <definition>uint64_t xkrt_power_counter_t::b2</definition>
+        <argsstring></argsstring>
+        <name>b2</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/logger/metric.h" line="65" column="17" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/logger/metric.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__power__counter__t_1ad93a14d7d8b2c1501d6e5aadcb312dc3" prot="public" static="no" mutable="no">
+        <type>uint64_t</type>
+        <definition>uint64_t xkrt_power_counter_t::b3</definition>
+        <argsstring></argsstring>
+        <name>b3</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/logger/metric.h" line="65" column="20" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/logger/metric.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__power__counter__t_1aee6169dd67b3046667f9c496b00ae48d" prot="public" static="no" mutable="no">
+        <type>uint64_t</type>
+        <definition>uint64_t xkrt_power_counter_t::b4</definition>
+        <argsstring></argsstring>
+        <name>b4</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/logger/metric.h" line="65" column="23" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/logger/metric.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/logger/metric.h" line="63" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/logger/metric.h" bodystart="64" bodyend="66"/>
+    <listofallmembers>
+      <member refid="structxkrt__power__counter__t_1a5aff4c3ceaa5bd2b002ffcc4e41a122d" prot="public" virt="non-virtual"><scope>xkrt_power_counter_t</scope><name>b1</name></member>
+      <member refid="structxkrt__power__counter__t_1a3c7f6f2b0afbd6b7f1b8bd937f88c2a5" prot="public" virt="non-virtual"><scope>xkrt_power_counter_t</scope><name>b2</name></member>
+      <member refid="structxkrt__power__counter__t_1ad93a14d7d8b2c1501d6e5aadcb312dc3" prot="public" virt="non-virtual"><scope>xkrt_power_counter_t</scope><name>b3</name></member>
+      <member refid="structxkrt__power__counter__t_1aee6169dd67b3046667f9c496b00ae48d" prot="public" virt="non-virtual"><scope>xkrt_power_counter_t</scope><name>b4</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

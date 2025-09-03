@@ -1,0 +1,348 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structmatrix__tile__t" kind="struct" language="C++" prot="public">
+    <compoundname>matrix_tile_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmatrix__tile__t_1ad5432c7c1a997f15c721ee5ceb622797" prot="public" static="no" mutable="no">
+        <type>matrix_storage_t</type>
+        <definition>matrix_storage_t matrix_tile_t::storage</definition>
+        <argsstring></argsstring>
+        <name>storage</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="70" column="22" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmatrix__tile__t_1a65431da07cee997d8bb6af7dd1292d7e" prot="public" static="no" mutable="no">
+        <type>uintptr_t</type>
+        <definition>uintptr_t matrix_tile_t::addr</definition>
+        <argsstring></argsstring>
+        <name>addr</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="73" column="15" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmatrix__tile__t_1afa1d28730b46ee5c8ff7991f2ef5b761" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t matrix_tile_t::ld</definition>
+        <argsstring></argsstring>
+        <name>ld</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="76" column="12" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmatrix__tile__t_1ab7ee223854b6a4ee4c323b25d8f84535" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t matrix_tile_t::m</definition>
+        <argsstring></argsstring>
+        <name>m</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="79" column="12" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmatrix__tile__t_1a9d9cfceee846905c7e2d961c26a183f3" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t matrix_tile_t::n</definition>
+        <argsstring></argsstring>
+        <name>n</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="80" column="12" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmatrix__tile__t_1a9d760febe67246e166e4499be820c160" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t matrix_tile_t::sizeof_type</definition>
+        <argsstring></argsstring>
+        <name>sizeof_type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="83" column="12" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="83" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="structmatrix__tile__t_1a7a46f1d7e4be3fc5f38d14e4b5de5c31" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>matrix_tile_t::matrix_tile_t</definition>
+        <argsstring>()</argsstring>
+        <name>matrix_tile_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="86" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="86" bodyend="86"/>
+      </memberdef>
+      <memberdef kind="function" id="structmatrix__tile__t_1a0c9efc0e17d37d778a989d8bbd46d88e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>matrix_tile_t::matrix_tile_t</definition>
+        <argsstring>(const matrix_storage_t &amp;storage, const void *&amp;addr, const size_t &amp;ld, const size_t &amp;offset_m, const size_t &amp;offset_n, const size_t &amp;m, const size_t &amp;n, const size_t &amp;sizeof_type)</argsstring>
+        <name>matrix_tile_t</name>
+        <param>
+          <type>const matrix_storage_t &amp;</type>
+          <declname>storage</declname>
+        </param>
+        <param>
+          <type>const void *&amp;</type>
+          <declname>addr</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>ld</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>offset_m</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>offset_n</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>m</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>sizeof_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="88" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="88" bodyend="99"/>
+      </memberdef>
+      <memberdef kind="function" id="structmatrix__tile__t_1a5ecbd96a0c590169423fd19324048d8b" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>matrix_tile_t::matrix_tile_t</definition>
+        <argsstring>(const matrix_storage_t &amp;storage, const uintptr_t &amp;addr, const size_t &amp;ld, const size_t &amp;offset_m, const size_t &amp;offset_n, const size_t &amp;m, const size_t &amp;n, const size_t &amp;sizeof_type)</argsstring>
+        <name>matrix_tile_t</name>
+        <param>
+          <type>const matrix_storage_t &amp;</type>
+          <declname>storage</declname>
+        </param>
+        <param>
+          <type>const uintptr_t &amp;</type>
+          <declname>addr</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>ld</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>offset_m</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>offset_n</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>m</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>const size_t &amp;</type>
+          <declname>sizeof_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="101" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="101" bodyend="120"/>
+      </memberdef>
+      <memberdef kind="function" id="structmatrix__tile__t_1ada01bf795ab3654b99fe3e65bb188e11" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>matrix_tile_t::matrix_tile_t</definition>
+        <argsstring>(const matrix_tile_t &amp;src)</argsstring>
+        <name>matrix_tile_t</name>
+        <param>
+          <type>const <ref refid="structmatrix__tile__t" kindref="compound">matrix_tile_t</ref> &amp;</type>
+          <declname>src</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="122" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="122" bodyend="130"/>
+      </memberdef>
+      <memberdef kind="function" id="structmatrix__tile__t_1a6b10f94124b9ae4cb9788461f0b3019d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>matrix_tile_t::~matrix_tile_t</definition>
+        <argsstring>()</argsstring>
+        <name>~matrix_tile_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="132" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="132" bodyend="132"/>
+      </memberdef>
+      <memberdef kind="function" id="structmatrix__tile__t_1ac081f491b7a9fc9f2ec2f03618028fb2" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t matrix_tile_t::size</definition>
+        <argsstring>(void) const</argsstring>
+        <name>size</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="136" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="136" bodyend="139"/>
+      </memberdef>
+      <memberdef kind="function" id="structmatrix__tile__t_1a33f84ee233be2712bb86727f520ecbb8" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>uintptr_t</type>
+        <definition>uintptr_t matrix_tile_t::begin_addr</definition>
+        <argsstring>(void) const</argsstring>
+        <name>begin_addr</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="143" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="143" bodyend="146"/>
+      </memberdef>
+      <memberdef kind="function" id="structmatrix__tile__t_1ab64171a14424e004ab43023ef7a6c24b" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>uintptr_t</type>
+        <definition>uintptr_t matrix_tile_t::offset_addr</definition>
+        <argsstring>(const size_t offset_m, const size_t offset_n) const</argsstring>
+        <name>offset_addr</name>
+        <param>
+          <type>const size_t</type>
+          <declname>offset_m</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>offset_n</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="149" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="149" bodyend="167"/>
+      </memberdef>
+      <memberdef kind="function" id="structmatrix__tile__t_1a475fc0adadae2ea31b661adf594670dd" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>uintptr_t</type>
+        <definition>uintptr_t matrix_tile_t::end_addr</definition>
+        <argsstring>(void) const</argsstring>
+        <name>end_addr</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="171" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="171" bodyend="189"/>
+      </memberdef>
+      <memberdef kind="function" id="structmatrix__tile__t_1a603532696f1e63e5d28fe7b43df03861" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool matrix_tile_t::equals</definition>
+        <argsstring>(const matrix_tile_t &amp;x)</argsstring>
+        <name>equals</name>
+        <param>
+          <type>const <ref refid="structmatrix__tile__t" kindref="compound">matrix_tile_t</ref> &amp;</type>
+          <declname>x</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="193" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="193" bodyend="196"/>
+      </memberdef>
+      <memberdef kind="function" id="structmatrix__tile__t_1a7d5656ea2ddfd5a857e4ef26f30b341b" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool matrix_tile_t::includes</definition>
+        <argsstring>(const matrix_tile_t &amp;x)</argsstring>
+        <name>includes</name>
+        <param>
+          <type>const <ref refid="structmatrix__tile__t" kindref="compound">matrix_tile_t</ref> &amp;</type>
+          <declname>x</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="199" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="199" bodyend="203"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" line="67" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/matrix.h" bodystart="68" bodyend="205"/>
+    <listofallmembers>
+      <member refid="structmatrix__tile__t_1a65431da07cee997d8bb6af7dd1292d7e" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>addr</name></member>
+      <member refid="structmatrix__tile__t_1a33f84ee233be2712bb86727f520ecbb8" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>begin_addr</name></member>
+      <member refid="structmatrix__tile__t_1a475fc0adadae2ea31b661adf594670dd" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>end_addr</name></member>
+      <member refid="structmatrix__tile__t_1a603532696f1e63e5d28fe7b43df03861" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>equals</name></member>
+      <member refid="structmatrix__tile__t_1a7d5656ea2ddfd5a857e4ef26f30b341b" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>includes</name></member>
+      <member refid="structmatrix__tile__t_1afa1d28730b46ee5c8ff7991f2ef5b761" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>ld</name></member>
+      <member refid="structmatrix__tile__t_1ab7ee223854b6a4ee4c323b25d8f84535" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>m</name></member>
+      <member refid="structmatrix__tile__t_1a7a46f1d7e4be3fc5f38d14e4b5de5c31" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>matrix_tile_t</name></member>
+      <member refid="structmatrix__tile__t_1a0c9efc0e17d37d778a989d8bbd46d88e" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>matrix_tile_t</name></member>
+      <member refid="structmatrix__tile__t_1a5ecbd96a0c590169423fd19324048d8b" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>matrix_tile_t</name></member>
+      <member refid="structmatrix__tile__t_1ada01bf795ab3654b99fe3e65bb188e11" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>matrix_tile_t</name></member>
+      <member refid="structmatrix__tile__t_1a9d9cfceee846905c7e2d961c26a183f3" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>n</name></member>
+      <member refid="structmatrix__tile__t_1ab64171a14424e004ab43023ef7a6c24b" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>offset_addr</name></member>
+      <member refid="structmatrix__tile__t_1ac081f491b7a9fc9f2ec2f03618028fb2" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>size</name></member>
+      <member refid="structmatrix__tile__t_1a9d760febe67246e166e4499be820c160" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>sizeof_type</name></member>
+      <member refid="structmatrix__tile__t_1ad5432c7c1a997f15c721ee5ceb622797" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>storage</name></member>
+      <member refid="structmatrix__tile__t_1a6b10f94124b9ae4cb9788461f0b3019d" prot="public" virt="non-virtual"><scope>matrix_tile_t</scope><name>~matrix_tile_t</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

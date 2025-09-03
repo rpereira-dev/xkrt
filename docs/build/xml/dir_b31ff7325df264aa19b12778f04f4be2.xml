@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="dir_b31ff7325df264aa19b12778f04f4be2" kind="dir">
+    <compoundname>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf</compoundname>
+    <innerfile refid="conf_8h">conf.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/"/>
+  </compounddef>
+</doxygen>

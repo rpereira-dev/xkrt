@@ -1,0 +1,44 @@
+\hypertarget{structdevice__ze__t}{}\doxysection{device\+\_\+ze\+\_\+t Struct Reference}
+\label{structdevice__ze__t}\index{device\_ze\_t@{device\_ze\_t}}
+
+
+Collaboration diagram for device\+\_\+ze\+\_\+t\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{structdevice__ze__t__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structdevice__ze__t_a8e48df18c71157a75bfc60fc0a7728bc}\label{structdevice__ze__t_a8e48df18c71157a75bfc60fc0a7728bc}} 
+\mbox{\hyperlink{structdevice__t}{device\+\_\+t}} {\bfseries inherited}
+\item 
+\mbox{\Hypertarget{structdevice__ze__t_aaa557915995c1b734ea403db56168e9b}\label{structdevice__ze__t_aaa557915995c1b734ea403db56168e9b}} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>ze\_driver\_handle\_t {\bfseries driver}\\
+\>ze\_context\_handle\_t {\bfseries context}\\
+\>ze\_device\_handle\_t {\bfseries handle}\\
+\>ze\_device\_properties\_t {\bfseries properties}\\
+\>struct \{\\
+\>\>unsigned int {\bfseries driver}\\
+\>\>unsigned int {\bfseries device}\\
+\>\} {\bfseries index}\\
+\>uint32\_t {\bfseries ncommandqueuegroups}\\
+\>ze\_command\_queue\_group\_properties\_t $\ast$ {\bfseries command\_queue\_group\_properties}\\
+\>std::atomic$<$ uint32\_t $>$ $\ast$ {\bfseries command\_queue\_group\_used}\\
+\>struct \{\\
+\>\>uint32\_t {\bfseries count}\\
+\>\>ze\_device\_memory\_properties\_t {\bfseries properties} \mbox{[}XKRT\_DEVICE\_MEMORIES\_MAX\mbox{]}\\
+\>\} {\bfseries memory}\\
+\} {\bfseries ze}\\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-\/ze.\+h\end{DoxyCompactItemize}

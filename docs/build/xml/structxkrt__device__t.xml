@@ -1,0 +1,944 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__device__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_device_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__device__t_1a3aaf6512a4dbab5ddcc9487b2f2d0da5" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__conf__device__t" kindref="compound">xkrt_conf_device_t</ref> *</type>
+        <definition>xkrt_conf_device_t* xkrt_device_t::conf</definition>
+        <argsstring></argsstring>
+        <name>conf</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="103" column="25" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1a93d8c7e91afebbd6d1855d8a876fc80a" prot="public" static="no" mutable="no">
+        <type>xkrt_driver_type_t</type>
+        <definition>xkrt_driver_type_t xkrt_device_t::driver_type</definition>
+        <argsstring></argsstring>
+        <name>driver_type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="106" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1a6f9b188c336c5d9a19e2472b3db56300" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t xkrt_device_t::driver_id</definition>
+        <argsstring></argsstring>
+        <name>driver_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="109" column="13" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1a27fec04e5965aaee8cf9cee6ac5c8658" prot="public" static="no" mutable="no">
+        <type>xkrt_device_global_id_t</type>
+        <definition>xkrt_device_global_id_t xkrt_device_t::global_id</definition>
+        <argsstring></argsstring>
+        <name>global_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="112" column="29" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="112" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1a529821e9eab2af583a8f1ec4e1e6b822" prot="public" static="no" mutable="no">
+        <type>std::atomic&lt; xkrt_device_state_t &gt;</type>
+        <definition>std::atomic&lt;xkrt_device_state_t&gt; xkrt_device_t::state</definition>
+        <argsstring></argsstring>
+        <name>state</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="115" column="17" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="115" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1affbef931889c45c02e67a75c8c3ed5bc" prot="public" static="no" mutable="no">
+        <type>xkrt_device_global_id_bitfield_t *</type>
+        <definition>xkrt_device_global_id_bitfield_t* xkrt_device_t::affinity</definition>
+        <argsstring></argsstring>
+        <name>affinity</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="119" column="39" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1a42dfd1c731ddacee1bff1d58792d715d" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__device__memory__info__t" kindref="compound">xkrt_device_memory_info_t</ref></type>
+        <definition>xkrt_device_memory_info_t xkrt_device_t::memories[XKRT_DEVICE_MEMORIES_MAX]</definition>
+        <argsstring>[XKRT_DEVICE_MEMORIES_MAX]</argsstring>
+        <name>memories</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="142" column="31" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="142" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1afbc8deedee3c3d5160b1d058cae2b91c" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int xkrt_device_t::nmemories</definition>
+        <argsstring></argsstring>
+        <name>nmemories</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="143" column="9" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="143" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1acf674da257190027244afb6df7ed0afe" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int xkrt_device_t::nstreams_per_thread</definition>
+        <argsstring></argsstring>
+        <name>nstreams_per_thread</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="171" column="9" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="171" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1ae38e4da31920cbfd070f051c71046b30" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int xkrt_device_t::count[XKRT_STREAM_TYPE_ALL]</definition>
+        <argsstring>[XKRT_STREAM_TYPE_ALL]</argsstring>
+        <name>count</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="174" column="9" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="174" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1ab930ea32a836ff531d9492e2b082b774" prot="public" static="no" mutable="no">
+        <type>std::atomic&lt; uint8_t &gt;</type>
+        <definition>std::atomic&lt;uint8_t&gt; xkrt_device_t::next_thread</definition>
+        <argsstring></argsstring>
+        <name>next_thread</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="177" column="17" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="177" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1a84c77b6cd2090b5d9d86b93f5edbbf4b" prot="public" static="no" mutable="no">
+        <type>std::atomic&lt; int &gt;</type>
+        <definition>std::atomic&lt;int&gt; xkrt_device_t::next_stream[XKRT_MAX_THREADS_PER_DEVICE][XKRT_STREAM_TYPE_ALL]</definition>
+        <argsstring>[XKRT_MAX_THREADS_PER_DEVICE][XKRT_STREAM_TYPE_ALL]</argsstring>
+        <name>next_stream</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="180" column="17" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="180" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1a27016dbed2a635995037dec995e60a56" prot="public" static="no" mutable="no">
+        <type><ref refid="classxkrt__stream__t" kindref="compound">xkrt_stream_t</ref> **</type>
+        <definition>xkrt_stream_t** xkrt_device_t::streams[XKRT_MAX_THREADS_PER_DEVICE][XKRT_STREAM_TYPE_ALL]</definition>
+        <argsstring>[XKRT_MAX_THREADS_PER_DEVICE][XKRT_STREAM_TYPE_ALL]</argsstring>
+        <name>streams</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="183" column="20" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="183" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1a9985a74c5bd44b22b1f368b6d4931cf7" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__thread__t" kindref="compound">xkrt_thread_t</ref> *</type>
+        <definition>xkrt_thread_t* xkrt_device_t::threads[XKRT_MAX_THREADS_PER_DEVICE]</definition>
+        <argsstring>[XKRT_MAX_THREADS_PER_DEVICE]</argsstring>
+        <name>threads</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="443" column="20" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="443" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1afe09c47c9bb0d8f666467bbc153d6e3d" prot="public" static="no" mutable="no">
+        <type>std::atomic&lt; uint8_t &gt;</type>
+        <definition>std::atomic&lt;uint8_t&gt; xkrt_device_t::nthreads</definition>
+        <argsstring></argsstring>
+        <name>nthreads</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="446" column="17" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="446" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__device__t_1acfb66f0f66c069aabdcbac4e2796d3c5" prot="public" static="no" mutable="no">
+        <type>std::atomic&lt; uint8_t &gt;</type>
+        <definition>std::atomic&lt;uint8_t&gt; xkrt_device_t::thread_next</definition>
+        <argsstring></argsstring>
+        <name>thread_next</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="449" column="17" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="449" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="structxkrt__device__t_1ad523c4dbea6efb868e7efa741781aee6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structxkrt__area__chunk__t" kindref="compound">xkrt_area_chunk_t</ref> *</type>
+        <definition>xkrt_area_chunk_t* xkrt_device_t::memory_allocate_on</definition>
+        <argsstring>(const size_t size, int area_idx)</argsstring>
+        <name>memory_allocate_on</name>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>area_idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="146" column="24"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1a777a93673cd78d30499dfca79fb45a25" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structxkrt__area__chunk__t" kindref="compound">xkrt_area_chunk_t</ref> *</type>
+        <definition>xkrt_area_chunk_t* xkrt_device_t::memory_allocate</definition>
+        <argsstring>(const size_t size)</argsstring>
+        <name>memory_allocate</name>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="149" column="24"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1aef2e1ac87cd3328812066ae1a053d5aa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::memory_deallocate_on</definition>
+        <argsstring>(xkrt_area_chunk_t *chunk, int area_idx)</argsstring>
+        <name>memory_deallocate_on</name>
+        <param>
+          <type><ref refid="structxkrt__area__chunk__t" kindref="compound">xkrt_area_chunk_t</ref> *</type>
+          <declname>chunk</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>area_idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="152" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1a95ed702aa9ff147bca7992c473aa3a03" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::memory_deallocate</definition>
+        <argsstring>(xkrt_area_chunk_t *chunk)</argsstring>
+        <name>memory_deallocate</name>
+        <param>
+          <type><ref refid="structxkrt__area__chunk__t" kindref="compound">xkrt_area_chunk_t</ref> *</type>
+          <declname>chunk</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="155" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1ae172238fe0ceedd5ef476d5899552f08" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::memory_reset</definition>
+        <argsstring>(void)</argsstring>
+        <name>memory_reset</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="158" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1a64357a68e3f8491a883b4f2cedecd76f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::memory_reset_on</definition>
+        <argsstring>(int area_idx)</argsstring>
+        <name>memory_reset_on</name>
+        <param>
+          <type>int</type>
+          <declname>area_idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="161" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1a6c3d128e066e8bbd518564899e27800e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::memory_set_chunk0</definition>
+        <argsstring>(uintptr_t device_ptr, size_t size, int area_idx)</argsstring>
+        <name>memory_set_chunk0</name>
+        <param>
+          <type>uintptr_t</type>
+          <declname>device_ptr</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>area_idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="164" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1a5b9cf8b6b567b7652ced26094f4b494c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::offloader_init</definition>
+        <argsstring>(int(*f_stream_suggest)(int device_driver_id, xkrt_stream_type_t type))</argsstring>
+        <name>offloader_init</name>
+        <param>
+          <type>int(*)(int device_driver_id, xkrt_stream_type_t type)</type>
+          <declname>f_stream_suggest</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="186" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1ad5c07b76d7dd734317341d05e323d5a8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::offloader_init_thread</definition>
+        <argsstring>(uint8_t device_tid, xkrt_stream_t *(*f_stream_create)(xkrt_device_t *device, xkrt_stream_type_t type, xkrt_stream_instruction_counter_t capacity))</argsstring>
+        <name>offloader_init_thread</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>device_tid</declname>
+        </param>
+        <param>
+          <type><ref refid="classxkrt__stream__t" kindref="compound">xkrt_stream_t</ref> *(*)(<ref refid="structxkrt__device__t" kindref="compound">xkrt_device_t</ref> *device, xkrt_stream_type_t type, xkrt_stream_instruction_counter_t capacity)</type>
+          <declname>f_stream_create</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="191" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1a6d9a754ec20472cf390cd5bb39f74e0d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_device_t::offloader_launch</definition>
+        <argsstring>(uint8_t device_tid)</argsstring>
+        <name>offloader_launch</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>device_tid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="197" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1aee3b190d91187292fcadcddd9ce41457" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_device_t::offloader_progress</definition>
+        <argsstring>(uint8_t device_tid)</argsstring>
+        <name>offloader_progress</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>device_tid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="200" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1a797a17eaca6acc6ede58bccd06055b17" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_device_t::offloader_wait_random_instruction</definition>
+        <argsstring>(uint8_t device_tid)</argsstring>
+        <name>offloader_wait_random_instruction</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>device_tid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="203" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1ae41cc856ad1b5aba475bc3af7a41ebc9" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::offloader_streams_are_empty</definition>
+        <argsstring>(uint8_t device_id, const xkrt_stream_type_t stype, bool *ready, bool *pending) const</argsstring>
+        <name>offloader_streams_are_empty</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>device_id</declname>
+        </param>
+        <param>
+          <type>const xkrt_stream_type_t</type>
+          <declname>stype</declname>
+        </param>
+        <param>
+          <type>bool *</type>
+          <declname>ready</declname>
+        </param>
+        <param>
+          <type>bool *</type>
+          <declname>pending</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="207" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1af4010166cc9f45c8a514eb91cf4fb252" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::offloader_stream_next</definition>
+        <argsstring>(const xkrt_stream_type_t type, xkrt_thread_t **pthread, xkrt_stream_t **pstream)</argsstring>
+        <name>offloader_stream_next</name>
+        <param>
+          <type>const xkrt_stream_type_t</type>
+          <declname>type</declname>
+        </param>
+        <param>
+          <type><ref refid="structxkrt__thread__t" kindref="compound">xkrt_thread_t</ref> **</type>
+          <declname>pthread</declname>
+        </param>
+        <param>
+          <type><ref refid="classxkrt__stream__t" kindref="compound">xkrt_stream_t</ref> **</type>
+          <declname>pstream</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="210" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1aa3e198d1d113b9d056a8af70693dcd77" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_device_t::offloader_stream_instructions_launch</definition>
+        <argsstring>(uint8_t device_id, const xkrt_stream_type_t stype)</argsstring>
+        <name>offloader_stream_instructions_launch</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>device_id</declname>
+        </param>
+        <param>
+          <type>const xkrt_stream_type_t</type>
+          <declname>stype</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="217" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1a340db9b4a15d0f41fe8b32e5f1716e5f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>blocking</declname>
+            <defname>blocking</defname>
+          </param>
+        </templateparamlist>
+        <type>int</type>
+        <definition>int xkrt_device_t::offloader_stream_instructions_progress</definition>
+        <argsstring>(uint8_t device_tid, const xkrt_stream_type_t stype)</argsstring>
+        <name>offloader_stream_instructions_progress</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>device_tid</declname>
+        </param>
+        <param>
+          <type>const xkrt_stream_type_t</type>
+          <declname>stype</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="223" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="223" bodyend="257"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1af1ef7486ab9dcf34ad03b3668bf247bc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::offloader_stream_instruction_new</definition>
+        <argsstring>(const xkrt_stream_type_t stype, xkrt_thread_t **pthread, xkrt_stream_t **pstream, const xkrt_stream_instruction_type_t itype, xkrt_stream_instruction_t **pinstr, const xkrt_callback_t &amp;callback)</argsstring>
+        <name>offloader_stream_instruction_new</name>
+        <param>
+          <type>const xkrt_stream_type_t</type>
+          <declname>stype</declname>
+        </param>
+        <param>
+          <type><ref refid="structxkrt__thread__t" kindref="compound">xkrt_thread_t</ref> **</type>
+          <declname>pthread</declname>
+        </param>
+        <param>
+          <type><ref refid="classxkrt__stream__t" kindref="compound">xkrt_stream_t</ref> **</type>
+          <declname>pstream</declname>
+        </param>
+        <param>
+          <type>const xkrt_stream_instruction_type_t</type>
+          <declname>itype</declname>
+        </param>
+        <param>
+          <type><ref refid="structxkrt__stream__instruction__t" kindref="compound">xkrt_stream_instruction_t</ref> **</type>
+          <declname>pinstr</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structxkrt__callback__t" kindref="compound">xkrt_callback_t</ref> &amp;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="260" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1afa1b4f20a7dc7934173e65bbbaf7f021" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::offloader_stream_instruction_commit</definition>
+        <argsstring>(xkrt_thread_t *thread, xkrt_stream_t *stream, xkrt_stream_instruction_t *instr)</argsstring>
+        <name>offloader_stream_instruction_commit</name>
+        <param>
+          <type><ref refid="structxkrt__thread__t" kindref="compound">xkrt_thread_t</ref> *</type>
+          <declname>thread</declname>
+        </param>
+        <param>
+          <type><ref refid="classxkrt__stream__t" kindref="compound">xkrt_stream_t</ref> *</type>
+          <declname>stream</declname>
+        </param>
+        <param>
+          <type><ref refid="structxkrt__stream__instruction__t" kindref="compound">xkrt_stream_instruction_t</ref> *</type>
+          <declname>instr</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="271" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1a10ddbb7c6095ab01fedd023457859d79" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>xkrt_stream_instruction_type_t</type>
+            <declname>T</declname>
+            <defname>T</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void xkrt_device_t::offloader_stream_instruction_submit_file</definition>
+        <argsstring>(int fd, void *buffer, size_t n, size_t offset, const xkrt_callback_t &amp;callback)</argsstring>
+        <name>offloader_stream_instruction_submit_file</name>
+        <param>
+          <type>int</type>
+          <declname>fd</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>offset</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structxkrt__callback__t" kindref="compound">xkrt_callback_t</ref> &amp;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="279" column="10" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="279" bodyend="312"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1a7b7046d170d8ab624457f0f3811b20ce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_device_t::offloader_stream_instruction_submit_kernel</definition>
+        <argsstring>(xkrt_kernel_launcher_t launcher, void *vargs, const xkrt_callback_t &amp;callback)</argsstring>
+        <name>offloader_stream_instruction_submit_kernel</name>
+        <param>
+          <type>xkrt_kernel_launcher_t</type>
+          <declname>launcher</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>vargs</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structxkrt__callback__t" kindref="compound">xkrt_callback_t</ref> &amp;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="315" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__device__t_1a9b734cf00459403beab5742cd9efec64" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename HOST_VIEW_T</type>
+          </param>
+          <param>
+            <type>typename DEVICE_VIEW_T</type>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classxkrt__stream__t" kindref="compound">xkrt_stream_t</ref> *</type>
+        <definition>xkrt_stream_t* xkrt_device_t::offloader_stream_instruction_submit_copy</definition>
+        <argsstring>(const HOST_VIEW_T &amp;host_view, const xkrt_device_global_id_t dst_device_global_id, const DEVICE_VIEW_T &amp;dst_device_view, const xkrt_device_global_id_t src_device_global_id, const DEVICE_VIEW_T &amp;src_device_view, const xkrt_callback_t &amp;callback)</argsstring>
+        <name>offloader_stream_instruction_submit_copy</name>
+        <param>
+          <type>const HOST_VIEW_T &amp;</type>
+          <declname>host_view</declname>
+        </param>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>dst_device_global_id</declname>
+        </param>
+        <param>
+          <type>const DEVICE_VIEW_T &amp;</type>
+          <declname>dst_device_view</declname>
+        </param>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>src_device_global_id</declname>
+        </param>
+        <param>
+          <type>const DEVICE_VIEW_T &amp;</type>
+          <declname>src_device_view</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structxkrt__callback__t" kindref="compound">xkrt_callback_t</ref> &amp;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="324" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="324" bodyend="436"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="23">
+        <label>xkrt_stream_instruction_copy_2D_t</label>
+        <link refid="structxkrt__stream__instruction__copy__2D__t"/>
+        <childnode refid="24" relation="usage">
+          <edgelabel>dst_device_view</edgelabel>
+          <edgelabel>src_device_view</edgelabel>
+        </childnode>
+      </node>
+      <node id="16">
+        <label>Lockable</label>
+        <link refid="classLockable"/>
+      </node>
+      <node id="21">
+        <label>xkrt_stream_instruction_copy_1D_t</label>
+        <link refid="structxkrt__stream__instruction__copy__1D__t"/>
+      </node>
+      <node id="19">
+        <label>xkrt_stream_instruction_file_t</label>
+        <link refid="structxkrt__stream__instruction__file__t"/>
+      </node>
+      <node id="12">
+        <label>xkrt_conf_device_t</label>
+        <link refid="structxkrt__conf__device__t"/>
+        <childnode refid="13" relation="usage">
+          <edgelabel>offloader</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>xkrt_thread_t</label>
+        <link refid="structxkrt__thread__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>deque</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>prev</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>current_task</edgelabel>
+          <edgelabel>implicit_task</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>team</edgelabel>
+        </childnode>
+      </node>
+      <node id="17">
+        <label>xkrt_stream_instruction_queue_t</label>
+        <link refid="classxkrt__stream__instruction__queue__t"/>
+        <childnode refid="18" relation="usage">
+          <edgelabel>instr</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>xkrt_mutex_t</label>
+        <link refid="structxkrt__mutex__t"/>
+      </node>
+      <node id="18">
+        <label>xkrt_stream_instruction_t</label>
+        <link refid="structxkrt__stream__instruction__t"/>
+        <childnode refid="19" relation="usage">
+          <edgelabel>file</edgelabel>
+        </childnode>
+        <childnode refid="20" relation="usage">
+          <edgelabel>callback</edgelabel>
+        </childnode>
+        <childnode refid="21" relation="usage">
+          <edgelabel>copy_1D</edgelabel>
+        </childnode>
+        <childnode refid="22" relation="usage">
+          <edgelabel>kern</edgelabel>
+        </childnode>
+        <childnode refid="23" relation="usage">
+          <edgelabel>copy_2D</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>xkrt_area_chunk_t</label>
+        <link refid="structxkrt__area__chunk__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>freelink</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>prev</edgelabel>
+        </childnode>
+      </node>
+      <node id="24">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="22">
+        <label>xkrt_stream_instruction_kernel_t</label>
+        <link refid="structxkrt__stream__instruction__kernel__t"/>
+      </node>
+      <node id="14">
+        <label>xkrt_conf_stream_t</label>
+        <link refid="structxkrt__conf__stream__t"/>
+      </node>
+      <node id="7">
+        <label>xkrt_deque_t&lt; task_t *, 4096 &gt;</label>
+        <link refid="structxkrt__deque__t"/>
+      </node>
+      <node id="3">
+        <label>xkrt_area_t</label>
+        <link refid="structxkrt__area__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>chunk0</edgelabel>
+          <edgelabel>free_chunk_list</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>lock</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>xkrt_device_memory_info_t</label>
+        <link refid="structxkrt__device__memory__info__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>area</edgelabel>
+        </childnode>
+      </node>
+      <node id="13">
+        <label>xkrt_conf_offloader_t</label>
+        <link refid="structxkrt__conf__offloader__t"/>
+        <childnode refid="14" relation="usage">
+          <edgelabel>streams</edgelabel>
+        </childnode>
+      </node>
+      <node id="15">
+        <label>xkrt_stream_t</label>
+        <link refid="classxkrt__stream__t"/>
+        <childnode refid="16" relation="public-inheritance">
+        </childnode>
+        <childnode refid="17" relation="usage">
+          <edgelabel>pending</edgelabel>
+          <edgelabel>ready</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>xkrt_team_t</label>
+        <link refid="structxkrt__team__t"/>
+        <childnode refid="10" relation="usage">
+          <edgelabel>desc</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>threads</edgelabel>
+        </childnode>
+      </node>
+      <node id="20">
+        <label>xkrt_callback_t</label>
+        <link refid="structxkrt__callback__t"/>
+      </node>
+      <node id="8">
+        <label>task_t</label>
+        <link refid="structtask__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>xkrt_team_desc_t</label>
+        <link refid="structxkrt__team__desc__t"/>
+        <childnode refid="11" relation="usage">
+          <edgelabel>binding</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>xkrt_device_t</label>
+        <link refid="structxkrt__device__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>memories</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>threads</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>conf</edgelabel>
+        </childnode>
+        <childnode refid="15" relation="usage">
+          <edgelabel>streams</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>xkrt_team_binding_t</label>
+        <link refid="structxkrt__team__binding__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" line="96" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/device.hpp" bodystart="97" bodyend="451"/>
+    <listofallmembers>
+      <member refid="structxkrt__device__t_1affbef931889c45c02e67a75c8c3ed5bc" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>affinity</name></member>
+      <member refid="structxkrt__device__t_1a3aaf6512a4dbab5ddcc9487b2f2d0da5" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>conf</name></member>
+      <member refid="structxkrt__device__t_1ae38e4da31920cbfd070f051c71046b30" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>count</name></member>
+      <member refid="structxkrt__device__t_1a6f9b188c336c5d9a19e2472b3db56300" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>driver_id</name></member>
+      <member refid="structxkrt__device__t_1a93d8c7e91afebbd6d1855d8a876fc80a" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>driver_type</name></member>
+      <member refid="structxkrt__device__t_1a27fec04e5965aaee8cf9cee6ac5c8658" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>global_id</name></member>
+      <member refid="structxkrt__device__t_1a42dfd1c731ddacee1bff1d58792d715d" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>memories</name></member>
+      <member refid="structxkrt__device__t_1a777a93673cd78d30499dfca79fb45a25" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>memory_allocate</name></member>
+      <member refid="structxkrt__device__t_1ad523c4dbea6efb868e7efa741781aee6" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>memory_allocate_on</name></member>
+      <member refid="structxkrt__device__t_1a95ed702aa9ff147bca7992c473aa3a03" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>memory_deallocate</name></member>
+      <member refid="structxkrt__device__t_1aef2e1ac87cd3328812066ae1a053d5aa" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>memory_deallocate_on</name></member>
+      <member refid="structxkrt__device__t_1ae172238fe0ceedd5ef476d5899552f08" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>memory_reset</name></member>
+      <member refid="structxkrt__device__t_1a64357a68e3f8491a883b4f2cedecd76f" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>memory_reset_on</name></member>
+      <member refid="structxkrt__device__t_1a6c3d128e066e8bbd518564899e27800e" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>memory_set_chunk0</name></member>
+      <member refid="structxkrt__device__t_1a84c77b6cd2090b5d9d86b93f5edbbf4b" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>next_stream</name></member>
+      <member refid="structxkrt__device__t_1ab930ea32a836ff531d9492e2b082b774" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>next_thread</name></member>
+      <member refid="structxkrt__device__t_1afbc8deedee3c3d5160b1d058cae2b91c" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>nmemories</name></member>
+      <member refid="structxkrt__device__t_1acf674da257190027244afb6df7ed0afe" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>nstreams_per_thread</name></member>
+      <member refid="structxkrt__device__t_1afe09c47c9bb0d8f666467bbc153d6e3d" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>nthreads</name></member>
+      <member refid="structxkrt__device__t_1a5b9cf8b6b567b7652ced26094f4b494c" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_init</name></member>
+      <member refid="structxkrt__device__t_1ad5c07b76d7dd734317341d05e323d5a8" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_init_thread</name></member>
+      <member refid="structxkrt__device__t_1a6d9a754ec20472cf390cd5bb39f74e0d" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_launch</name></member>
+      <member refid="structxkrt__device__t_1aee3b190d91187292fcadcddd9ce41457" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_progress</name></member>
+      <member refid="structxkrt__device__t_1afa1b4f20a7dc7934173e65bbbaf7f021" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_stream_instruction_commit</name></member>
+      <member refid="structxkrt__device__t_1af1ef7486ab9dcf34ad03b3668bf247bc" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_stream_instruction_new</name></member>
+      <member refid="structxkrt__device__t_1a9b734cf00459403beab5742cd9efec64" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_stream_instruction_submit_copy</name></member>
+      <member refid="structxkrt__device__t_1a10ddbb7c6095ab01fedd023457859d79" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_stream_instruction_submit_file</name></member>
+      <member refid="structxkrt__device__t_1a7b7046d170d8ab624457f0f3811b20ce" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_stream_instruction_submit_kernel</name></member>
+      <member refid="structxkrt__device__t_1aa3e198d1d113b9d056a8af70693dcd77" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_stream_instructions_launch</name></member>
+      <member refid="structxkrt__device__t_1a340db9b4a15d0f41fe8b32e5f1716e5f" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_stream_instructions_progress</name></member>
+      <member refid="structxkrt__device__t_1af4010166cc9f45c8a514eb91cf4fb252" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_stream_next</name></member>
+      <member refid="structxkrt__device__t_1ae41cc856ad1b5aba475bc3af7a41ebc9" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_streams_are_empty</name></member>
+      <member refid="structxkrt__device__t_1a797a17eaca6acc6ede58bccd06055b17" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>offloader_wait_random_instruction</name></member>
+      <member refid="structxkrt__device__t_1a529821e9eab2af583a8f1ec4e1e6b822" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>state</name></member>
+      <member refid="structxkrt__device__t_1a27016dbed2a635995037dec995e60a56" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>streams</name></member>
+      <member refid="structxkrt__device__t_1acfb66f0f66c069aabdcbac4e2796d3c5" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>thread_next</name></member>
+      <member refid="structxkrt__device__t_1a9985a74c5bd44b22b1f368b6d4931cf7" prot="public" virt="non-virtual"><scope>xkrt_device_t</scope><name>threads</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

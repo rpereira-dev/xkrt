@@ -1,0 +1,175 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classKMemoryReplicateAllocationView" kind="class" language="C++" prot="public">
+    <compoundname>KMemoryReplicateAllocationView</compoundname>
+    <templateparamlist>
+      <param>
+        <type>int</type>
+        <declname>K</declname>
+        <defname>K</defname>
+      </param>
+    </templateparamlist>
+      <sectiondef kind="private-type">
+      <memberdef kind="typedef" id="classKMemoryReplicateAllocationView_1adcf7630b389114a3a62ecd865fffe2f5" prot="private" static="no">
+        <type><ref refid="classKMemoryForward" kindref="compound">KMemoryForward</ref>&lt; K &gt;</type>
+        <definition>using KMemoryReplicateAllocationView&lt; K &gt;::MemoryForward =  KMemoryForward&lt;K&gt;</definition>
+        <argsstring></argsstring>
+        <name>MemoryForward</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="146" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="146" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classKMemoryReplicateAllocationView_1a288e9cccebc8c9371e5b0dbc115685b0" prot="public" static="no" mutable="no">
+        <type><ref refid="structarea__chunk__t" kindref="compound">area_chunk_t</ref> *</type>
+        <definition>area_chunk_t* KMemoryReplicateAllocationView&lt; K &gt;::chunk</definition>
+        <argsstring></argsstring>
+        <name>chunk</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="151" column="23" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="151" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classKMemoryReplicateAllocationView_1af2824177115464efd8e8755fc83f54c5" prot="public" static="no" mutable="no">
+        <type><ref refid="structmemory__replica__view__t" kindref="compound">memory_replica_view_t</ref></type>
+        <definition>memory_replica_view_t KMemoryReplicateAllocationView&lt; K &gt;::view</definition>
+        <argsstring></argsstring>
+        <name>view</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="154" column="31" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="154" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classKMemoryReplicateAllocationView_1abc1e687f32c95adfd7a7e55ef9918639" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classaccess__t" kindref="compound">access_t</ref> * &gt;</type>
+        <definition>std::vector&lt;access_t *&gt; KMemoryReplicateAllocationView&lt; K &gt;::accesses</definition>
+        <argsstring></argsstring>
+        <name>accesses</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="160" column="25" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="160" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classKMemoryReplicateAllocationView_1aeef2152fbfd2070720cd85aff07c4420" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classKMemoryForward" kindref="compound">MemoryForward</ref> &gt;</type>
+        <definition>std::vector&lt;MemoryForward&gt; KMemoryReplicateAllocationView&lt; K &gt;::forwards</definition>
+        <argsstring></argsstring>
+        <name>forwards</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="163" column="25" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="163" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classKMemoryReplicateAllocationView_1ab3f54e4b210c1d832e48a26b8049dcd6" prot="public" static="no" mutable="no">
+        <type>struct KMemoryReplicateAllocationView::@49</type>
+        <definition>struct KMemoryReplicateAllocationView::@49 KMemoryReplicateAllocationView&lt; K &gt;::awaiting</definition>
+        <argsstring></argsstring>
+        <name>awaiting</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="165" column="18"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classKMemoryReplicateAllocationView_1a629a73db67a0bae3625e6284705860fa" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>KMemoryReplicateAllocationView&lt; K &gt;::KMemoryReplicateAllocationView</definition>
+        <argsstring>(area_chunk_t *chunk, const uintptr_t addr, const size_t ld)</argsstring>
+        <name>KMemoryReplicateAllocationView</name>
+        <param>
+          <type><ref refid="structarea__chunk__t" kindref="compound">area_chunk_t</ref> *</type>
+          <declname>chunk</declname>
+        </param>
+        <param>
+          <type>const uintptr_t</type>
+          <declname>addr</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>ld</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="169" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="169" bodyend="179"/>
+      </memberdef>
+      <memberdef kind="function" id="classKMemoryReplicateAllocationView_1ad0619705942dc7053822d0cc34d62af3" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type></type>
+        <definition>virtual KMemoryReplicateAllocationView&lt; K &gt;::~KMemoryReplicateAllocationView</definition>
+        <argsstring>()</argsstring>
+        <name>~KMemoryReplicateAllocationView</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="181" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="181" bodyend="181"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>KMemoryReplicateAllocationView&lt; K &gt;</label>
+        <link refid="classKMemoryReplicateAllocationView"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>chunk</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>view</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="2">
+        <label>area_chunk_t</label>
+        <link refid="structarea__chunk__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>freelink</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>prev</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="144" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="144" bodyend="183"/>
+    <listofallmembers>
+      <member refid="classKMemoryReplicateAllocationView_1abc1e687f32c95adfd7a7e55ef9918639" prot="public" virt="non-virtual"><scope>KMemoryReplicateAllocationView</scope><name>accesses</name></member>
+      <member refid="classKMemoryReplicateAllocationView_1ab3f54e4b210c1d832e48a26b8049dcd6" prot="public" virt="non-virtual"><scope>KMemoryReplicateAllocationView</scope><name>awaiting</name></member>
+      <member refid="classKMemoryReplicateAllocationView_1a288e9cccebc8c9371e5b0dbc115685b0" prot="public" virt="non-virtual"><scope>KMemoryReplicateAllocationView</scope><name>chunk</name></member>
+      <member refid="classKMemoryReplicateAllocationView_1aeef2152fbfd2070720cd85aff07c4420" prot="public" virt="non-virtual"><scope>KMemoryReplicateAllocationView</scope><name>forwards</name></member>
+      <member refid="classKMemoryReplicateAllocationView_1a629a73db67a0bae3625e6284705860fa" prot="public" virt="non-virtual"><scope>KMemoryReplicateAllocationView</scope><name>KMemoryReplicateAllocationView</name></member>
+      <member refid="classKMemoryReplicateAllocationView_1adcf7630b389114a3a62ecd865fffe2f5" prot="private" virt="non-virtual"><scope>KMemoryReplicateAllocationView</scope><name>MemoryForward</name></member>
+      <member refid="classKMemoryReplicateAllocationView_1af2824177115464efd8e8755fc83f54c5" prot="public" virt="non-virtual"><scope>KMemoryReplicateAllocationView</scope><name>view</name></member>
+      <member refid="classKMemoryReplicateAllocationView_1ad0619705942dc7053822d0cc34d62af3" prot="public" virt="virtual"><scope>KMemoryReplicateAllocationView</scope><name>~KMemoryReplicateAllocationView</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

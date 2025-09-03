@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structKHPTree_1_1Node_1_1includes__t_3_01false_00_01false_01_4" kind="struct" language="C++" prot="public">
+    <compoundname>KHPTree::Node::includes_t&lt; false, false &gt;</compoundname>
+    <templateparamlist>
+    </templateparamlist>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structKHPTree_1_1Node_1_1includes__t_3_01false_00_01false_01_4_1a55d45e71d31c3c8102dfc7464f0df938" prot="public" static="no" mutable="no">
+        <type><ref refid="classKHyperrect" kindref="compound">Hyperrect</ref></type>
+        <definition>Hyperrect KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::Node::includes_t&lt; false, false &gt;::hyperrect</definition>
+        <argsstring></argsstring>
+        <name>hyperrect</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="242" column="31" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="242" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" line="241" column="17" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/common/khp-tree.hpp" bodystart="241" bodyend="243"/>
+    <listofallmembers>
+      <member refid="structKHPTree_1_1Node_1_1includes__t_3_01false_00_01false_01_4_1a55d45e71d31c3c8102dfc7464f0df938" prot="public" virt="non-virtual"><scope>KHPTree::Node::includes_t&lt; false, false &gt;</scope><name>hyperrect</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

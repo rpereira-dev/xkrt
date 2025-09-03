@@ -1,0 +1,10 @@
+<map id="xkrt_stream_instruction_queue_t" name="xkrt_stream_instruction_queue_t">
+<area shape="rect" id="node1" title=" " alt="" coords="824,123,983,164"/>
+<area shape="rect" id="node2" href="$structxkrt__stream__instruction__t.html" title=" " alt="" coords="577,130,747,157"/>
+<area shape="rect" id="node3" href="$structxkrt__stream__instruction__file__t.html" title=" " alt="" coords="313,5,472,47"/>
+<area shape="rect" id="node4" href="$structxkrt__callback__t.html" title=" " alt="" coords="337,71,448,98"/>
+<area shape="rect" id="node5" href="$structxkrt__stream__instruction__copy__1D__t.html" title=" " alt="" coords="313,123,472,164"/>
+<area shape="rect" id="node6" href="$structxkrt__stream__instruction__kernel__t.html" title=" " alt="" coords="313,188,472,229"/>
+<area shape="rect" id="node7" href="$structxkrt__stream__instruction__copy__2D__t.html" title=" " alt="" coords="313,253,472,295"/>
+<area shape="rect" id="node8" href="$structmemory__replica__view__t.html" title=" " alt="" coords="5,261,164,287"/>
+</map>

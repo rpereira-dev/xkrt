@@ -1,0 +1,64 @@
+\hypertarget{classKBLASMemoryTreeNode}{}\doxysection{KBLASMemory\+Tree\+Node$<$ K $>$ Class Template Reference}
+\label{classKBLASMemoryTreeNode}\index{KBLASMemoryTreeNode$<$ K $>$@{KBLASMemoryTreeNode$<$ K $>$}}
+
+
+Inheritance diagram for KBLASMemory\+Tree\+Node$<$ K $>$\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=246pt]{classKBLASMemoryTreeNode__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for KBLASMemory\+Tree\+Node$<$ K $>$\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=246pt]{classKBLASMemoryTreeNode__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNode_a8c72bb0566e42cc141fb3cec082cd5db}\label{classKBLASMemoryTreeNode_a8c72bb0566e42cc141fb3cec082cd5db}} 
+{\bfseries KBLASMemory\+Tree\+Node} (const \mbox{\hyperlink{classaccess__t}{access\+\_\+t}} $\ast$access, const \mbox{\hyperlink{classKHyperrect}{Hyperrect}} \&r, const int k, const Color color)
+\item 
+\mbox{\hyperlink{classKBLASMemoryTreeNode_a3261e3cb0619498d1af56f66560c992c}{KBLASMemory\+Tree\+Node}} (const \mbox{\hyperlink{classKHyperrect}{Hyperrect}} \&r, const int k, const Color color, const \mbox{\hyperlink{classKBLASMemoryTreeNode}{Node}} $\ast$src, const size\+\_\+t sizeof\+\_\+type)
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNode_a0cdb8a47c4831e7a85bc125a2ba46d9d}\label{classKBLASMemoryTreeNode_a0cdb8a47c4831e7a85bc125a2ba46d9d}} 
+void {\bfseries dump\+\_\+str} (FILE $\ast$f) const
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNode_a9e0f5e101d8a3843edfde4ed6f3135ee}\label{classKBLASMemoryTreeNode_a9e0f5e101d8a3843edfde4ed6f3135ee}} 
+void {\bfseries dump\+\_\+hyperrect\+\_\+str} (FILE $\ast$f) const
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classKBLASMemoryTreeNode_a391049fea7069522e020a2d938b81fd3}\label{classKBLASMemoryTreeNode_a391049fea7069522e020a2d938b81fd3}} 
+\mbox{\hyperlink{classKMemoryBlock}{Memory\+Block}} {\bfseries block}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classKBLASMemoryTreeNode_a3261e3cb0619498d1af56f66560c992c}\label{classKBLASMemoryTreeNode_a3261e3cb0619498d1af56f66560c992c}} 
+\index{KBLASMemoryTreeNode$<$ K $>$@{KBLASMemoryTreeNode$<$ K $>$}!KBLASMemoryTreeNode@{KBLASMemoryTreeNode}}
+\index{KBLASMemoryTreeNode@{KBLASMemoryTreeNode}!KBLASMemoryTreeNode$<$ K $>$@{KBLASMemoryTreeNode$<$ K $>$}}
+\doxysubsubsection{\texorpdfstring{KBLASMemoryTreeNode()}{KBLASMemoryTreeNode()}}
+{\footnotesize\ttfamily template$<$int K$>$ \\
+\mbox{\hyperlink{classKBLASMemoryTreeNode}{KBLASMemory\+Tree\+Node}}$<$ K $>$\+::\mbox{\hyperlink{classKBLASMemoryTreeNode}{KBLASMemory\+Tree\+Node}} (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classKHyperrect}{Hyperrect}} \&}]{r,  }\item[{const int}]{k,  }\item[{const Color}]{color,  }\item[{const \mbox{\hyperlink{classKBLASMemoryTreeNode}{Node}} $\ast$}]{src,  }\item[{const size\+\_\+t}]{sizeof\+\_\+type }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+A new node is being created from a split, make it inherit its original node \textquotesingle{}src\textquotesingle{}
+\begin{DoxyItemize}
+\item access -\/ the access
+\item r -\/ the shrinked rect that this is inheriting from
+\item k -\/ the dimension that got splitted
+\item color -\/ the node color
+\item src -\/ the node that got split
+\end{DoxyItemize}
+
+We have\+: U (src-\/$>$hyperrect, r) == the node rect before being shrinked n (src-\/$>$hyperrect, r) = \{\} -\/ empty intersection 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-\/tree.\+hpp\end{DoxyCompactItemize}

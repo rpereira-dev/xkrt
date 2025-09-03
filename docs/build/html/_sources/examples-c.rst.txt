@@ -1,0 +1,4 @@
+Examples - C
+==============
+
+Please refer to **api/c/include/xkrt.h** for more details.

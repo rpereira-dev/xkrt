@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__area__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_area_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__area__t_1ab4629a495994ddd67e0f7bee5f21c4fd" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__mutex__t" kindref="compound">xkrt_mutex_t</ref></type>
+        <definition>xkrt_mutex_t xkrt_area_t::lock</definition>
+        <argsstring></argsstring>
+        <name>lock</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/memory/area.h" line="75" column="18" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/memory/area.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__area__t_1a68c4196d1962dee0cf12f2393b519e51" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__area__chunk__t" kindref="compound">xkrt_area_chunk_t</ref></type>
+        <definition>xkrt_area_chunk_t xkrt_area_t::chunk0</definition>
+        <argsstring></argsstring>
+        <name>chunk0</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/memory/area.h" line="76" column="23" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/memory/area.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__area__t_1a4564da6c1580f9d58cdb9469209c9c24" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__area__chunk__t" kindref="compound">xkrt_area_chunk_t</ref> *</type>
+        <definition>xkrt_area_chunk_t* xkrt_area_t::free_chunk_list</definition>
+        <argsstring></argsstring>
+        <name>free_chunk_list</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/memory/area.h" line="77" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/memory/area.h" bodystart="77" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="3">
+        <label>xkrt_mutex_t</label>
+        <link refid="structxkrt__mutex__t"/>
+      </node>
+      <node id="2">
+        <label>xkrt_area_chunk_t</label>
+        <link refid="structxkrt__area__chunk__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>freelink</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>prev</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>xkrt_area_t</label>
+        <link refid="structxkrt__area__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>chunk0</edgelabel>
+          <edgelabel>free_chunk_list</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>lock</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/memory/area.h" line="73" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/memory/area.h" bodystart="74" bodyend="79"/>
+    <listofallmembers>
+      <member refid="structxkrt__area__t_1a68c4196d1962dee0cf12f2393b519e51" prot="public" virt="non-virtual"><scope>xkrt_area_t</scope><name>chunk0</name></member>
+      <member refid="structxkrt__area__t_1a4564da6c1580f9d58cdb9469209c9c24" prot="public" virt="non-virtual"><scope>xkrt_area_t</scope><name>free_chunk_list</name></member>
+      <member refid="structxkrt__area__t_1ab4629a495994ddd67e0f7bee5f21c4fd" prot="public" virt="non-virtual"><scope>xkrt_area_t</scope><name>lock</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

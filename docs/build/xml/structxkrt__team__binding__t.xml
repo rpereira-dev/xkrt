@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__team__binding__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_team_binding_t</compoundname>
+    <includes refid="thread_8h" local="no">thread.h</includes>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__team__binding__t_1ac1fe5fe6b7f63a9790977f4927f998c4" prot="public" static="no" mutable="no">
+        <type>xkrt_team_binding_mode_t</type>
+        <definition>xkrt_team_binding_mode_t xkrt_team_binding_t::mode</definition>
+        <argsstring></argsstring>
+        <name>mode</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="417" column="30" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="417" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__team__binding__t_1a21bc3d5f3e683b1356b3f7857df2ed33" prot="public" static="no" mutable="no">
+        <type>xkrt_team_binding_places_t</type>
+        <definition>xkrt_team_binding_places_t xkrt_team_binding_t::places</definition>
+        <argsstring></argsstring>
+        <name>places</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="420" column="32" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="420" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__team__binding__t_1adb8fea70a329da8fa71698cc0b4986ac" prot="public" static="no" mutable="no">
+        <type>xkrt_thread_place_t *</type>
+        <definition>xkrt_thread_place_t* xkrt_team_binding_t::places_list</definition>
+        <argsstring></argsstring>
+        <name>places_list</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="421" column="26" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="421" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__team__binding__t_1ac9415a499c887d34ad6fe160d4a139ac" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int xkrt_team_binding_t::nplaces</definition>
+        <argsstring></argsstring>
+        <name>nplaces</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="422" column="9" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="422" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__team__binding__t_1a42ea190202ea9fbe13d92a43d26d87c6" prot="public" static="no" mutable="no">
+        <type>xkrt_team_binding_flag_t</type>
+        <definition>xkrt_team_binding_flag_t xkrt_team_binding_t::flags</definition>
+        <argsstring></argsstring>
+        <name>flags</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="425" column="30" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="425" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>The supported combinations are: (mode = COMPACT, places = DEVICE) -&gt; that will compactly bind 1 thread per device</para>
+<para>(mode = SPREAD, places = MACHINE) with any nthreads -&gt; that will spread threads across all cores of the machine </para>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" line="414" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/thread/thread.h" bodystart="415" bodyend="427"/>
+    <listofallmembers>
+      <member refid="structxkrt__team__binding__t_1a42ea190202ea9fbe13d92a43d26d87c6" prot="public" virt="non-virtual"><scope>xkrt_team_binding_t</scope><name>flags</name></member>
+      <member refid="structxkrt__team__binding__t_1ac1fe5fe6b7f63a9790977f4927f998c4" prot="public" virt="non-virtual"><scope>xkrt_team_binding_t</scope><name>mode</name></member>
+      <member refid="structxkrt__team__binding__t_1ac9415a499c887d34ad6fe160d4a139ac" prot="public" virt="non-virtual"><scope>xkrt_team_binding_t</scope><name>nplaces</name></member>
+      <member refid="structxkrt__team__binding__t_1a21bc3d5f3e683b1356b3f7857df2ed33" prot="public" virt="non-virtual"><scope>xkrt_team_binding_t</scope><name>places</name></member>
+      <member refid="structxkrt__team__binding__t_1adb8fea70a329da8fa71698cc0b4986ac" prot="public" virt="non-virtual"><scope>xkrt_team_binding_t</scope><name>places_list</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

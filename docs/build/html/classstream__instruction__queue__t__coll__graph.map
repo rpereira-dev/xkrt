@@ -1,0 +1,10 @@
+<map id="stream_instruction_queue_t" name="stream_instruction_queue_t">
+<area shape="rect" id="node1" title=" " alt="" coords="765,129,895,171"/>
+<area shape="rect" id="node2" href="$structstream__instruction__t.html" title=" " alt="" coords="548,137,688,163"/>
+<area shape="rect" id="node3" href="$structstream__instruction__file__t.html" title=" " alt="" coords="313,5,443,47"/>
+<area shape="rect" id="node4" href="$structstream__instruction__copy__2D__t.html" title=" " alt="" coords="313,71,443,112"/>
+<area shape="rect" id="node5" href="$structmemory__replica__view__t.html" title=" " alt="" coords="5,78,164,105"/>
+<area shape="rect" id="node6" href="$structcallback__t.html" title=" " alt="" coords="337,137,419,163"/>
+<area shape="rect" id="node7" href="$structstream__instruction__copy__1D__t.html" title=" " alt="" coords="313,188,443,229"/>
+<area shape="rect" id="node8" href="$structstream__instruction__kernel__t.html" title=" " alt="" coords="313,253,443,295"/>
+</map>

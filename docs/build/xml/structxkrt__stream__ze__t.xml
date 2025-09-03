@@ -1,0 +1,328 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__stream__ze__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_stream_ze_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__stream__ze__t_1ae73a4d710e3697eb9af83e386ba8cd4a" prot="public" static="no" mutable="no">
+        <type><ref refid="classxkrt__stream__t" kindref="compound">xkrt_stream_t</ref></type>
+        <definition>xkrt_stream_t xkrt_stream_ze_t::super</definition>
+        <argsstring></argsstring>
+        <name>super</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" line="130" column="19" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" bodystart="130" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__ze__t_1a624510c43b7d1a4a8df061ff67371448" prot="public" static="no" mutable="no">
+        <type>ze_command_list_handle_t</type>
+        <definition>ze_command_list_handle_t xkrt_stream_ze_t::list</definition>
+        <argsstring></argsstring>
+        <name>list</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" line="134" column="38" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" bodystart="134" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__ze__t_1a135eb94fe280852ae0da4f597be5558c" prot="public" static="no" mutable="no">
+        <type>struct xkrt_stream_ze_t::@33::@34</type>
+        <definition>struct xkrt_stream_ze_t::@33::@34 xkrt_stream_ze_t::command</definition>
+        <argsstring></argsstring>
+        <name>command</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" line="135" column="17"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__ze__t_1ad9fe982bae5accad765be75abf1b5d5b" prot="public" static="no" mutable="no">
+        <type>ze_event_pool_handle_t</type>
+        <definition>ze_event_pool_handle_t xkrt_stream_ze_t::pool</definition>
+        <argsstring></argsstring>
+        <name>pool</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" line="137" column="37" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" bodystart="137" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__ze__t_1ab144024c0289b3d80a249d600dac64ae" prot="public" static="no" mutable="no">
+        <type>ze_event_handle_t *</type>
+        <definition>ze_event_handle_t* xkrt_stream_ze_t::list</definition>
+        <argsstring></argsstring>
+        <name>list</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" line="138" column="36" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" bodystart="138" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__ze__t_1aba6f1548dd789004283854f74de06363" prot="public" static="no" mutable="no">
+        <type>struct xkrt_stream_ze_t::@33::@35</type>
+        <definition>struct xkrt_stream_ze_t::@33::@35 xkrt_stream_ze_t::events</definition>
+        <argsstring></argsstring>
+        <name>events</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" line="139" column="16"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__ze__t_1aecf5881f1a7b765a8cf0e970e47ed8f2" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__device__ze__t" kindref="compound">xkrt_device_ze_t</ref> *</type>
+        <definition>xkrt_device_ze_t* xkrt_stream_ze_t::device</definition>
+        <argsstring></argsstring>
+        <name>device</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" line="142" column="27" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" bodystart="142" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__ze__t_1ac9127156d672a27b25fa6185691cdd3b" prot="public" static="no" mutable="no">
+        <type>struct xkrt_stream_ze_t::@33</type>
+        <definition>struct xkrt_stream_ze_t::@33 xkrt_stream_ze_t::ze</definition>
+        <argsstring></argsstring>
+        <name>ze</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" line="144" column="8"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="25">
+        <label>xkrt_stream_instruction_copy_2D_t</label>
+        <link refid="structxkrt__stream__instruction__copy__2D__t"/>
+        <childnode refid="26" relation="usage">
+          <edgelabel>dst_device_view</edgelabel>
+          <edgelabel>src_device_view</edgelabel>
+        </childnode>
+      </node>
+      <node id="18">
+        <label>Lockable</label>
+        <link refid="classLockable"/>
+      </node>
+      <node id="1">
+        <label>xkrt_stream_ze_t</label>
+        <link refid="structxkrt__stream__ze__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>device</edgelabel>
+        </childnode>
+        <childnode refid="17" relation="usage">
+          <edgelabel>super</edgelabel>
+        </childnode>
+      </node>
+      <node id="23">
+        <label>xkrt_stream_instruction_copy_1D_t</label>
+        <link refid="structxkrt__stream__instruction__copy__1D__t"/>
+      </node>
+      <node id="21">
+        <label>xkrt_stream_instruction_file_t</label>
+        <link refid="structxkrt__stream__instruction__file__t"/>
+      </node>
+      <node id="14">
+        <label>xkrt_conf_device_t</label>
+        <link refid="structxkrt__conf__device__t"/>
+        <childnode refid="15" relation="usage">
+          <edgelabel>offloader</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>xkrt_device_ze_t</label>
+        <link refid="structxkrt__device__ze__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>inherited</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>xkrt_thread_t</label>
+        <link refid="structxkrt__thread__t"/>
+        <childnode refid="9" relation="usage">
+          <edgelabel>deque</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>prev</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>current_task</edgelabel>
+          <edgelabel>implicit_task</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>team</edgelabel>
+        </childnode>
+      </node>
+      <node id="19">
+        <label>xkrt_stream_instruction_queue_t</label>
+        <link refid="classxkrt__stream__instruction__queue__t"/>
+        <childnode refid="20" relation="usage">
+          <edgelabel>instr</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>xkrt_mutex_t</label>
+        <link refid="structxkrt__mutex__t"/>
+      </node>
+      <node id="20">
+        <label>xkrt_stream_instruction_t</label>
+        <link refid="structxkrt__stream__instruction__t"/>
+        <childnode refid="21" relation="usage">
+          <edgelabel>file</edgelabel>
+        </childnode>
+        <childnode refid="22" relation="usage">
+          <edgelabel>callback</edgelabel>
+        </childnode>
+        <childnode refid="23" relation="usage">
+          <edgelabel>copy_1D</edgelabel>
+        </childnode>
+        <childnode refid="24" relation="usage">
+          <edgelabel>kern</edgelabel>
+        </childnode>
+        <childnode refid="25" relation="usage">
+          <edgelabel>copy_2D</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>xkrt_area_chunk_t</label>
+        <link refid="structxkrt__area__chunk__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>freelink</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>prev</edgelabel>
+        </childnode>
+      </node>
+      <node id="26">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="24">
+        <label>xkrt_stream_instruction_kernel_t</label>
+        <link refid="structxkrt__stream__instruction__kernel__t"/>
+      </node>
+      <node id="16">
+        <label>xkrt_conf_stream_t</label>
+        <link refid="structxkrt__conf__stream__t"/>
+      </node>
+      <node id="9">
+        <label>xkrt_deque_t&lt; task_t *, 4096 &gt;</label>
+        <link refid="structxkrt__deque__t"/>
+      </node>
+      <node id="5">
+        <label>xkrt_area_t</label>
+        <link refid="structxkrt__area__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>chunk0</edgelabel>
+          <edgelabel>free_chunk_list</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>lock</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>xkrt_device_memory_info_t</label>
+        <link refid="structxkrt__device__memory__info__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>area</edgelabel>
+        </childnode>
+      </node>
+      <node id="15">
+        <label>xkrt_conf_offloader_t</label>
+        <link refid="structxkrt__conf__offloader__t"/>
+        <childnode refid="16" relation="usage">
+          <edgelabel>streams</edgelabel>
+        </childnode>
+      </node>
+      <node id="17">
+        <label>xkrt_stream_t</label>
+        <link refid="classxkrt__stream__t"/>
+        <childnode refid="18" relation="public-inheritance">
+        </childnode>
+        <childnode refid="19" relation="usage">
+          <edgelabel>pending</edgelabel>
+          <edgelabel>ready</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>xkrt_team_t</label>
+        <link refid="structxkrt__team__t"/>
+        <childnode refid="12" relation="usage">
+          <edgelabel>desc</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>threads</edgelabel>
+        </childnode>
+      </node>
+      <node id="22">
+        <label>xkrt_callback_t</label>
+        <link refid="structxkrt__callback__t"/>
+      </node>
+      <node id="10">
+        <label>task_t</label>
+        <link refid="structtask__t"/>
+        <childnode refid="10" relation="usage">
+          <edgelabel>parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="12">
+        <label>xkrt_team_desc_t</label>
+        <link refid="structxkrt__team__desc__t"/>
+        <childnode refid="13" relation="usage">
+          <edgelabel>binding</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>xkrt_device_t</label>
+        <link refid="structxkrt__device__t"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>memories</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>threads</edgelabel>
+        </childnode>
+        <childnode refid="14" relation="usage">
+          <edgelabel>conf</edgelabel>
+        </childnode>
+        <childnode refid="17" relation="usage">
+          <edgelabel>streams</edgelabel>
+        </childnode>
+      </node>
+      <node id="13">
+        <label>xkrt_team_binding_t</label>
+        <link refid="structxkrt__team__binding__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" line="128" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-ze.h" bodystart="129" bodyend="152"/>
+    <listofallmembers>
+      <member refid="structxkrt__stream__ze__t_1a135eb94fe280852ae0da4f597be5558c" prot="public" virt="non-virtual"><scope>xkrt_stream_ze_t</scope><name>command</name></member>
+      <member refid="structxkrt__stream__ze__t_1aecf5881f1a7b765a8cf0e970e47ed8f2" prot="public" virt="non-virtual"><scope>xkrt_stream_ze_t</scope><name>device</name></member>
+      <member refid="structxkrt__stream__ze__t_1aba6f1548dd789004283854f74de06363" prot="public" virt="non-virtual"><scope>xkrt_stream_ze_t</scope><name>events</name></member>
+      <member refid="structxkrt__stream__ze__t_1a624510c43b7d1a4a8df061ff67371448" prot="public" virt="non-virtual"><scope>xkrt_stream_ze_t</scope><name>list</name></member>
+      <member refid="structxkrt__stream__ze__t_1ab144024c0289b3d80a249d600dac64ae" prot="public" virt="non-virtual"><scope>xkrt_stream_ze_t</scope><name>list</name></member>
+      <member refid="structxkrt__stream__ze__t_1ad9fe982bae5accad765be75abf1b5d5b" prot="public" virt="non-virtual"><scope>xkrt_stream_ze_t</scope><name>pool</name></member>
+      <member refid="structxkrt__stream__ze__t_1ae73a4d710e3697eb9af83e386ba8cd4a" prot="public" virt="non-virtual"><scope>xkrt_stream_ze_t</scope><name>super</name></member>
+      <member refid="structxkrt__stream__ze__t_1ac9127156d672a27b25fa6185691cdd3b" prot="public" virt="non-virtual"><scope>xkrt_stream_ze_t</scope><name>ze</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

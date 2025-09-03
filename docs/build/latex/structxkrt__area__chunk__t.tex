@@ -1,0 +1,54 @@
+\hypertarget{structxkrt__area__chunk__t}{}\doxysection{xkrt\+\_\+area\+\_\+chunk\+\_\+t Struct Reference}
+\label{structxkrt__area__chunk__t}\index{xkrt\_area\_chunk\_t@{xkrt\_area\_chunk\_t}}
+
+
+{\ttfamily \#include $<$area.\+h$>$}
+
+
+
+Collaboration diagram for xkrt\+\_\+area\+\_\+chunk\+\_\+t\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=230pt]{structxkrt__area__chunk__t__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structxkrt__area__chunk__t_a7b513a1e003229028385d67fa093d049}\label{structxkrt__area__chunk__t_a7b513a1e003229028385d67fa093d049}} 
+uintptr\+\_\+t {\bfseries ptr}
+\item 
+\mbox{\Hypertarget{structxkrt__area__chunk__t_a3c86bef8bbc2443546a7342dc64c1a2e}\label{structxkrt__area__chunk__t_a3c86bef8bbc2443546a7342dc64c1a2e}} 
+size\+\_\+t {\bfseries size}
+\item 
+\mbox{\Hypertarget{structxkrt__area__chunk__t_affe3109a904ba4785eb35cec65c6387d}\label{structxkrt__area__chunk__t_affe3109a904ba4785eb35cec65c6387d}} 
+int {\bfseries state}
+\item 
+\mbox{\Hypertarget{structxkrt__area__chunk__t_af6b40ff9f26c6912f8ecf74af3153bad}\label{structxkrt__area__chunk__t_af6b40ff9f26c6912f8ecf74af3153bad}} 
+struct \mbox{\hyperlink{structxkrt__area__chunk__t}{xkrt\+\_\+area\+\_\+chunk\+\_\+t}} $\ast$ {\bfseries prev}
+\item 
+\mbox{\Hypertarget{structxkrt__area__chunk__t_a92fbcc0055bc5d4f2bf869dc304da885}\label{structxkrt__area__chunk__t_a92fbcc0055bc5d4f2bf869dc304da885}} 
+struct \mbox{\hyperlink{structxkrt__area__chunk__t}{xkrt\+\_\+area\+\_\+chunk\+\_\+t}} $\ast$ {\bfseries next}
+\item 
+\mbox{\Hypertarget{structxkrt__area__chunk__t_a39a99a4e6ff7fc346fb91d96dd16f8ef}\label{structxkrt__area__chunk__t_a39a99a4e6ff7fc346fb91d96dd16f8ef}} 
+struct \mbox{\hyperlink{structxkrt__area__chunk__t}{xkrt\+\_\+area\+\_\+chunk\+\_\+t}} $\ast$ {\bfseries freelink}
+\item 
+\mbox{\Hypertarget{structxkrt__area__chunk__t_a791a818430824f1b4ba5a1d3cadab5a3}\label{structxkrt__area__chunk__t_a791a818430824f1b4ba5a1d3cadab5a3}} 
+int {\bfseries use\+\_\+counter}
+\item 
+\mbox{\Hypertarget{structxkrt__area__chunk__t_a09743afc0ba7b539ff18f811ecfd5a09}\label{structxkrt__area__chunk__t_a09743afc0ba7b539ff18f811ecfd5a09}} 
+int {\bfseries area\+\_\+idx}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Represent a segment of memory in device memory (used by custom allocator) It is placed in two chained list\+:
+\begin{DoxyItemize}
+\item the list of all chunk in device memory
+\item the list of free chunk in device memory 
+\end{DoxyItemize}
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/rpereira/repo/xktrucs-\/new/xkaapi/include/xkrt/memory/area.\+h\end{DoxyCompactItemize}

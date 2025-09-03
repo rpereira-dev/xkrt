@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="dir_55420f6b91308286dd59545c3a495261" kind="dir">
+    <compoundname>/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory</compoundname>
+    <innerdir refid="dir_a29d4adc95250c001219cb350a3bf123">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access</innerdir>
+    <innerdir refid="dir_1d7bdf53b97147d0e4d1421922f2c4f2">/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing</innerdir>
+    <innerfile refid="alignas_8h">alignas.h</innerfile>
+    <innerfile refid="alignedas_8h">alignedas.h</innerfile>
+    <innerfile refid="area_8h">area.h</innerfile>
+    <innerfile refid="cache-line-size_8hpp">cache-line-size.hpp</innerfile>
+    <innerfile refid="pageas_8h">pageas.h</innerfile>
+    <innerfile refid="register_8h">register.h</innerfile>
+    <innerfile refid="view_8hpp">view.hpp</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/"/>
+  </compounddef>
+</doxygen>

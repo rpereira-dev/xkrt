@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structKBLASMemoryTree_1_1fetch__t" kind="struct" language="C++" prot="public">
+    <compoundname>KBLASMemoryTree::fetch_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structKBLASMemoryTree_1_1fetch__t_1a7c9ec11efcc4025c265cfdf79348d5d6" prot="public" static="no" mutable="no">
+        <type><ref refid="classKHyperrect" kindref="compound">Hyperrect</ref></type>
+        <definition>Hyperrect KBLASMemoryTree&lt; K &gt;::fetch_t::rects[2]</definition>
+        <argsstring>[2]</argsstring>
+        <name>rects</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="724" column="23" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="724" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structKBLASMemoryTree_1_1fetch__t_1aa73f36c4c18542ac311c9ab76c928b5b" prot="public" static="no" mutable="no">
+        <type><ref refid="structmatrix__tile__t" kindref="compound">memory_view_t</ref></type>
+        <definition>memory_view_t KBLASMemoryTree&lt; K &gt;::fetch_t::host_view</definition>
+        <argsstring></argsstring>
+        <name>host_view</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="727" column="27" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="727" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structKBLASMemoryTree_1_1fetch__t_1a8b6e83a55b7d25bcb6070164b1975403" prot="public" static="no" mutable="no">
+        <type>device_global_id_t</type>
+        <definition>device_global_id_t KBLASMemoryTree&lt; K &gt;::fetch_t::src_device_global_id</definition>
+        <argsstring></argsstring>
+        <name>src_device_global_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="730" column="32" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="730" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structKBLASMemoryTree_1_1fetch__t_1afcaf1ef2fc418b5e10463bd1f16d3e4b" prot="public" static="no" mutable="no">
+        <type><ref refid="structmemory__replica__view__t" kindref="compound">memory_replica_view_t</ref></type>
+        <definition>memory_replica_view_t KBLASMemoryTree&lt; K &gt;::fetch_t::src_view</definition>
+        <argsstring></argsstring>
+        <name>src_view</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="733" column="35" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="733" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structKBLASMemoryTree_1_1fetch__t_1a238c39871712dff70b04d3b4f4281409" prot="public" static="no" mutable="no">
+        <type><ref refid="structarea__chunk__t" kindref="compound">area_chunk_t</ref> *</type>
+        <definition>area_chunk_t* KBLASMemoryTree&lt; K &gt;::fetch_t::dst_chunk</definition>
+        <argsstring></argsstring>
+        <name>dst_chunk</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="736" column="27" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="736" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structKBLASMemoryTree_1_1fetch__t_1a3d50f3ef6f23a2a35ca75e5f2d592dc0" prot="public" static="no" mutable="no">
+        <type>device_global_id_t</type>
+        <definition>device_global_id_t KBLASMemoryTree&lt; K &gt;::fetch_t::dst_device_global_id</definition>
+        <argsstring></argsstring>
+        <name>dst_device_global_id</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="739" column="32" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="739" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structKBLASMemoryTree_1_1fetch__t_1a4efcffffafbfd8de93ea3861d05210c8" prot="public" static="no" mutable="no">
+        <type><ref refid="structmemory__replica__view__t" kindref="compound">memory_replica_view_t</ref></type>
+        <definition>memory_replica_view_t KBLASMemoryTree&lt; K &gt;::fetch_t::dst_view</definition>
+        <argsstring></argsstring>
+        <name>dst_view</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="742" column="35" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="742" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structKBLASMemoryTree_1_1fetch__t_1a7e8b81e56fa6778d24163d6344b77355" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool KBLASMemoryTree&lt; K &gt;::fetch_t::merged</definition>
+        <argsstring></argsstring>
+        <name>merged</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="745" column="18" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="745" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="3">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="1">
+        <label>KBLASMemoryTree&lt; K &gt;::fetch_t</label>
+        <link refid="structKBLASMemoryTree_1_1fetch__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>dst_chunk</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>dst_view</edgelabel>
+          <edgelabel>src_view</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>host_view</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>matrix_tile_t</label>
+        <link refid="structmatrix__tile__t"/>
+      </node>
+      <node id="2">
+        <label>area_chunk_t</label>
+        <link refid="structarea__chunk__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>freelink</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>prev</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" line="721" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/blas/memory-tree.hpp" bodystart="722" bodyend="747"/>
+    <listofallmembers>
+      <member refid="structKBLASMemoryTree_1_1fetch__t_1a238c39871712dff70b04d3b4f4281409" prot="public" virt="non-virtual"><scope>KBLASMemoryTree::fetch_t</scope><name>dst_chunk</name></member>
+      <member refid="structKBLASMemoryTree_1_1fetch__t_1a3d50f3ef6f23a2a35ca75e5f2d592dc0" prot="public" virt="non-virtual"><scope>KBLASMemoryTree::fetch_t</scope><name>dst_device_global_id</name></member>
+      <member refid="structKBLASMemoryTree_1_1fetch__t_1a4efcffffafbfd8de93ea3861d05210c8" prot="public" virt="non-virtual"><scope>KBLASMemoryTree::fetch_t</scope><name>dst_view</name></member>
+      <member refid="structKBLASMemoryTree_1_1fetch__t_1aa73f36c4c18542ac311c9ab76c928b5b" prot="public" virt="non-virtual"><scope>KBLASMemoryTree::fetch_t</scope><name>host_view</name></member>
+      <member refid="structKBLASMemoryTree_1_1fetch__t_1a7e8b81e56fa6778d24163d6344b77355" prot="public" virt="non-virtual"><scope>KBLASMemoryTree::fetch_t</scope><name>merged</name></member>
+      <member refid="structKBLASMemoryTree_1_1fetch__t_1a7c9ec11efcc4025c265cfdf79348d5d6" prot="public" virt="non-virtual"><scope>KBLASMemoryTree::fetch_t</scope><name>rects</name></member>
+      <member refid="structKBLASMemoryTree_1_1fetch__t_1a8b6e83a55b7d25bcb6070164b1975403" prot="public" virt="non-virtual"><scope>KBLASMemoryTree::fetch_t</scope><name>src_device_global_id</name></member>
+      <member refid="structKBLASMemoryTree_1_1fetch__t_1afcaf1ef2fc418b5e10463bd1f16d3e4b" prot="public" virt="non-virtual"><scope>KBLASMemoryTree::fetch_t</scope><name>src_view</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

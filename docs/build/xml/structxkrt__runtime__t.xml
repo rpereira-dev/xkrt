@@ -1,0 +1,2150 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__runtime__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_runtime_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__runtime__t_1a59f0ada5f2a7f3016357b8cd7579c453" prot="public" static="no" mutable="no">
+        <type>std::atomic&lt; xkrt_runtime_state_t &gt;</type>
+        <definition>std::atomic&lt;xkrt_runtime_state_t&gt; xkrt_runtime_t::state</definition>
+        <argsstring></argsstring>
+        <name>state</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="65" column="17" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1a1f23e5f7106337ba758d78a22cffb054" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__drivers__t" kindref="compound">xkrt_drivers_t</ref></type>
+        <definition>xkrt_drivers_t xkrt_runtime_t::drivers</definition>
+        <argsstring></argsstring>
+        <name>drivers</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="68" column="20" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="68" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1a1e04eaac6a3ee13580f9c06e74b22144" prot="public" static="no" mutable="no">
+        <type><ref refid="structtask__formats__t" kindref="compound">task_formats_t</ref></type>
+        <definition>task_formats_t xkrt_runtime_t::list</definition>
+        <argsstring></argsstring>
+        <name>list</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="72" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1a3e10d8e0e7972da4d79a93a1b201fc5a" prot="public" static="no" mutable="no">
+        <type>task_format_id_t</type>
+        <definition>task_format_id_t xkrt_runtime_t::copy_async</definition>
+        <argsstring></argsstring>
+        <name>copy_async</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="73" column="26" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1a2caeed1bf65d6169dd817bd98ec898fa" prot="public" static="no" mutable="no">
+        <type>task_format_id_t</type>
+        <definition>task_format_id_t xkrt_runtime_t::host_capture</definition>
+        <argsstring></argsstring>
+        <name>host_capture</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="74" column="26" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1ab9c9432359448184488e11b9b17203b4" prot="public" static="no" mutable="no">
+        <type>task_format_id_t</type>
+        <definition>task_format_id_t xkrt_runtime_t::memory_touch_async</definition>
+        <argsstring></argsstring>
+        <name>memory_touch_async</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="75" column="26" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1a51266e9a8ae9599eb1ce5f04fa86cc90" prot="public" static="no" mutable="no">
+        <type>task_format_id_t</type>
+        <definition>task_format_id_t xkrt_runtime_t::memory_register_async</definition>
+        <argsstring></argsstring>
+        <name>memory_register_async</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="76" column="26" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1ad928d7657abf9c091b7ed7a6bd0db054" prot="public" static="no" mutable="no">
+        <type>task_format_id_t</type>
+        <definition>task_format_id_t xkrt_runtime_t::memory_unregister_async</definition>
+        <argsstring></argsstring>
+        <name>memory_unregister_async</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="77" column="26" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="77" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1a22dca4626887e3fb117cdf50d27e9910" prot="public" static="no" mutable="no">
+        <type>task_format_id_t</type>
+        <definition>task_format_id_t xkrt_runtime_t::file_read_async</definition>
+        <argsstring></argsstring>
+        <name>file_read_async</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="78" column="26" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="78" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1a58607a7a81321e06be9440cd2ad0a4d9" prot="public" static="no" mutable="no">
+        <type>task_format_id_t</type>
+        <definition>task_format_id_t xkrt_runtime_t::file_write_async</definition>
+        <argsstring></argsstring>
+        <name>file_write_async</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="79" column="26" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1a72ba6decb1c1c83800e2a52a4a8c6af9" prot="public" static="no" mutable="no">
+        <type>struct xkrt_runtime_t::@54</type>
+        <definition>struct xkrt_runtime_t::@54 xkrt_runtime_t::formats</definition>
+        <argsstring></argsstring>
+        <name>formats</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="80" column="13"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1aab212dabcc0f633b414ef707f866a41b" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__conf__s" kindref="compound">xkrt_conf_t</ref></type>
+        <definition>xkrt_conf_t xkrt_runtime_t::conf</definition>
+        <argsstring></argsstring>
+        <name>conf</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="83" column="17" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="83" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1a206d07aa5f4b16ee988cfa6a474b2340" prot="public" static="no" mutable="no">
+        <type><ref refid="classRouterAffinity" kindref="compound">RouterAffinity</ref></type>
+        <definition>RouterAffinity xkrt_runtime_t::router</definition>
+        <argsstring></argsstring>
+        <name>router</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="86" column="20" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="86" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__runtime__t_1a8d5e359eb60bcb101b573a9758b95582" prot="public" static="no" mutable="no">
+        <type>hwloc_topology_t</type>
+        <definition>hwloc_topology_t xkrt_runtime_t::topology</definition>
+        <argsstring></argsstring>
+        <name>topology</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="94" column="22" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="94" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="structxkrt__runtime__t_1ae6e94b3b9cb563adfa08678968e197dd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_runtime_t::init</definition>
+        <argsstring>(void)</argsstring>
+        <name>init</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="105" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a7da6f651b88ff1cbc2a995c98fa4043f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_runtime_t::deinit</definition>
+        <argsstring>(void)</argsstring>
+        <name>deinit</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="108" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a48643a204a501173da7cf36ec70ebe84" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::reset</definition>
+        <argsstring>(void)</argsstring>
+        <name>reset</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="111" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1aaa9e1d97be3630aaa2d548ecaae16845" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classxkrt__stream__t" kindref="compound">xkrt_stream_t</ref> *</type>
+        <definition>xkrt_stream_t* xkrt_runtime_t::copy</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, const size_t size, const xkrt_device_global_id_t dst_device_global_id, const uintptr_t dst_device_addr, const xkrt_device_global_id_t src_device_global_id, const uintptr_t src_device_addr, const xkrt_callback_t &amp;callback)</argsstring>
+        <name>copy</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>dst_device_global_id</declname>
+        </param>
+        <param>
+          <type>const uintptr_t</type>
+          <declname>dst_device_addr</declname>
+        </param>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>src_device_global_id</declname>
+        </param>
+        <param>
+          <type>const uintptr_t</type>
+          <declname>src_device_addr</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structxkrt__callback__t" kindref="compound">xkrt_callback_t</ref> &amp;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="118" column="20"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a504fab6159693a0ad6401eb70891d735" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classxkrt__stream__t" kindref="compound">xkrt_stream_t</ref> *</type>
+        <definition>xkrt_stream_t* xkrt_runtime_t::copy</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, const memory_view_t &amp;host_view, const xkrt_device_global_id_t dst_device_global_id, const memory_replica_view_t &amp;dst_device_view, const xkrt_device_global_id_t src_device_global_id, const memory_replica_view_t &amp;src_device_view, const xkrt_callback_t &amp;callback)</argsstring>
+        <name>copy</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structmatrix__tile__t" kindref="compound">memory_view_t</ref> &amp;</type>
+          <declname>host_view</declname>
+        </param>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>dst_device_global_id</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structmemory__replica__view__t" kindref="compound">memory_replica_view_t</ref> &amp;</type>
+          <declname>dst_device_view</declname>
+        </param>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>src_device_global_id</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structmemory__replica__view__t" kindref="compound">memory_replica_view_t</ref> &amp;</type>
+          <declname>src_device_view</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structxkrt__callback__t" kindref="compound">xkrt_callback_t</ref> &amp;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="129" column="20"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a4d99f30374668c53f71ffe60982736da" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::distribute_async</definition>
+        <argsstring>(xkrt_distribution_type_t type, void *ptr, size_t size, size_t nb, size_t h)</argsstring>
+        <name>distribute_async</name>
+        <param>
+          <type>xkrt_distribution_type_t</type>
+          <declname>type</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>nb</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>h</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="144" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1aa035b7d9e90a8b5b8fcb02f3add6c82d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::distribute_async</definition>
+        <argsstring>(xkrt_distribution_type_t type, void **ptr, size_t chunk_size, unsigned int n)</argsstring>
+        <name>distribute_async</name>
+        <param>
+          <type>xkrt_distribution_type_t</type>
+          <declname>type</declname>
+        </param>
+        <param>
+          <type>void **</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>chunk_size</declname>
+        </param>
+        <param>
+          <type>unsigned int</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="152" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a45b214f6cbf20ebc0535e1bb88ec119a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::distribute_async</definition>
+        <argsstring>(xkrt_distribution_type_t type, matrix_storage_t storage, void *ptr, size_t ld, size_t m, size_t n, size_t mb, size_t nb, size_t sizeof_type, size_t hx, size_t hy)</argsstring>
+        <name>distribute_async</name>
+        <param>
+          <type>xkrt_distribution_type_t</type>
+          <declname>type</declname>
+        </param>
+        <param>
+          <type>matrix_storage_t</type>
+          <declname>storage</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>ld</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>m</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>mb</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>nb</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>sizeof_type</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>hx</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>hy</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="160" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a77e114d81ccb00c0e38c16dd1bc9fd76" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_runtime_t::file_read_async</definition>
+        <argsstring>(int fd, void *buffer, size_t n, unsigned int nchunks)</argsstring>
+        <name>file_read_async</name>
+        <param>
+          <type>int</type>
+          <declname>fd</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>unsigned int</type>
+          <declname>nchunks</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Create a task that reads &apos;n&apos; bytes from the file descriptor &apos;fd&apos; , and write to the &apos;buffer&apos; memory.</para>
+<para>Task&apos; access is <computeroutput>write: <ref refid="classInterval" kindref="compound">Interval(buffer, n)</ref></computeroutput></para>
+<para>Dependencies may be released early if nchunks &gt; 1 Example: if nchunks == 1, then dependencies are released once &apos;n&apos; bytes got read if nchunks == 2, then dependencies are released twice, on<itemizedlist>
+<listitem><para><ref refid="classInterval" kindref="compound">Interval</ref>(buffer , n/2) - once it has been read</para>
+</listitem><listitem><para><ref refid="classInterval" kindref="compound">Interval</ref>(buffer + n/2, n/2) - once it has been read </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="187" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1aa2605afc94f56f1a04d019bbb8248269" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_runtime_t::file_write_async</definition>
+        <argsstring>(int fd, void *buffer, size_t n, unsigned int nchunks)</argsstring>
+        <name>file_write_async</name>
+        <param>
+          <type>int</type>
+          <declname>fd</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>unsigned int</type>
+          <declname>nchunks</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="188" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a6c778c734e8dc9f69c7317b33e005613" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::file_foreach_chunk</definition>
+        <argsstring>(void *buffer, const size_t total_size, size_t nchunks, const std::function&lt; void(uintptr_t, uintptr_t)&gt; &amp;func)</argsstring>
+        <name>file_foreach_chunk</name>
+        <param>
+          <type>void *</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>total_size</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>nchunks</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(uintptr_t, uintptr_t)&gt; &amp;</type>
+          <declname>func</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="190" column="17" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="190" bodyend="212"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1aa69116117b75b8d05d2d360c6d733971" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::memory_device_preallocate_ensure</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, const int memory_id)</argsstring>
+        <name>memory_device_preallocate_ensure</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type>const int</type>
+          <declname>memory_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="219" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a61d19ef9eba674da86a9a04c5617299a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structxkrt__area__chunk__t" kindref="compound">xkrt_area_chunk_t</ref> *</type>
+        <definition>xkrt_area_chunk_t* xkrt_runtime_t::memory_device_allocate_on</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, const size_t size, const int memory_id)</argsstring>
+        <name>memory_device_allocate_on</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>const int</type>
+          <declname>memory_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="222" column="24"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a8bdac8e1f6740482ae285f3c1fd229c3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structxkrt__area__chunk__t" kindref="compound">xkrt_area_chunk_t</ref> *</type>
+        <definition>xkrt_area_chunk_t* xkrt_runtime_t::memory_device_allocate</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, const size_t size)</argsstring>
+        <name>memory_device_allocate</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="225" column="24"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a7b4cc3adb33611c8383fb393d806d9c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::memory_device_deallocate</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, xkrt_area_chunk_t *chunk)</argsstring>
+        <name>memory_device_deallocate</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type><ref refid="structxkrt__area__chunk__t" kindref="compound">xkrt_area_chunk_t</ref> *</type>
+          <declname>chunk</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="228" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a7bcea337df2b8073eec3a8fc99a020cd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::memory_device_deallocate_all</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id)</argsstring>
+        <name>memory_device_deallocate_all</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="231" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1ae619aa33cca4535d907064db3e5635cc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void* xkrt_runtime_t::memory_host_allocate</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, const size_t size)</argsstring>
+        <name>memory_host_allocate</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="234" column="11"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a5226f148a0e04188fc89a4177812ccf5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::memory_host_deallocate</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, void *mem, const size_t size)</argsstring>
+        <name>memory_host_deallocate</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>mem</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="237" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a9b40401823cd13623af560c64aded4bf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void* xkrt_runtime_t::memory_unified_allocate</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, const size_t size)</argsstring>
+        <name>memory_unified_allocate</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="240" column="11"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1ac000f2b9f6f8939924126e519a344733" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::memory_unified_deallocate</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, void *mem, const size_t size)</argsstring>
+        <name>memory_unified_deallocate</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>mem</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="243" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a902386190b5400f3890b4768f45d024b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::memory_replicate_noncoherent</definition>
+        <argsstring>(xkrt_device_global_id_t device_global_id, void *ptr, size_t size)</argsstring>
+        <name>memory_replicate_noncoherent</name>
+        <param>
+          <type>xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="250" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1ab0be9ecb383ed8f3ca469eaa8ea802f7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::memory_replicate_noncoherent</definition>
+        <argsstring>(xkrt_device_global_id_t device_global_id, matrix_storage_t storage, void *ptr, size_t ld, size_t m, size_t n, size_t sizeof_type)</argsstring>
+        <name>memory_replicate_noncoherent</name>
+        <param>
+          <type>xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type>matrix_storage_t</type>
+          <declname>storage</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>ld</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>m</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>sizeof_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="251" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1ab4305e35f09fe74d60092a5fde4ccc07" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::memory_host_coherent_async</definition>
+        <argsstring>(void *ptr, size_t size)</argsstring>
+        <name>memory_host_coherent_async</name>
+        <param>
+          <type>void *</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="258" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1af99ff8a53abe0025e2dbccfc2ee88d2d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::memory_host_coherent_async</definition>
+        <argsstring>(matrix_storage_t storage, void *ptr, size_t ld, size_t m, size_t n, size_t sizeof_type)</argsstring>
+        <name>memory_host_coherent_async</name>
+        <param>
+          <type>matrix_storage_t</type>
+          <declname>storage</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>ld</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>m</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>sizeof_type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="259" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a8b46e3c1c26f7230918ef4145e280da3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_runtime_t::memory_register_async</definition>
+        <argsstring>(xkrt_team_t *team, void *ptr, const size_t size, int n)</argsstring>
+        <name>memory_register_async</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Create &apos;n&apos; tasks so that each task i in [0..n-1]<itemizedlist>
+<listitem><para>access - commutative write on ptr + i*size/n</para>
+</listitem><listitem><para>routine - register/unregister/touch [ptr + i*size/n, MIN(ptr + (i+1)*size/n, ptr+size)]</para>
+</listitem></itemizedlist>
+</para>
+<para>Note: each task may run several &apos;cuMemRegister&apos; several time on a single chunk </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="272" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a2d33c59049f7ab248b6921680a3e6603" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_runtime_t::memory_unregister_async</definition>
+        <argsstring>(xkrt_team_t *team, void *ptr, const size_t size, int n)</argsstring>
+        <name>memory_unregister_async</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="273" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a0505a61b3288b96f17fcb3ec8389b133" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_runtime_t::memory_touch_async</definition>
+        <argsstring>(xkrt_team_t *team, void *ptr, const size_t size, int n)</argsstring>
+        <name>memory_touch_async</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>ptr</declname>
+        </param>
+        <param>
+          <type>const size_t</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="274" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a479e9e2160bd5969fb3363495127e852" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_commit</definition>
+        <argsstring>(task_t *task)</argsstring>
+        <name>task_commit</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="286" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a627e33ac9fea8ee8278c2b043396043f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_detachable_decr</definition>
+        <argsstring>(task_t *task)</argsstring>
+        <name>task_detachable_decr</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="289" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a862fac5a5ee00168d4a4982c40da14de" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_detachable_incr</definition>
+        <argsstring>(task_t *task)</argsstring>
+        <name>task_detachable_incr</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="292" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a501dc341d934a0efcf6f209ed88cc2fb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_complete</definition>
+        <argsstring>(task_t *task)</argsstring>
+        <name>task_complete</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="295" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1adcf9972d56154e8c99907724d195dee0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_wait</definition>
+        <argsstring>(void)</argsstring>
+        <name>task_wait</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="298" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a5b0f4ba61c248f24391faf5dc77bf55a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int xkrt_runtime_t::task_schedule</definition>
+        <argsstring>(void)</argsstring>
+        <name>task_schedule</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="301" column="9"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a0198e72769c8f2f92a2b1b260817143c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_enqueue</definition>
+        <argsstring>(task_t *task)</argsstring>
+        <name>task_enqueue</name>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="307" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1ab55f752b8d0be590625bdfa102d708e6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_thread_enqueue</definition>
+        <argsstring>(xkrt_thread_t *thread, task_t *task)</argsstring>
+        <name>task_thread_enqueue</name>
+        <param>
+          <type><ref refid="structxkrt__thread__t" kindref="compound">xkrt_thread_t</ref> *</type>
+          <declname>thread</declname>
+        </param>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="315" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1af948d608d469f132ac7ad8506c73ca71" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_team_enqueue</definition>
+        <argsstring>(xkrt_team_t *team, task_t *task)</argsstring>
+        <name>task_team_enqueue</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="322" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a21aaf8756e5d33cb7b5fdabd9ed87b56" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+        <definition>task_t* xkrt_runtime_t::task_dup</definition>
+        <argsstring>(const task_t *task)</argsstring>
+        <name>task_dup</name>
+        <param>
+          <type>const <ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="330" column="13"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1ad905dad8f5523a95178b8e4e2fdb5ee2" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>task_access_counter_t</type>
+            <declname>ac</declname>
+            <defname>ac</defname>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>has_set_accesses</declname>
+            <defname>has_set_accesses</defname>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>has_split_condition</declname>
+            <defname>has_split_condition</defname>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+        <definition>task_t* xkrt_runtime_t::task_instanciate</definition>
+        <argsstring>(const std::function&lt; void(task_t *, access_t *)&gt; &amp;set_accesses, const std::function&lt; bool(task_t *, access_t *)&gt; &amp;split_condition, const std::function&lt; void(task_t *)&gt; &amp;f)</argsstring>
+        <name>task_instanciate</name>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>set_accesses</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; bool(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>split_condition</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *)&gt; &amp;</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="336" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="336" bodyend="382"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a60375f541adc93b08bb7378dc119b0c7" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>task_access_counter_t</type>
+            <declname>ac</declname>
+            <defname>ac</defname>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>has_set_accesses</declname>
+            <defname>has_set_accesses</defname>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>has_split_condition</declname>
+            <defname>has_split_condition</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_spawn</definition>
+        <argsstring>(const std::function&lt; void(task_t *, access_t *)&gt; &amp;set_accesses, const std::function&lt; bool(task_t *, access_t *)&gt; &amp;split_condition, const std::function&lt; void(task_t *)&gt; &amp;f)</argsstring>
+        <name>task_spawn</name>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>set_accesses</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; bool(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>split_condition</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *)&gt; &amp;</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="387" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="387" bodyend="399"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a663b43f6c0f297c00ea8e13d4ad00e81" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>task_access_counter_t</type>
+            <declname>ac</declname>
+            <defname>ac</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_spawn</definition>
+        <argsstring>(const std::function&lt; void(task_t *, access_t *)&gt; &amp;set_accesses, const std::function&lt; bool(task_t *, access_t *)&gt; &amp;split_condition, const std::function&lt; void(task_t *)&gt; &amp;f)</argsstring>
+        <name>task_spawn</name>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>set_accesses</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; bool(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>split_condition</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *)&gt; &amp;</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="403" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="403" bodyend="409"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a421e6d6afc3f15a1ea275f669960bfe6" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>task_access_counter_t</type>
+            <declname>ac</declname>
+            <defname>ac</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_spawn</definition>
+        <argsstring>(const std::function&lt; void(task_t *, access_t *)&gt; &amp;set_accesses, const std::function&lt; void(task_t *)&gt; &amp;f)</argsstring>
+        <name>task_spawn</name>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>set_accesses</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *)&gt; &amp;</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="413" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="413" bodyend="418"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1aabf902c2140d3e93d4f44168361ccb06" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_spawn</definition>
+        <argsstring>(const std::function&lt; void(task_t *)&gt; &amp;f)</argsstring>
+        <name>task_spawn</name>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *)&gt; &amp;</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="421" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="421" bodyend="425"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1af963229259b518e375773ab832b254cd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::task_run</definition>
+        <argsstring>(xkrt_team_t *team, xkrt_thread_t *thread, task_t *task)</argsstring>
+        <name>task_run</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type><ref refid="structxkrt__thread__t" kindref="compound">xkrt_thread_t</ref> *</type>
+          <declname>thread</declname>
+        </param>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="430" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a5364d359fdb8a05d38250e34ad20801c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::team_create</definition>
+        <argsstring>(xkrt_team_t *team)</argsstring>
+        <name>team_create</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="447" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a85c97cc3e5c8d190b80786132de4dd89" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>worksteal</declname>
+            <defname>worksteal</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void xkrt_runtime_t::team_barrier</definition>
+        <argsstring>(xkrt_team_t *team, xkrt_thread_t *thread=NULL)</argsstring>
+        <name>team_barrier</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type><ref refid="structxkrt__thread__t" kindref="compound">xkrt_thread_t</ref> *</type>
+          <declname>thread</declname>
+          <defval>NULL</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="451" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1aec40d1a01a294440bb08d132a1275b28" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::team_join</definition>
+        <argsstring>(xkrt_team_t *team)</argsstring>
+        <name>team_join</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="454" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a32b81659645a22b9d0ae1f6856b26f84" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::team_critical_begin</definition>
+        <argsstring>(xkrt_team_t *team)</argsstring>
+        <name>team_critical_begin</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="457" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a15f5c059b4b3ce132366e89dc28edd6a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::team_critical_end</definition>
+        <argsstring>(xkrt_team_t *team)</argsstring>
+        <name>team_critical_end</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="460" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a48d65fefe4554cb22dd3c1641abec4cc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::team_parallel_for</definition>
+        <argsstring>(xkrt_team_t *team, xkrt_team_parallel_for_func_t func)</argsstring>
+        <name>team_parallel_for</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type>xkrt_team_parallel_for_func_t</type>
+          <declname>func</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="463" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1adf708b4da3343bdaacd680ff4bcdd1c6" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>task_access_counter_t</type>
+            <declname>ac</declname>
+            <defname>ac</defname>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>has_set_accesses</declname>
+            <defname>has_set_accesses</defname>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>has_split_condition</declname>
+            <defname>has_split_condition</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void xkrt_runtime_t::team_task_spawn</definition>
+        <argsstring>(xkrt_team_t *team, const std::function&lt; void(task_t *, access_t *)&gt; &amp;set_accesses, const std::function&lt; bool(task_t *, access_t *)&gt; &amp;split_condition, const std::function&lt; void(task_t *)&gt; &amp;f)</argsstring>
+        <name>team_task_spawn</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>set_accesses</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; bool(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>split_condition</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *)&gt; &amp;</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="471" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="471" bodyend="484"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a758a6b88621cef0b2a186f751cbd0e45" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>task_access_counter_t</type>
+            <declname>ac</declname>
+            <defname>ac</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void xkrt_runtime_t::team_task_spawn</definition>
+        <argsstring>(xkrt_team_t *team, const std::function&lt; void(task_t *, access_t *)&gt; &amp;set_accesses, const std::function&lt; bool(task_t *, access_t *)&gt; &amp;split_condition, const std::function&lt; void(task_t *)&gt; &amp;f)</argsstring>
+        <name>team_task_spawn</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>set_accesses</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; bool(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>split_condition</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *)&gt; &amp;</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="488" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="488" bodyend="495"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a34c373da3e9fb689bdaff73fa2806d29" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>task_access_counter_t</type>
+            <declname>ac</declname>
+            <defname>ac</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void xkrt_runtime_t::team_task_spawn</definition>
+        <argsstring>(xkrt_team_t *team, const std::function&lt; void(task_t *, access_t *)&gt; &amp;set_accesses, const std::function&lt; void(task_t *)&gt; &amp;f)</argsstring>
+        <name>team_task_spawn</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *, <ref refid="classaccess__t" kindref="compound">access_t</ref> *)&gt; &amp;</type>
+          <declname>set_accesses</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *)&gt; &amp;</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="499" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="499" bodyend="505"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1ad8a670f979a6ae5fbe76b7c715a13391" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::team_task_spawn</definition>
+        <argsstring>(xkrt_team_t *team, const std::function&lt; void(task_t *)&gt; &amp;f)</argsstring>
+        <name>team_task_spawn</name>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type>const std::function&lt; void(<ref refid="structtask__t" kindref="compound">task_t</ref> *)&gt; &amp;</type>
+          <declname>f</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="508" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="508" bodyend="513"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a538e4c9e2ea56c2fdd723c12601f6a3c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+        <definition>xkrt_team_t* xkrt_runtime_t::team_get</definition>
+        <argsstring>(const xkrt_driver_type_t type)</argsstring>
+        <name>team_get</name>
+        <param>
+          <type>const xkrt_driver_type_t</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="520" column="18"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a57e0c49b40b5a37d053b58ac574d40e6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+        <definition>xkrt_team_t* xkrt_runtime_t::team_get_any</definition>
+        <argsstring>(const xkrt_driver_type_bitfield_t types)</argsstring>
+        <name>team_get_any</name>
+        <param>
+          <type>const xkrt_driver_type_bitfield_t</type>
+          <declname>types</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="523" column="18"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a24fb85978dcc1fb07ec4f2adf3350c75" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::power_start</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, xkrt_power_t *pwr)</argsstring>
+        <name>power_start</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type><ref refid="structxkrt__power__t" kindref="compound">xkrt_power_t</ref> *</type>
+          <declname>pwr</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="530" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a8fc2db237cf68217d70a6943b320a873" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void xkrt_runtime_t::power_stop</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id, xkrt_power_t *pwr)</argsstring>
+        <name>power_stop</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <param>
+          <type><ref refid="structxkrt__power__t" kindref="compound">xkrt_power_t</ref> *</type>
+          <declname>pwr</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="533" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a22e661bdfcaffc6e02e73098406f2a7e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structxkrt__driver__t" kindref="compound">xkrt_driver_t</ref> *</type>
+        <definition>xkrt_driver_t* xkrt_runtime_t::driver_get</definition>
+        <argsstring>(const xkrt_driver_type_t type)</argsstring>
+        <name>driver_get</name>
+        <param>
+          <type>const xkrt_driver_type_t</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="540" column="20"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a38f50f249d4af076540ef1c201bcb8ef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structxkrt__device__t" kindref="compound">xkrt_device_t</ref> *</type>
+        <definition>xkrt_device_t* xkrt_runtime_t::device_get</definition>
+        <argsstring>(const xkrt_device_global_id_t device_global_id)</argsstring>
+        <name>device_get</name>
+        <param>
+          <type>const xkrt_device_global_id_t</type>
+          <declname>device_global_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="543" column="20"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a4c392de5274a96cafbca990c9f4a0c81" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>unsigned int</type>
+        <definition>unsigned int xkrt_runtime_t::get_ndevices</definition>
+        <argsstring>(void)</argsstring>
+        <name>get_ndevices</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="546" column="18"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structxkrt__runtime__t_1a57dea1fab6b84c4cf77262af29f05828" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void xkrt_runtime_t::task_enqueue</definition>
+        <argsstring>(xkrt_runtime_t *runtime, task_t *task)</argsstring>
+        <name>task_enqueue</name>
+        <param>
+          <type><ref refid="structxkrt__runtime__t" kindref="compound">xkrt_runtime_t</ref> *</type>
+          <declname>runtime</declname>
+        </param>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="309" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="309" bodyend="312"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1ace5c42ff91e44efb04cc42eda09dd2de" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void xkrt_runtime_t::task_thread_enqueue</definition>
+        <argsstring>(xkrt_runtime_t *runtime, xkrt_thread_t *thread, task_t *task)</argsstring>
+        <name>task_thread_enqueue</name>
+        <param>
+          <type><ref refid="structxkrt__runtime__t" kindref="compound">xkrt_runtime_t</ref> *</type>
+          <declname>runtime</declname>
+        </param>
+        <param>
+          <type><ref refid="structxkrt__thread__t" kindref="compound">xkrt_thread_t</ref> *</type>
+          <declname>thread</declname>
+        </param>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="316" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="316" bodyend="319"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1abb7cc874cc76996989a684fc71951635" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void xkrt_runtime_t::task_team_enqueue</definition>
+        <argsstring>(xkrt_runtime_t *runtime, xkrt_team_t *team, task_t *task)</argsstring>
+        <name>task_team_enqueue</name>
+        <param>
+          <type><ref refid="structxkrt__runtime__t" kindref="compound">xkrt_runtime_t</ref> *</type>
+          <declname>runtime</declname>
+        </param>
+        <param>
+          <type><ref refid="structxkrt__team__t" kindref="compound">xkrt_team_t</ref> *</type>
+          <declname>team</declname>
+        </param>
+        <param>
+          <type><ref refid="structtask__t" kindref="compound">task_t</ref> *</type>
+          <declname>task</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="324" column="5" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="324" bodyend="327"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1a49bbd64d243cd032e5bc69879def106f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void xkrt_runtime_t::thread_getaffinity</definition>
+        <argsstring>(cpu_set_t &amp;cpuset)</argsstring>
+        <name>thread_getaffinity</name>
+        <param>
+          <type>cpu_set_t &amp;</type>
+          <declname>cpuset</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="437" column="17"/>
+      </memberdef>
+      <memberdef kind="function" id="structxkrt__runtime__t_1aa92b4ff2cd4ed40834fa162626ac7957" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void xkrt_runtime_t::thread_setaffinity</definition>
+        <argsstring>(cpu_set_t &amp;cpuset)</argsstring>
+        <name>thread_setaffinity</name>
+        <param>
+          <type>cpu_set_t &amp;</type>
+          <declname>cpuset</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="440" column="17"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="27">
+        <label>xkrt_stream_instruction_copy_2D_t</label>
+        <link refid="structxkrt__stream__instruction__copy__2D__t"/>
+        <childnode refid="28" relation="usage">
+          <edgelabel>dst_device_view</edgelabel>
+          <edgelabel>src_device_view</edgelabel>
+        </childnode>
+      </node>
+      <node id="20">
+        <label>Lockable</label>
+        <link refid="classLockable"/>
+      </node>
+      <node id="29">
+        <label>xkrt_driver_t</label>
+        <link refid="structxkrt__driver__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>devices</edgelabel>
+          <edgelabel>f_device_create</edgelabel>
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>team</edgelabel>
+        </childnode>
+        <childnode refid="19" relation="usage">
+          <edgelabel>f_stream_create</edgelabel>
+        </childnode>
+      </node>
+      <node id="25">
+        <label>xkrt_stream_instruction_copy_1D_t</label>
+        <link refid="structxkrt__stream__instruction__copy__1D__t"/>
+      </node>
+      <node id="23">
+        <label>xkrt_stream_instruction_file_t</label>
+        <link refid="structxkrt__stream__instruction__file__t"/>
+      </node>
+      <node id="16">
+        <label>xkrt_conf_device_t</label>
+        <link refid="structxkrt__conf__device__t"/>
+        <childnode refid="17" relation="usage">
+          <edgelabel>offloader</edgelabel>
+        </childnode>
+      </node>
+      <node id="31">
+        <label>xkrt_conf_drivers_t</label>
+        <link refid="structxkrt__conf__drivers__t"/>
+        <childnode refid="32" relation="usage">
+          <edgelabel>list</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>xkrt_thread_t</label>
+        <link refid="structxkrt__thread__t"/>
+        <childnode refid="11" relation="usage">
+          <edgelabel>deque</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>prev</edgelabel>
+        </childnode>
+        <childnode refid="12" relation="usage">
+          <edgelabel>current_task</edgelabel>
+          <edgelabel>implicit_task</edgelabel>
+        </childnode>
+        <childnode refid="13" relation="usage">
+          <edgelabel>team</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>xkrt_drivers_t</label>
+        <link refid="structxkrt__drivers__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>list</edgelabel>
+        </childnode>
+        <childnode refid="29" relation="usage">
+          <edgelabel>list</edgelabel>
+        </childnode>
+      </node>
+      <node id="21">
+        <label>xkrt_stream_instruction_queue_t</label>
+        <link refid="classxkrt__stream__instruction__queue__t"/>
+        <childnode refid="22" relation="usage">
+          <edgelabel>instr</edgelabel>
+        </childnode>
+      </node>
+      <node id="9">
+        <label>xkrt_mutex_t</label>
+        <link refid="structxkrt__mutex__t"/>
+      </node>
+      <node id="22">
+        <label>xkrt_stream_instruction_t</label>
+        <link refid="structxkrt__stream__instruction__t"/>
+        <childnode refid="23" relation="usage">
+          <edgelabel>file</edgelabel>
+        </childnode>
+        <childnode refid="24" relation="usage">
+          <edgelabel>callback</edgelabel>
+        </childnode>
+        <childnode refid="25" relation="usage">
+          <edgelabel>copy_1D</edgelabel>
+        </childnode>
+        <childnode refid="26" relation="usage">
+          <edgelabel>kern</edgelabel>
+        </childnode>
+        <childnode refid="27" relation="usage">
+          <edgelabel>copy_2D</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>task_formats_t</label>
+        <link refid="structtask__formats__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>list</edgelabel>
+        </childnode>
+      </node>
+      <node id="8">
+        <label>xkrt_area_chunk_t</label>
+        <link refid="structxkrt__area__chunk__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>freelink</edgelabel>
+          <edgelabel>next</edgelabel>
+          <edgelabel>prev</edgelabel>
+        </childnode>
+      </node>
+      <node id="28">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="26">
+        <label>xkrt_stream_instruction_kernel_t</label>
+        <link refid="structxkrt__stream__instruction__kernel__t"/>
+      </node>
+      <node id="18">
+        <label>xkrt_conf_stream_t</label>
+        <link refid="structxkrt__conf__stream__t"/>
+      </node>
+      <node id="11">
+        <label>xkrt_deque_t&lt; task_t *, 4096 &gt;</label>
+        <link refid="structxkrt__deque__t"/>
+      </node>
+      <node id="3">
+        <label>task_format_t</label>
+        <link refid="structtask__format__t"/>
+      </node>
+      <node id="7">
+        <label>xkrt_area_t</label>
+        <link refid="structxkrt__area__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>chunk0</edgelabel>
+          <edgelabel>free_chunk_list</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>lock</edgelabel>
+        </childnode>
+      </node>
+      <node id="6">
+        <label>xkrt_device_memory_info_t</label>
+        <link refid="structxkrt__device__memory__info__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>area</edgelabel>
+        </childnode>
+      </node>
+      <node id="17">
+        <label>xkrt_conf_offloader_t</label>
+        <link refid="structxkrt__conf__offloader__t"/>
+        <childnode refid="18" relation="usage">
+          <edgelabel>streams</edgelabel>
+        </childnode>
+      </node>
+      <node id="19">
+        <label>xkrt_stream_t</label>
+        <link refid="classxkrt__stream__t"/>
+        <childnode refid="20" relation="public-inheritance">
+        </childnode>
+        <childnode refid="21" relation="usage">
+          <edgelabel>pending</edgelabel>
+          <edgelabel>ready</edgelabel>
+        </childnode>
+      </node>
+      <node id="13">
+        <label>xkrt_team_t</label>
+        <link refid="structxkrt__team__t"/>
+        <childnode refid="14" relation="usage">
+          <edgelabel>desc</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>threads</edgelabel>
+        </childnode>
+      </node>
+      <node id="24">
+        <label>xkrt_callback_t</label>
+        <link refid="structxkrt__callback__t"/>
+      </node>
+      <node id="12">
+        <label>task_t</label>
+        <link refid="structtask__t"/>
+        <childnode refid="12" relation="usage">
+          <edgelabel>parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="33">
+        <label>RouterAffinity</label>
+        <link refid="classRouterAffinity"/>
+        <childnode refid="34" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="32">
+        <label>xkrt_conf_driver_t</label>
+        <link refid="structxkrt__conf__driver__t"/>
+      </node>
+      <node id="14">
+        <label>xkrt_team_desc_t</label>
+        <link refid="structxkrt__team__desc__t"/>
+        <childnode refid="15" relation="usage">
+          <edgelabel>binding</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>xkrt_device_t</label>
+        <link refid="structxkrt__device__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>memories</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>threads</edgelabel>
+        </childnode>
+        <childnode refid="16" relation="usage">
+          <edgelabel>conf</edgelabel>
+        </childnode>
+        <childnode refid="19" relation="usage">
+          <edgelabel>streams</edgelabel>
+        </childnode>
+      </node>
+      <node id="30">
+        <label>xkrt_conf_s</label>
+        <link refid="structxkrt__conf__s"/>
+        <childnode refid="31" relation="usage">
+          <edgelabel>drivers</edgelabel>
+        </childnode>
+        <childnode refid="16" relation="usage">
+          <edgelabel>device</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>xkrt_runtime_t</label>
+        <link refid="structxkrt__runtime__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>list</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>drivers</edgelabel>
+        </childnode>
+        <childnode refid="30" relation="usage">
+          <edgelabel>conf</edgelabel>
+        </childnode>
+        <childnode refid="33" relation="usage">
+          <edgelabel>router</edgelabel>
+        </childnode>
+      </node>
+      <node id="15">
+        <label>xkrt_team_binding_t</label>
+        <link refid="structxkrt__team__binding__t"/>
+      </node>
+      <node id="34">
+        <label>Router</label>
+        <link refid="classRouter"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" line="62" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/runtime.h" bodystart="63" bodyend="569"/>
+    <listofallmembers>
+      <member refid="structxkrt__runtime__t_1aab212dabcc0f633b414ef707f866a41b" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>conf</name></member>
+      <member refid="structxkrt__runtime__t_1aaa9e1d97be3630aaa2d548ecaae16845" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>copy</name></member>
+      <member refid="structxkrt__runtime__t_1a504fab6159693a0ad6401eb70891d735" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>copy</name></member>
+      <member refid="structxkrt__runtime__t_1a3e10d8e0e7972da4d79a93a1b201fc5a" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>copy_async</name></member>
+      <member refid="structxkrt__runtime__t_1a7da6f651b88ff1cbc2a995c98fa4043f" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>deinit</name></member>
+      <member refid="structxkrt__runtime__t_1a38f50f249d4af076540ef1c201bcb8ef" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>device_get</name></member>
+      <member refid="structxkrt__runtime__t_1a4d99f30374668c53f71ffe60982736da" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>distribute_async</name></member>
+      <member refid="structxkrt__runtime__t_1aa035b7d9e90a8b5b8fcb02f3add6c82d" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>distribute_async</name></member>
+      <member refid="structxkrt__runtime__t_1a45b214f6cbf20ebc0535e1bb88ec119a" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>distribute_async</name></member>
+      <member refid="structxkrt__runtime__t_1a22e661bdfcaffc6e02e73098406f2a7e" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>driver_get</name></member>
+      <member refid="structxkrt__runtime__t_1a1f23e5f7106337ba758d78a22cffb054" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>drivers</name></member>
+      <member refid="structxkrt__runtime__t_1a6c778c734e8dc9f69c7317b33e005613" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>file_foreach_chunk</name></member>
+      <member refid="structxkrt__runtime__t_1a22dca4626887e3fb117cdf50d27e9910" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>file_read_async</name></member>
+      <member refid="structxkrt__runtime__t_1a77e114d81ccb00c0e38c16dd1bc9fd76" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>file_read_async</name></member>
+      <member refid="structxkrt__runtime__t_1a58607a7a81321e06be9440cd2ad0a4d9" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>file_write_async</name></member>
+      <member refid="structxkrt__runtime__t_1aa2605afc94f56f1a04d019bbb8248269" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>file_write_async</name></member>
+      <member refid="structxkrt__runtime__t_1a72ba6decb1c1c83800e2a52a4a8c6af9" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>formats</name></member>
+      <member refid="structxkrt__runtime__t_1a4c392de5274a96cafbca990c9f4a0c81" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>get_ndevices</name></member>
+      <member refid="structxkrt__runtime__t_1a2caeed1bf65d6169dd817bd98ec898fa" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>host_capture</name></member>
+      <member refid="structxkrt__runtime__t_1ae6e94b3b9cb563adfa08678968e197dd" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>init</name></member>
+      <member refid="structxkrt__runtime__t_1a1e04eaac6a3ee13580f9c06e74b22144" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>list</name></member>
+      <member refid="structxkrt__runtime__t_1a8bdac8e1f6740482ae285f3c1fd229c3" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_device_allocate</name></member>
+      <member refid="structxkrt__runtime__t_1a61d19ef9eba674da86a9a04c5617299a" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_device_allocate_on</name></member>
+      <member refid="structxkrt__runtime__t_1a7b4cc3adb33611c8383fb393d806d9c5" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_device_deallocate</name></member>
+      <member refid="structxkrt__runtime__t_1a7bcea337df2b8073eec3a8fc99a020cd" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_device_deallocate_all</name></member>
+      <member refid="structxkrt__runtime__t_1aa69116117b75b8d05d2d360c6d733971" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_device_preallocate_ensure</name></member>
+      <member refid="structxkrt__runtime__t_1ae619aa33cca4535d907064db3e5635cc" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_host_allocate</name></member>
+      <member refid="structxkrt__runtime__t_1ab4305e35f09fe74d60092a5fde4ccc07" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_host_coherent_async</name></member>
+      <member refid="structxkrt__runtime__t_1af99ff8a53abe0025e2dbccfc2ee88d2d" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_host_coherent_async</name></member>
+      <member refid="structxkrt__runtime__t_1a5226f148a0e04188fc89a4177812ccf5" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_host_deallocate</name></member>
+      <member refid="structxkrt__runtime__t_1a51266e9a8ae9599eb1ce5f04fa86cc90" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_register_async</name></member>
+      <member refid="structxkrt__runtime__t_1a8b46e3c1c26f7230918ef4145e280da3" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_register_async</name></member>
+      <member refid="structxkrt__runtime__t_1a902386190b5400f3890b4768f45d024b" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_replicate_noncoherent</name></member>
+      <member refid="structxkrt__runtime__t_1ab0be9ecb383ed8f3ca469eaa8ea802f7" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_replicate_noncoherent</name></member>
+      <member refid="structxkrt__runtime__t_1ab9c9432359448184488e11b9b17203b4" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_touch_async</name></member>
+      <member refid="structxkrt__runtime__t_1a0505a61b3288b96f17fcb3ec8389b133" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_touch_async</name></member>
+      <member refid="structxkrt__runtime__t_1a9b40401823cd13623af560c64aded4bf" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_unified_allocate</name></member>
+      <member refid="structxkrt__runtime__t_1ac000f2b9f6f8939924126e519a344733" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_unified_deallocate</name></member>
+      <member refid="structxkrt__runtime__t_1ad928d7657abf9c091b7ed7a6bd0db054" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_unregister_async</name></member>
+      <member refid="structxkrt__runtime__t_1a2d33c59049f7ab248b6921680a3e6603" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>memory_unregister_async</name></member>
+      <member refid="structxkrt__runtime__t_1a24fb85978dcc1fb07ec4f2adf3350c75" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>power_start</name></member>
+      <member refid="structxkrt__runtime__t_1a8fc2db237cf68217d70a6943b320a873" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>power_stop</name></member>
+      <member refid="structxkrt__runtime__t_1a48643a204a501173da7cf36ec70ebe84" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>reset</name></member>
+      <member refid="structxkrt__runtime__t_1a206d07aa5f4b16ee988cfa6a474b2340" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>router</name></member>
+      <member refid="structxkrt__runtime__t_1a59f0ada5f2a7f3016357b8cd7579c453" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>state</name></member>
+      <member refid="structxkrt__runtime__t_1a479e9e2160bd5969fb3363495127e852" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_commit</name></member>
+      <member refid="structxkrt__runtime__t_1a501dc341d934a0efcf6f209ed88cc2fb" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_complete</name></member>
+      <member refid="structxkrt__runtime__t_1a627e33ac9fea8ee8278c2b043396043f" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_detachable_decr</name></member>
+      <member refid="structxkrt__runtime__t_1a862fac5a5ee00168d4a4982c40da14de" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_detachable_incr</name></member>
+      <member refid="structxkrt__runtime__t_1a21aaf8756e5d33cb7b5fdabd9ed87b56" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_dup</name></member>
+      <member refid="structxkrt__runtime__t_1a0198e72769c8f2f92a2b1b260817143c" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_enqueue</name></member>
+      <member refid="structxkrt__runtime__t_1a57dea1fab6b84c4cf77262af29f05828" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_enqueue</name></member>
+      <member refid="structxkrt__runtime__t_1ad905dad8f5523a95178b8e4e2fdb5ee2" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_instanciate</name></member>
+      <member refid="structxkrt__runtime__t_1af963229259b518e375773ab832b254cd" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_run</name></member>
+      <member refid="structxkrt__runtime__t_1a5b0f4ba61c248f24391faf5dc77bf55a" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_schedule</name></member>
+      <member refid="structxkrt__runtime__t_1a60375f541adc93b08bb7378dc119b0c7" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_spawn</name></member>
+      <member refid="structxkrt__runtime__t_1a663b43f6c0f297c00ea8e13d4ad00e81" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_spawn</name></member>
+      <member refid="structxkrt__runtime__t_1a421e6d6afc3f15a1ea275f669960bfe6" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_spawn</name></member>
+      <member refid="structxkrt__runtime__t_1aabf902c2140d3e93d4f44168361ccb06" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_spawn</name></member>
+      <member refid="structxkrt__runtime__t_1af948d608d469f132ac7ad8506c73ca71" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_team_enqueue</name></member>
+      <member refid="structxkrt__runtime__t_1abb7cc874cc76996989a684fc71951635" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_team_enqueue</name></member>
+      <member refid="structxkrt__runtime__t_1ab55f752b8d0be590625bdfa102d708e6" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_thread_enqueue</name></member>
+      <member refid="structxkrt__runtime__t_1ace5c42ff91e44efb04cc42eda09dd2de" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_thread_enqueue</name></member>
+      <member refid="structxkrt__runtime__t_1adcf9972d56154e8c99907724d195dee0" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>task_wait</name></member>
+      <member refid="structxkrt__runtime__t_1a85c97cc3e5c8d190b80786132de4dd89" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_barrier</name></member>
+      <member refid="structxkrt__runtime__t_1a5364d359fdb8a05d38250e34ad20801c" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_create</name></member>
+      <member refid="structxkrt__runtime__t_1a32b81659645a22b9d0ae1f6856b26f84" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_critical_begin</name></member>
+      <member refid="structxkrt__runtime__t_1a15f5c059b4b3ce132366e89dc28edd6a" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_critical_end</name></member>
+      <member refid="structxkrt__runtime__t_1a538e4c9e2ea56c2fdd723c12601f6a3c" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_get</name></member>
+      <member refid="structxkrt__runtime__t_1a57e0c49b40b5a37d053b58ac574d40e6" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_get_any</name></member>
+      <member refid="structxkrt__runtime__t_1aec40d1a01a294440bb08d132a1275b28" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_join</name></member>
+      <member refid="structxkrt__runtime__t_1a48d65fefe4554cb22dd3c1641abec4cc" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_parallel_for</name></member>
+      <member refid="structxkrt__runtime__t_1adf708b4da3343bdaacd680ff4bcdd1c6" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_task_spawn</name></member>
+      <member refid="structxkrt__runtime__t_1a758a6b88621cef0b2a186f751cbd0e45" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_task_spawn</name></member>
+      <member refid="structxkrt__runtime__t_1a34c373da3e9fb689bdaff73fa2806d29" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_task_spawn</name></member>
+      <member refid="structxkrt__runtime__t_1ad8a670f979a6ae5fbe76b7c715a13391" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>team_task_spawn</name></member>
+      <member refid="structxkrt__runtime__t_1a49bbd64d243cd032e5bc69879def106f" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>thread_getaffinity</name></member>
+      <member refid="structxkrt__runtime__t_1aa92b4ff2cd4ed40834fa162626ac7957" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>thread_setaffinity</name></member>
+      <member refid="structxkrt__runtime__t_1a8d5e359eb60bcb101b573a9758b95582" prot="public" virt="non-virtual"><scope>xkrt_runtime_t</scope><name>topology</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

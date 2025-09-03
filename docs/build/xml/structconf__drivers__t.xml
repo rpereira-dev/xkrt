@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structconf__drivers__t" kind="struct" language="C++" prot="public">
+    <compoundname>conf_drivers_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structconf__drivers__t_1a967ca4f4dfec2a2a3d147f3d782b1aea" prot="public" static="no" mutable="no">
+        <type><ref refid="structconf__driver__t" kindref="compound">conf_driver_t</ref></type>
+        <definition>conf_driver_t conf_drivers_t::list[XKRT_DRIVER_TYPE_MAX]</definition>
+        <argsstring>[XKRT_DRIVER_TYPE_MAX]</argsstring>
+        <name>list</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="87" column="19" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" bodystart="87" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>conf_drivers_t</label>
+        <link refid="structconf__drivers__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>list</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>conf_driver_t</label>
+        <link refid="structconf__driver__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="85" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" bodystart="86" bodyend="89"/>
+    <listofallmembers>
+      <member refid="structconf__drivers__t_1a967ca4f4dfec2a2a3d147f3d782b1aea" prot="public" virt="non-virtual"><scope>conf_drivers_t</scope><name>list</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

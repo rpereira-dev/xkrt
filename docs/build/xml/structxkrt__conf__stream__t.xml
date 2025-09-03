@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__conf__stream__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_conf_stream_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__conf__stream__t_1a40b669a4682be9f5bc86acd55eaf21ef" prot="public" static="no" mutable="no">
+        <type>int8_t</type>
+        <definition>int8_t xkrt_conf_stream_t::n</definition>
+        <argsstring></argsstring>
+        <name>n</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="55" column="12" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__conf__stream__t_1a595dee72e4b3b6c49c1f4f6d6b74a0d3" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t xkrt_conf_stream_t::concurrency</definition>
+        <argsstring></argsstring>
+        <name>concurrency</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="58" column="14" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="52" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="53" bodyend="60"/>
+    <listofallmembers>
+      <member refid="structxkrt__conf__stream__t_1a595dee72e4b3b6c49c1f4f6d6b74a0d3" prot="public" virt="non-virtual"><scope>xkrt_conf_stream_t</scope><name>concurrency</name></member>
+      <member refid="structxkrt__conf__stream__t_1a40b669a4682be9f5bc86acd55eaf21ef" prot="public" virt="non-virtual"><scope>xkrt_conf_stream_t</scope><name>n</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

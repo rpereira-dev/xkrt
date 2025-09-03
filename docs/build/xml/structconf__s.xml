@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structconf__s" kind="struct" language="C++" prot="public">
+    <compoundname>conf_s</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structconf__s_1a16d842147ebf309d90562368c6dc50e6" prot="public" static="no" mutable="no">
+        <type><ref refid="structconf__device__t" kindref="compound">conf_device_t</ref></type>
+        <definition>conf_device_t conf_s::device</definition>
+        <argsstring></argsstring>
+        <name>device</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="95" column="19" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" bodystart="95" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structconf__s_1a20cd4a1c4454316c44b871ec051935fc" prot="public" static="no" mutable="no">
+        <type><ref refid="structconf__drivers__t" kindref="compound">conf_drivers_t</ref></type>
+        <definition>conf_drivers_t conf_s::drivers</definition>
+        <argsstring></argsstring>
+        <name>drivers</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="96" column="20" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structconf__s_1a89322ebc2f9dab7b36e4b9a187b21fd0" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool conf_s::merge_transfers</definition>
+        <argsstring></argsstring>
+        <name>merge_transfers</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="97" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" bodystart="97" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structconf__s_1a46314486c35524dd1aa8863437ffa579" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool conf_s::report_stats_on_deinit</definition>
+        <argsstring></argsstring>
+        <name>report_stats_on_deinit</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="98" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" bodystart="98" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structconf__s_1ac7452c1af977c6afaffe0830eba71f4f" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool conf_s::protect_registered_memory_overflow</definition>
+        <argsstring></argsstring>
+        <name>protect_registered_memory_overflow</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="103" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structconf__s_1a609a08ccb164726d22846114ffe78047" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool conf_s::enable_prefetching</definition>
+        <argsstring></argsstring>
+        <name>enable_prefetching</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="108" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" bodystart="108" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structconf__s_1aabb42c85731130954d4cc2554598d6d4" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool conf_s::warmup</definition>
+        <argsstring></argsstring>
+        <name>warmup</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="111" column="10" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" bodystart="111" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="structconf__s_1a33e3268f31b036be3ecee1fa4ba0eb8c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void conf_s::init</definition>
+        <argsstring>(void)</argsstring>
+        <name>init</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="113" column="10"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="6">
+        <label>conf_stream_t</label>
+        <link refid="structconf__stream__t"/>
+      </node>
+      <node id="2">
+        <label>conf_drivers_t</label>
+        <link refid="structconf__drivers__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>list</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>conf_driver_t</label>
+        <link refid="structconf__driver__t"/>
+      </node>
+      <node id="4">
+        <label>conf_device_t</label>
+        <link refid="structconf__device__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>offloader</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>conf_s</label>
+        <link refid="structconf__s"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>drivers</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>device</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>conf_offloader_t</label>
+        <link refid="structconf__offloader__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>streams</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" line="93" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/conf/conf.h" bodystart="94" bodyend="115"/>
+    <listofallmembers>
+      <member refid="structconf__s_1a16d842147ebf309d90562368c6dc50e6" prot="public" virt="non-virtual"><scope>conf_s</scope><name>device</name></member>
+      <member refid="structconf__s_1a20cd4a1c4454316c44b871ec051935fc" prot="public" virt="non-virtual"><scope>conf_s</scope><name>drivers</name></member>
+      <member refid="structconf__s_1a609a08ccb164726d22846114ffe78047" prot="public" virt="non-virtual"><scope>conf_s</scope><name>enable_prefetching</name></member>
+      <member refid="structconf__s_1a33e3268f31b036be3ecee1fa4ba0eb8c" prot="public" virt="non-virtual"><scope>conf_s</scope><name>init</name></member>
+      <member refid="structconf__s_1a89322ebc2f9dab7b36e4b9a187b21fd0" prot="public" virt="non-virtual"><scope>conf_s</scope><name>merge_transfers</name></member>
+      <member refid="structconf__s_1ac7452c1af977c6afaffe0830eba71f4f" prot="public" virt="non-virtual"><scope>conf_s</scope><name>protect_registered_memory_overflow</name></member>
+      <member refid="structconf__s_1a46314486c35524dd1aa8863437ffa579" prot="public" virt="non-virtual"><scope>conf_s</scope><name>report_stats_on_deinit</name></member>
+      <member refid="structconf__s_1aabb42c85731130954d4cc2554598d6d4" prot="public" virt="non-virtual"><scope>conf_s</scope><name>warmup</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__conf__offloader__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_conf_offloader_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__conf__offloader__t_1a9ff41deb89714e9ec602b5ff28032e8e" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__conf__stream__t" kindref="compound">xkrt_conf_stream_t</ref></type>
+        <definition>xkrt_conf_stream_t xkrt_conf_offloader_t::streams[XKRT_STREAM_TYPE_ALL]</definition>
+        <argsstring>[XKRT_STREAM_TYPE_ALL]</argsstring>
+        <name>streams</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="64" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__conf__offloader__t_1af7309c1d90e2f9dc7fe35ebcbb00dfa9" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t xkrt_conf_offloader_t::capacity</definition>
+        <argsstring></argsstring>
+        <name>capacity</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="65" column="14" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>xkrt_conf_stream_t</label>
+        <link refid="structxkrt__conf__stream__t"/>
+      </node>
+      <node id="1">
+        <label>xkrt_conf_offloader_t</label>
+        <link refid="structxkrt__conf__offloader__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>streams</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="62" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="63" bodyend="67"/>
+    <listofallmembers>
+      <member refid="structxkrt__conf__offloader__t_1af7309c1d90e2f9dc7fe35ebcbb00dfa9" prot="public" virt="non-virtual"><scope>xkrt_conf_offloader_t</scope><name>capacity</name></member>
+      <member refid="structxkrt__conf__offloader__t_1a9ff41deb89714e9ec602b5ff28032e8e" prot="public" virt="non-virtual"><scope>xkrt_conf_offloader_t</scope><name>streams</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

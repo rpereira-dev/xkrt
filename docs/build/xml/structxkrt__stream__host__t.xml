@@ -1,0 +1,288 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__stream__host__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_stream_host_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1aff84b46057dbad2046c5b79b75654507" prot="public" static="no" mutable="no">
+        <type><ref refid="classxkrt__stream__t" kindref="compound">xkrt_stream_t</ref></type>
+        <definition>xkrt_stream_t xkrt_stream_host_t::super</definition>
+        <argsstring></argsstring>
+        <name>super</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="53" column="19" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1aecfc21b960eae0b927cb1f5e229b3603" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int xkrt_stream_host_t::fd</definition>
+        <argsstring></argsstring>
+        <name>fd</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="59" column="13" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1a977c3934b8e9bf32679525ec48e44869" prot="public" static="no" mutable="no">
+        <type>unsigned char *</type>
+        <definition>unsigned char* xkrt_stream_host_t::sq_ptr</definition>
+        <argsstring></argsstring>
+        <name>sq_ptr</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="62" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1abb97e5d8eb677b78b25fda76916f9141" prot="public" static="no" mutable="no">
+        <type>unsigned char *</type>
+        <definition>unsigned char* xkrt_stream_host_t::sq_tail</definition>
+        <argsstring></argsstring>
+        <name>sq_tail</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="63" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="63" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1a644fb70a4e50b237be9293c08a71580e" prot="public" static="no" mutable="no">
+        <type>unsigned char *</type>
+        <definition>unsigned char* xkrt_stream_host_t::sq_mask</definition>
+        <argsstring></argsstring>
+        <name>sq_mask</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="64" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1a1e4f3914de49c30ca827ea88f1546a90" prot="public" static="no" mutable="no">
+        <type>unsigned char *</type>
+        <definition>unsigned char* xkrt_stream_host_t::sq_array</definition>
+        <argsstring></argsstring>
+        <name>sq_array</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="65" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1ad11d8c445df0868e9b6f562e3890476b" prot="public" static="no" mutable="no">
+        <type>struct io_uring_sqe *</type>
+        <definition>struct io_uring_sqe* xkrt_stream_host_t::sqes</definition>
+        <argsstring></argsstring>
+        <name>sqes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="67" column="28" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1a0fb5ccb3e8ad2bcf17b8ea32be53ee5c" prot="public" static="no" mutable="no">
+        <type>unsigned char *</type>
+        <definition>unsigned char* xkrt_stream_host_t::cq_ptr</definition>
+        <argsstring></argsstring>
+        <name>cq_ptr</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="70" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1ac5cc4c2b14307d61ef87118b767791c8" prot="public" static="no" mutable="no">
+        <type>unsigned char *</type>
+        <definition>unsigned char* xkrt_stream_host_t::cq_head</definition>
+        <argsstring></argsstring>
+        <name>cq_head</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="71" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1a382fe96d366e17734d7738628c98df35" prot="public" static="no" mutable="no">
+        <type>unsigned char *</type>
+        <definition>unsigned char* xkrt_stream_host_t::cq_tail</definition>
+        <argsstring></argsstring>
+        <name>cq_tail</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="72" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1a349773014b11c144b6f5354c3625f608" prot="public" static="no" mutable="no">
+        <type>unsigned char *</type>
+        <definition>unsigned char* xkrt_stream_host_t::cq_mask</definition>
+        <argsstring></argsstring>
+        <name>cq_mask</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="73" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1ad8bb612727fc9cfbc9000a97af559c84" prot="public" static="no" mutable="no">
+        <type>unsigned char *</type>
+        <definition>unsigned char* xkrt_stream_host_t::cq_array</definition>
+        <argsstring></argsstring>
+        <name>cq_array</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="74" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1a36b7269bd9978ebb3d136738709804cf" prot="public" static="no" mutable="no">
+        <type>struct io_uring_cqe *</type>
+        <definition>struct io_uring_cqe* xkrt_stream_host_t::cqes</definition>
+        <argsstring></argsstring>
+        <name>cqes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="76" column="28" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__host__t_1a0b6735b5cdddc4c76fc3fb01680a3b14" prot="public" static="no" mutable="no">
+        <type>struct xkrt_stream_host_t::@26</type>
+        <definition>struct xkrt_stream_host_t::@26 xkrt_stream_host_t::io_uring</definition>
+        <argsstring></argsstring>
+        <name>io_uring</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="78" column="14"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="10">
+        <label>xkrt_stream_instruction_copy_2D_t</label>
+        <link refid="structxkrt__stream__instruction__copy__2D__t"/>
+        <childnode refid="11" relation="usage">
+          <edgelabel>dst_device_view</edgelabel>
+          <edgelabel>src_device_view</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>Lockable</label>
+        <link refid="classLockable"/>
+      </node>
+      <node id="8">
+        <label>xkrt_stream_instruction_copy_1D_t</label>
+        <link refid="structxkrt__stream__instruction__copy__1D__t"/>
+      </node>
+      <node id="6">
+        <label>xkrt_stream_instruction_file_t</label>
+        <link refid="structxkrt__stream__instruction__file__t"/>
+      </node>
+      <node id="4">
+        <label>xkrt_stream_instruction_queue_t</label>
+        <link refid="classxkrt__stream__instruction__queue__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>instr</edgelabel>
+        </childnode>
+      </node>
+      <node id="5">
+        <label>xkrt_stream_instruction_t</label>
+        <link refid="structxkrt__stream__instruction__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>file</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>callback</edgelabel>
+        </childnode>
+        <childnode refid="8" relation="usage">
+          <edgelabel>copy_1D</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>kern</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>copy_2D</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="9">
+        <label>xkrt_stream_instruction_kernel_t</label>
+        <link refid="structxkrt__stream__instruction__kernel__t"/>
+      </node>
+      <node id="2">
+        <label>xkrt_stream_t</label>
+        <link refid="classxkrt__stream__t"/>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>pending</edgelabel>
+          <edgelabel>ready</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>xkrt_callback_t</label>
+        <link refid="structxkrt__callback__t"/>
+      </node>
+      <node id="1">
+        <label>xkrt_stream_host_t</label>
+        <link refid="structxkrt__stream__host__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>super</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" line="51" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/driver-host.h" bodystart="52" bodyend="79"/>
+    <listofallmembers>
+      <member refid="structxkrt__stream__host__t_1ad8bb612727fc9cfbc9000a97af559c84" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>cq_array</name></member>
+      <member refid="structxkrt__stream__host__t_1ac5cc4c2b14307d61ef87118b767791c8" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>cq_head</name></member>
+      <member refid="structxkrt__stream__host__t_1a349773014b11c144b6f5354c3625f608" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>cq_mask</name></member>
+      <member refid="structxkrt__stream__host__t_1a0fb5ccb3e8ad2bcf17b8ea32be53ee5c" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>cq_ptr</name></member>
+      <member refid="structxkrt__stream__host__t_1a382fe96d366e17734d7738628c98df35" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>cq_tail</name></member>
+      <member refid="structxkrt__stream__host__t_1a36b7269bd9978ebb3d136738709804cf" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>cqes</name></member>
+      <member refid="structxkrt__stream__host__t_1aecfc21b960eae0b927cb1f5e229b3603" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>fd</name></member>
+      <member refid="structxkrt__stream__host__t_1a0b6735b5cdddc4c76fc3fb01680a3b14" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>io_uring</name></member>
+      <member refid="structxkrt__stream__host__t_1a1e4f3914de49c30ca827ea88f1546a90" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>sq_array</name></member>
+      <member refid="structxkrt__stream__host__t_1a644fb70a4e50b237be9293c08a71580e" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>sq_mask</name></member>
+      <member refid="structxkrt__stream__host__t_1a977c3934b8e9bf32679525ec48e44869" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>sq_ptr</name></member>
+      <member refid="structxkrt__stream__host__t_1abb97e5d8eb677b78b25fda76916f9141" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>sq_tail</name></member>
+      <member refid="structxkrt__stream__host__t_1ad11d8c445df0868e9b6f562e3890476b" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>sqes</name></member>
+      <member refid="structxkrt__stream__host__t_1aff84b46057dbad2046c5b79b75654507" prot="public" virt="non-virtual"><scope>xkrt_stream_host_t</scope><name>super</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

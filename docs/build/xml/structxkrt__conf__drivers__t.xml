@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__conf__drivers__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_conf_drivers_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__conf__drivers__t_1ada3ec86d4e3e038b9384205ba34b02d4" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__conf__driver__t" kindref="compound">xkrt_conf_driver_t</ref></type>
+        <definition>xkrt_conf_driver_t xkrt_conf_drivers_t::list[XKRT_DRIVER_TYPE_MAX]</definition>
+        <argsstring>[XKRT_DRIVER_TYPE_MAX]</argsstring>
+        <name>list</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="85" column="24" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="85" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>xkrt_conf_drivers_t</label>
+        <link refid="structxkrt__conf__drivers__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>list</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>xkrt_conf_driver_t</label>
+        <link refid="structxkrt__conf__driver__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" line="83" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/conf/conf.h" bodystart="84" bodyend="87"/>
+    <listofallmembers>
+      <member refid="structxkrt__conf__drivers__t_1ada3ec86d4e3e038b9384205ba34b02d4" prot="public" virt="non-virtual"><scope>xkrt_conf_drivers_t</scope><name>list</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

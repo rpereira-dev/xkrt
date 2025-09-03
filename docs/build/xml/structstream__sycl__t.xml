@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structstream__sycl__t" kind="struct" language="C++" prot="public">
+    <compoundname>stream_sycl_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structstream__sycl__t_1ad61a2358c34d45a9b2b013f36f03021a" prot="public" static="no" mutable="no">
+        <type><ref refid="classstream__t" kindref="compound">stream_t</ref></type>
+        <definition>stream_t stream_sycl_t::super</definition>
+        <argsstring></argsstring>
+        <name>super</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" line="65" column="18" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstream__sycl__t_1a60005d60b3bdf177eb48c557efbb4bad" prot="public" static="no" mutable="no">
+        <type>sycl::queue</type>
+        <definition>sycl::queue stream_sycl_t::queue</definition>
+        <argsstring></argsstring>
+        <name>queue</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" line="68" column="25" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" bodystart="68" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstream__sycl__t_1a67d45f3ce708f7569ab7c4857926c3b1" prot="public" static="no" mutable="no">
+        <type>sycl::event *</type>
+        <definition>sycl::event* stream_sycl_t::buffer</definition>
+        <argsstring></argsstring>
+        <name>buffer</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" line="70" column="30" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstream__sycl__t_1a5416cd7fcad5b02a1b20f200963648d1" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t stream_sycl_t::capacity</definition>
+        <argsstring></argsstring>
+        <name>capacity</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" line="71" column="24" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstream__sycl__t_1a04f28e925d56b035e81161466cf5e52b" prot="public" static="no" mutable="no">
+        <type>struct stream_sycl_t::@28::@29</type>
+        <definition>struct stream_sycl_t::@28::@29 stream_sycl_t::events</definition>
+        <argsstring></argsstring>
+        <name>events</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" line="72" column="21"/>
+      </memberdef>
+      <memberdef kind="variable" id="structstream__sycl__t_1a7417f515fc9f07af2fd081fb458c0033" prot="public" static="no" mutable="no">
+        <type>struct stream_sycl_t::@28</type>
+        <definition>struct stream_sycl_t::@28 stream_sycl_t::sycl</definition>
+        <argsstring></argsstring>
+        <name>sycl</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" line="73" column="14"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="3">
+        <label>Lockable</label>
+        <link refid="classLockable"/>
+      </node>
+      <node id="5">
+        <label>stream_instruction_t</label>
+        <link refid="structstream__instruction__t"/>
+        <childnode refid="6" relation="usage">
+          <edgelabel>file</edgelabel>
+        </childnode>
+        <childnode refid="7" relation="usage">
+          <edgelabel>copy_2D</edgelabel>
+        </childnode>
+        <childnode refid="9" relation="usage">
+          <edgelabel>callback</edgelabel>
+        </childnode>
+        <childnode refid="10" relation="usage">
+          <edgelabel>copy_1D</edgelabel>
+        </childnode>
+        <childnode refid="11" relation="usage">
+          <edgelabel>kern</edgelabel>
+        </childnode>
+      </node>
+      <node id="10">
+        <label>stream_instruction_copy_1D_t</label>
+        <link refid="structstream__instruction__copy__1D__t"/>
+      </node>
+      <node id="9">
+        <label>callback_t</label>
+        <link refid="structcallback__t"/>
+      </node>
+      <node id="6">
+        <label>stream_instruction_file_t</label>
+        <link refid="structstream__instruction__file__t"/>
+      </node>
+      <node id="4">
+        <label>stream_instruction_queue_t</label>
+        <link refid="classstream__instruction__queue__t"/>
+        <childnode refid="5" relation="usage">
+          <edgelabel>instr</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>stream_instruction_copy_2D_t</label>
+        <link refid="structstream__instruction__copy__2D__t"/>
+        <childnode refid="8" relation="usage">
+          <edgelabel>dst_device_view</edgelabel>
+          <edgelabel>src_device_view</edgelabel>
+        </childnode>
+      </node>
+      <node id="1">
+        <label>stream_sycl_t</label>
+        <link refid="structstream__sycl__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>super</edgelabel>
+        </childnode>
+      </node>
+      <node id="11">
+        <label>stream_instruction_kernel_t</label>
+        <link refid="structstream__instruction__kernel__t"/>
+      </node>
+      <node id="8">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="2">
+        <label>stream_t</label>
+        <link refid="classstream__t"/>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>pending</edgelabel>
+          <edgelabel>ready</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" line="63" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/driver/driver-sycl.h" bodystart="64" bodyend="74"/>
+    <listofallmembers>
+      <member refid="structstream__sycl__t_1a67d45f3ce708f7569ab7c4857926c3b1" prot="public" virt="non-virtual"><scope>stream_sycl_t</scope><name>buffer</name></member>
+      <member refid="structstream__sycl__t_1a5416cd7fcad5b02a1b20f200963648d1" prot="public" virt="non-virtual"><scope>stream_sycl_t</scope><name>capacity</name></member>
+      <member refid="structstream__sycl__t_1a04f28e925d56b035e81161466cf5e52b" prot="public" virt="non-virtual"><scope>stream_sycl_t</scope><name>events</name></member>
+      <member refid="structstream__sycl__t_1a60005d60b3bdf177eb48c557efbb4bad" prot="public" virt="non-virtual"><scope>stream_sycl_t</scope><name>queue</name></member>
+      <member refid="structstream__sycl__t_1ad61a2358c34d45a9b2b013f36f03021a" prot="public" virt="non-virtual"><scope>stream_sycl_t</scope><name>super</name></member>
+      <member refid="structstream__sycl__t_1a7417f515fc9f07af2fd081fb458c0033" prot="public" virt="non-virtual"><scope>stream_sycl_t</scope><name>sycl</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

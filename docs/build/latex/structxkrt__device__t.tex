@@ -1,0 +1,133 @@
+\hypertarget{structxkrt__device__t}{}\doxysection{xkrt\+\_\+device\+\_\+t Struct Reference}
+\label{structxkrt__device__t}\index{xkrt\_device\_t@{xkrt\_device\_t}}
+
+
+Collaboration diagram for xkrt\+\_\+device\+\_\+t\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{structxkrt__device__t__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_ad523c4dbea6efb868e7efa741781aee6}\label{structxkrt__device__t_ad523c4dbea6efb868e7efa741781aee6}} 
+\mbox{\hyperlink{structxkrt__area__chunk__t}{xkrt\+\_\+area\+\_\+chunk\+\_\+t}} $\ast$ {\bfseries memory\+\_\+allocate\+\_\+on} (const size\+\_\+t size, int area\+\_\+idx)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a777a93673cd78d30499dfca79fb45a25}\label{structxkrt__device__t_a777a93673cd78d30499dfca79fb45a25}} 
+\mbox{\hyperlink{structxkrt__area__chunk__t}{xkrt\+\_\+area\+\_\+chunk\+\_\+t}} $\ast$ {\bfseries memory\+\_\+allocate} (const size\+\_\+t size)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_aef2e1ac87cd3328812066ae1a053d5aa}\label{structxkrt__device__t_aef2e1ac87cd3328812066ae1a053d5aa}} 
+void {\bfseries memory\+\_\+deallocate\+\_\+on} (\mbox{\hyperlink{structxkrt__area__chunk__t}{xkrt\+\_\+area\+\_\+chunk\+\_\+t}} $\ast$chunk, int area\+\_\+idx)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a95ed702aa9ff147bca7992c473aa3a03}\label{structxkrt__device__t_a95ed702aa9ff147bca7992c473aa3a03}} 
+void {\bfseries memory\+\_\+deallocate} (\mbox{\hyperlink{structxkrt__area__chunk__t}{xkrt\+\_\+area\+\_\+chunk\+\_\+t}} $\ast$chunk)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_ae172238fe0ceedd5ef476d5899552f08}\label{structxkrt__device__t_ae172238fe0ceedd5ef476d5899552f08}} 
+void {\bfseries memory\+\_\+reset} (void)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a64357a68e3f8491a883b4f2cedecd76f}\label{structxkrt__device__t_a64357a68e3f8491a883b4f2cedecd76f}} 
+void {\bfseries memory\+\_\+reset\+\_\+on} (int area\+\_\+idx)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a6c3d128e066e8bbd518564899e27800e}\label{structxkrt__device__t_a6c3d128e066e8bbd518564899e27800e}} 
+void {\bfseries memory\+\_\+set\+\_\+chunk0} (uintptr\+\_\+t device\+\_\+ptr, size\+\_\+t size, int area\+\_\+idx)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a5b9cf8b6b567b7652ced26094f4b494c}\label{structxkrt__device__t_a5b9cf8b6b567b7652ced26094f4b494c}} 
+void {\bfseries offloader\+\_\+init} (int($\ast$f\+\_\+stream\+\_\+suggest)(int device\+\_\+driver\+\_\+id, xkrt\+\_\+stream\+\_\+type\+\_\+t type))
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_ad5c07b76d7dd734317341d05e323d5a8}\label{structxkrt__device__t_ad5c07b76d7dd734317341d05e323d5a8}} 
+void {\bfseries offloader\+\_\+init\+\_\+thread} (uint8\+\_\+t device\+\_\+tid, \mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$($\ast$f\+\_\+stream\+\_\+create)(\mbox{\hyperlink{structxkrt__device__t}{xkrt\+\_\+device\+\_\+t}} $\ast$device, xkrt\+\_\+stream\+\_\+type\+\_\+t type, xkrt\+\_\+stream\+\_\+instruction\+\_\+counter\+\_\+t capacity))
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a6d9a754ec20472cf390cd5bb39f74e0d}\label{structxkrt__device__t_a6d9a754ec20472cf390cd5bb39f74e0d}} 
+int {\bfseries offloader\+\_\+launch} (uint8\+\_\+t device\+\_\+tid)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_aee3b190d91187292fcadcddd9ce41457}\label{structxkrt__device__t_aee3b190d91187292fcadcddd9ce41457}} 
+int {\bfseries offloader\+\_\+progress} (uint8\+\_\+t device\+\_\+tid)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a797a17eaca6acc6ede58bccd06055b17}\label{structxkrt__device__t_a797a17eaca6acc6ede58bccd06055b17}} 
+int {\bfseries offloader\+\_\+wait\+\_\+random\+\_\+instruction} (uint8\+\_\+t device\+\_\+tid)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_ae41cc856ad1b5aba475bc3af7a41ebc9}\label{structxkrt__device__t_ae41cc856ad1b5aba475bc3af7a41ebc9}} 
+void {\bfseries offloader\+\_\+streams\+\_\+are\+\_\+empty} (uint8\+\_\+t device\+\_\+id, const xkrt\+\_\+stream\+\_\+type\+\_\+t stype, bool $\ast$ready, bool $\ast$pending) const
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_af4010166cc9f45c8a514eb91cf4fb252}\label{structxkrt__device__t_af4010166cc9f45c8a514eb91cf4fb252}} 
+void {\bfseries offloader\+\_\+stream\+\_\+next} (const xkrt\+\_\+stream\+\_\+type\+\_\+t type, \mbox{\hyperlink{structxkrt__thread__t}{xkrt\+\_\+thread\+\_\+t}} $\ast$$\ast$pthread, \mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$$\ast$pstream)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_aa3e198d1d113b9d056a8af70693dcd77}\label{structxkrt__device__t_aa3e198d1d113b9d056a8af70693dcd77}} 
+int {\bfseries offloader\+\_\+stream\+\_\+instructions\+\_\+launch} (uint8\+\_\+t device\+\_\+id, const xkrt\+\_\+stream\+\_\+type\+\_\+t stype)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a340db9b4a15d0f41fe8b32e5f1716e5f}\label{structxkrt__device__t_a340db9b4a15d0f41fe8b32e5f1716e5f}} 
+{\footnotesize template$<$bool blocking$>$ }\\int {\bfseries offloader\+\_\+stream\+\_\+instructions\+\_\+progress} (uint8\+\_\+t device\+\_\+tid, const xkrt\+\_\+stream\+\_\+type\+\_\+t stype)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_af1ef7486ab9dcf34ad03b3668bf247bc}\label{structxkrt__device__t_af1ef7486ab9dcf34ad03b3668bf247bc}} 
+void {\bfseries offloader\+\_\+stream\+\_\+instruction\+\_\+new} (const xkrt\+\_\+stream\+\_\+type\+\_\+t stype, \mbox{\hyperlink{structxkrt__thread__t}{xkrt\+\_\+thread\+\_\+t}} $\ast$$\ast$pthread, \mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$$\ast$pstream, const xkrt\+\_\+stream\+\_\+instruction\+\_\+type\+\_\+t itype, \mbox{\hyperlink{structxkrt__stream__instruction__t}{xkrt\+\_\+stream\+\_\+instruction\+\_\+t}} $\ast$$\ast$pinstr, const \mbox{\hyperlink{structxkrt__callback__t}{xkrt\+\_\+callback\+\_\+t}} \&callback)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_afa1b4f20a7dc7934173e65bbbaf7f021}\label{structxkrt__device__t_afa1b4f20a7dc7934173e65bbbaf7f021}} 
+void {\bfseries offloader\+\_\+stream\+\_\+instruction\+\_\+commit} (\mbox{\hyperlink{structxkrt__thread__t}{xkrt\+\_\+thread\+\_\+t}} $\ast$thread, \mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$stream, \mbox{\hyperlink{structxkrt__stream__instruction__t}{xkrt\+\_\+stream\+\_\+instruction\+\_\+t}} $\ast$instr)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a10ddbb7c6095ab01fedd023457859d79}\label{structxkrt__device__t_a10ddbb7c6095ab01fedd023457859d79}} 
+{\footnotesize template$<$xkrt\+\_\+stream\+\_\+instruction\+\_\+type\+\_\+t T$>$ }\\void {\bfseries offloader\+\_\+stream\+\_\+instruction\+\_\+submit\+\_\+file} (int fd, void $\ast$buffer, size\+\_\+t n, size\+\_\+t offset, const \mbox{\hyperlink{structxkrt__callback__t}{xkrt\+\_\+callback\+\_\+t}} \&callback)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a7b7046d170d8ab624457f0f3811b20ce}\label{structxkrt__device__t_a7b7046d170d8ab624457f0f3811b20ce}} 
+void {\bfseries offloader\+\_\+stream\+\_\+instruction\+\_\+submit\+\_\+kernel} (xkrt\+\_\+kernel\+\_\+launcher\+\_\+t launcher, void $\ast$vargs, const \mbox{\hyperlink{structxkrt__callback__t}{xkrt\+\_\+callback\+\_\+t}} \&callback)
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a9b734cf00459403beab5742cd9efec64}\label{structxkrt__device__t_a9b734cf00459403beab5742cd9efec64}} 
+{\footnotesize template$<$typename HOST\+\_\+\+VIEW\+\_\+T , typename DEVICE\+\_\+\+VIEW\+\_\+T $>$ }\\\mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$ {\bfseries offloader\+\_\+stream\+\_\+instruction\+\_\+submit\+\_\+copy} (const HOST\+\_\+\+VIEW\+\_\+T \&host\+\_\+view, const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t dst\+\_\+device\+\_\+global\+\_\+id, const DEVICE\+\_\+\+VIEW\+\_\+T \&dst\+\_\+device\+\_\+view, const xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t src\+\_\+device\+\_\+global\+\_\+id, const DEVICE\+\_\+\+VIEW\+\_\+T \&src\+\_\+device\+\_\+view, const \mbox{\hyperlink{structxkrt__callback__t}{xkrt\+\_\+callback\+\_\+t}} \&callback)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a3aaf6512a4dbab5ddcc9487b2f2d0da5}\label{structxkrt__device__t_a3aaf6512a4dbab5ddcc9487b2f2d0da5}} 
+\mbox{\hyperlink{structxkrt__conf__device__t}{xkrt\+\_\+conf\+\_\+device\+\_\+t}} $\ast$ {\bfseries conf}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a93d8c7e91afebbd6d1855d8a876fc80a}\label{structxkrt__device__t_a93d8c7e91afebbd6d1855d8a876fc80a}} 
+xkrt\+\_\+driver\+\_\+type\+\_\+t {\bfseries driver\+\_\+type}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a6f9b188c336c5d9a19e2472b3db56300}\label{structxkrt__device__t_a6f9b188c336c5d9a19e2472b3db56300}} 
+uint8\+\_\+t {\bfseries driver\+\_\+id}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a27fec04e5965aaee8cf9cee6ac5c8658}\label{structxkrt__device__t_a27fec04e5965aaee8cf9cee6ac5c8658}} 
+xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+t {\bfseries global\+\_\+id}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a529821e9eab2af583a8f1ec4e1e6b822}\label{structxkrt__device__t_a529821e9eab2af583a8f1ec4e1e6b822}} 
+std\+::atomic$<$ xkrt\+\_\+device\+\_\+state\+\_\+t $>$ {\bfseries state}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_affbef931889c45c02e67a75c8c3ed5bc}\label{structxkrt__device__t_affbef931889c45c02e67a75c8c3ed5bc}} 
+xkrt\+\_\+device\+\_\+global\+\_\+id\+\_\+bitfield\+\_\+t $\ast$ {\bfseries affinity}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a42dfd1c731ddacee1bff1d58792d715d}\label{structxkrt__device__t_a42dfd1c731ddacee1bff1d58792d715d}} 
+\mbox{\hyperlink{structxkrt__device__memory__info__t}{xkrt\+\_\+device\+\_\+memory\+\_\+info\+\_\+t}} {\bfseries memories} \mbox{[}XKRT\+\_\+\+DEVICE\+\_\+\+MEMORIES\+\_\+\+MAX\mbox{]}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_afbc8deedee3c3d5160b1d058cae2b91c}\label{structxkrt__device__t_afbc8deedee3c3d5160b1d058cae2b91c}} 
+int {\bfseries nmemories}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_acf674da257190027244afb6df7ed0afe}\label{structxkrt__device__t_acf674da257190027244afb6df7ed0afe}} 
+int {\bfseries nstreams\+\_\+per\+\_\+thread}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_ae38e4da31920cbfd070f051c71046b30}\label{structxkrt__device__t_ae38e4da31920cbfd070f051c71046b30}} 
+int {\bfseries count} \mbox{[}XKRT\+\_\+\+STREAM\+\_\+\+TYPE\+\_\+\+ALL\mbox{]}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_ab930ea32a836ff531d9492e2b082b774}\label{structxkrt__device__t_ab930ea32a836ff531d9492e2b082b774}} 
+std\+::atomic$<$ uint8\+\_\+t $>$ {\bfseries next\+\_\+thread}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a84c77b6cd2090b5d9d86b93f5edbbf4b}\label{structxkrt__device__t_a84c77b6cd2090b5d9d86b93f5edbbf4b}} 
+std\+::atomic$<$ int $>$ {\bfseries next\+\_\+stream} \mbox{[}XKRT\+\_\+\+MAX\+\_\+\+THREADS\+\_\+\+PER\+\_\+\+DEVICE\mbox{]}\mbox{[}XKRT\+\_\+\+STREAM\+\_\+\+TYPE\+\_\+\+ALL\mbox{]}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a27016dbed2a635995037dec995e60a56}\label{structxkrt__device__t_a27016dbed2a635995037dec995e60a56}} 
+\mbox{\hyperlink{classxkrt__stream__t}{xkrt\+\_\+stream\+\_\+t}} $\ast$$\ast$ {\bfseries streams} \mbox{[}XKRT\+\_\+\+MAX\+\_\+\+THREADS\+\_\+\+PER\+\_\+\+DEVICE\mbox{]}\mbox{[}XKRT\+\_\+\+STREAM\+\_\+\+TYPE\+\_\+\+ALL\mbox{]}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_a9985a74c5bd44b22b1f368b6d4931cf7}\label{structxkrt__device__t_a9985a74c5bd44b22b1f368b6d4931cf7}} 
+\mbox{\hyperlink{structxkrt__thread__t}{xkrt\+\_\+thread\+\_\+t}} $\ast$ {\bfseries threads} \mbox{[}XKRT\+\_\+\+MAX\+\_\+\+THREADS\+\_\+\+PER\+\_\+\+DEVICE\mbox{]}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_afe09c47c9bb0d8f666467bbc153d6e3d}\label{structxkrt__device__t_afe09c47c9bb0d8f666467bbc153d6e3d}} 
+std\+::atomic$<$ uint8\+\_\+t $>$ {\bfseries nthreads}
+\item 
+\mbox{\Hypertarget{structxkrt__device__t_acfb66f0f66c069aabdcbac4e2796d3c5}\label{structxkrt__device__t_acfb66f0f66c069aabdcbac4e2796d3c5}} 
+std\+::atomic$<$ uint8\+\_\+t $>$ {\bfseries thread\+\_\+next}
+\end{DoxyCompactItemize}
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/rpereira/repo/xktrucs-\/new/xkaapi/include/xkrt/driver/device.\+hpp\end{DoxyCompactItemize}

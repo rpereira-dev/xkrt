@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structRouterCFS_1_1xkrt__router__cfs__map__t" kind="struct" language="C++" prot="public">
+    <compoundname>RouterCFS::xkrt_router_cfs_map_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structRouterCFS_1_1xkrt__router__cfs__map__t_1ad43b33ed1de12e84b6ce111e11eb4910" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t RouterCFS::xkrt_router_cfs_map_t::weight</definition>
+        <argsstring></argsstring>
+        <name>weight</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-cfs.hpp" line="38" column="25" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-cfs.hpp" bodystart="38" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structRouterCFS_1_1xkrt__router__cfs__map__t_1af544b88266961a4ea143fe0fa42f3d5a" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool RouterCFS::xkrt_router_cfs_map_t::used</definition>
+        <argsstring></argsstring>
+        <name>used</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-cfs.hpp" line="39" column="22" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-cfs.hpp" bodystart="39" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structRouterCFS_1_1xkrt__router__cfs__map__t_1aba20285b17b53271305c4e48e1ae4882" prot="public" static="no" mutable="no">
+        <type>struct RouterCFS::xkrt_router_cfs_map_t::@53</type>
+        <definition>struct RouterCFS::xkrt_router_cfs_map_t::@53 RouterCFS::xkrt_router_cfs_map_t::values[XKRT_DEVICES_MAX][XKRT_DEVICES_MAX]</definition>
+        <argsstring>[XKRT_DEVICES_MAX][XKRT_DEVICES_MAX]</argsstring>
+        <name>values</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-cfs.hpp" line="40" column="56"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="structRouterCFS_1_1xkrt__router__cfs__map__t_1a3d63e2ebec4e696221d4f6e5c46f7f9a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>RouterCFS::xkrt_router_cfs_map_t::xkrt_router_cfs_map_t</definition>
+        <argsstring>(const uint8_t weights[XKRT_DEVICES_MAX][XKRT_DEVICES_MAX])</argsstring>
+        <name>xkrt_router_cfs_map_t</name>
+        <param>
+          <type>const uint8_t</type>
+          <declname>weights</declname>
+          <array>[XKRT_DEVICES_MAX][XKRT_DEVICES_MAX]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-cfs.hpp" line="42" column="13" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-cfs.hpp" bodystart="42" bodyend="52"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-cfs.hpp" line="35" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/routing/router-cfs.hpp" bodystart="36" bodyend="53"/>
+    <listofallmembers>
+      <member refid="structRouterCFS_1_1xkrt__router__cfs__map__t_1af544b88266961a4ea143fe0fa42f3d5a" prot="public" virt="non-virtual"><scope>RouterCFS::xkrt_router_cfs_map_t</scope><name>used</name></member>
+      <member refid="structRouterCFS_1_1xkrt__router__cfs__map__t_1aba20285b17b53271305c4e48e1ae4882" prot="public" virt="non-virtual"><scope>RouterCFS::xkrt_router_cfs_map_t</scope><name>values</name></member>
+      <member refid="structRouterCFS_1_1xkrt__router__cfs__map__t_1ad43b33ed1de12e84b6ce111e11eb4910" prot="public" virt="non-virtual"><scope>RouterCFS::xkrt_router_cfs_map_t</scope><name>weight</name></member>
+      <member refid="structRouterCFS_1_1xkrt__router__cfs__map__t_1a3d63e2ebec4e696221d4f6e5c46f7f9a" prot="public" virt="non-virtual"><scope>RouterCFS::xkrt_router_cfs_map_t</scope><name>xkrt_router_cfs_map_t</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

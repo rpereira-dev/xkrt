@@ -1,0 +1,175 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structxkrt__stream__instruction__t" kind="struct" language="C++" prot="public">
+    <compoundname>xkrt_stream_instruction_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structxkrt__stream__instruction__t_1ac083dc80c4c40a7b02d58b9a907f73ac" prot="public" static="no" mutable="no">
+        <type>xkrt_stream_instruction_type_t</type>
+        <definition>xkrt_stream_instruction_type_t xkrt_stream_instruction_t::type</definition>
+        <argsstring></argsstring>
+        <name>type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" line="95" column="36" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="95" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__instruction__t_1aebc109eb0232d9a8df22fda3a1b640b0" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__callback__t" kindref="compound">xkrt_callback_t</ref></type>
+        <definition>xkrt_callback_t xkrt_stream_instruction_t::callback</definition>
+        <argsstring></argsstring>
+        <name>callback</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" line="96" column="21" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__instruction__t_1a340b7fc429d59697bdcd70302e86107f" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__stream__instruction__copy__1D__t" kindref="compound">xkrt_stream_instruction_copy_1D_t</ref></type>
+        <definition>xkrt_stream_instruction_copy_1D_t xkrt_stream_instruction_t::copy_1D</definition>
+        <argsstring></argsstring>
+        <name>copy_1D</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" line="99" column="45" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="99" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__instruction__t_1a46207e76790d255978c1ed32858f03b8" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__stream__instruction__copy__2D__t" kindref="compound">xkrt_stream_instruction_copy_2D_t</ref></type>
+        <definition>xkrt_stream_instruction_copy_2D_t xkrt_stream_instruction_t::copy_2D</definition>
+        <argsstring></argsstring>
+        <name>copy_2D</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" line="100" column="45" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="100" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__instruction__t_1a8e8375b67cf1f25b3fe777802aeae447" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__stream__instruction__kernel__t" kindref="compound">xkrt_stream_instruction_kernel_t</ref></type>
+        <definition>xkrt_stream_instruction_kernel_t xkrt_stream_instruction_t::kern</definition>
+        <argsstring></argsstring>
+        <name>kern</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" line="101" column="45" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="101" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__instruction__t_1a4c813a306f90e45038dae4a8dc2819ef" prot="public" static="no" mutable="no">
+        <type><ref refid="structxkrt__stream__instruction__file__t" kindref="compound">xkrt_stream_instruction_file_t</ref></type>
+        <definition>xkrt_stream_instruction_file_t xkrt_stream_instruction_t::file</definition>
+        <argsstring></argsstring>
+        <name>file</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" line="102" column="45" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="102" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__instruction__t_1a7e6f5cc0bd67412b8ecadcf42fd8d99d" prot="public" static="no" mutable="no">
+        <type>union xkrt_stream_instruction_t::@37</type>
+        <definition>union xkrt_stream_instruction_t::@37 xkrt_stream_instruction_t::@38</definition>
+        <argsstring></argsstring>
+        <name>@38</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" line="103" column="5"/>
+      </memberdef>
+      <memberdef kind="variable" id="structxkrt__stream__instruction__t_1aafed47e6e33a5f6ec02c24bedc7662f1" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool xkrt_stream_instruction_t::completed</definition>
+        <argsstring></argsstring>
+        <name>completed</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" line="104" column="10" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="104" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="6">
+        <label>xkrt_stream_instruction_copy_2D_t</label>
+        <link refid="structxkrt__stream__instruction__copy__2D__t"/>
+        <childnode refid="7" relation="usage">
+          <edgelabel>dst_device_view</edgelabel>
+          <edgelabel>src_device_view</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>xkrt_stream_instruction_copy_1D_t</label>
+        <link refid="structxkrt__stream__instruction__copy__1D__t"/>
+      </node>
+      <node id="2">
+        <label>xkrt_stream_instruction_file_t</label>
+        <link refid="structxkrt__stream__instruction__file__t"/>
+      </node>
+      <node id="1">
+        <label>xkrt_stream_instruction_t</label>
+        <link refid="structxkrt__stream__instruction__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>file</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>callback</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>copy_1D</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>kern</edgelabel>
+        </childnode>
+        <childnode refid="6" relation="usage">
+          <edgelabel>copy_2D</edgelabel>
+        </childnode>
+      </node>
+      <node id="7">
+        <label>memory_replica_view_t</label>
+        <link refid="structmemory__replica__view__t"/>
+      </node>
+      <node id="5">
+        <label>xkrt_stream_instruction_kernel_t</label>
+        <link refid="structxkrt__stream__instruction__kernel__t"/>
+      </node>
+      <node id="3">
+        <label>xkrt_callback_t</label>
+        <link refid="structxkrt__callback__t"/>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" line="93" column="1" bodyfile="/home/rpereira/repo/xktrucs-new/xkaapi/include/xkrt/driver/stream-instruction.h" bodystart="94" bodyend="106"/>
+    <listofallmembers>
+      <member refid="structxkrt__stream__instruction__t_1aebc109eb0232d9a8df22fda3a1b640b0" prot="public" virt="non-virtual"><scope>xkrt_stream_instruction_t</scope><name>callback</name></member>
+      <member refid="structxkrt__stream__instruction__t_1aafed47e6e33a5f6ec02c24bedc7662f1" prot="public" virt="non-virtual"><scope>xkrt_stream_instruction_t</scope><name>completed</name></member>
+      <member refid="structxkrt__stream__instruction__t_1a340b7fc429d59697bdcd70302e86107f" prot="public" virt="non-virtual"><scope>xkrt_stream_instruction_t</scope><name>copy_1D</name></member>
+      <member refid="structxkrt__stream__instruction__t_1a46207e76790d255978c1ed32858f03b8" prot="public" virt="non-virtual"><scope>xkrt_stream_instruction_t</scope><name>copy_2D</name></member>
+      <member refid="structxkrt__stream__instruction__t_1a4c813a306f90e45038dae4a8dc2819ef" prot="public" virt="non-virtual"><scope>xkrt_stream_instruction_t</scope><name>file</name></member>
+      <member refid="structxkrt__stream__instruction__t_1a8e8375b67cf1f25b3fe777802aeae447" prot="public" virt="non-virtual"><scope>xkrt_stream_instruction_t</scope><name>kern</name></member>
+      <member refid="structxkrt__stream__instruction__t_1ac083dc80c4c40a7b02d58b9a907f73ac" prot="public" virt="non-virtual"><scope>xkrt_stream_instruction_t</scope><name>type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

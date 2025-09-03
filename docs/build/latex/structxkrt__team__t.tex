@@ -1,0 +1,46 @@
+\hypertarget{structxkrt__team__t}{}\doxysection{xkrt\+\_\+team\+\_\+t Struct Reference}
+\label{structxkrt__team__t}\index{xkrt\_team\_t@{xkrt\_team\_t}}
+
+
+Collaboration diagram for xkrt\+\_\+team\+\_\+t\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{structxkrt__team__t__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structxkrt__team__t_a8d637518ad82394ea4ab4858f49644a0}\label{structxkrt__team__t_a8d637518ad82394ea4ab4858f49644a0}} 
+\mbox{\hyperlink{structxkrt__team__desc__t}{xkrt\+\_\+team\+\_\+desc\+\_\+t}} {\bfseries desc}
+\item 
+\mbox{\Hypertarget{structxkrt__team__t_acb8c55746d723dcee331236d83fcbfe6}\label{structxkrt__team__t_acb8c55746d723dcee331236d83fcbfe6}} 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>\mbox{\hyperlink{structxkrt__thread__t}{xkrt\_thread\_t}} $\ast$ {\bfseries threads}\\
+\>int {\bfseries nthreads}\\
+\>struct \{\\
+\>\>std::atomic$<$ int $>$ {\bfseries n}\\
+\>\>volatile int {\bfseries version}\\
+\>\>pthread\_cond\_t {\bfseries cond}\\
+\>\>pthread\_mutex\_t {\bfseries mtx}\\
+\>\} {\bfseries barrier}\\
+\>struct \{\\
+\>\>pthread\_mutex\_t {\bfseries mtx}\\
+\>\} {\bfseries critical}\\
+\>struct \{\\
+\>\>uint32\_t {\bfseries index}\\
+\>\>std::function$<$ void(\mbox{\hyperlink{structxkrt__team__t}{xkrt\_team\_t}} $\ast$team, \mbox{\hyperlink{structxkrt__thread__t}{xkrt\_thread\_t}} $\ast$thread)$>$ {\bfseries f} \mbox{[}XKRT\_TEAM\_PARALLEL\_FOR\_MAX\_FUNC\mbox{]}\\
+\>\>uint32\_t {\bfseries completed}\\
+\>\>std::atomic$<$ uint32\_t $>$ {\bfseries pending}\\
+\>\} {\bfseries parallel\_for}\\
+\} {\bfseries priv}\\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/rpereira/repo/xktrucs-\/new/xkaapi/include/xkrt/thread/thread.\+h\end{DoxyCompactItemize}

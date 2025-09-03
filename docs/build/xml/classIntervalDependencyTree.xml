@@ -1,0 +1,471 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="classIntervalDependencyTree" kind="class" language="C++" prot="public">
+    <compoundname>IntervalDependencyTree</compoundname>
+    <basecompoundref refid="classKHPTree" prot="public" virt="non-virtual">KHPTree&lt; K, IntervalDependencyTreeSearch &gt;</basecompoundref>
+    <basecompoundref refid="classDependencyDomain" prot="public" virt="non-virtual">DependencyDomain</basecompoundref>
+      <sectiondef kind="public-type">
+      <memberdef kind="typedef" id="classIntervalDependencyTree_1a1ec97b198c08f2947256e2cf1a15f6ea" prot="public" static="no">
+        <type><ref refid="classKHPTree" kindref="compound">KHPTree</ref>&lt; K, <ref refid="classIntervalDependencyTreeSearch" kindref="compound">IntervalDependencyTreeSearch</ref> &gt;</type>
+        <definition>using IntervalDependencyTree::Base =  KHPTree&lt;K, IntervalDependencyTreeSearch&gt;</definition>
+        <argsstring></argsstring>
+        <name>Base</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="190" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="190" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classIntervalDependencyTree_1a8e57a2a6656df93375b9db32bfa4bdc8" prot="public" static="no">
+        <type><ref refid="classKHyperrect" kindref="compound">KHyperrect</ref>&lt; K &gt;</type>
+        <definition>using IntervalDependencyTree::Hyperrect =  KHyperrect&lt;K&gt;</definition>
+        <argsstring></argsstring>
+        <name>Hyperrect</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="191" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="191" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classIntervalDependencyTree_1ad4c5ef462358b2ced82212dab7f1d52d" prot="public" static="no">
+        <type><ref refid="classIntervalDependencyTreeNode" kindref="compound">IntervalDependencyTreeNode</ref></type>
+        <definition>using IntervalDependencyTree::Node =  IntervalDependencyTreeNode</definition>
+        <argsstring></argsstring>
+        <name>Node</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="192" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="192" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classIntervalDependencyTree_1a931b90ed150bbd525228ff18362d36f6" prot="public" static="no">
+        <type>typename Base::Node</type>
+        <definition>using IntervalDependencyTree::NodeBase =  typename Base::Node</definition>
+        <argsstring></argsstring>
+        <name>NodeBase</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="193" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="193" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classIntervalDependencyTree_1aa32370b5ddc950822c1482180a36d575" prot="public" static="no">
+        <type><ref refid="classIntervalDependencyTreeSearch" kindref="compound">IntervalDependencyTreeSearch</ref></type>
+        <definition>using IntervalDependencyTree::Search =  IntervalDependencyTreeSearch</definition>
+        <argsstring></argsstring>
+        <name>Search</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="194" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="194" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classIntervalDependencyTree_1adf1aad504d1e0947196dbb95ff5bee27" prot="public" static="no" mutable="no">
+        <type>std::list&lt; <ref refid="classaccess__t" kindref="compound">access_t</ref> * &gt;</type>
+        <definition>std::list&lt;access_t *&gt; IntervalDependencyTree::accesses</definition>
+        <argsstring></argsstring>
+        <name>accesses</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="199" column="19" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="199" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="classIntervalDependencyTree_1a6621db8d0a96da6eda34503c299bd63d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>IntervalDependencyTree::IntervalDependencyTree</definition>
+        <argsstring>()</argsstring>
+        <name>IntervalDependencyTree</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="204" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="204" bodyend="204"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTree_1ae0ad6cc2ace8dce1c1df2a117e5df54c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>IntervalDependencyTree::~IntervalDependencyTree</definition>
+        <argsstring>()</argsstring>
+        <name>~IntervalDependencyTree</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="205" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="205" bodyend="205"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTree_1aae6af1462147ee661cc2b7d65ffe6271" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void IntervalDependencyTree::conflicting</definition>
+        <argsstring>(std::vector&lt; void * &gt; *conflicts, access_t *access)</argsstring>
+        <name>conflicting</name>
+        <param>
+          <type>std::vector&lt; void * &gt; *</type>
+          <declname>conflicts</declname>
+        </param>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>access</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="210" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="210" bodyend="220"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTree_1a99d44065c1c207b07df089fbed762bec" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void IntervalDependencyTree::on_insert</definition>
+        <argsstring>(NodeBase *nodebase, Search &amp;search)</argsstring>
+        <name>on_insert</name>
+        <param>
+          <type>NodeBase *</type>
+          <declname>nodebase</declname>
+        </param>
+        <param>
+          <type><ref refid="classIntervalDependencyTreeSearch" kindref="compound">Search</ref> &amp;</type>
+          <declname>search</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="227" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="227" bodyend="246"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTree_1a552c31ae074a20700ed75c1adec07a5f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void IntervalDependencyTree::on_shrink</definition>
+        <argsstring>(NodeBase *nodebase, const Interval &amp;interval, int k)</argsstring>
+        <name>on_shrink</name>
+        <param>
+          <type>NodeBase *</type>
+          <declname>nodebase</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classInterval" kindref="compound">Interval</ref> &amp;</type>
+          <declname>interval</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="249" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="249" bodyend="257"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTree_1a1d8d60b7719c93d0a547904790e5a414" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="virtual">
+        <type><ref refid="classIntervalDependencyTreeNode" kindref="compound">Node</ref> *</type>
+        <definition>Node* IntervalDependencyTree::new_node</definition>
+        <argsstring>(Search &amp;search, const Hyperrect &amp;h, const int k, const Color color) const</argsstring>
+        <name>new_node</name>
+        <reimplements refid="classKHPTree_1ad74a65d97a18faffe061a9e7c27a7a67">new_node</reimplements>
+        <param>
+          <type><ref refid="classIntervalDependencyTreeSearch" kindref="compound">Search</ref> &amp;</type>
+          <declname>search</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <param>
+          <type>const int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>const Color</type>
+          <declname>color</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="260" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="260" bodyend="268"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTree_1a9bd5f170e922a8b4611e3be7f6929b38" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classIntervalDependencyTreeNode" kindref="compound">Node</ref> *</type>
+        <definition>Node* IntervalDependencyTree::new_node</definition>
+        <argsstring>(Search &amp;search, const Hyperrect &amp;h, const int k, const Color color, const NodeBase *inherit) const</argsstring>
+        <name>new_node</name>
+        <param>
+          <type><ref refid="classIntervalDependencyTreeSearch" kindref="compound">Search</ref> &amp;</type>
+          <declname>search</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <param>
+          <type>const int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>const Color</type>
+          <declname>color</declname>
+        </param>
+        <param>
+          <type>const NodeBase *</type>
+          <declname>inherit</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="271" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="271" bodyend="280"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTree_1a22aec281769c2cf5a3c41a3bcc9bb25e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool IntervalDependencyTree::intersect_stop_test</definition>
+        <argsstring>(NodeBase *nodebase, Search &amp;search, const Hyperrect &amp;h) const</argsstring>
+        <name>intersect_stop_test</name>
+        <param>
+          <type>NodeBase *</type>
+          <declname>nodebase</declname>
+        </param>
+        <param>
+          <type><ref refid="classIntervalDependencyTreeSearch" kindref="compound">Search</ref> &amp;</type>
+          <declname>search</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="286" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="286" bodyend="298"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTree_1a4ee088e674f20bf47a1bd801042f44de" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void IntervalDependencyTree::on_intersect</definition>
+        <argsstring>(NodeBase *nodebase, Search &amp;search, const Hyperrect &amp;h) const</argsstring>
+        <name>on_intersect</name>
+        <param>
+          <type>NodeBase *</type>
+          <declname>nodebase</declname>
+        </param>
+        <param>
+          <type><ref refid="classIntervalDependencyTreeSearch" kindref="compound">Search</ref> &amp;</type>
+          <declname>search</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classKHyperrect" kindref="compound">Hyperrect</ref> &amp;</type>
+          <declname>h</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="301" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="301" bodyend="342"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTree_1ae2f169a7baf1af4575a6ea6049ebb662" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>void</type>
+        <definition>void IntervalDependencyTree::link</definition>
+        <argsstring>(access_t *access)</argsstring>
+        <name>link</name>
+        <reimplements refid="classDependencyDomain_1a848990d8e5b4300880c5fd931c6b749a">link</reimplements>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>access</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="345" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="345" bodyend="350"/>
+      </memberdef>
+      <memberdef kind="function" id="classIntervalDependencyTree_1aade6ec82e087bf99705487b0c34008f7" prot="public" static="no" const="no" explicit="no" inline="yes" virt="virtual">
+        <type>void</type>
+        <definition>void IntervalDependencyTree::put</definition>
+        <argsstring>(access_t *access)</argsstring>
+        <name>put</name>
+        <reimplements refid="classDependencyDomain_1a75d424a9237138b4991a9c364df278de">put</reimplements>
+        <param>
+          <type><ref refid="classaccess__t" kindref="compound">access_t</ref> *</type>
+          <declname>access</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="353" column="9" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="353" bodyend="360"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>IntervalDependencyTree</label>
+        <link refid="classIntervalDependencyTree"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>DependencyDomain</label>
+        <link refid="classDependencyDomain"/>
+      </node>
+      <node id="2">
+        <label>KHPTree&lt; K, IntervalDependencyTreeSearch &gt;</label>
+        <link refid="classKHPTree"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>IntervalDependencyTree</label>
+        <link refid="classIntervalDependencyTree"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="6" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>DependencyDomain</label>
+        <link refid="classDependencyDomain"/>
+      </node>
+      <node id="5">
+        <label>KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::Node::includes_t&lt; MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;</label>
+        <link refid="structKHPTree_1_1Node_1_1includes__t"/>
+      </node>
+      <node id="3">
+        <label>KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::Node</label>
+        <link refid="classKHPTree_1_1Node"/>
+        <childnode refid="4" relation="usage">
+          <edgelabel>st</edgelabel>
+        </childnode>
+        <childnode refid="5" relation="usage">
+          <edgelabel>includes</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>parent</edgelabel>
+        </childnode>
+      </node>
+      <node id="4">
+        <label>KHPTree&lt; K, T, REBALANCE, CUT_ON_INSERT, MAINTAIN_SIZE, MAINTAIN_HEIGHT &gt;::Node::subtree_t</label>
+        <link refid="unionKHPTree_1_1Node_1_1subtree__t"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>children</edgelabel>
+          <edgelabel>left</edgelabel>
+          <edgelabel>right</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>KHPTree&lt; K, IntervalDependencyTreeSearch &gt;</label>
+        <link refid="classKHPTree"/>
+        <childnode refid="3" relation="usage">
+          <edgelabel>root</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" line="187" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/memory/access/interval/dependency-tree.hpp" bodystart="188" bodyend="362"/>
+    <listofallmembers>
+      <member refid="classIntervalDependencyTree_1adf1aad504d1e0947196dbb95ff5bee27" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>accesses</name></member>
+      <member refid="classKHPTree_1a91a979bf33389e18a165481490533098" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>balance_fixup</name></member>
+      <member refid="classIntervalDependencyTree_1a1ec97b198c08f2947256e2cf1a15f6ea" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>Base</name></member>
+      <member refid="classKHPTree_1a645cdbe07df2176280b9ddca1a25f687" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>clear</name></member>
+      <member refid="classKHPTree_1a8631623f96c170b9667c8b7be7f6d748" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>compress</name></member>
+      <member refid="classIntervalDependencyTree_1aae6af1462147ee661cc2b7d65ffe6271" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>conflicting</name></member>
+      <member refid="classKHPTree_1a645facc2c108221de9f113c7ec393b1e" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>cut</name></member>
+      <member refid="classKHPTree_1a32dde4d2ccc1d6f14379be651f474e94" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>cut</name></member>
+      <member refid="classKHPTree_1a1df85f0b5fc077fff6e355691e858479" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>dump</name></member>
+      <member refid="classKHPTree_1a85d271e382f536b43fc7d51623af54e6" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>dump_hyperrect</name></member>
+      <member refid="classKHPTree_1a2fce2950146816e0177fc5a0b552cc56" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>export_pdf</name></member>
+      <member refid="classKHPTree_1a11b4afa9a929bf83e85e6daa7d80cbe1" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>foreach_k_child</name></member>
+      <member refid="classKHPTree_1af82e0da2d47144b522c31c77dbf9afd6" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>foreach_node</name></member>
+      <member refid="classKHPTree_1a99afa6b6de401ffcbe56c08ed27847a1" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>foreach_node</name></member>
+      <member refid="classKHPTree_1a1995c180e370c129ec42cf14338b14ba" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>foreach_node_until</name></member>
+      <member refid="classKHPTree_1a82847fa5aa750d7a363f8790ca84dd32" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>foreach_node_until</name></member>
+      <member refid="classKHPTree_1a17110633f10b6e5ded70ff9b1bd43df2" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>garbage_collector_run</name></member>
+      <member refid="classKHPTree_1a9f21fd5772d76128f4f22cae59266397" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>height</name></member>
+      <member refid="classIntervalDependencyTree_1a8e57a2a6656df93375b9db32bfa4bdc8" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>Hyperrect</name></member>
+      <member refid="classKHPTree_1ad2cbd49b9a9d99a69ec6b1a49ec5a696" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>insert</name></member>
+      <member refid="classKHPTree_1a18a8da3d2e7dad9614e7347fa8cdf04a" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>insert_finalize</name></member>
+      <member refid="classKHPTree_1a941b298a07a6cd4f97bd666ef413e805" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>insert_fixup</name></member>
+      <member refid="classKHPTree_1a2e208a987fd2f557133f14de1802f5f2" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>insert_from</name></member>
+      <member refid="classKHPTree_1a00dc5307f6f3997ea2b78ca16b1e278a" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>insert_from_cut</name></member>
+      <member refid="classKHPTree_1a7fc00df50fc440af7c9470f479f245bc" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>intersect</name></member>
+      <member refid="classKHPTree_1addbe690b89492d502a241b72121e6a5e" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>intersect_from</name></member>
+      <member refid="classIntervalDependencyTree_1a22aec281769c2cf5a3c41a3bcc9bb25e" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>intersect_stop_test</name></member>
+      <member refid="classKHPTree_1affa6ba5f1242290c8e41e6c27a7cb4f5" prot="public" virt="pure-virtual" ambiguityscope="KHPTree&lt; K, IntervalDependencyTreeSearch &gt;::"><scope>IntervalDependencyTree</scope><name>intersect_stop_test</name></member>
+      <member refid="classIntervalDependencyTree_1a6621db8d0a96da6eda34503c299bd63d" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>IntervalDependencyTree</name></member>
+      <member refid="classKHPTree_1aa0681deb87db602460de20e6e08b0e3d" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>KHPTree</name></member>
+      <member refid="classIntervalDependencyTree_1ae2f169a7baf1af4575a6ea6049ebb662" prot="public" virt="virtual"><scope>IntervalDependencyTree</scope><name>link</name></member>
+      <member refid="classIntervalDependencyTree_1a1d8d60b7719c93d0a547904790e5a414" prot="public" virt="virtual"><scope>IntervalDependencyTree</scope><name>new_node</name></member>
+      <member refid="classIntervalDependencyTree_1a9bd5f170e922a8b4611e3be7f6929b38" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>new_node</name></member>
+      <member refid="classKHPTree_1af14dfdeaa506eb34d843c2a5725956a2" prot="public" virt="pure-virtual" ambiguityscope="KHPTree&lt; K, IntervalDependencyTreeSearch &gt;::"><scope>IntervalDependencyTree</scope><name>new_node</name></member>
+      <member refid="classIntervalDependencyTree_1ad4c5ef462358b2ced82212dab7f1d52d" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>Node</name></member>
+      <member refid="classIntervalDependencyTree_1a931b90ed150bbd525228ff18362d36f6" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>NodeBase</name></member>
+      <member refid="classIntervalDependencyTree_1a99d44065c1c207b07df089fbed762bec" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>on_insert</name></member>
+      <member refid="classKHPTree_1ad47d8954f7c55e8bf7c477e878a942aa" prot="public" virt="pure-virtual" ambiguityscope="KHPTree&lt; K, IntervalDependencyTreeSearch &gt;::"><scope>IntervalDependencyTree</scope><name>on_insert</name></member>
+      <member refid="classIntervalDependencyTree_1a4ee088e674f20bf47a1bd801042f44de" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>on_intersect</name></member>
+      <member refid="classKHPTree_1a1e3e82a2d1c691ea30e49efd98a20b90" prot="public" virt="pure-virtual" ambiguityscope="KHPTree&lt; K, IntervalDependencyTreeSearch &gt;::"><scope>IntervalDependencyTree</scope><name>on_intersect</name></member>
+      <member refid="classIntervalDependencyTree_1a552c31ae074a20700ed75c1adec07a5f" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>on_shrink</name></member>
+      <member refid="classKHPTree_1a6daa38ff9a3a1f54d87d37c8ec9c7831" prot="public" virt="pure-virtual" ambiguityscope="KHPTree&lt; K, IntervalDependencyTreeSearch &gt;::"><scope>IntervalDependencyTree</scope><name>on_shrink</name></member>
+      <member refid="classKHPTree_1ae56912b4e4e79223f2f60b026db126df" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>post_insert</name></member>
+      <member refid="classIntervalDependencyTree_1aade6ec82e087bf99705487b0c34008f7" prot="public" virt="virtual"><scope>IntervalDependencyTree</scope><name>put</name></member>
+      <member refid="classKHPTree_1a851b2c2c93aca372295bf82a4113a535" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>rbtree_to_vine</name></member>
+      <member refid="classKHPTree_1a4bc07f3e8421bc2d7a5818b770865220" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>rebalance</name></member>
+      <member refid="classKHPTree_1a8f2376c55bd6ea9ee6c298dc029279ad" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>rebalance</name></member>
+      <member refid="classKHPTree_1a7d13ba376c8c085b4916389cb7072903" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>rebalance</name></member>
+      <member refid="classKHPTree_1a172e16a08bc86ee14fb73d6c54636d83" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>rebalance_fixup</name></member>
+      <member refid="classKHPTree_1a5faed503dd9cd8c1de74df65daa9b1f2" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>requires_rebalance</name></member>
+      <member refid="classKHPTree_1a87ea9c2be9c64df30165fc72ca03f1f4" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>requires_rebalance</name></member>
+      <member refid="classKHPTree_1a90287dda522747eb605ccd36aab54940" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>requires_rebalance</name></member>
+      <member refid="classKHPTree_1ae8fb6cf51851ac60b989b543033ee0ed" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>requires_rebalance</name></member>
+      <member refid="classDependencyDomain_1a485c7510d57308830148f95e0ababb8e" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>resolve</name></member>
+      <member refid="classKHPTree_1a49754abfb7705e00e88c954ecf87cf66" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>root</name></member>
+      <member refid="classKHPTree_1a28c367df73bb52f2814c50b1dedae754" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>rotate_left</name></member>
+      <member refid="classKHPTree_1ad42f56fae5c05b0e39823c2324060d1c" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>rotate_right</name></member>
+      <member refid="classIntervalDependencyTree_1aa32370b5ddc950822c1482180a36d575" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>Search</name></member>
+      <member refid="classKHPTree_1af5844384c523593bf037bfebf526506b" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>size</name></member>
+      <member refid="classKHPTree_1a7c687b1db8a555503150dbece0b9fdc7" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>subtree_delete</name></member>
+      <member refid="classKHPTree_1a860206216e6006fcf1ebb16c8e1f51cf" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>update</name></member>
+      <member refid="classKHPTree_1aa728f6af7d1ac082d8b27b8b44690aab" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>vine_to_rbtree</name></member>
+      <member refid="classDependencyDomain_1a49ff6695523cb1b7c2647b0ae3621ac5" prot="public" virt="virtual"><scope>IntervalDependencyTree</scope><name>~DependencyDomain</name></member>
+      <member refid="classIntervalDependencyTree_1ae0ad6cc2ace8dce1c1df2a117e5df54c" prot="public" virt="non-virtual"><scope>IntervalDependencyTree</scope><name>~IntervalDependencyTree</name></member>
+      <member refid="classKHPTree_1afc612593c72d1f2136e088264e463b23" prot="public" virt="virtual"><scope>IntervalDependencyTree</scope><name>~KHPTree</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

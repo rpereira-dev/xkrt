@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="structtask__dom__info__t" kind="struct" language="C++" prot="public">
+    <compoundname>task_dom_info_t</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structtask__dom__info__t_1a7f822fc34ab6f9d554cf6123dc2b98a9" prot="public" static="no" mutable="no">
+        <type><ref refid="classDependencyDomain" kindref="compound">DependencyDomain</ref> *</type>
+        <definition>DependencyDomain* task_dom_info_t::point</definition>
+        <argsstring></argsstring>
+        <name>point</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="223" column="27" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="223" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__dom__info__t_1afdd199036feb85a8354053be2a565466" prot="public" static="no" mutable="no">
+        <type><ref refid="classDependencyDomain" kindref="compound">DependencyDomain</ref> *</type>
+        <definition>DependencyDomain* task_dom_info_t::interval</definition>
+        <argsstring></argsstring>
+        <name>interval</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="224" column="27" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="224" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__dom__info__t_1a24dfe389575f1d796629202eceb889a6" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classDependencyDomain" kindref="compound">DependencyDomain</ref> * &gt;</type>
+        <definition>std::vector&lt;DependencyDomain *&gt; task_dom_info_t::blas</definition>
+        <argsstring></argsstring>
+        <name>blas</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="225" column="21" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="225" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__dom__info__t_1a162a4beebc7629603099f2f9866220f1" prot="public" static="no" mutable="no">
+        <type>struct task_dom_info_t::@56</type>
+        <definition>struct task_dom_info_t::@56 task_dom_info_t::deps</definition>
+        <argsstring></argsstring>
+        <name>deps</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="226" column="10"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__dom__info__t_1a1846a7c5765a53c81a306cb7498b399c" prot="public" static="no" mutable="no">
+        <type><ref refid="classMemoryCoherencyController" kindref="compound">MemoryCoherencyController</ref> *</type>
+        <definition>MemoryCoherencyController* task_dom_info_t::interval</definition>
+        <argsstring></argsstring>
+        <name>interval</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="231" column="36" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="231" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__dom__info__t_1ab6336e1c90a37738b8d83306b3081b20" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classMemoryCoherencyController" kindref="compound">MemoryCoherencyController</ref> * &gt;</type>
+        <definition>std::vector&lt;MemoryCoherencyController *&gt; task_dom_info_t::blas</definition>
+        <argsstring></argsstring>
+        <name>blas</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="232" column="21" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="232" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtask__dom__info__t_1a42ba4ab56092666a4f01637a4a2bea34" prot="public" static="no" mutable="no">
+        <type>struct task_dom_info_t::@57</type>
+        <definition>struct task_dom_info_t::@57 task_dom_info_t::mccs</definition>
+        <argsstring></argsstring>
+        <name>mccs</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="233" column="10"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="structtask__dom__info__t_1a006c84f0dc581c20aa4ef5a12d8fff4c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>task_dom_info_t::task_dom_info_t</definition>
+        <argsstring>()</argsstring>
+        <name>task_dom_info_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="235" column="5" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="235" bodyend="235"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>MemoryCoherencyController</label>
+        <link refid="classMemoryCoherencyController"/>
+      </node>
+      <node id="3">
+        <label>DependencyDomain</label>
+        <link refid="classDependencyDomain"/>
+      </node>
+      <node id="1">
+        <label>task_dom_info_t</label>
+        <link refid="structtask__dom__info__t"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>interval</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>interval</edgelabel>
+          <edgelabel>point</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" line="219" column="1" bodyfile="/home/rpereira/repo/xktrucs/xkaapi/include/xkrt/task/task.hpp" bodystart="220" bodyend="237"/>
+    <listofallmembers>
+      <member refid="structtask__dom__info__t_1a24dfe389575f1d796629202eceb889a6" prot="public" virt="non-virtual"><scope>task_dom_info_t</scope><name>blas</name></member>
+      <member refid="structtask__dom__info__t_1ab6336e1c90a37738b8d83306b3081b20" prot="public" virt="non-virtual"><scope>task_dom_info_t</scope><name>blas</name></member>
+      <member refid="structtask__dom__info__t_1a162a4beebc7629603099f2f9866220f1" prot="public" virt="non-virtual"><scope>task_dom_info_t</scope><name>deps</name></member>
+      <member refid="structtask__dom__info__t_1afdd199036feb85a8354053be2a565466" prot="public" virt="non-virtual"><scope>task_dom_info_t</scope><name>interval</name></member>
+      <member refid="structtask__dom__info__t_1a1846a7c5765a53c81a306cb7498b399c" prot="public" virt="non-virtual"><scope>task_dom_info_t</scope><name>interval</name></member>
+      <member refid="structtask__dom__info__t_1a42ba4ab56092666a4f01637a4a2bea34" prot="public" virt="non-virtual"><scope>task_dom_info_t</scope><name>mccs</name></member>
+      <member refid="structtask__dom__info__t_1a7f822fc34ab6f9d554cf6123dc2b98a9" prot="public" virt="non-virtual"><scope>task_dom_info_t</scope><name>point</name></member>
+      <member refid="structtask__dom__info__t_1a006c84f0dc581c20aa4ef5a12d8fff4c" prot="public" virt="non-virtual"><scope>task_dom_info_t</scope><name>task_dom_info_t</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
