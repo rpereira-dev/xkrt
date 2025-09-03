@@ -2,6 +2,7 @@
 ** Copyright 2024,2025 INRIA
 **
 ** Contributors :
+** Thierry Gautier, thierry.gautier@inrialpes.fr
 ** Romain PEREIRA, romain.pereira@inria.fr + rpereira@anl.gov
 **
 ** This software is a computer program whose purpose is to execute
@@ -34,59 +35,23 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __DEPENDENCY_DOMAIN_HPP__
-# define __DEPENDENCY_DOMAIN_HPP__
+#ifndef __XKRT_TYPES_HPP__
+# define __XKRT_TYPES_HPP__
+
+# include <atomic>
 
 # include <xkrt/consts.h>
-# include <xkrt/types.h>
-# include <xkrt/logger/logger.h>
-# include <xkrt/logger/todo.h>
-# include <xkrt/memory/access/access.hpp>
+# include <xkrt/namespace.h>
 
 XKRT_NAMESPACE_BEGIN
 
-class DependencyDomain
-{
-    public:
+typedef xkrt_task_wait_counter_type_t           task_wait_counter_type_t;
+typedef std::atomic<task_wait_counter_type_t>   task_wait_counter_t;
+typedef xkrt_task_access_counter_type_t         task_access_counter_t;
 
-        virtual ~DependencyDomain() {}
-
-    public:
-
-        // set edges with previous accesses
-        virtual void link(access_t * access) = 0;
-
-        // insert access so future accesses intersection
-        virtual void put(access_t * access) = 0;
-
-    public:
-
-        template<task_access_counter_t AC>
-        inline void
-        link(access_t * accesses)
-        {
-            for (int i = 0 ; i < AC ; ++i)
-                this->link(accesses + i);
-        }
-
-        template<task_access_counter_t AC>
-        inline void
-        put(access_t * accesses)
-        {
-            for (int i = 0 ; i < AC ; ++i)
-                this->put(accesses + i);
-        }
-
-        template<task_access_counter_t AC>
-        inline void
-        resolve(access_t * accesses)
-        {
-            # pragma message(TODO "If we semantically force a accesses region to be disjoint, then these 2 loops can be merged with no risks of dependency cycle")
-            this->link<AC>(accesses);
-            this->put<AC>(accesses);
-        }
-};
+typedef xkrt_device_global_id_t                 device_global_id_t;
+typedef xkrt_device_global_id_bitfield_t        device_global_id_bitfield_t;
 
 XKRT_NAMESPACE_END
 
-#endif /* __DEPENDENCY_DOMAIN_HPP__ */
+# endif /* __XKRT_TASK_HPP__ */

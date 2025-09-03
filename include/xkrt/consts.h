@@ -35,14 +35,12 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
+// this file should remain C-compliant for generating bindings
+
 #ifndef __CONSTS_H__
 # define __CONSTS_H__
 
 #  include <stdint.h>
-#  include <atomic>
-#  include <xkrt/namespace.h>
-
-XKRT_NAMESPACE_BEGIN
 
 /* maximum number of devices in total */
 # define XKRT_DEVICES_MAX (16)
@@ -52,12 +50,6 @@ XKRT_NAMESPACE_BEGIN
 
 /* maximum number of performance ranks between devices. */
 # define XKRT_DEVICES_PERF_RANK_MAX (4)
-
-typedef uint8_t device_global_id_t;
-static_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(device_global_id_t)*8)));
-
-typedef uint16_t device_global_id_bitfield_t;
-static_assert(XKRT_DEVICES_MAX <= sizeof(device_global_id_bitfield_t)*8);
 
 /* an ID representing the host device */
 # define HOST_DEVICE_GLOBAL_ID (0)
@@ -74,16 +66,20 @@ static_assert(XKRT_DEVICES_MAX <= sizeof(device_global_id_bitfield_t)*8);
 /* maximum number of memory per thread */
 # define THREAD_MAX_MEMORY ((size_t)4*1024*1024*1024)
 
-// TODO: using smaller type here can improve perf
-typedef uint16_t task_wait_counter_type_t;
-typedef std::atomic<task_wait_counter_type_t> task_wait_counter_t;
-
-typedef uint16_t task_access_counter_t;
 # define UNSPECIFIED_TASK_ACCESS ((task_access_counter_t)-1)
-// # define TASK_MAX_ACCESSES (5)
 # define TASK_MAX_ACCESSES (1024)
-static_assert(TASK_MAX_ACCESSES < (1 << 8*sizeof(task_access_counter_t)));
 
-XKRT_NAMESPACE_END
+typedef uint8_t xkrt_device_global_id_t;
+_Static_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(xkrt_device_global_id_t)*8)), "");
+
+typedef uint16_t xkrt_device_global_id_bitfield_t;
+_Static_assert(XKRT_DEVICES_MAX <= sizeof(xkrt_device_global_id_bitfield_t)*8, "");
+
+// TODO: using smaller type here can improve perf
+typedef uint16_t xkrt_task_wait_counter_type_t;
+typedef uint16_t xkrt_task_access_counter_type_t;
+_Static_assert(TASK_MAX_ACCESSES < (1 << 8*sizeof(xkrt_task_access_counter_type_t)), "");
+
+
 
 #endif /* __CONSTS_H__ */

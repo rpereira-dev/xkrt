@@ -38,6 +38,7 @@
 #ifndef __XKRT_RUNTIME_H__
 # define __XKRT_RUNTIME_H__
 
+# include <xkrt/types.h>
 # include <xkrt/conf/conf.h>
 # include <xkrt/distribution/distribution.h>
 # include <xkrt/driver/driver.h>
@@ -585,6 +586,9 @@ struct  runtime_t
         } memory;
     } stats;
 
+    /* report some stats about the runtime */
+    void stats_report(void);
+
     # endif /* XKRT_SUPPORT_STATS */
 
 }; /* runtime_t */
@@ -623,9 +627,6 @@ void device_task_execute(
     device_t * device,
     task_t * task
 );
-
-/* report some stats about the runtime */
-void runtime_stats_report(runtime_t * runtime);
 
 /* arguments passed to the device team */
 typedef struct  device_thread_args_t

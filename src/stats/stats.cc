@@ -37,13 +37,16 @@
 # include <xkrt/support.h>
 # if XKRT_SUPPORT_STATS
 
+# include <string.h>
+
 # include <xkrt/runtime.h>
 # include <xkrt/task/task.hpp>
 # include <xkrt/task/task-format.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/metric.h>
+# include <xkrt/namespace.h>
 
-# include <string.h>
+XKRT_NAMESPACE_USE;
 
 typedef struct  device_stats_t
 {
@@ -70,14 +73,14 @@ typedef struct  device_stats_t
 }               device_stats_t;
 
 static void
-xkrt_runtime_stats_device_agg_gather(xkrt_runtime_t * runtime, device_stats_t * agg)
+stats_device_agg_gather(runtime_t * runtime, device_stats_t * agg)
 {
     agg->memory.registered += runtime->stats.memory.registered;
     agg->memory.unregistered += runtime->stats.memory.unregistered;
 }
 
 static void
-xkrt_runtime_stats_device_agg(device_stats_t * src, device_stats_t * agg)
+stats_device_agg(device_stats_t * src, device_stats_t * agg)
 {
     agg->memory.freed += src->memory.freed;
     agg->memory.allocated.total += src->memory.allocated.total;
@@ -97,20 +100,20 @@ xkrt_runtime_stats_device_agg(device_stats_t * src, device_stats_t * agg)
 }
 
 static void
-xkrt_runtime_stats_device_report(device_stats_t * stats)
+stats_device_report(device_stats_t * stats)
 {
     char buffer[128];
 
     LOGGER_WARN("  Memory");
 
     # if 0
-    xkrt_metric_byte(buffer, sizeof(buffer), stats->memory.allocated.total.load());
+    metric_byte(buffer, sizeof(buffer), stats->memory.allocated.total.load());
     LOGGER_WARN("    Allocated (total): %s", buffer);
 
-    xkrt_metric_byte(buffer, sizeof(buffer), stats->memory.allocated.currently.load());
+    metric_byte(buffer, sizeof(buffer), stats->memory.allocated.currently.load());
     LOGGER_WARN("    Allocated (currently): %s", buffer);
 
-    xkrt_metric_byte(buffer, sizeof(buffer), stats->memory.freed.load());
+    metric_byte(buffer, sizeof(buffer), stats->memory.freed.load());
     LOGGER_WARN("    Freed: %s", buffer);
     # else
     LOGGER_WARN("    Allocated (total): %zuB", stats->memory.allocated.total.load());
@@ -120,10 +123,10 @@ xkrt_runtime_stats_device_report(device_stats_t * stats)
 
     if (stats->memory.registered.load() || stats->memory.unregistered.load())
     {
-        xkrt_metric_byte(buffer, sizeof(buffer), stats->memory.registered.load());
+        metric_byte(buffer, sizeof(buffer), stats->memory.registered.load());
         LOGGER_WARN("    Registered: %s", buffer);
 
-        xkrt_metric_byte(buffer, sizeof(buffer), stats->memory.unregistered.load());
+        metric_byte(buffer, sizeof(buffer), stats->memory.unregistered.load());
         LOGGER_WARN("    Unregistered: %s", buffer);
     }
 
@@ -131,10 +134,10 @@ xkrt_runtime_stats_device_report(device_stats_t * stats)
     for (int stype = 0 ; stype < STREAM_TYPE_ALL ; ++stype)
     {
         # if 0
-        xkrt_metric_byte(buffer, sizeof(buffer), stats->streams[stype].transfered.load());
-        LOGGER_WARN("    `%4s` - with %2lu streams - transfered %s", xkrt_stream_type_to_str((xkrt_stream_type_t) stype), stats->streams[stype].n.load(), buffer);
+        metric_byte(buffer, sizeof(buffer), stats->streams[stype].transfered.load());
+        LOGGER_WARN("    `%4s` - with %2lu streams - transfered %s", stream_type_to_str((stream_type_t) stype), stats->streams[stype].n.load(), buffer);
         # else
-        LOGGER_WARN("    `%4s` - with %2lu streams - transfered %zuB", xkrt_stream_type_to_str((xkrt_stream_type_t) stype), stats->streams[stype].n.load(), stats->streams[stype].transfered.load());
+        LOGGER_WARN("    `%4s` - with %2lu streams - transfered %zuB", stream_type_to_str((stream_type_t) stype), stats->streams[stype].n.load(), stats->streams[stype].transfered.load());
         # endif
     }
 
@@ -143,7 +146,7 @@ xkrt_runtime_stats_device_report(device_stats_t * stats)
     {
         LOGGER_WARN(
             "    `%12s` - commited %6zu - completed %6zu",
-            xkrt_stream_instruction_type_to_str((xkrt_stream_instruction_type_t) instr_type),
+            stream_instruction_type_to_str((stream_instruction_type_t) instr_type),
             stats->instructions[instr_type].commited.load(),
             stats->instructions[instr_type].completed.load()
         );
@@ -151,8 +154,8 @@ xkrt_runtime_stats_device_report(device_stats_t * stats)
 }
 
 static void
-xkrt_runtime_stats_device_gather(
-    xkrt_device_t * device,
+stats_device_gather(
+    device_t * device,
     device_stats_t * stats
 ) {
     memset(stats, 0, sizeof(device_stats_t));
@@ -167,7 +170,7 @@ xkrt_runtime_stats_device_gather(
         {
             for (int stream_id = 0 ; stream_id < device->count[stype] ; ++stream_id)
             {
-                xkrt_stream_t * stream = device->streams[device_tid][stype][stream_id];
+                stream_t * stream = device->streams[device_tid][stype][stream_id];
                 for (int instr_type = 0 ; instr_type < XKRT_STREAM_INSTR_TYPE_MAX ; ++instr_type)
                 {
                     stats->instructions[instr_type].commited += stream->stats.instructions[instr_type].commited.load();
@@ -181,7 +184,7 @@ xkrt_runtime_stats_device_gather(
 }
 
 static void
-xkrt_runtime_stats_tasks_report(xkrt_runtime_t * runtime)
+stats_tasks_report(runtime_t * runtime)
 {
     for (size_t i = 0 ; i < TASK_FORMAT_MAX ; ++i)
     {
@@ -198,7 +201,7 @@ xkrt_runtime_stats_tasks_report(xkrt_runtime_t * runtime)
     }
 
     # ifndef NDEBUG
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     int counter[TASK_STATE_MAX];
     memset(counter, 0, sizeof(counter));
     for (task_t * & task : thread->tasks)
@@ -214,17 +217,17 @@ xkrt_runtime_stats_tasks_report(xkrt_runtime_t * runtime)
 }
 
 void
-xkrt_runtime_stats_report(xkrt_runtime_t * runtime)
+runtime_t::stats_report(void)
 {
     LOGGER_WARN("----------------- STATS -----------------");
     device_stats_t agg;
     memset(&agg, 0, sizeof(agg));
 
-    for (xkrt_device_global_id_t device_global_id = 0 ; device_global_id < runtime->drivers.devices.n ; ++device_global_id)
+    for (device_global_id_t device_global_id = 0 ; device_global_id < this->drivers.devices.n ; ++device_global_id)
     {
-        xkrt_device_t * device = runtime->drivers.devices.list[device_global_id];
+        device_t * device = this->drivers.devices.list[device_global_id];
 
-        xkrt_driver_t * driver = runtime->driver_get(device->driver_type);
+        driver_t * driver = this->driver_get(device->driver_type);
         LOGGER_WARN("Device %u", device->global_id);
 
         char info[512];
@@ -232,18 +235,18 @@ xkrt_runtime_stats_report(xkrt_runtime_t * runtime)
         LOGGER_WARN("  Info: %s", info);
 
         device_stats_t stats;
-        xkrt_runtime_stats_device_gather(device, &stats);
-        xkrt_runtime_stats_device_report(&stats);
-        xkrt_runtime_stats_device_agg(&stats, &agg);
+        stats_device_gather(device, &stats);
+        stats_device_report(&stats);
+        stats_device_agg(&stats, &agg);
     }
-    xkrt_runtime_stats_device_agg_gather(runtime, &agg);
+    stats_device_agg_gather(this, &agg);
 
     LOGGER_WARN("-----------------------------------------");
     LOGGER_WARN("All Devices");
-    xkrt_runtime_stats_device_report(&agg);
+    stats_device_report(&agg);
     LOGGER_WARN("-----------------------------------------");
     LOGGER_WARN("Tasks");
-    xkrt_runtime_stats_tasks_report(runtime);
+    stats_tasks_report(this);
     LOGGER_WARN("-----------------------------------------");
 }
 

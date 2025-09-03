@@ -39,6 +39,7 @@
 
 # include <atomic>
 # include <xkrt/consts.h>
+# include <xkrt/types.h>
 # include <xkrt/memory/access/access.hpp>
 
 XKRT_NAMESPACE_BEGIN

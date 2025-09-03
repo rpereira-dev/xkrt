@@ -1,10 +1,13 @@
-Examples - C++
+Examples
 ==============
+
+C++
+-------------------
 
 Please refer to **include/xkrt/runtime.h** for more details.
 
 Forking teams of threads
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: c++
 
@@ -58,7 +61,7 @@ Forking teams of threads
     }
 
 Spawning tasks
----------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: c++
 
@@ -70,7 +73,30 @@ Spawning tasks
         runtime_t runtime;
         runtime.init();
 
+        void * a = 0x1234;
+        void * b = 0x5678;
+
+        // spawn a task with 1x access that reads segment [a..b]
+        runtime.task_spawn<1>(
+            [a, b] (task_t * task, access_t * accesses) {
+                new (access) access_t(task, a, b, ACCESS_MODE_R);
+            },
+
+            [] (task_t * task) {
+                puts("Segment [a..b] is ready, and task executed");
+            }
+        );
+
         // Deinitialize the runtime
         runtime.deinit();
         return 0;
     }
+
+C
+---------------------
+TODO
+
+
+Julia
+---------------------
+TODO

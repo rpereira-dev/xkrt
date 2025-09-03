@@ -125,7 +125,7 @@ runtime_t::deinit(void)
 
     # if XKRT_SUPPORT_STATS
     if (this->conf.report_stats_on_deinit)
-        runtime_stats_report(this);
+        this->stats_report();
     # endif /* XKRT_SUPPORT_STATS */
 
     this->state = XKRT_RUNTIME_DEINITIALIZED;

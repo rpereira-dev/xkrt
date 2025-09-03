@@ -2,7 +2,7 @@
 ** Copyright 2024,2025 INRIA
 **
 ** Contributors :
-** Romain PEREIRA, romain.pereira@inria.fr + rpereira@anl.gov
+** Romain PEREIRA, rpereira@anl.gov
 **
 ** This software is a computer program whose purpose is to execute
 ** blas subroutines on multi-GPUs system.
@@ -34,59 +34,12 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __DEPENDENCY_DOMAIN_HPP__
-# define __DEPENDENCY_DOMAIN_HPP__
-
 # include <xkrt/consts.h>
-# include <xkrt/types.h>
-# include <xkrt/logger/logger.h>
-# include <xkrt/logger/todo.h>
-# include <xkrt/memory/access/access.hpp>
 
-XKRT_NAMESPACE_BEGIN
+/* Types */
+typedef void *  xkrt_runtime_t;
+typedef void *  xkrt_task_t;
+typedef void *  xkrt_team_t;
 
-class DependencyDomain
-{
-    public:
-
-        virtual ~DependencyDomain() {}
-
-    public:
-
-        // set edges with previous accesses
-        virtual void link(access_t * access) = 0;
-
-        // insert access so future accesses intersection
-        virtual void put(access_t * access) = 0;
-
-    public:
-
-        template<task_access_counter_t AC>
-        inline void
-        link(access_t * accesses)
-        {
-            for (int i = 0 ; i < AC ; ++i)
-                this->link(accesses + i);
-        }
-
-        template<task_access_counter_t AC>
-        inline void
-        put(access_t * accesses)
-        {
-            for (int i = 0 ; i < AC ; ++i)
-                this->put(accesses + i);
-        }
-
-        template<task_access_counter_t AC>
-        inline void
-        resolve(access_t * accesses)
-        {
-            # pragma message(TODO "If we semantically force a accesses region to be disjoint, then these 2 loops can be merged with no risks of dependency cycle")
-            this->link<AC>(accesses);
-            this->put<AC>(accesses);
-        }
-};
-
-XKRT_NAMESPACE_END
-
-#endif /* __DEPENDENCY_DOMAIN_HPP__ */
+/* Memory replication */
+void xkrt_memory_replicate_coherent(

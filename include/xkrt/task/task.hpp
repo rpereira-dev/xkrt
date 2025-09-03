@@ -59,6 +59,13 @@
 
 XKRT_NAMESPACE_BEGIN
 
+// TODO: using smaller type here can improve perf
+typedef uint16_t task_wait_counter_type_t;
+typedef std::atomic<task_wait_counter_type_t> task_wait_counter_t;
+
+typedef uint16_t task_access_counter_t;
+static_assert(TASK_MAX_ACCESSES < (1 << 8*sizeof(task_access_counter_t)));
+
 /* task states */
 typedef enum    task_state_t : uint8_t
 {
