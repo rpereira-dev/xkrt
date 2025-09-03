@@ -6,4 +6,5 @@ XKRT: the XKaapi Runtime Systems
    :caption: User Guide
 
    installation
+   environment
    examples
