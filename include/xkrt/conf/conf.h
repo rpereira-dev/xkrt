@@ -107,6 +107,11 @@ typedef struct  conf_s
      * transfer now */
     bool enable_prefetching;
 
+    /* pause progress thread until a random instruction completed,
+     * when there is nothing to do but progress pending instructions.
+     * If disabled, progression threads actively polls streams */
+    bool enable_progress_thread_pause;
+
     /* to warmup threads/devices on init (touch memory pages, allocate device memory...) */
     bool warmup;
 

@@ -350,10 +350,10 @@ device_t::offloader_streams_are_empty(
         for (int i = 0 ; i < this->count[s] ; ++i)
         {
             const stream_t * stream = this->streams[device_tid][s][i];
-            if (*ready == false)
-                *ready = stream->ready.is_empty();
-            if (*pending == false)
-                *pending = stream->pending.is_empty();
+            if (*ready == false && !stream->ready.is_empty())
+                *ready = true;
+            if (*pending == false && !stream->pending.is_empty())
+                *pending = true;
             if (*ready && *pending)
                 return ;
         }

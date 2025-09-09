@@ -255,11 +255,12 @@ device_thread_main_loop(
     bool pending  = false;
 
     // test whether the thread should be put to sleep, all three conditions must be met:
+    //  - the device is running
     //  - there is no ready tasks
     //  - there is no pending instructions
-    //  - the device is running
     auto test = [&] (void)
     {
+        // the device must stop
         if (device->state != XKRT_DEVICE_STATE_COMMIT)
             return false;
 
@@ -267,6 +268,7 @@ device_thread_main_loop(
         if (task == NULL)
             task = thread->deque.pop();
 
+        // check if there is pending or ready instructions in streams
         device->offloader_streams_are_empty(device_tid, STREAM_TYPE_ALL, &ready, &pending);
 
         if (task || ready || pending)
@@ -303,7 +305,7 @@ device_thread_main_loop(
         {
             // no more tasks to launch
             // pause the thread until some progress has been made
-            if (task == NULL)
+            if (task == NULL && runtime->conf.enable_progress_thread_pause)
             {
                 device->offloader_wait_random_instruction(device_tid);
             }

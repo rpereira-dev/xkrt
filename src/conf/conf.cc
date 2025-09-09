@@ -210,6 +210,13 @@ __parse_register_overflow(conf_t * conf, char const * value)
 }
 
 static void
+__parse_pause_progress_th(conf_t * conf, char const * value)
+{
+    if (value)
+        conf->enable_progress_thread_pause = atoi(value);
+}
+
+static void
 __parse_task_prefetch(conf_t * conf, char const * value)
 {
     if (value)
@@ -241,6 +248,7 @@ static conf_parse_t CONF_PARSE[] = {
     {"XKAAPI_MERGE_TRANSFERS",                  __parse_merge_transfers,    "Merge memory transfers over continuous virtual memory"},
     {"XKAAPI_NGPUS",                            __parse_ngpus,              "Number of gpus to use"},
     {"XKAAPI_MEMORY_REGISTER_PROTECT_OVERFLOW", __parse_register_overflow,  "Split memory transfers to avoid overflow over registered/unregistered memory that causes cuda to crash"},
+    {"XKAAPI_PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,  "When progression threads have nothing else to do but poll pending instructions, put it to sleep until the completion of a random instruction of a random steam."},
     {"XKAAPI_TASK_PREFETCH",                    __parse_task_prefetch,      "If enabled, after completing a task, initiate data transfers for all its WaR successors that place of execution is already known (else, transfers only starts once the successor is ready)."},
     {"XKAAPI_NSTREAMS_D2D",                     __parse_nstreams_d2d,       "Number of D2D streams per GPU"},
     {"XKAAPI_NSTREAMS_D2H",                     __parse_nstreams_d2h,       "Number of D2H streams per GPU"},
@@ -315,6 +323,7 @@ conf_t::init(void)
     this->device.use_p2p                        = true;
     this->merge_transfers                       = false;
     this->protect_registered_memory_overflow    = true;
+    this->enable_progress_thread_pause          = true;
     this->enable_prefetching                    = false;
     this->warmup                                = false;
 

@@ -501,7 +501,9 @@ submit_task_device(
         // looking for the device that owns the data
         MemoryCoherencyController * memcontroller = task_get_memory_controller(runtime, task->parent, access);
         assert(memcontroller);
-        const device_global_id_bitfield_t owners = memcontroller->who_owns(access);
+
+        // retrieve owners - remove the host from owners here, as we want to submit to a device
+        const device_global_id_bitfield_t owners = memcontroller->who_owns(access) & ~(1 << HOST_DEVICE_GLOBAL_ID);
         if (owners)
             device_id = (device_global_id_t) (__random_set_bit(owners) - 1);
     }
@@ -530,6 +532,8 @@ submit_task_device(
             LOGGER_FATAL("No device available to execute the task");
     }
 
+    LOGGER_WARN("Submitting to %s to %u", task->label, device);
+
     // only coherent async are supported onto the host device yet
     if (device_id == HOST_DEVICE_GLOBAL_ID)
         return submit_task_host(runtime, task);
@@ -552,6 +556,7 @@ runtime_submit_task(
     task_t * task
 ) {
     assert(task->state.value == TASK_STATE_READY);
+
     if (task->flags & TASK_FLAG_DEVICE)
         submit_task_device(runtime, task);
     else
