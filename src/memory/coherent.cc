@@ -82,7 +82,7 @@ coherent2D_async(
     // TODO : currently creating 1x task per previously spawned tasks on that region
     // Instead, spawn 1x task with pre-fetching + partitionned accesses
 
-    # if 0
+    # if 1
     // implementation with a single copy once all partites are ready
 
     thread_t * thread = thread_t::get_tls();
@@ -104,7 +104,7 @@ coherent2D_async(
 
     static_assert(AC <= TASK_MAX_ACCESSES);
     access_t * accesses = TASK_ACCESSES(task, flags);
-    new(accesses + 0) access_t(task, storage, ptr, ld, m, n, sizeof_type, ACCESS_MODE_R);
+    new (accesses + 0) access_t(task, storage, ptr, ld, m, n, sizeof_type, ACCESS_MODE_R);
     thread->resolve<AC>(task, accesses);
     # undef AC
 

@@ -104,6 +104,15 @@ __task_complete(
     runtime_t * runtime,
     task_t * task
 ) {
+    // transition the task
+    SPINLOCK_LOCK(task->state.lock);
+    {
+        task->state.value = TASK_STATE_COMPLETED;
+        LOGGER_DEBUG_TASK_STATE(task);
+    }
+    SPINLOCK_UNLOCK(task->state.lock);
+    assert(task->parent);
+
     // TODO: instead, can we have a counter per thread, to reduce the number of
     // updates on the 'parent' counter ?
     task->parent->cc.fetch_sub(1, std::memory_order_relaxed);
@@ -120,15 +129,6 @@ __task_complete(
             ((task->flags & TASK_FLAG_DETACHABLE) && (TASK_DET_INFO(task)->wc.load() == 0))
         );
     }
-
-    // transition the task
-    SPINLOCK_LOCK(task->state.lock);
-    {
-        task->state.value = TASK_STATE_COMPLETED;
-        LOGGER_DEBUG_TASK_STATE(task);
-    }
-    SPINLOCK_UNLOCK(task->state.lock);
-    assert(task->parent);
 
     // if the task has successors, that dependency is now satisfied
     if (task->flags & TASK_FLAG_DEPENDENT)
