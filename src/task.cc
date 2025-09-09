@@ -532,8 +532,6 @@ submit_task_device(
             LOGGER_FATAL("No device available to execute the task");
     }
 
-    LOGGER_WARN("Submitting to %s to %u", task->label, device);
-
     // only coherent async are supported onto the host device yet
     if (device_id == HOST_DEVICE_GLOBAL_ID)
         return submit_task_host(runtime, task);
