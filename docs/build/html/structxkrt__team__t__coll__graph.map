@@ -1,8 +1,0 @@
-<map id="xkrt_team_t" name="xkrt_team_t">
-<area shape="rect" id="node1" title=" " alt="" coords="317,191,407,218"/>
-<area shape="rect" id="node4" href="$structxkrt__thread__t.html" title=" " alt="" coords="195,303,294,329"/>
-<area shape="rect" id="node2" href="$structxkrt__team__desc__t.html" title=" " alt="" coords="299,95,425,121"/>
-<area shape="rect" id="node3" href="$structxkrt__team__binding__t.html" title=" " alt="" coords="293,5,431,32"/>
-<area shape="rect" id="node5" href="$structxkrt__deque__t.html" title=" " alt="" coords="5,184,140,225"/>
-<area shape="rect" id="node6" href="$structtask__t.html" title=" " alt="" coords="165,191,223,218"/>
-</map>

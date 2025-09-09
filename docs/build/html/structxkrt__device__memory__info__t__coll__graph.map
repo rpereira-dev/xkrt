@@ -1,6 +1,0 @@
-<map id="xkrt_device_memory_info_t" name="xkrt_device_memory_info_t">
-<area shape="rect" id="node1" title=" " alt="" coords="104,216,247,257"/>
-<area shape="rect" id="node2" href="$structxkrt__area__t.html" title=" " alt="" coords="132,127,219,153"/>
-<area shape="rect" id="node3" href="$structxkrt__area__chunk__t.html" title=" " alt="" coords="5,14,135,41"/>
-<area shape="rect" id="node4" href="$structxkrt__mutex__t.html" title=" " alt="" coords="230,14,329,41"/>
-</map>

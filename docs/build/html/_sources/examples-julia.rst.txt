@@ -1,5 +1,0 @@
-Examples - Julia
-================
-
-Please refer to **api/julia/XKRT/src/bindings.jl**
-

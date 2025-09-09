@@ -1,8 +1,0 @@
-<map id="thread_t" name="thread_t">
-<area shape="rect" id="node1" title=" " alt="" coords="170,124,239,151"/>
-<area shape="rect" id="node2" href="$structteam__t.html" title=" " alt="" coords="95,213,157,240"/>
-<area shape="rect" id="node3" href="$structteam__desc__t.html" title=" " alt="" coords="13,124,111,151"/>
-<area shape="rect" id="node4" href="$structteam__binding__t.html" title=" " alt="" coords="5,13,116,39"/>
-<area shape="rect" id="node5" href="$structdeque__t.html" title=" " alt="" coords="140,5,269,47"/>
-<area shape="rect" id="node6" href="$structtask__t.html" title=" " alt="" coords="294,13,353,39"/>
-</map>
