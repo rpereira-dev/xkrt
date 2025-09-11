@@ -112,6 +112,9 @@ typedef struct  conf_s
      * If disabled, progression threads actively polls streams */
     bool enable_progress_thread_pause;
 
+    /* pause progression threads when there is no ready tasks, or no pending/ready instructions */
+    bool enable_busy_polling;
+
     /* to warmup threads/devices on init (touch memory pages, allocate device memory...) */
     bool warmup;
 

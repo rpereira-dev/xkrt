@@ -82,7 +82,7 @@ coherent2D_async(
     // TODO : currently creating 1x task per previously spawned tasks on that region
     // Instead, spawn 1x task with pre-fetching + partitionned accesses
 
-    # if 1
+    # if 0
     // implementation with a single copy once all partites are ready
 
     thread_t * thread = thread_t::get_tls();

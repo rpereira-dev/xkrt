@@ -181,8 +181,8 @@ XKRT_NAMESPACE_BEGIN
             device_global_id_t device_global_id;
 
             /* the thread deque */
-            deque_t<task_t *, 4096> deque;
-            // NaiveQueue<task_t *> deque;
+            // deque_t<task_t *, 4096> deque;
+            NaiveQueue<task_t *> deque;
 
             /* tasks stack */
             uint8_t * memory_stack_bottom;
@@ -359,8 +359,31 @@ XKRT_NAMESPACE_BEGIN
             }
 
             # ifndef NDEBUG
-            static void
-            dump_tasks(FILE * f, std::vector<task_t *> & tasks)
+
+            void
+            dump_tasks(FILE * f)
+            {
+                fprintf(f, "digraph G {\n");
+                for (task_t * & task : tasks)
+                {
+                    fprintf(f, "    \"%p\" [label=\"%s\"] ;\n", task, task->label);
+                    if (task->flags & TASK_FLAG_DEPENDENT)
+                    {
+                        task_dep_info_t * dep = TASK_DEP_INFO(task);
+                        access_t * accesses = TASK_ACCESSES(task);
+                        for (int i = 0 ; i < dep->ac ; ++i)
+                        {
+                            access_t * pred = accesses + i;
+                            for (access_t * succ : pred->successors)
+                                fprintf(f, "    \"%p\" -> \"%p\" ;\n", pred->task, succ->task);
+                        }
+                    }
+                }
+                fprintf(f, "}\n");
+            }
+
+            void
+            dump_accesses(FILE * f)
             {
                 fprintf(f, "digraph G {\n");
                 for (task_t * & task : tasks)
@@ -381,11 +404,6 @@ XKRT_NAMESPACE_BEGIN
                 fprintf(f, "}\n");
             }
 
-            void
-            dump_tasks(FILE * f)
-            {
-                thread_t::dump_tasks(f, this->tasks);
-            }
             # endif /* NDEBUG */
 
     }               thread_t;

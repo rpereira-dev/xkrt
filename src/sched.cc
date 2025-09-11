@@ -280,7 +280,10 @@ device_thread_main_loop(
     while (device->state == XKRT_DEVICE_STATE_COMMIT)
     {
         // pause the thread as long as the test returns 'true'
-        thread->pause(test);
+        if (runtime->conf.enable_busy_polling)
+            test();
+        else
+            thread->pause(test);
 
         // if the runtime must stop, break
         if (device->state != XKRT_DEVICE_STATE_COMMIT)

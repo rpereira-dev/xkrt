@@ -655,7 +655,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
         XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
         XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress),
         XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait),
-        XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait),
+        XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)
     );
 
     device_cl_t * device = (device_cl_t *) idevice;

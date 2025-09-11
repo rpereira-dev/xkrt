@@ -520,11 +520,11 @@ __task_precedes(
     assert(succ->flags & TASK_FLAG_DEPENDENT);
 
     bool r = false;
-    if (pred->state.value < TASK_STATE_COMPLETED)
+    if ((volatile task_state_t) pred->state.value < TASK_STATE_COMPLETED)
     {
         SPINLOCK_LOCK(pred->state.lock);
         {
-            if (pred->state.value < TASK_STATE_COMPLETED)
+            if ((volatile task_state_t) pred->state.value < TASK_STATE_COMPLETED)
             {
                 LOGGER_DEBUG("Dependency: `%s` -> `%s`", pred->label, succ->label);
                 task_dep_info_t * sdep = TASK_DEP_INFO(succ);
