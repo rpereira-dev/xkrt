@@ -54,7 +54,7 @@
 XKRT_NAMESPACE_BEGIN
 
 static inline device_global_id_t
-__task_device(
+__task_guess_device(
     task_t * task
 ) {
     // if that task must execute on a device
@@ -162,7 +162,7 @@ __task_complete(
                         if (access->mode & ACCESS_MODE_W)
                         {
                             // if successor device can already be known
-                            const device_global_id_t device_global_id = __task_device(succ);
+                            const device_global_id_t device_global_id = __task_guess_device(succ);
                             if (device_global_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
                             {
                                 // then we can prefetch memory
@@ -327,11 +327,11 @@ device_task_execute(
                     assert(XKRT_CALLBACK_ARGS_MAX >= 2);
 
                     /* submit kernel launch instruction */
-                    device->offloader_stream_instruction_submit_kernel(
+                    stream_instruction_t * instr = device->offloader_stream_instruction_submit_kernel(
                         (kernel_launcher_t) format->f[targetfmt],
-                        task,
-                        callback
+                        task
                     );
+                    instr->push_callback(callback);
                 }
             }
             else
@@ -532,6 +532,9 @@ submit_task_device(
         else
             LOGGER_FATAL("No device available to execute the task");
     }
+
+    // save device id into the task info
+    dev->elected_device_id = device_id;
 
     // only coherent async are supported onto the host device yet
     if (device_id == HOST_DEVICE_GLOBAL_ID)

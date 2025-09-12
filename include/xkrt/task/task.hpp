@@ -203,15 +203,18 @@ typedef struct  task_dev_info_t
     /* worker id on where to schedule once ready (or 'UNSPECIFIED_DEVICE_GLOBAL_ID' if leaving the decision to the scheduler) */
     device_global_id_t targeted_device_id;
 
-    // TODO : move the 'ocr' field to the 'dep_info' : it is tight to accesses, not to a device
+    // TODO : move the 'ocr' field to the 'dep_info' : it is tied to accesses, not to a device
 
     /* execute on the device that owns a copy of the access at accesses[ocr_access_index]
      * If 'UNSPECIFIED_TASK_ACCESS', leave the decision to the scheduler */
     task_access_counter_t ocr_access_index;
 
+    /* the elected device on which that task got scheduled */
+    device_global_id_t elected_device_id;
+
     /* constructor */
     task_dev_info_t(device_global_id_t target, task_access_counter_t ocr)
-        : targeted_device_id(target), ocr_access_index(ocr) {}
+        : targeted_device_id(target), ocr_access_index(ocr), elected_device_id(UNSPECIFIED_DEVICE_GLOBAL_ID) {}
 
 }               task_dev_info_t;
 
@@ -513,7 +516,7 @@ __task_precedes(
 ) {
     assert(pred);
     assert(succ);
-    assert(pred != succ);
+    assert(pred != succ);   // this failing most likely means you have 2 accesses overlaping
     assert(pred->state.value >= TASK_STATE_ALLOCATED);
     assert(succ->state.value >= TASK_STATE_ALLOCATED);
     assert(pred->flags & TASK_FLAG_DEPENDENT);

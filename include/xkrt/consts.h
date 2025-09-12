@@ -49,6 +49,9 @@
 /* maximum number of memory per device */
 # define XKRT_DEVICE_MEMORIES_MAX (1)
 
+/* maximum number of callback per instruction */
+# define XKRT_INSTRUCTION_CALLBACKS_MAX (2)
+
 /* maximum number of performance ranks between devices. */
 # define XKRT_DEVICES_PERF_RANK_MAX (4)
 
@@ -95,5 +98,7 @@ typedef enum    xkrt_driver_type_t
 typedef uint8_t xkrt_driver_type_bitfield_t;
 _Static_assert(XKRT_DRIVER_TYPE_MAX <= sizeof(xkrt_driver_type_bitfield_t)*8, "");
 
+typedef uint8_t xkrt_instruction_callback_index_t;
+_Static_assert(XKRT_INSTRUCTION_CALLBACKS_MAX < (1 << 8*sizeof(xkrt_instruction_callback_index_t)), "");
 
 #endif /* __CONSTS_H__ */

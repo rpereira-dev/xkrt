@@ -143,8 +143,7 @@ stream_deinit(stream_t * stream)
 
 stream_instruction_t *
 stream_t::instruction_new(
-    const stream_instruction_type_t itype,
-    const callback_t & callback
+    const stream_instruction_type_t itype
 ) {
     if (this->ready.is_full())
         return NULL;
@@ -152,8 +151,8 @@ stream_t::instruction_new(
     assert(this->ready.pos.w >= 0 && this->ready.pos.w < this->ready.capacity);
     stream_instruction_t * instr = this->ready.instr + this->ready.pos.w;
     instr->type = itype;
-    instr->callback = callback;
     instr->completed = false;
+    instr->callbacks.n = 0;
 
     return instr;
 }
@@ -319,8 +318,8 @@ __complete_instruction_internal(
     if (set_completed_flag)
         instr->completed = true;
 
-    if (instr->callback.func)
-        instr->callback.func(instr->callback.args);
+    for (instruction_callback_index_t i = 0 ; i < instr->callbacks.n ; ++i)
+        instr->callbacks.list[i].func(instr->callbacks.list[i].args);
 
     XKRT_STATS_INCR(stream->stats.instructions[instr->type].completed, 1);
 }

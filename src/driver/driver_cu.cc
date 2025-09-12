@@ -49,6 +49,7 @@
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/logger-cu.h>
 # include <xkrt/logger/logger-cublas.h>
+# include <xkrt/logger/logger-cusparse.h>
 # include <xkrt/logger/logger-hwloc.h>
 # include <xkrt/logger/metric.h>
 # include <xkrt/sync/bits.h>
@@ -897,10 +898,14 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     {
         CUBLAS_SAFE_CALL(cublasCreate(&stream->cu.blas.handle));
         CUBLAS_SAFE_CALL(cublasSetStream(stream->cu.blas.handle, stream->cu.handle.high));
+
+        CUSPARSE_SAFE_CALL(cusparseCreate(&stream->cu.sparse.handle));
+        CUSPARSE_SAFE_CALL(cusparseSetStream(stream->cu.sparse.handle, stream->cu.handle.high));
     }
     else
     {
-        stream->cu.blas.handle = 0;
+        stream->cu.blas.handle   = 0;
+        stream->cu.sparse.handle = 0;
     }
 
     return (stream_t *) stream;
@@ -913,6 +918,8 @@ XKRT_DRIVER_ENTRYPOINT(stream_delete)(
     stream_cu_t * stream = (stream_cu_t *) istream;
     if (stream->cu.blas.handle)
         cublasDestroy(stream->cu.blas.handle);
+    if (stream->cu.sparse.handle)
+        cusparseDestroy(stream->cu.sparse.handle);
     CU_SAFE_CALL(cuStreamDestroy(stream->cu.handle.high));
     CU_SAFE_CALL(cuStreamDestroy(stream->cu.handle.low));
     free(stream);

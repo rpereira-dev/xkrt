@@ -264,8 +264,7 @@ typedef struct  device_t
               thread_t ** pthread,             /* OUT */
               stream_t ** pstream,             /* OUT */
         const stream_instruction_type_t itype, /* IN  */
-              stream_instruction_t ** pinstr,  /* OUT */
-        const callback_t & callback            /* IN */
+              stream_instruction_t ** pinstr   /* OUT */
     );
 
     /* commit an instruction previously returned with
@@ -278,12 +277,11 @@ typedef struct  device_t
 
     /* submit a file I/O instruction */
     template <stream_instruction_type_t T>
-    void offloader_stream_instruction_submit_file(
+    stream_instruction_t * offloader_stream_instruction_submit_file(
         int fd,
         void * buffer,
         size_t n,
-        size_t offset,
-        const callback_t & callback
+        size_t offset
     ) {
         static_assert(
             T == XKRT_STREAM_INSTR_TYPE_FD_READ ||
@@ -297,7 +295,7 @@ typedef struct  device_t
         thread_t * thread;
         stream_t * stream;
         stream_instruction_t * instr;
-        this->offloader_stream_instruction_new(stype, &thread, &stream, itype, &instr, callback);
+        this->offloader_stream_instruction_new(stype, &thread, &stream, itype, &instr);
         assert(thread);
         assert(stream);
         assert(instr);
@@ -311,25 +309,24 @@ typedef struct  device_t
         /* submit instr */
         this->offloader_stream_instruction_commit(thread, stream, instr);
 
+        return instr;
     }
 
     /* submit a kernel execution instruction */
-    void offloader_stream_instruction_submit_kernel(
+    stream_instruction_t * offloader_stream_instruction_submit_kernel(
         kernel_launcher_t launcher,
-        void * vargs,
-        const callback_t & callback
+        void * vargs
     );
 
     /* copy */
     template <typename HOST_VIEW_T, typename DEVICE_VIEW_T>
-    stream_t *
+    stream_instruction_t *
     offloader_stream_instruction_submit_copy(
-        const HOST_VIEW_T             & host_view,
+        const HOST_VIEW_T        & host_view,
         const device_global_id_t   dst_device_global_id,
-        const DEVICE_VIEW_T           & dst_device_view,
+        const DEVICE_VIEW_T      & dst_device_view,
         const device_global_id_t   src_device_global_id,
-        const DEVICE_VIEW_T           & src_device_view,
-        const callback_t         & callback
+        const DEVICE_VIEW_T      & src_device_view
     ) {
         assert(this->global_id == dst_device_global_id || this->global_id == src_device_global_id);
 
@@ -409,7 +406,7 @@ typedef struct  device_t
         thread_t * thread;
         stream_t * stream;
         stream_instruction_t * instr;
-        this->offloader_stream_instruction_new(stype, &thread, &stream, itype, &instr, callback);
+        this->offloader_stream_instruction_new(stype, &thread, &stream, itype, &instr);
         assert(thread);
         assert(stream);
         assert(instr);
@@ -434,7 +431,7 @@ typedef struct  device_t
         # undef IS_1D
         # undef IS_2D
 
-        return stream;
+        return instr;
     }
 
     //////////////////////

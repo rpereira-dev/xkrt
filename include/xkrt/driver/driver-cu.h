@@ -43,6 +43,7 @@
 # include <xkrt/driver/stream.h>
 # include <cuda.h>
 # include <cublas_v2.h>
+# include <cusparse.h>
 
 XKRT_NAMESPACE_BEGIN
 
@@ -65,6 +66,10 @@ XKRT_NAMESPACE_BEGIN
             struct {
                 cublasHandle_t handle;
             } blas;
+
+            struct {
+                cusparseHandle_t handle;
+            } sparse;
 
         } cu;
     }               stream_cu_t;

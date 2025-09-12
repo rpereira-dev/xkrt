@@ -118,25 +118,25 @@ struct  runtime_t
     ////////////////////
 
     /* Submit a copy instruction to a stream of the device */
-    stream_t * copy(
+    void copy(
         const device_global_id_t   device_global_id,
-        const size_t                    size,
+        const size_t               size,
         const device_global_id_t   dst_device_global_id,
-        const uintptr_t                 dst_device_addr,
+        const uintptr_t            dst_device_addr,
         const device_global_id_t   src_device_global_id,
-        const uintptr_t                 src_device_addr,
+        const uintptr_t            src_device_addr,
         const callback_t         & callback
     );
 
     /* Submit a copy instruction to a stream of the device */
-    stream_t * copy(
-        const device_global_id_t   device_global_id,
-        const memory_view_t           & host_view,
-        const device_global_id_t   dst_device_global_id,
+    void copy(
+        const device_global_id_t      device_global_id,
+        const memory_view_t         & host_view,
+        const device_global_id_t      dst_device_global_id,
         const memory_replica_view_t & dst_device_view,
-        const device_global_id_t   src_device_global_id,
+        const device_global_id_t      src_device_global_id,
         const memory_replica_view_t & src_device_view,
-        const callback_t         & callback
+        const callback_t            & callback
     );
 
     ///////////////////////
