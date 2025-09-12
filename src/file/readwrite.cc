@@ -95,8 +95,10 @@ body_file_async(task_t * task)
 
     # if 1
 
-    device->offloader_stream_instruction_submit_file<T>(
-            args->fd, args->buffer, args->size, args->offset, callback);
+    stream_instruction_t * instr = device->offloader_stream_instruction_submit_file<T>(
+        args->fd, args->buffer, args->size, args->offset
+    );
+    instr->push_callback(callback);
 
     # else
     // compute chunk size

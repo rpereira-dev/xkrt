@@ -1,5 +1,5 @@
 # CMake Minimum version
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.17)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 SET(XKRT xkrt)
@@ -138,18 +138,11 @@ list(APPEND XKRT_TARGETS ${XKRT}_driver_host)
 # CUDA
 if (USE_CUDA)
 
-    find_package(CUDA_DRIVER REQUIRED)
-    include_directories("${CUDA_DRIVER_INCLUDE_DIRS}")
-
-    find_package(CUDA_RT REQUIRED)
-    include_directories("${CUDA_RT_INCLUDE_DIRS}")
-
-    find_package(CUBLAS REQUIRED)
-    include_directories("${CUBLAS_INCLUDE_DIRS}")
+    find_package(CUDAToolkit REQUIRED)
 
     add_library(${XKRT}_driver_cu SHARED src/driver/driver_cu.cc)
     add_dependencies(${XKRT}_driver_cu always_generate_files)
-    target_link_libraries(${XKRT}_driver_cu PRIVATE ${HWLOC_LIBRARIES} ${CUDA_DRIVER_LIBRARIES} ${CUDA_RT_LIBRARIES} ${CUBLAS_LIBRARIES})
+    target_link_libraries(${XKRT}_driver_cu PRIVATE ${HWLOC_LIBRARIES} CUDA::cudart CUDA::cuda_driver CUDA::cublas CUDA::cusparse)
     target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_cu)
     list(APPEND XKRT_TARGETS ${XKRT}_driver_cu)
 

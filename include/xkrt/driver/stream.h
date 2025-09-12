@@ -151,12 +151,9 @@ XKRT_NAMESPACE_BEGIN
         public:
 
             /* allocate a new instruction to the stream (must then be commited via 'commit') */
-            stream_instruction_t * instruction_new(
-                const stream_instruction_type_t itype,
-                const callback_t & callback
-            );
+            stream_instruction_t * instruction_new(const stream_instruction_type_t itype);
 
-            /* complete the instruction at the i-th position in the pending queue (invoke the callback) */
+            /* complete the instruction at the i-th position in the pending queue (invoke callbacks) */
             void complete_instruction(const stream_instruction_counter_t p);
 
             /* complete the instruction that must be in the pending queue */

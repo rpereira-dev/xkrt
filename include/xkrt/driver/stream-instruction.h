@@ -41,6 +41,7 @@
 
 # include <xkrt/callback.h>
 # include <xkrt/consts.h>
+# include <xkrt/types.h>
 # include <xkrt/memory/view.hpp>
 # include <xkrt/driver/stream-instruction-type.h>
 # include <xkrt/logger/todo.h>
@@ -95,7 +96,6 @@ XKRT_NAMESPACE_BEGIN
     typedef struct  stream_instruction_t
     {
         stream_instruction_type_t type;
-        callback_t callback;
         union
         {
             stream_instruction_copy_1D_t   copy_1D;
@@ -104,6 +104,16 @@ XKRT_NAMESPACE_BEGIN
             stream_instruction_file_t      file;
         };
         bool completed;
+        struct {
+            callback_t list[XKRT_INSTRUCTION_CALLBACKS_MAX];
+            instruction_callback_index_t n;
+        } callbacks;
+
+        void
+        push_callback(const callback_t & callback)
+        {
+            this->callbacks.list[this->callbacks.n++] = callback;
+        }
 
     }               stream_instruction_t;
 

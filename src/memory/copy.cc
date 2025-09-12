@@ -149,7 +149,7 @@ memory_copy_async_register_format(runtime_t * runtime)
     runtime->formats.copy_async = task_format_create(&(runtime->formats.list), &format);
 }
 
-stream_t *
+void
 runtime_t::copy(
     const device_global_id_t      device_global_id,
     const memory_view_t         & host_view,
@@ -160,17 +160,17 @@ runtime_t::copy(
     const callback_t            & callback
 ) {
     device_t * device = this->device_get(device_global_id);
-    return device->offloader_stream_instruction_submit_copy<memory_view_t, memory_replica_view_t>(
+    stream_instruction_t * instr = device->offloader_stream_instruction_submit_copy<memory_view_t, memory_replica_view_t>(
         host_view,
         dst_device_global_id,
         dst_device_view,
         src_device_global_id,
-        src_device_view,
-        callback
+        src_device_view
     );
+    instr->push_callback(callback);
 }
 
-stream_t *
+void
 runtime_t::copy(
     const device_global_id_t   device_global_id,
     const size_t               size,
@@ -182,14 +182,14 @@ runtime_t::copy(
 ) {
     device_t * device = this->device_get(device_global_id);
     // TODO: create 1x instruction per pinned segment, and callback
-    return device->offloader_stream_instruction_submit_copy<size_t, uintptr_t>(
+    stream_instruction_t * instr = device->offloader_stream_instruction_submit_copy<size_t, uintptr_t>(
         size,
         dst_device_global_id,
         dst_device_addr,
         src_device_global_id,
-        src_device_addr,
-        callback
+        src_device_addr
     );
+    instr->push_callback(callback);
 }
 
 XKRT_NAMESPACE_END

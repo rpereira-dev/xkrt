@@ -517,8 +517,7 @@ device_t::offloader_stream_instruction_new(
           thread_t ** pthread,             /* OUT */
           stream_t ** pstream,             /* OUT */
     const stream_instruction_type_t itype, /* IN  */
-          stream_instruction_t ** pinstr,  /* OUT */
-    const callback_t & callback            /* IN */
+          stream_instruction_t ** pinstr   /* OUT */
 ) {
     assert(pstream);
     assert(pinstr);
@@ -532,7 +531,7 @@ device_t::offloader_stream_instruction_new(
     /* allocate the instruction */
     do {
         (*pstream)->lock();
-        (*pinstr) = (*pstream)->instruction_new(itype, callback);
+        (*pinstr) = (*pstream)->instruction_new(itype);
         if (*pinstr)
             break ;
         (*pstream)->unlock();
@@ -544,23 +543,21 @@ device_t::offloader_stream_instruction_new(
     /* stream is locked, will be unlocked in the commit */
 }
 
-void
+stream_instruction_t *
 device_t::offloader_stream_instruction_submit_kernel(
     kernel_launcher_t launch,
-    void * vargs,
-    const callback_t & callback
+    void * vargs
 ) {
     /* create a new instruction and retrieve its offload stream */
     thread_t * thread;
     stream_t * stream;
     stream_instruction_t * instr;
     this->offloader_stream_instruction_new(
-        STREAM_TYPE_KERN,          /* IN */
+        STREAM_TYPE_KERN,               /* IN */
        &thread,                         /* OUT */
        &stream,                         /* OUT */
         XKRT_STREAM_INSTR_TYPE_KERN,    /* IN */
-       &instr,                          /* OUT */
-        callback
+       &instr                           /* OUT */
     );
     assert(thread);
     assert(stream);
@@ -572,4 +569,6 @@ device_t::offloader_stream_instruction_submit_kernel(
     instr->kern.vargs   = vargs;
 
     this->offloader_stream_instruction_commit(thread, stream, instr);
+
+    return instr;
 }
