@@ -61,7 +61,7 @@ distribute1D_submit(
     constexpr size_t task_size = task_compute_size(flags, AC);
 
     task_t * task = thread->allocate_task(task_size);
-    new(task) task_t(TASK_FORMAT_NULL, flags);
+    new (task) task_t(TASK_FORMAT_NULL, flags);
 
     task_dep_info_t * dep = TASK_DEP_INFO(task);
     new (dep) task_dep_info_t(AC);
@@ -70,9 +70,9 @@ distribute1D_submit(
     new (dev) task_dev_info_t(device_global_id, UNSPECIFIED_TASK_ACCESS);
 
     access_t * accesses = TASK_ACCESSES(task);
-    new(accesses + 0) access_t(task, x1, x2, ACCESS_MODE_R);
+    new (accesses + 0) access_t(task, x1, x2, ACCESS_MODE_R);
 
-    thread->resolve<AC>(task, accesses);
+    thread->resolve(accesses, AC);
     # undef AC
 
     #ifndef NDEBUG
@@ -120,9 +120,9 @@ distribute2D_submit(
         const ssize_t y1 = MIN(y+nb+hy, n);
         const  size_t sx = x1 - x0;
         const  size_t sy = y1 - y0;
-        new(accesses + 0) access_t(task, storage, ptr, ld, x0, y0, sx, sy, sizeof_type, ACCESS_MODE_R);
+        new (accesses + 0) access_t(task, storage, ptr, ld, x0, y0, sx, sy, sizeof_type, ACCESS_MODE_R);
     }
-    thread->resolve<AC>(task, accesses);
+    thread->resolve(accesses, AC);
     # undef AC
 
     #ifndef NDEBUG

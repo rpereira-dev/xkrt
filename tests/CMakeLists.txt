@@ -23,7 +23,7 @@ set(TEST_SOURCES
     sync.cc
     task-dependency-interval-matrix.cc
     task-dependency-interval.cc
-    task-dependency-point.cc
+    task-dependency-handle.cc
     task-dependency.cc
     task-format-host.cc
     task-format.cc

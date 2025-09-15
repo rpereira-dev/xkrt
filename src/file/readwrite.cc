@@ -183,8 +183,8 @@ file_async(
         // detached virtual write onto the memory segment
         access_t * accesses = TASK_ACCESSES(task, flags);
         constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V);
-        new(accesses + 0) access_t(task, a, b, mode);
-        thread->resolve<1>(task, accesses);
+        new (accesses + 0) access_t(task, a, b, mode);
+        thread->resolve(accesses, 1);
 
         // commit
         runtime->task_detachable_incr(task);
@@ -242,7 +242,7 @@ file_async(
     LOGGER_WARN("Right now, fulfilling all dependencies on task completion... implemented detached accesses and fix me");
     const uintptr_t ptr = (const uintptr_t) buffer;
     new(accesses + 0) access_t(task, ptr, ptr + n, mode);
-    thread->resolve<1>(task, accesses);
+    thread->resolve(accesses, 1);
 
     // commit
     runtime->task_commit(task);

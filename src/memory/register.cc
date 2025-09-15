@@ -310,8 +310,8 @@ memory_op_async(
                 "(null)");
         # endif /* NDEBUG */
 
-        // resolve dependencies (point-based)
-        tls->resolve<AC>(task, accesses);
+        // resolve dependencies
+        tls->resolve(accesses, AC);
 
         // commit task
         tls->commit(task, runtime_t::task_team_enqueue, runtime, team);

@@ -245,25 +245,17 @@ struct  runtime_t
     /* deallocate unified memory using the driver of the given device */
     void memory_unified_deallocate(const device_global_id_t device_global_id, void * mem, const size_t size);
 
-    ////////////////////////
-    // MEMORY REPLICATION //
-    ////////////////////////
-
-    /* synchronous allocation of a device noncoherent replica */
-    void memory_replicate_coherent(device_global_id_t device_global_id, void * ptr, size_t size);
-    void memory_replicate_coherent(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
-
-    /* synchronous allocation of a device noncoherent replica */
-    void memory_replicate_noncoherent(device_global_id_t device_global_id, void * ptr, size_t size);
-    void memory_replicate_noncoherent(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
-
     /////////////////////
     // MEMORY MOVEMENT //
     /////////////////////
 
-    /* spawn tasks to make the host replica coherent */
-    void memory_host_coherent_async(void * ptr, size_t size);
-    void memory_host_coherent_async(matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
+    /* synchronous allocation of a device noncoherent replica */
+    void memory_noncoherent_alloc(device_global_id_t device_global_id, void * ptr, size_t size);
+    void memory_noncoherent_alloc(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
+
+    /* spawn tasks to make the replica coherent on the passed device */
+    void memory_coherent_async(device_global_id_t device_global_id, void * ptr, size_t size);
+    void memory_coherent_async(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
     /////////////////////////
     // MEMORY REGISTRATION //
@@ -288,9 +280,9 @@ struct  runtime_t
      *
      *  Note: each task may run several 'cuMemRegister' several time on a single chunk
      */
-    int memory_register_async(team_t * team, void * ptr, const size_t size, int n);
+    int memory_register_async  (team_t * team, void * ptr, const size_t size, int n);
     int memory_unregister_async(team_t * team, void * ptr, const size_t size, int n);
-    int memory_touch_async(team_t * team, void * ptr, const size_t size, int n);
+    int memory_touch_async     (team_t * team, void * ptr, const size_t size, int n);
 
     /////////////////////
     // SYNCHRONIZATION //
@@ -381,7 +373,7 @@ struct  runtime_t
 
             access_t * accesses = TASK_ACCESSES(task, flags);
             set_accesses(task, accesses);
-            tls->resolve<ac>(task, accesses);
+            tls->resolve(accesses, ac);
         }
 
         if (split_condition)

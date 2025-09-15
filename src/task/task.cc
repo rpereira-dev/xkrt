@@ -40,7 +40,7 @@
 # include <xkrt/memory/access/blas/dependency-tree.hpp>
 # include <xkrt/memory/access/blas/memory-tree.hpp>
 # include <xkrt/memory/access/interval/dependency-tree.hpp>
-# include <xkrt/memory/access/point/dependency-map.hpp>
+# include <xkrt/memory/access/handle/dependency-map.hpp>
 
 XKRT_NAMESPACE_BEGIN
 
@@ -65,7 +65,7 @@ task_get_memory_controller(
     MemoryCoherencyController * mcc;
     switch (access->type)
     {
-        case (ACCESS_TYPE_POINT):
+        case (ACCESS_TYPE_HANDLE):
         {
             mcc = NULL;
             break ;
@@ -200,59 +200,105 @@ task_get_dependency_domain_blas_matrix(
     return deptree;
 }
 
+typedef enum    task_dependency_action_t
+{
+    LINK,
+    PUT
+}               task_dependency_action_t;
+
+template <task_dependency_action_t action>
+static inline void
+task_dependency_resolve_do(
+    task_t * task,
+    access_t * accesses,
+    task_access_counter_t AC
+) {
+    task_dom_info_t * dom = TASK_DOM_INFO(task);
+    assert(dom);
+
+    for (task_access_counter_t ac = 0 ; ac < AC ; ++ac)
+    {
+        access_t * access = accesses + ac;
+        assert(access->type >= 0 && access->type < ACCESS_TYPE_MAX);
+
+        /* create a new domain */
+        switch (access->type)
+        {
+            case (ACCESS_TYPE_HANDLE):
+            {
+                if (dom->deps.handle == NULL)
+                    dom->deps.handle = new DependencyMap();
+
+                if constexpr (action == LINK)
+                    dom->deps.handle->link(access);
+                else if constexpr(action == PUT)
+                    dom->deps.handle->put(access);
+
+                break ;
+            }
+
+            case (ACCESS_TYPE_INTERVAL):
+            {
+                if (dom->deps.interval == NULL)
+                    dom->deps.interval = new IntervalDependencyTree();
+
+                if constexpr (action == LINK)
+                    dom->deps.interval->link(access);
+                else if constexpr(action == PUT)
+                    dom->deps.interval->put(access);
+
+                for (DependencyDomain * domain : dom->deps.blas)
+                {
+                    BLASDependencyTree * deptree = (BLASDependencyTree *) domain;
+                    if constexpr (action == LINK)
+                    {
+                        deptree->prepare_interval_access_rects(access);
+                        deptree->link(access);
+                    }
+                    else if constexpr(action == PUT)
+                        deptree->put(access);
+                }
+
+                break ;
+            }
+
+            case (ACCESS_TYPE_BLAS_MATRIX):
+            {
+                BLASDependencyTree * deptree = (BLASDependencyTree *) task_get_dependency_domain_blas_matrix(task, access->host_view.ld, access->host_view.sizeof_type);
+                assert(deptree);
+
+                if constexpr (action == LINK)
+                    deptree->link(access);
+                else if constexpr(action == PUT)
+                    deptree->put(access);
+
+                break ;
+            }
+
+            default:
+                LOGGER_FATAL("Tried to run a dependency domain on an unsupported access");
+        }
+    }
+}
+
 /**
- * Retrieve or (insert and return) the dependency domain of the passed task for the given access
+ * Retrieve or (insert and return) the dependency domain of the passed task for
+ * the given access
  */
 void
 task_dependency_resolve(
     task_t * task,
-    access_t * access
+    access_t * accesses,
+    task_access_counter_t AC
 ) {
     assert(task);
     assert(task->flags & TASK_FLAG_DOMAIN);
-    assert(access->type >= 0 && access->type < ACCESS_TYPE_MAX);
 
-    task_dom_info_t * dom = TASK_DOM_INFO(task);
-    assert(dom);
-
-    /* create a new domain */
-    switch (access->type)
-    {
-        case (ACCESS_TYPE_POINT):
-        {
-            if (dom->deps.point == NULL)
-                dom->deps.point = new DependencyMap();
-            dom->deps.point->resolve<1>(access);
-            break ;
-        }
-
-        case (ACCESS_TYPE_INTERVAL):
-        {
-            if (dom->deps.interval == NULL)
-                dom->deps.interval = new IntervalDependencyTree();
-            dom->deps.interval->resolve<1>(access);
-
-            for (DependencyDomain * domain : dom->deps.blas)
-            {
-                BLASDependencyTree * deptree = (BLASDependencyTree *) domain;
-                deptree->resolve_interval(access);
-            }
-
-            break ;
-        }
-
-        case (ACCESS_TYPE_BLAS_MATRIX):
-        {
-            BLASDependencyTree * deptree = (BLASDependencyTree *) task_get_dependency_domain_blas_matrix(task, access->host_view.ld, access->host_view.sizeof_type);
-            assert(deptree);
-
-            deptree->resolve<1>(access);
-            break ;
-        }
-
-        default:
-            LOGGER_FATAL("Tried to run a dependency domain on an unsupported access");
-    }
+    // two passes
+    //  - first one link with previously inserted accesses
+    //  - second one insert accesses to link with future accesses
+    task_dependency_resolve_do<LINK>(task, accesses, AC);
+    task_dependency_resolve_do< PUT>(task, accesses, AC);
 }
 
 XKRT_NAMESPACE_END

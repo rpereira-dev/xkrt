@@ -86,10 +86,10 @@ coherency_reset(runtime_t * runtime)
     // not deleting, instead using unref, as some threads may still be
     // accessing objects
 
-    // if (dom->mccs.point)
+    // if (dom->mccs.handle)
     // {
-    //     dom->deps.point->unref();
-    //     dom->deps.point = NULL;
+    //     dom->deps.handle->unref();
+    //     dom->deps.handle = NULL;
     // }
 
     if (dom->mccs.interval)
@@ -106,10 +106,10 @@ coherency_reset(runtime_t * runtime)
     // delete deps domain        //
     ///////////////////////////////
 
-    if (dom->deps.point)
+    if (dom->deps.handle)
     {
-        delete dom->deps.point;
-        dom->deps.point = NULL;
+        delete dom->deps.handle;
+        dom->deps.handle = NULL;
     }
 
     if (dom->deps.interval)

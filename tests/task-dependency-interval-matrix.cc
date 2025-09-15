@@ -3,7 +3,7 @@
 /*   task-dependency-interval-matrix.cc                           .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/05/19 00:09:44 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/08/23 00:14:31 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/09/15 18:46:33 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -84,7 +84,7 @@ main(void)
         access_t * accesses = TASK_ACCESSES(task);
         static_assert(AC <= TASK_MAX_ACCESSES);
         new (accesses + 0) access_t(task, 0, 100, ACCESS_MODE_W);
-        thread->resolve<AC>(task, accesses);
+        thread->resolve(accesses, AC);
 
         // submit it to the runtime
         runtime.task_commit(task);
@@ -117,7 +117,7 @@ main(void)
         const size_t n = 8;
         const size_t s = 1;
         new (accesses + 0) access_t(task, MATRIX_COLMAJOR, addr, ld, 0, 0, m, n, s, ACCESS_MODE_W);
-        thread->resolve<AC>(task, accesses);
+        thread->resolve(accesses, AC);
 
         // submit it to the runtime
         runtime.task_commit(task);
@@ -143,7 +143,7 @@ main(void)
         access_t * accesses = TASK_ACCESSES(task);
         static_assert(AC <= TASK_MAX_ACCESSES);
         new (accesses + 0) access_t(task, 0, 100, ACCESS_MODE_W);
-        thread->resolve<AC>(task, accesses);
+        thread->resolve(accesses, AC);
 
         // submit it to the runtime
         runtime.task_commit(task);

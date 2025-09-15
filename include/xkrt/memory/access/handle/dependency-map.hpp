@@ -3,7 +3,7 @@
 /*   dependency-map.hpp                                           .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/05/19 00:09:44 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/08/22 23:32:58 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/09/15 18:51:37 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -69,7 +69,7 @@ class DependencyMap : public DependencyDomain
     public:
 
         inline void
-        insert_empty_write(const void * point)
+        insert_empty_write(const void * handle)
         {
             // create the empty task node
             thread_t * thread = thread_t::get_tls();
@@ -97,7 +97,7 @@ class DependencyMap : public DependencyDomain
                 constexpr access_mode_t         mode        = ACCESS_MODE_VW;
                 constexpr access_concurrency_t  concurrency = ACCESS_CONCURRENCY_SEQUENTIAL;
                 constexpr access_scope_t        scope       = ACCESS_SCOPE_NONUNIFIED;
-                new (accesses + 0) access_t(extra, point, mode, concurrency, scope);
+                new (accesses + 0) access_t(extra, handle, mode, concurrency, scope);
             }
 
             // TODO : bellow are really ugly implementation hacks
@@ -169,8 +169,8 @@ class DependencyMap : public DependencyDomain
         inline void
         link(access_t * access)
         {
-            // retrieve previous accesses on that point
-            auto it = map.find(access->point);
+            // retrieve previous accesses on that handle
+            auto it = map.find(access->handle);
 
             // if none, no dependencies, return
             if (it == map.end())
@@ -194,7 +194,7 @@ class DependencyMap : public DependencyDomain
                      *                 / \
                      * conc-w:        O   O     // <- inserting this
                      */
-                    insert_empty_write(access->point);
+                    insert_empty_write(access->handle);
                 }
                 // SEQ-W
                 else
@@ -227,7 +227,7 @@ class DependencyMap : public DependencyDomain
                      *                 / \
                      * seq-r:         O   O     // <- inserting this
                      */
-                    insert_empty_write(access->point);
+                    insert_empty_write(access->handle);
                 }
                 # endif
             }
@@ -266,7 +266,7 @@ class DependencyMap : public DependencyDomain
             // https://github.com/cea-hpc/mpc/blob/master/src/MPC_OpenMP/src/mpcomp_task.c#L1274
 
             // ensure a node exists on that address
-            auto result = map.insert({access->point, Node()});
+            auto result = map.insert({access->handle, Node()});
             if (result.second)
             {
                 // node got inserted

@@ -279,7 +279,7 @@ matrix_to_rects(
 /* access types */
 typedef enum    access_type_t : uint8_t
 {
-    ACCESS_TYPE_POINT       = 0,
+    ACCESS_TYPE_HANDLE       = 0,
     ACCESS_TYPE_INTERVAL    = 1,
     ACCESS_TYPE_BLAS_MATRIX = 2,
     ACCESS_TYPE_NULL        = 3,
@@ -338,12 +338,12 @@ class access_t
 
         union {
 
-            ///////////
-            // POINT //
-            ///////////
+            ////////////
+            // HANDLE //
+            ////////////
 
             struct {
-                const void * point;
+                const void * handle;
             };
 
             //////////////
@@ -412,7 +412,7 @@ class access_t
     public:
 
         //////////////////////////////////////////////////////////////////////
-        // POINT ACCESSES CONSTRUCTORS                                      //
+        // HANDLE ACCESSES CONSTRUCTORS                                     //
         //////////////////////////////////////////////////////////////////////
 
         access_t(
@@ -426,8 +426,8 @@ class access_t
             mode(mode),
             concurrency(concurrency),
             scope(scope),
-            type(ACCESS_TYPE_POINT),
-            point(addr),
+            type(ACCESS_TYPE_HANDLE),
+            handle(addr),
             successors(8),
             task(task),
             host_view(MATRIX_COLMAJOR, addr, 1, 0, 0, 1, 1, 1),

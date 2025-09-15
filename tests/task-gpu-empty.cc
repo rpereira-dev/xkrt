@@ -3,7 +3,7 @@
 /*   task-gpu-empty.cc                                            .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2024/12/20 15:07:55 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/08/23 00:16:26 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/09/15 18:45:40 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -86,7 +86,7 @@ main(void)
     access_t * accesses = TASK_ACCESSES(task);
     new (accesses + 0) access_t(task, MATRIX_COLMAJOR, mem, ld, 0, 0, m, n, sizeof(int), ACCESS_MODE_RW);
 
-    thread->resolve<AC>(task, accesses);
+    thread->resolve(accesses, AC);
 
     # undef AC
 

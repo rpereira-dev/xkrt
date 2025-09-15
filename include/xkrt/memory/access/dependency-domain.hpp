@@ -76,15 +76,6 @@ class DependencyDomain
             for (int i = 0 ; i < AC ; ++i)
                 this->put(accesses + i);
         }
-
-        template<task_access_counter_t AC>
-        inline void
-        resolve(access_t * accesses)
-        {
-            # pragma message(TODO "If we semantically force a accesses region to be disjoint, then these 2 loops can be merged with no risks of dependency cycle")
-            this->link<AC>(accesses);
-            this->put<AC>(accesses);
-        }
 };
 
 XKRT_NAMESPACE_END

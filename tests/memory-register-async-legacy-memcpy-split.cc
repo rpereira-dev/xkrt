@@ -73,7 +73,7 @@ main(void)
     runtime.memory_register((void *) (p+REGISTER_OFFSET), REGISTER_SIZE);
 
     // submit data to devices
-    runtime.memory_host_coherent_async(MATRIX_COLMAJOR, (void *) p, N, N, N, S);
+    runtime.memory_coherent_async(HOST_DEVICE_GLOBAL_ID, MATRIX_COLMAJOR, (void *) p, N, N, N, S);
     runtime.task_wait();
 
     // unregister a portion of it

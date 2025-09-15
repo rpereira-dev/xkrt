@@ -223,14 +223,14 @@ typedef struct  task_dom_info_t
 {
     /* dependency controller - only the thread currently executing the task may read this list */
     struct {
-        DependencyDomain * point;
+        DependencyDomain * handle;
         DependencyDomain * interval;
         std::vector<DependencyDomain *> blas;
     } deps;
 
     /* memory controller for coherency - all threads may try to access this list */
     struct {
-        // DependencyDomain * point; - not implemented
+        // DependencyDomain * handle; - not implemented
         MemoryCoherencyController * interval;
         std::vector<MemoryCoherencyController *> blas;
     } mccs;
@@ -260,11 +260,11 @@ typedef struct  task_mol_info_t
 
 }               task_mol_info_t;
 
-/** insert the 'access' in the 'task' dependency domain, and resolve conflicts
- * with previously resolved tasks */
+/** set dependencies with previously resolved accesses */
 void task_dependency_resolve(
     task_t * task,
-    access_t * access
+    access_t * accesses,
+    task_access_counter_t AC
 );
 
 /* retrieve the dependency domain of the given blas matrix */

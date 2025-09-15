@@ -435,15 +435,6 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
             this->put(access);
         }
 
-        void
-        resolve_interval(access_t * access)
-        {
-            assert(access->type == ACCESS_TYPE_INTERVAL);
-
-            this->prepare_interval_access_rects(access);
-            this->link(access);
-            this->put(access);
-        }
 };
 
 using BLASDependencyTree = KBLASDependencyTree<2>;

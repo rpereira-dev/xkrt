@@ -325,24 +325,13 @@ XKRT_NAMESPACE_BEGIN
         public:
 
             /** Find conflicts and insert accesses in the dependency tree */
-            template <task_access_counter_t AC>
             inline void
-            resolve(task_t * task, access_t * accesses)
+            resolve(access_t * accesses, task_access_counter_t AC)
             {
-                return this->resolve(task, accesses, AC);
-            }
-
-            inline void
-            resolve(task_t * task, access_t * accesses, task_access_counter_t AC)
-            {
-                (void) task;
-                assert(task->flags & TASK_FLAG_DEPENDENT);
                 assert(AC > 0);
                 assert(accesses);
                 assert(this->current_task);
-
-                for (int i = 0 ; i < AC ; ++i)
-                    task_dependency_resolve(this->current_task, accesses + i);
+                task_dependency_resolve(this->current_task, accesses, AC);
             }
 
             template <typename... Args>

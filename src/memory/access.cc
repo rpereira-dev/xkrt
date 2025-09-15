@@ -139,7 +139,7 @@ access_t::split(
             break ;
         }
 
-        case (ACCESS_TYPE_POINT):
+        case (ACCESS_TYPE_HANDLE):
         default:
         {
             // TODO: this should be provided by the user somehow
