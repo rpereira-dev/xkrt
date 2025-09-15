@@ -169,7 +169,7 @@ __task_complete(
                                 MemoryCoherencyController * mcc = task_get_memory_controller(
                                         runtime, succ->parent, succ_access);
                                 if (mcc)
-                                    mcc->fetch(access, device_global_id);
+                                    mcc->fetch(succ_access, device_global_id);
                             }
                         }
                     }

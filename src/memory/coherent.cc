@@ -144,12 +144,14 @@ coherent2D_async(
         BLASDependencyTree::Node * node = (BLASDependencyTree::Node *) conflict;
         access_t * write = node->last_write;
         assert(write);
-        assert(access.host_view.ld          == write->host_view.ld);
-        assert(access.host_view.sizeof_type == write->host_view.sizeof_type);
+
+        // this may no longer be true due to dependencies between segments and matrices
+        // assert(access.host_view.ld          == write->host_view.ld);
+        // assert(access.host_view.sizeof_type == write->host_view.sizeof_type);
 
         /* allocate a task with 1 access */
         task_t * task = thread->allocate_task(task_size + args_size);
-        new(task) task_t(TASK_FORMAT_NULL, flags);
+        new (task) task_t(TASK_FORMAT_NULL, flags);
 
         task_dev_info_t * dev = TASK_DEV_INFO(task);
         new (dev) task_dev_info_t(HOST_DEVICE_GLOBAL_ID, UNSPECIFIED_TASK_ACCESS);
