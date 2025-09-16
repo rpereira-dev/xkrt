@@ -17,7 +17,7 @@ foreach(TEST_FILE ${TEST_SOURCES})
 
     # Create test
     add_executable(${TEST_NAME} ${TEST_FILE})
-    target_link_libraries(${TEST_NAME} PRIVATE ${CXKRT})
+    target_link_libraries(${TEST_NAME} PRIVATE ${CXKRT} XKRT::xkrt)
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 
 endforeach()
