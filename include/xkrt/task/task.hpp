@@ -632,7 +632,9 @@ __task_fetched(
     void (*F)(Args..., task_t *),
     Args... args
 ) {
-    assert(task->state.value == TASK_STATE_DATA_FETCHING);
+    // allocated means it was fetched as part of prefetching
+    assert(task->state.value == TASK_STATE_ALLOCATED ||
+            task->state.value == TASK_STATE_DATA_FETCHING);
     assert(task->flags & TASK_FLAG_DEPENDENT);
     task_dep_info_t * dep = TASK_DEP_INFO(task);
     if (dep->wc.fetch_sub(n, std::memory_order_seq_cst) == n)

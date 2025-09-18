@@ -106,7 +106,7 @@ runtime_t::memory_coherent_async(
     assert(thread);
 
     # define AC 1
-    constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT;
+    constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT | TASK_FLAG_DEVICE;
     constexpr size_t task_size = task_compute_size(flags, AC);
 
     task_t * task = thread->allocate_task(task_size);
