@@ -145,25 +145,37 @@ typedef struct  matrix_tile_t
         return this->addr;
     }
 
+    static inline uintptr_t
+    offset_addr(
+        const matrix_storage_t storage,
+        const uintptr_t addr,
+        const size_t ld,
+        const size_t sizeof_type,
+        const size_t offset_m,
+        const size_t offset_n
+    ) {
+        assert(offset_n >= 0);
+        assert(offset_m >= 0);
+
+        switch (storage)
+        {
+            case (MATRIX_ROWMAJOR):
+                return addr + ((size_t)offset_n * sizeof_type) +
+                              ((size_t)offset_m * sizeof_type * ld);
+
+            case (MATRIX_COLMAJOR):
+                return addr + ((size_t)offset_n * sizeof_type * ld) +
+                              ((size_t)offset_m * sizeof_type);
+            default:
+                abort();
+        }
+    }
+
     inline uintptr_t
     offset_addr(const size_t offset_m, const size_t offset_n) const
     {
         assert(this->storage == MATRIX_ROWMAJOR || this->storage == MATRIX_COLMAJOR);
-        assert(offset_n >= 0);
-        assert(offset_m >= 0);
-
-        switch (this->storage)
-        {
-            case (MATRIX_ROWMAJOR):
-                return this->addr + ((size_t)offset_n * this->sizeof_type) +
-                                    ((size_t)offset_m * this->sizeof_type * this->ld);
-
-            case (MATRIX_COLMAJOR):
-                return this->addr + ((size_t)offset_n * this->sizeof_type * this->ld) +
-                                    ((size_t)offset_m * this->sizeof_type);
-            default:
-                abort();
-        }
+        return offset_addr(this->storage, this->addr, this->ld, this->sizeof_type, offset_m, offset_n);
     }
 
     /* return end address */

@@ -67,7 +67,6 @@ drivers_init(runtime_t * runtime)
     memset(runtime->drivers.devices.list, 0, sizeof(runtime->drivers.devices.list));
     runtime->drivers.devices.next_id = 1;                                                   // host device is always 0
     runtime->drivers.devices.n = 0;
-    runtime->drivers.devices.round_robin_device_global_id = 0;                              // for task scheduling
 
     // LOAD DRIVERS
     driver_t * (*creators[XKRT_DRIVER_TYPE_MAX])(void);
@@ -206,6 +205,11 @@ drivers_init(runtime_t * runtime)
             pthread_barrier_wait(barrier);    // init
             pthread_barrier_wait(barrier);    // commit
             pthread_barrier_wait(barrier);    // offloader streams
+
+            // set devices bitfield
+            driver->devices_bitfield = 0;
+            for (int i = 0 ; i < driver->ndevices_commited ; ++i)
+                driver->devices_bitfield |= (1 << driver->devices[i]->global_id);
         }
         // driver disabled or couldnt init
         else

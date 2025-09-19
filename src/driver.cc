@@ -58,3 +58,10 @@ runtime_t::device_get(
     return this->drivers.devices.list[device_global_id];
 }
 
+device_global_id_bitfield_t
+runtime_t::devices_get(const driver_type_t type)
+{
+    driver_t * driver = driver_get(type);
+    assert(driver);
+    return driver->devices_bitfield;
+}

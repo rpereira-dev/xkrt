@@ -45,7 +45,9 @@ CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE
 ```
 
 ### C API
-Requires the C++ API
+
+Requires the C++ API, and must be installed in the same directory
+
 ```
 cd api/c
 mkdir build
