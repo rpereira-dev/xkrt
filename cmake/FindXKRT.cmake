@@ -18,7 +18,7 @@
 #  XKRT_INCLUDE_DIRS       The location of XKRT headers
 
 find_library(XKRT_LIBRARIES NAMES libxkrt.so)
-find_path(XKRT_INCLUDE_DIRS NAMES xkrt/xkrt.h)
+find_path(XKRT_INCLUDE_DIRS NAMES xkrt/runtime.h)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(XKRT DEFAULT_MSG
