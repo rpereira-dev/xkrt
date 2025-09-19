@@ -30,7 +30,7 @@ XKRT is implemented in C++ and exposes two APIs: C and C++.
 - AML - https://github.com/anlsys/aml
 - Cairo - https://github.com/msteinert/cairo - for debugging purposes, to visualize memory trees
 
-### C++ API
+### Build example
 See the `CMakeLists.txt` file for all available options.
 
 ```bash
@@ -42,17 +42,6 @@ CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE
 
 # with support for Cuda and all optimization
 CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE_CUDA=on -DUSE_SHUT_UP=on -DENABLE_HEAVY_DEBUG=off -DCMAKE_BUILD_TYPE=Release ..
-```
-
-### C API
-
-Requires the C++ API, and must be installed in the same directory
-
-```
-cd api/c
-mkdir build
-cd build
-cmake ..
 ```
 
 ## Available environment variable

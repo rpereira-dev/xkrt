@@ -599,10 +599,7 @@ submit_task_device(
 
     // only coherent async are supported onto the host device yet
     if (device_global_id == HOST_DEVICE_GLOBAL_ID)
-    {
-        LOGGER_FATAL("see comment and double check");
         return submit_task_host(runtime, task);
-    }
 
     device_t * device = runtime->drivers.devices.list[device_global_id];
     assert(device);
