@@ -16,6 +16,9 @@ Other repository hosts specialization layers built on top of the runtime:
 # Getting started
 
 ## Installation
+
+XKRT is implemented in C++ and exposes two APIs: C and C++.
+
 ### Requirements
 - A C/C++ compiler with support for C++20 (the only compiler tested is LLVM >=20.x)
 - hwloc - https://github.com/open-mpi/hwloc
@@ -27,8 +30,7 @@ Other repository hosts specialization layers built on top of the runtime:
 - AML - https://github.com/anlsys/aml
 - Cairo - https://github.com/msteinert/cairo - for debugging purposes, to visualize memory trees
 
-### Build command example
-
+### C++ API
 See the `CMakeLists.txt` file for all available options.
 
 ```bash
@@ -40,6 +42,15 @@ CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE
 
 # with support for Cuda and all optimization
 CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE_CUDA=on -DUSE_SHUT_UP=on -DENABLE_HEAVY_DEBUG=off -DCMAKE_BUILD_TYPE=Release ..
+```
+
+### C API
+Requires the C++ API
+```
+cd api/c
+mkdir build
+cd build
+cmake ..
 ```
 
 ## Available environment variable
