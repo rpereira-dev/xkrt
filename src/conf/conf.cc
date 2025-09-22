@@ -333,7 +333,7 @@ conf_t::init(void)
     this->protect_registered_memory_overflow    = true;
     this->enable_progress_thread_pause          = true;
     this->enable_busy_polling                   = false;
-    this->enable_prefetching                    = true;
+    this->enable_prefetching                    = false;
     this->warmup                                = false;
 
     //////////////////

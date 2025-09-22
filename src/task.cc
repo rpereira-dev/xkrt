@@ -101,13 +101,22 @@ task_format_target_to_driver_type(task_format_target_t fmt)
     }
 }
 
-static inline device_global_id_t
+static inline
+device_global_id_t
 __task_guess_device(
+    runtime_t * runtime,
     task_t * task
 ) {
     // if that task must execute on a device
     if (task->flags & TASK_FLAG_DEVICE)
     {
+        if (task->fmtid != TASK_FORMAT_NULL)
+        {
+            task_format_t * format = task_format_get(&(runtime->formats.list), task->fmtid);
+            if (format->suggest)
+                LOGGER_FATAL("Prefetch not supported if a suggested device is specified");
+        }
+
         task_dev_info_t * dev = TASK_DEV_INFO(task);
         assert(dev);
 
@@ -210,7 +219,7 @@ __task_complete(
                         if (access->mode & ACCESS_MODE_W)
                         {
                             // if successor device can already be known
-                            const device_global_id_t device_global_id = __task_guess_device(succ);
+                            const device_global_id_t device_global_id = __task_guess_device(runtime, succ);
                             if (device_global_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
                             {
                                 // then we can prefetch memory
