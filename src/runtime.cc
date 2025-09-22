@@ -71,15 +71,8 @@ runtime_t::init(void)
 {
     LOGGER_INFO("Initializing XKRT");
 
-    // set TLS
-    team_t * team = NULL;
-    int tid = 0;
-    device_global_id_t device_global_id = HOST_DEVICE_GLOBAL_ID;
-    thread_place_t place;
-    runtime_t::thread_getaffinity(place);
-    thread_t * thread = new thread_t(team, tid, pthread_self(), device_global_id, place);
-    assert(thread);
-    thread_t::push_tls(thread);
+    // initialize TLS
+    thread_t::get_tls();
 
     # if XKRT_SUPPORT_STATS
     memset(&this->stats, 0, sizeof(this->stats));
