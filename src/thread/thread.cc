@@ -72,6 +72,17 @@ thread_t::pop_tls(void)
 thread_t *
 thread_t::get_tls(void)
 {
+    if (__TLS == NULL)
+    {
+        team_t * team = NULL;
+        int tid = 0;
+        device_global_id_t device_global_id = HOST_DEVICE_GLOBAL_ID;
+        thread_place_t place;
+        runtime_t::thread_getaffinity(place);
+        thread_t * thread = new thread_t(team, tid, pthread_self(), device_global_id, place);
+        assert(thread);
+        thread_t::push_tls(thread);
+    }
     assert(__TLS);
     return __TLS;
 }

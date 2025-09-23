@@ -53,13 +53,70 @@
 
 XKRT_NAMESPACE_BEGIN
 
-static inline device_global_id_t
+static inline task_format_target_t
+driver_type_to_task_format_target(driver_type_t driver_type)
+{
+    switch (driver_type)
+    {
+        # define CASE(X)                        \
+            case (XKRT_DRIVER_TYPE_##X):        \
+                return TASK_FORMAT_TARGET_##X;  \
+                break ;
+
+        CASE(HOST)
+        CASE(CUDA)
+        CASE(ZE)
+        CASE(CL)
+        CASE(HIP)
+        CASE(SYCL)
+
+        # undef CASE
+
+        default:
+            LOGGER_FATAL("Invalid device driver type");
+    }
+}
+
+static inline driver_type_t
+task_format_target_to_driver_type(task_format_target_t fmt)
+{
+    switch (fmt)
+    {
+        # define CASE(X)                        \
+            case (TASK_FORMAT_TARGET_##X):      \
+                return XKRT_DRIVER_TYPE_##X;    \
+                break ;
+
+        CASE(HOST)
+        CASE(CUDA)
+        CASE(ZE)
+        CASE(CL)
+        CASE(HIP)
+        CASE(SYCL)
+
+        # undef CASE
+
+            default:
+            LOGGER_FATAL("Invalid task format target");
+    }
+}
+
+static inline
+device_global_id_t
 __task_guess_device(
+    runtime_t * runtime,
     task_t * task
 ) {
     // if that task must execute on a device
     if (task->flags & TASK_FLAG_DEVICE)
     {
+        if (task->fmtid != TASK_FORMAT_NULL)
+        {
+            task_format_t * format = task_format_get(&(runtime->formats.list), task->fmtid);
+            if (format->suggest)
+                LOGGER_FATAL("Prefetch not supported if a suggested device is specified");
+        }
+
         task_dev_info_t * dev = TASK_DEV_INFO(task);
         assert(dev);
 
@@ -162,7 +219,7 @@ __task_complete(
                         if (access->mode & ACCESS_MODE_W)
                         {
                             // if successor device can already be known
-                            const device_global_id_t device_global_id = __task_guess_device(succ);
+                            const device_global_id_t device_global_id = __task_guess_device(runtime, succ);
                             if (device_global_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
                             {
                                 // then we can prefetch memory
@@ -269,29 +326,12 @@ device_task_execute(
         format = task_format_get(&(runtime->formats.list), task->fmtid);
         assert(format);
 
-        // convert device driver type to task format target
-        task_format_target_t targetfmt;
-        switch (device->driver_type)
-        {
-            # define CASE(X)                            \
-                case (XKRT_DRIVER_TYPE_##X):            \
-                    targetfmt = TASK_FORMAT_TARGET_##X; \
-                    break ;
-
-            CASE(HOST)
-            CASE(CUDA)
-            CASE(ZE)
-            CASE(CL)
-            CASE(HIP)
-            CASE(SYCL)
-
-            default:
-                LOGGER_FATAL("Invalid device driver type");
-        }
-
-        /* if there is a format */
+       /* if there is a format */
         if (format)
         {
+            // convert device driver type to task format target
+            task_format_target_t targetfmt = driver_type_to_task_format_target(device->driver_type);
+
             /* if there is a body to execute */
             if (format->f[targetfmt] == NULL)
                 targetfmt = TASK_FORMAT_TARGET_HOST;
@@ -484,11 +524,30 @@ submit_task_device(
     assert(task->flags & TASK_FLAG_DEVICE);
     task_dev_info_t * dev = TASK_DEV_INFO(task);
 
-    // Find the worker to offload the task
-    device_t * device = NULL;
-    device_global_id_t device_id = UNSPECIFIED_DEVICE_GLOBAL_ID;
+    // Bitfield of devices eligible to the task
+    // Initially set to all devices, logic bellow removes bits from it to elect only one
+    device_global_id_bitfield_t devices_bitfield = XKRT_DEVICES_MASK_ALL;
 
-    // if an ocr parameter is set, retrieve the device accordingly
+    // if the task format suggests a format type, filter for the devices that supports this format
+    task_format_t * format;
+    if (task->fmtid != TASK_FORMAT_NULL)
+    {
+        format = task_format_get(&(runtime->formats.list), task->fmtid);
+        assert(format);
+        if (format->suggest)
+        {
+            task_format_target_t fmt_target = format->suggest(task);
+            if (fmt_target != TASK_FORMAT_TARGET_NO_SUGGEST)
+            {
+                driver_type_t driver_type = task_format_target_to_driver_type(fmt_target);
+                device_global_id_bitfield_t suggested_devices = runtime->devices_get(driver_type);
+                if (devices_bitfield & suggested_devices)
+                    devices_bitfield &= suggested_devices;
+            }
+        }
+    }
+
+    // if an ocr parameter is set, filter to keep only devices with most coherent bytes
     if (dev->ocr_access_index != UNSPECIFIED_TASK_ACCESS)
     {
         // if an ocr is set, task must be a dependent task (i.e. with some accesses)
@@ -503,50 +562,58 @@ submit_task_device(
         MemoryCoherencyController * memcontroller = task_get_memory_controller(runtime, task->parent, access);
         assert(memcontroller);
 
-        // retrieve owners - remove the host from owners here, as we want to submit to a device
-        const device_global_id_bitfield_t owners = memcontroller->who_owns(access) & ~(1 << HOST_DEVICE_GLOBAL_ID);
-        if (owners)
-            device_id = (device_global_id_t) (__random_set_bit(owners) - 1);
-    }
+        // retrieve owners excluding the host device
+        const device_global_id_bitfield_t owners = memcontroller->who_owns(access) & ~(1 << HOST_DEVICE_GLOBAL_ID);;
 
-    // if a target device is set
-    if (device_id == UNSPECIFIED_DEVICE_GLOBAL_ID && dev->targeted_device_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
-        device_id = dev->targeted_device_id;
-
-    // fallback to round robin if no devices found
-    if (device_id == UNSPECIFIED_DEVICE_GLOBAL_ID)
-    {
-        // must have at least one non-host device
-        if (runtime->drivers.devices.n > 1)
+        // if there is no owners in the eligible list
+        if ((devices_bitfield & owners) == 0)
         {
-            while (1)
-            {
-                device_id = runtime->drivers.devices.round_robin_device_global_id.fetch_add(1, std::memory_order_relaxed);
-                device_id = (device_global_id_t) (1 + (device_id % (runtime->drivers.devices.n - 1)));
-
-                device_t * device = runtime->drivers.devices.list[device_id];
-                if (device)
-                    break ;
-            }
+            // keep all devices eligible
         }
         else
-            LOGGER_FATAL("No device available to execute the task");
+        {
+            devices_bitfield &= owners;
+        }
+
+        assert(devices_bitfield);
+    }
+
+    // programmer provided an explicit targeted device
+    if (dev->targeted_device_id != UNSPECIFIED_DEVICE_GLOBAL_ID)
+    {
+        // it is present in the bitfield, then select that device
+        if (devices_bitfield & (1 << dev->targeted_device_id))
+            devices_bitfield = (device_global_id_bitfield_t) (1 << dev->targeted_device_id);
+    }
+
+    //////////////////////////////////////
+
+    // At that point, 'device_bitfield' contains the list of eligible devices
+    // We retrieve only one now
+
+    assert(devices_bitfield);
+    device_global_id_t device_global_id = HOST_DEVICE_GLOBAL_ID;
+
+    // if any device available, pick a random one
+    if (devices_bitfield != (1 << HOST_DEVICE_GLOBAL_ID))
+    {
+        device_global_id = (device_global_id_t) __random_set_bit(devices_bitfield & ~(1 << HOST_DEVICE_GLOBAL_ID)) - 1;
     }
 
     // save device id into the task info
-    dev->elected_device_id = device_id;
+    assert((device_global_id >= 0 && device_global_id < runtime->drivers.devices.n));
+    dev->elected_device_id = device_global_id;
+
+    LOGGER_DEBUG("Enqueuing task `%s` to device %d", task->label, device_global_id);
 
     // only coherent async are supported onto the host device yet
-    if (device_id == HOST_DEVICE_GLOBAL_ID)
+    if (device_global_id == HOST_DEVICE_GLOBAL_ID)
         return submit_task_host(runtime, task);
 
-    assert((device_id >= 0 && device_id < runtime->drivers.devices.n));
-    device = runtime->drivers.devices.list[device_id];
+    device_t * device = runtime->drivers.devices.list[device_global_id];
     assert(device);
 
-    LOGGER_DEBUG("Enqueuing task `%s` to device %d", task->label, device_id);
-
-    /* push a task to a thread of the device */
+   /* push a task to a thread of the device */
     uint8_t tid = device->thread_next.fetch_add(1, std::memory_order_relaxed) % device->nthreads;
     thread_t * thread = device->threads[tid];
     runtime->task_thread_enqueue(thread, task);

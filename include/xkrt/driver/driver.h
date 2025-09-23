@@ -84,6 +84,9 @@ XKRT_NAMESPACE_BEGIN
         /* number of devices commited */
         std::atomic<int> ndevices_commited;
 
+        /* bitfield of devices for that driver */
+        device_global_id_bitfield_t devices_bitfield;
+
         /////////////////////////////////////
         //  API TO IMPLEMENT BY THE DRIVER //
         /////////////////////////////////////
@@ -218,7 +221,7 @@ XKRT_NAMESPACE_BEGIN
     }               driver_t;
 
     extern "C"
-        device_t * driver_device_get(driver_t * driver, device_global_id_t driver_device_id);
+    device_t * driver_device_get(driver_t * driver, device_global_id_t driver_device_id);
 
     /* one function per task per driver */
     static_assert((uint8_t)XKRT_DRIVER_TYPE_MAX <= (uint8_t)TASK_FORMAT_TARGET_MAX);
@@ -238,9 +241,6 @@ XKRT_NAMESPACE_BEGIN
 
             /* next device id to use */
             std::atomic<uint8_t> next_id;
-
-            /* next worker to offload round robin mode */
-            std::atomic<uint8_t> round_robin_device_global_id;
 
         } devices;
 

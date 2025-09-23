@@ -550,6 +550,9 @@ struct  runtime_t
     /* get device */
     device_t * device_get(const device_global_id_t device_global_id);
 
+    /* get bitfield of devices for the given driver type */
+    device_global_id_bitfield_t devices_get(const driver_type_t type);
+
     /* get number of commited devices */
     unsigned int get_ndevices(void);
 

@@ -56,7 +56,10 @@ typedef enum    task_format_target_t : uint8_t
 
 }               task_format_target_t;
 
-typedef void (*task_format_func_t)();
+# define TASK_FORMAT_TARGET_NO_SUGGEST TASK_FORMAT_TARGET_MAX
+
+typedef task_format_target_t (*task_format_suggest_t)(void * task);
+typedef                 void (*task_format_func_t)();
 
 typedef struct  task_format_t
 {
@@ -65,6 +68,9 @@ typedef struct  task_format_t
 
     /* a label */
     char label[32];
+
+    /* suggest target to use for that task */
+    task_format_target_t (*suggest)(void * task);
 
 } task_format_t;
 
