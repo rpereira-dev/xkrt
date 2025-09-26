@@ -42,6 +42,7 @@ option(USE_ZES      "Use Intel's ZES management library." OFF)
 option(USE_ZE_SYCL_INTEROP "Enable the compilation of SYCL interop with Level Zero driver" OFF)
 option(USE_MEMORY_REGISTER_OVERFLOW_PROTECTION "Enable the protection of memory copies over regions that are not continuously registered, by splitting into multiple copies, to avoid cuda crashes" ON)
 option(USE_SHUT_UP  "Disable all logging activities" OFF)
+option(USE_JULIA    "Link with Julia to attach threads (needed for running host tasks from Julia)" OFF)
 
 include(BooleanUtils)
 convert_bool(ENABLE_HEAVY_DEBUG)
@@ -59,6 +60,7 @@ convert_bool(USE_ZES)
 convert_bool(USE_ZE_SYCL_INTEROP)
 convert_bool(USE_MEMORY_REGISTER_OVERFLOW_PROTECTION)
 convert_bool(USE_SHUT_UP)
+convert_bool(USE_JULIA)
 
 # XKRT version
 add_custom_command(
@@ -250,6 +252,13 @@ if (STRICT)
     if (${CUDA_DRIVER_FOUND})
         target_compile_options(${XKRT}_driver_cu PRIVATE ${STRICT_OPTIONS})
     endif()
+endif()
+
+# JULIA
+if (USE_JULIA)
+    find_package(Julia REQUIRED)
+    include_directories(${Julia_INCLUDE_DIRS})
+    target_link_libraries(${XKRT} PRIVATE ${Julia_LIBRARIES})
 endif()
 
 ################

@@ -87,4 +87,7 @@
 # define XKRT_SHUT_UP @USE_SHUT_UP@
 # define LOGGER_SHUT_UP XKRT_SHUT_UP
 
+/* If Julia support is enabled */
+# define XKRT_SUPPORT_JULIA             @USE_JULIA@
+
 #endif /* __XKRT_SUPPORT_H__ */

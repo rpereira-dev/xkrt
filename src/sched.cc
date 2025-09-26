@@ -48,6 +48,10 @@
 # include <xkrt/stats/stats.h>
 # include <xkrt/task/task.hpp>
 
+# if XKRT_SUPPORT_JULIA
+#  include <julia.h>
+# endif
+
 # include <cassert>
 # include <cstring>
 # include <cerrno>
@@ -250,6 +254,12 @@ device_thread_main_loop(
 ) {
     assert(thread == thread_t::get_tls());
 
+# if XKRT_SUPPORT_JULIA
+    // should not be needed when entering Julia code via `cfunction` or
+    // `@ccallable` entry point
+    // jl_adopt_thread();
+# endif
+
     task_t * task = NULL;
     bool ready    = false;
     bool pending  = false;
@@ -324,6 +334,12 @@ device_thread_main_loop(
         // task had been launched
         task = NULL;
     }
+
+
+# if XKRT_SUPPORT_JULIA
+    // TODO: jl_abandon_thread();
+    // jl_detach_thread();
+# endif
 
     return EINTR;
 }
