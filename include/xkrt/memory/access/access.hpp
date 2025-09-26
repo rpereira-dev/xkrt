@@ -466,6 +466,7 @@ class access_t
         {
             assert(a < b);
             this->type = ACCESS_TYPE_INTERVAL;
+            interval_to_rects(this->host_view.addr, this->host_view.m, this->host_view.ld, this->host_view.sizeof_type, this->rects);
         }
 
         access_t(

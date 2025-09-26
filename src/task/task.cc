@@ -251,12 +251,9 @@ task_dependency_resolve_do(
                 {
                     BLASDependencyTree * deptree = (BLASDependencyTree *) domain;
                     if constexpr (action == LINK)
-                    {
-                        deptree->prepare_interval_access_rects(access);
-                        deptree->link(access);
-                    }
+                        deptree->link_interval(access);
                     else if constexpr(action == PUT)
-                        deptree->put(access);
+                        deptree->put_interval(access);
                 }
 
                 break ;

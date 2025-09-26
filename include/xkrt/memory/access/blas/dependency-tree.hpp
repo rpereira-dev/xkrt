@@ -351,8 +351,17 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
             }
         }
 
-        void
-        link(access_t * access)
+        inline void
+        prepare_interval_access_rects(access_t * access, Rect (& rects) [3])
+        {
+            /* compute the 3 rect for that access in that LP-Tree */
+            const INTERVAL_TYPE_T       ptr = (INTERVAL_TYPE_T)      access->host_view.addr;
+            const INTERVAL_DIFF_TYPE_T size = (INTERVAL_DIFF_TYPE_T) access->host_view.m;
+            interval_to_rects(ptr, size, this->ld, this->sizeof_type, rects);
+        }
+
+        inline void
+        link(access_t * access, Rect (& rects) [3])
         {
             assert(access->type == ACCESS_TYPE_BLAS_MATRIX ||
                     access->type == ACCESS_TYPE_INTERVAL);
@@ -363,16 +372,66 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
             {
                 case (ACCESS_TYPE_INTERVAL):
                 {
-                    Base::intersect(search, access->rects[0]);
-                    Base::intersect(search, access->rects[1]);
-                    Base::intersect(search, access->rects[2]);
+                    Base::intersect(search, rects[0]);
+                    Base::intersect(search, rects[1]);
+                    Base::intersect(search, rects[2]);
                     break ;
                 }
 
                 case (ACCESS_TYPE_BLAS_MATRIX):
                 {
-                    Base::intersect(search, access->rects[0]);
-                    Base::intersect(search, access->rects[1]);
+                    Base::intersect(search, rects[0]);
+                    Base::intersect(search, rects[1]);
+                    break ;
+                }
+
+                default:
+                {
+                    LOGGER_FATAL("Access not supported");
+                    break ;
+                }
+            }
+        }
+
+        void
+        link(access_t * access)
+        {
+            assert(access->type == ACCESS_TYPE_BLAS_MATRIX);
+            this->link(access, access->rects);
+        }
+
+        void
+        link_interval(access_t * access)
+        {
+            assert(access->type == ACCESS_TYPE_INTERVAL);
+
+            Rect rects[3];
+            this->prepare_interval_access_rects(access, rects);
+            this->link(access, rects);
+        }
+
+        inline void
+        put(access_t * access, Rect (& rects) [3])
+        {
+            assert(access->type == ACCESS_TYPE_BLAS_MATRIX ||
+                    access->type == ACCESS_TYPE_INTERVAL);
+
+            Search search;
+            search.prepare_resolve(access);
+            switch (access->type)
+            {
+                case (ACCESS_TYPE_INTERVAL):
+                {
+                    Base::insert(search, rects[0]);
+                    Base::insert(search, rects[1]);
+                    Base::insert(search, rects[2]);
+                    break ;
+                }
+
+                case (ACCESS_TYPE_BLAS_MATRIX):
+                {
+                    Base::insert(search, rects[0]);
+                    Base::insert(search, rects[1]);
                     break ;
                 }
 
@@ -387,43 +446,8 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
         void
         put(access_t * access)
         {
-            assert(access->type == ACCESS_TYPE_BLAS_MATRIX ||
-                    access->type == ACCESS_TYPE_INTERVAL);
-
-            Search search;
-            search.prepare_resolve(access);
-            switch (access->type)
-            {
-                case (ACCESS_TYPE_INTERVAL):
-                {
-                    Base::insert(search, access->rects[0]);
-                    Base::insert(search, access->rects[1]);
-                    Base::insert(search, access->rects[2]);
-                    break ;
-                }
-
-                case (ACCESS_TYPE_BLAS_MATRIX):
-                {
-                    Base::insert(search, access->rects[0]);
-                    Base::insert(search, access->rects[1]);
-                    break ;
-                }
-
-                default:
-                {
-                    LOGGER_FATAL("Access not supported");
-                    break ;
-                }
-            }
-        }
-
-        inline void
-        prepare_interval_access_rects(access_t * access)
-        {
-            /* compute the 3 rect for that access */
-            const INTERVAL_TYPE_T       ptr = (INTERVAL_TYPE_T)      access->host_view.addr;
-            const INTERVAL_DIFF_TYPE_T size = (INTERVAL_DIFF_TYPE_T) access->host_view.m;
-            interval_to_rects(ptr, size, this->ld, this->sizeof_type, access->rects);
+            assert(access->type == ACCESS_TYPE_BLAS_MATRIX);
+            this->put(access, access->rects);
         }
 
         void
@@ -431,8 +455,9 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
         {
             assert(access->type == ACCESS_TYPE_INTERVAL);
 
-            this->prepare_interval_access_rects(access);
-            this->put(access);
+            Rect rects[3];
+            this->prepare_interval_access_rects(access, rects);
+            this->put(access, rects);
         }
 
 };
