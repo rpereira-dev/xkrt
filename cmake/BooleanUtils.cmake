@@ -5,3 +5,8 @@ macro(convert_bool var)
       set(${var} 0)
   endif()
 endmacro()
+
+macro(xkoption var desc default)
+    option(${var} "${desc}" ${default})
+    convert_bool(var)
+endmacro()
