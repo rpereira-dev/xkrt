@@ -165,9 +165,9 @@ runtime_t::copy(
         dst_device_global_id,
         dst_device_view,
         src_device_global_id,
-        src_device_view
+        src_device_view,
+        callback
     );
-    instr->push_callback(callback);
 }
 
 void
@@ -187,9 +187,9 @@ runtime_t::copy(
         dst_device_global_id,
         dst_device_addr,
         src_device_global_id,
-        src_device_addr
+        src_device_addr,
+        callback
     );
-    instr->push_callback(callback);
 }
 
 XKRT_NAMESPACE_END

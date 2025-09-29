@@ -51,8 +51,6 @@ class IQueue
         /* Steal from the deque (by the thief) */
         virtual T steal(void) = 0;
 
-        /* Return true if the queue is empty, false otherwise */
-        virtual bool is_empty(void) const = 0;
 };
 
 #endif /* __IQUEUE_HPP__ */

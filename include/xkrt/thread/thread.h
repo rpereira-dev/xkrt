@@ -304,12 +304,8 @@ XKRT_NAMESPACE_BEGIN
             {
                 pthread_mutex_lock(&this->sleep.lock);
                 {
-                    if (this->sleep.sleeping)
-                    {
-                        this->sleep.sleeping = false;
-                        // LOGGER_DEBUG("Waking up thread");
-                        pthread_cond_signal(&this->sleep.cond);
-                    }
+                    this->sleep.sleeping = false;
+                    pthread_cond_signal(&this->sleep.cond);
                 }
                 pthread_mutex_unlock(&this->sleep.lock);
             }

@@ -73,7 +73,7 @@ class NaiveQueue : IQueue<T>
         {
             SPINLOCK_LOCK(this->lock);
 
-            if (this->is_empty())
+            if (this->list.empty())
             {
                 SPINLOCK_UNLOCK(this->lock);
                 return nullptr;
@@ -93,15 +93,9 @@ class NaiveQueue : IQueue<T>
             return this->pop();
         }
 
-        bool
-        is_empty(void) const
-        {
-            return this->list.empty();
-        }
-
     private:
         std::list<T> list;
-        spinlock_t lock;
+        volatile spinlock_t lock;
 };
 
 #endif /* __DEQUE_HPP__ */

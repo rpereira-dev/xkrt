@@ -251,6 +251,7 @@ typedef struct  device_t
                         err = stream->progress_pending_instructions();
                     stream->unlock();
                     n = stream->pending.size();
+                    assert(n < stream->pending.capacity);
                 } while (n > this->conf->offloader.streams[s].concurrency);
                 assert(err == 0 || err == EINPROGRESS);
             }
@@ -315,7 +316,8 @@ typedef struct  device_t
     /* submit a kernel execution instruction */
     stream_instruction_t * offloader_stream_instruction_submit_kernel(
         kernel_launcher_t launcher,
-        void * vargs
+        void * vargs,
+        const callback_t & callback
     );
 
     /* copy */
@@ -326,7 +328,8 @@ typedef struct  device_t
         const device_global_id_t   dst_device_global_id,
         const DEVICE_VIEW_T      & dst_device_view,
         const device_global_id_t   src_device_global_id,
-        const DEVICE_VIEW_T      & src_device_view
+        const DEVICE_VIEW_T      & src_device_view,
+        const callback_t         & callback
     ) {
         assert(this->global_id == dst_device_global_id || this->global_id == src_device_global_id);
 
@@ -426,6 +429,7 @@ typedef struct  device_t
             XKRT_STATS_INCR(stream->stats.transfered, host_view.m * host_view.n * host_view.sizeof_type);
         }
 
+        instr->push_callback(callback);
         this->offloader_stream_instruction_commit(thread, stream, instr);
 
         # undef IS_1D

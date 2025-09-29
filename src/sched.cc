@@ -274,16 +274,18 @@ device_thread_main_loop(
         if (device->state != XKRT_DEVICE_STATE_COMMIT)
             return false;
 
-        // find a new task or instructions to progress
+        // find a new task
         if (task == NULL)
             task = thread->deque.pop();
 
-        // check if there is pending or ready instructions in streams
+        /// find instructions pending or ready
         device->offloader_streams_are_empty(device_tid, STREAM_TYPE_ALL, &ready, &pending);
 
+        // is there is anything to progress, wake up
         if (task || ready || pending)
             return false;
 
+        // else, sleep
         return true;
     };
 

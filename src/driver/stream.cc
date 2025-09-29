@@ -319,7 +319,10 @@ __complete_instruction_internal(
         instr->completed = true;
 
     for (instruction_callback_index_t i = 0 ; i < instr->callbacks.n ; ++i)
+    {
+        assert(instr->callbacks.list[i].func);
         instr->callbacks.list[i].func(instr->callbacks.list[i].args);
+    }
 
     XKRT_STATS_INCR(stream->stats.instructions[instr->type].completed, 1);
 }

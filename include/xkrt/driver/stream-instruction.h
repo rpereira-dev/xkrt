@@ -109,10 +109,12 @@ XKRT_NAMESPACE_BEGIN
             instruction_callback_index_t n;
         } callbacks;
 
-        void
+        inline void
         push_callback(const callback_t & callback)
         {
             this->callbacks.list[this->callbacks.n++] = callback;
+            assert(this->callbacks.n >= 0);
+            assert(this->callbacks.n < XKRT_INSTRUCTION_CALLBACKS_MAX);
         }
 
     }               stream_instruction_t;

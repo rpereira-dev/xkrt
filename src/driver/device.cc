@@ -460,13 +460,14 @@ device_t::offloader_wait_random_instruction(uint8_t device_tid)
         unsigned int s = (rtype + itype) % STREAM_TYPE_ALL;
 
         stream_t * stream = NULL;
-        for (unsigned int istream = 0 ; istream < this->count[s] ; ++istream)
+        for (int istream = 0 ; istream < this->count[s] ; ++istream)
         {
             unsigned int i = (rstream + istream) % this->count[s];
 
             stream = this->streams[device_tid][s][i];
             assert(stream);
 
+            // if the stream has pending instructions
             if (!stream->pending.is_empty())
             {
                 const stream_instruction_counter_t i = stream->pending.pos.r;
@@ -546,7 +547,8 @@ device_t::offloader_stream_instruction_new(
 stream_instruction_t *
 device_t::offloader_stream_instruction_submit_kernel(
     kernel_launcher_t launch,
-    void * vargs
+    void * vargs,
+    const callback_t & callback
 ) {
     /* create a new instruction and retrieve its offload stream */
     thread_t * thread;
@@ -567,6 +569,7 @@ device_t::offloader_stream_instruction_submit_kernel(
     /* create a new kernel instruction */
     instr->kern.launch  = (void (*)()) launch;
     instr->kern.vargs   = vargs;
+    instr->push_callback(callback);
 
     this->offloader_stream_instruction_commit(thread, stream, instr);
 
