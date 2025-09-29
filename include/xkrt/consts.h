@@ -73,6 +73,10 @@
 # define UNSPECIFIED_TASK_ACCESS ((task_access_counter_t)-1)
 # define TASK_MAX_ACCESSES (1024)
 
+
+typedef uint8_t xkrt_device_driver_id_t;
+_Static_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(xkrt_device_driver_id_t)*8)), "");
+
 typedef uint8_t xkrt_device_global_id_t;
 _Static_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(xkrt_device_global_id_t)*8)), "");
 

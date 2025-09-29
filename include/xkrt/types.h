@@ -49,6 +49,7 @@ typedef xkrt_task_wait_counter_type_t           task_wait_counter_type_t;
 typedef std::atomic<task_wait_counter_type_t>   task_wait_counter_t;
 typedef xkrt_task_access_counter_type_t         task_access_counter_t;
 
+typedef xkrt_device_driver_id_t                 device_driver_id_t;
 typedef xkrt_device_global_id_t                 device_global_id_t;
 typedef xkrt_device_global_id_bitfield_t        device_global_id_bitfield_t;
 
