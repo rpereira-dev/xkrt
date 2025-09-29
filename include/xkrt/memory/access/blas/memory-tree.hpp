@@ -141,7 +141,7 @@ class KMemoryForward {
 
 /* a view of memory allocation */
 template <int K>
-class KMemoryReplicateAllocationView {
+class KMemoryReplicaAllocationView {
 
     using MemoryForward = KMemoryForward<K>;
 
@@ -166,7 +166,7 @@ class KMemoryReplicateAllocationView {
 
     public:
 
-        KMemoryReplicateAllocationView(
+        KMemoryReplicaAllocationView(
             area_chunk_t * chunk,
             const uintptr_t addr,
             const size_t ld
@@ -178,9 +178,9 @@ class KMemoryReplicateAllocationView {
             ++(chunk->use_counter);
         }
 
-        virtual ~KMemoryReplicateAllocationView() {}
+        virtual ~KMemoryReplicaAllocationView() {}
 
-}; /* MemoryReplicateAllocationView */
+}; /* MemoryReplicaAllocationView */
 
 // if this assertion fails, many bitwise operation in the runtime will be wrong as
 // they are implicitly done on int32 : (1 << device_global_id) will be an int -
@@ -188,15 +188,15 @@ class KMemoryReplicateAllocationView {
 // for 'one' depending on that size
 static_assert(sizeof(memory_allocation_view_id_bitfield_t) * 8 <= 32);
 
-/* a host replicate on a device */
+/* a host replica on a device */
 template <int K>
-class KMemoryReplicate
+class KMemoryReplica
 {
-    using MemoryReplicateAllocationView = KMemoryReplicateAllocationView<K>;
+    using MemoryReplicaAllocationView = KMemoryReplicaAllocationView<K>;
 
     public:
 
-        /* List of allocations for this device replicate.
+        /* List of allocations for this device replica.
          * A device may have several allocations for the same 'host memory'
          * For instance, in the following case scenario where blocks are read in order
          *  ._______________________.
@@ -221,7 +221,7 @@ class KMemoryReplicate
          */
 
         /* array of allocations */
-        MemoryReplicateAllocationView * allocations[MEMORY_REPLICATE_ALLOCATION_VIEWS_MAX];
+        MemoryReplicaAllocationView * allocations[MEMORY_REPLICATE_ALLOCATION_VIEWS_MAX];
         volatile memory_allocation_view_id_t nallocations;
 
         /* coherent allocations */
@@ -233,28 +233,28 @@ class KMemoryReplicate
         static_assert(sizeof(memory_allocation_view_id_bitfield_t) * 8 >= MEMORY_REPLICATE_ALLOCATION_VIEWS_MAX);
 
     public:
-        KMemoryReplicate() : allocations(), nallocations(0), coherency(0), fetching(0) {}
-        KMemoryReplicate(const KMemoryReplicate & r)
+        KMemoryReplica() : allocations(), nallocations(0), coherency(0), fetching(0) {}
+        KMemoryReplica(const KMemoryReplica & r)
         {
             (void) r;
             LOGGER_FATAL("Implement copy constructor");
         }
-        ~KMemoryReplicate() {}
+        ~KMemoryReplica() {}
 
-}; /* MemoryReplicate */
+}; /* MemoryReplica */
 
 /* a memory block, one per tree node */
 template <int K>
 class KMemoryBlock {
 
     using Hyperrect = KHyperrect<K>;
-    using MemoryReplicate = KMemoryReplicate<K>;
-    using MemoryReplicateAllocationView = KMemoryReplicateAllocationView<K>;
+    using MemoryReplica = KMemoryReplica<K>;
+    using MemoryReplicaAllocationView = KMemoryReplicaAllocationView<K>;
 
     public:
 
-        /* per device replicate info */
-        MemoryReplicate replicates[XKRT_DEVICES_MAX];
+        /* per device replica info */
+        MemoryReplica replicas[XKRT_DEVICES_MAX];
 
         /* coherent devices (i.e. devices with at least one coherent allocation) */
         volatile device_global_id_bitfield_t coherency;
@@ -271,7 +271,7 @@ class KMemoryBlock {
 
         /* a new memory block, assume it is coherent on the host */
         KMemoryBlock() :
-            replicates(),
+            replicas(),
             coherency(0),
             fetching(0)
             # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
@@ -298,15 +298,15 @@ class KMemoryBlock {
 
             for (device_global_id_t device_global_id = 0 ; device_global_id < XKRT_DEVICES_MAX ; ++device_global_id)
             {
-                // retrieve this device replicate
-                      MemoryReplicate *            replicate =            this->replicates + device_global_id;
-                const MemoryReplicate * inheriting_replicate = inheriting_block.replicates + device_global_id;
+                // retrieve this device replica
+                      MemoryReplica *            replica =            this->replicas + device_global_id;
+                const MemoryReplica * inheriting_replica = inheriting_block.replicas + device_global_id;
 
                 // dupplicate allocations
-                replicate->nallocations = inheriting_replicate->nallocations;
-                for (memory_allocation_view_id_t i = 0 ; i < inheriting_replicate->nallocations ; ++i)
+                replica->nallocations = inheriting_replica->nallocations;
+                for (memory_allocation_view_id_t i = 0 ; i < inheriting_replica->nallocations ; ++i)
                 {
-                    const MemoryReplicateAllocationView * inheriting_allocation = inheriting_replicate->allocations[i];
+                    const MemoryReplicaAllocationView * inheriting_allocation = inheriting_replica->allocations[i];
 
                     // warning: 'ld' here depends on the allocation itself
                     const INTERVAL_DIFF_TYPE_T offset   = d[ACCESS_BLAS_ROW_DIM] + d[ACCESS_BLAS_COL_DIM] * inheriting_allocation->view.ld * sizeof_type;
@@ -314,14 +314,14 @@ class KMemoryBlock {
                     assert(begin_addr >= inheriting_allocation->chunk->ptr);
 
                     # pragma message(TODO "This memory is currently leaked when 'invalidate' is called")
-                    MemoryReplicateAllocationView * allocation = new MemoryReplicateAllocationView(inheriting_allocation->chunk, begin_addr, inheriting_allocation->view.ld);
-                    replicate->allocations[i] = allocation;
+                    MemoryReplicaAllocationView * allocation = new MemoryReplicaAllocationView(inheriting_allocation->chunk, begin_addr, inheriting_allocation->view.ld);
+                    replica->allocations[i] = allocation;
                     // allocation->awaiting must remain empty, tasks will be notified through the shrinked block
                 }
 
                 // dupplicate fetching / coherency infos
-                replicate->fetching  = inheriting_replicate->fetching;
-                replicate->coherency = inheriting_replicate->coherency;
+                replica->fetching  = inheriting_replica->fetching;
+                replica->coherency = inheriting_replica->coherency;
             }
 
             //////////////////////////////
@@ -372,7 +372,7 @@ class KBLASMemoryTreeNodeSearch {
                 /* dst device */
                 device_global_id_t dst_device_global_id;
 
-                /* replicate allocation to use as dst (in MemoryReplicate::allocations) */
+                /* replica allocation to use as dst (in MemoryReplica::allocations) */
                 memory_allocation_view_id_t dst_allocation_view_id;
 
                 /* dst view */
@@ -381,7 +381,7 @@ class KBLASMemoryTreeNodeSearch {
                 /* source device */
                 device_global_id_t src_device_global_id;
 
-                /* replicate allocation to use as src (in MemoryReplicate::allocations) */
+                /* replica allocation to use as src (in MemoryReplica::allocations) */
                 memory_allocation_view_id_t src_allocation_view_id;
 
                 /* src view */
@@ -590,8 +590,8 @@ class KBLASMemoryTreeNode : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>::Nod
     using Base = typename KHPTree<K, KBLASMemoryTreeNodeSearch<K>>::Node;
     using Hyperrect = KHyperrect<K>;
     using MemoryBlock = KMemoryBlock<K>;
-    using MemoryReplicate = KMemoryReplicate<K>;
-    using MemoryReplicateAllocationView = KMemoryReplicateAllocationView<K>;
+    using MemoryReplica = KMemoryReplica<K>;
+    using MemoryReplicaAllocationView = KMemoryReplicaAllocationView<K>;
     using Node = KBLASMemoryTreeNode<K>;
     using Partite = typename KBLASMemoryTreeNodeSearch<K>::Partite;
     using Search = KBLASMemoryTreeNodeSearch<K>;
@@ -672,8 +672,8 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         using Hyperrect = KHyperrect<K>;
         using MemoryBlock = KMemoryBlock<K>;
         using MemoryForward = KMemoryForward<K>;
-        using MemoryReplicate = KMemoryReplicate<K>;
-        using MemoryReplicateAllocationView = KMemoryReplicateAllocationView<K>;
+        using MemoryReplica = KMemoryReplica<K>;
+        using MemoryReplicaAllocationView = KMemoryReplicaAllocationView<K>;
         using Node = KBLASMemoryTreeNode<K>;
         using NodeBase = typename KHPTree<K, KBLASMemoryTreeNodeSearch<K>>::Node;
         using Partite = typename KBLASMemoryTreeNodeSearch<K>::Partite;
@@ -1078,7 +1078,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                 if (!partite.must_fetch)
                     continue ;
 
-                /* one replicate must be non-null (a null replicate means to use the host view) */
+                /* one replica must be non-null (a null replica means to use the host view) */
                 assert(partite.dst_allocation_view_id != MEMORY_REPLICATE_ALLOCATION_VIEW_NONE ||
                         partite.src_allocation_view_id != MEMORY_REPLICATE_ALLOCATION_VIEW_NONE);
 
@@ -1091,7 +1091,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
                 /* allocate fetch info for the callback argument */
                 fetch_t * fetch = list->prepare_next_fetch();
-                fetch->rects[0]        = partite.hyperrect;
+                fetch->rects[0]             = partite.hyperrect;
                 fetch->host_view            = host_view;
                 fetch->src_device_global_id = partite.src_device_global_id;
                 fetch->src_view             = src_view;
@@ -1117,7 +1117,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
                 /* we can skip the transfer if whether:
                  *  - the block is not coherent on any devices, then assume it is coherent on the host
-                 *  - the host already has a coherent replicate
+                 *  - the host already has a coherent replica
                  *  - the host is already fetching
                  */
                 if (block->coherency == 0 || (block->coherency & devbit) || (block->fetching & devbit))
@@ -1131,7 +1131,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                 // SRC - FIND BEST SRC //
                 /////////////////////////
 
-                // take first device with a coherent replicate, and the first coherent allocation for all partites,
+                // take first device with a coherent replica, and the first coherent allocation for all partites,
                 // so continuous partites are on the same device and allocation
                 // for merging them later
 
@@ -1140,29 +1140,29 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                 assert(src >= 0);
 
                 // Get a coherent allocation on that device
-                MemoryReplicate & src_replicate = partite.block->replicates[src];
-                assert(src_replicate.nallocations > 0);
-                assert(src_replicate.coherency);
+                MemoryReplica & src_replica = partite.block->replicas[src];
+                assert(src_replica.nallocations > 0);
+                assert(src_replica.coherency);
 
                 # if 0
                 // Heuristic : get the first coherent
-                const memory_allocation_view_id_t src_allocation_view_id = (memory_allocation_view_id_t) (__builtin_ffs(src_replicate.coherency) - 1);
-                assert(0 <= src_allocation_view_id && src_allocation_view_id < src_replicate.nallocations);
+                const memory_allocation_view_id_t src_allocation_view_id = (memory_allocation_view_id_t) (__builtin_ffs(src_replica.coherency) - 1);
+                assert(0 <= src_allocation_view_id && src_allocation_view_id < src_replica.nallocations);
                 # else
                 // Heuristic: use the largest coherent allocation on that device to reduce D2D copies when trying to merge later
                 memory_allocation_view_id_t src_allocation_view_id = 0;
-                for (memory_allocation_view_id_t allocation_view_id = 1 ; allocation_view_id < src_replicate.nallocations ; ++allocation_view_id)
+                for (memory_allocation_view_id_t allocation_view_id = 1 ; allocation_view_id < src_replica.nallocations ; ++allocation_view_id)
                 {
-                    const MemoryReplicateAllocationView * src_allocation_view = src_replicate.allocations[src_allocation_view_id];
-                    const MemoryReplicateAllocationView *     allocation_view = src_replicate.allocations[allocation_view_id];
+                    const MemoryReplicaAllocationView * src_allocation_view = src_replica.allocations[src_allocation_view_id];
+                    const MemoryReplicaAllocationView *     allocation_view = src_replica.allocations[allocation_view_id];
                     if (src_allocation_view->chunk->size < allocation_view->chunk->size)
                         src_allocation_view_id = allocation_view_id;
                 }
                 # endif
 
                 // retrieve and set src view infos
-                assert(0 <= src_allocation_view_id && src_allocation_view_id < src_replicate.nallocations);
-                MemoryReplicateAllocationView * src_allocation_view = src_replicate.allocations[src_allocation_view_id];
+                assert(0 <= src_allocation_view_id && src_allocation_view_id < src_replica.nallocations);
+                MemoryReplicaAllocationView * src_allocation_view = src_replica.allocations[src_allocation_view_id];
                 assert(src_allocation_view);
 
                 // set partite transfer infos
@@ -1235,16 +1235,16 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                 const bool coherent_on_device            = block.coherency &  devbit;
                 const bool coherent_on_any_other_devices = block.coherency & ~devbit;
 
-                MemoryReplicate & replicate = block.replicates[device_global_id];
-                if (replicate.fetching)
+                MemoryReplica & replica = block.replicas[device_global_id];
+                if (replica.fetching)
                     return ;
 
                 if (!coherent_on_any_device || coherent_on_any_other_devices)
                 {
                     /* evict all allocations */
-                    for (int i = 0 ; i < replicate.nallocations ; ++i)
+                    for (int i = 0 ; i < replica.nallocations ; ++i)
                     {
-                        MemoryReplicateAllocationView * allocation = replicate.allocations[i];
+                        MemoryReplicaAllocationView * allocation = replica.allocations[i];
                         assert(allocation);
 
                         /* if only this block uses the allocation */
@@ -1262,19 +1262,19 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
                         // delete allocation;
                     }
-                    replicate.nallocations  = 0;
-                    replicate.coherency     = 0;
-                    assert(replicate.fetching == 0);
+                    replica.nallocations  = 0;
+                    replica.coherency     = 0;
+                    assert(replica.fetching == 0);
 
                     block.coherency &= (device_global_id_bitfield_t) ~devbit;
 
                     stop = freed >= 16*size;
                     // stop = false;
                 }
-                else if (coherent_on_device && replicate.nallocations > 1)
+                else if (coherent_on_device && replica.nallocations > 1)
                 {
                     // TODO : only keep 1 coherent allocation
-                    LOGGER_FATAL("coherent_on_device=%d, nallocations=%d", coherent_on_device, replicate.nallocations);
+                    LOGGER_FATAL("coherent_on_device=%d, nallocations=%d", coherent_on_device, replica.nallocations);
                 }
             };
 
@@ -1349,15 +1349,15 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                 const uintptr_t offset = d[ACCESS_BLAS_ROW_DIM] + d[ACCESS_BLAS_COL_DIM]*ld*sizeof_type;
                 const uintptr_t begin_addr = chunk->ptr + offset;
 
-                MemoryReplicate & replicate = partite.block->replicates[device_global_id];
-                const memory_allocation_view_id_t allocation_view_id = replicate.nallocations;
-                replicate.nallocations += 1;
+                MemoryReplica & replica = partite.block->replicas[device_global_id];
+                const memory_allocation_view_id_t allocation_view_id = replica.nallocations;
+                replica.nallocations += 1;
                 if (allocation_view_id >= MEMORY_REPLICATE_ALLOCATION_VIEWS_MAX)
                     LOGGER_FATAL("Too many allocations of the same data on the same device... Increase `MEMORY_REPLICATE_ALLOCATION_VIEWS_MAX` and recompile");
 
                 /* allocate the view of that block in the allocation */
-                MemoryReplicateAllocationView * r = new MemoryReplicateAllocationView(chunk, begin_addr, ld);
-                replicate.allocations[allocation_view_id] = r;
+                MemoryReplicaAllocationView * r = new MemoryReplicaAllocationView(chunk, begin_addr, ld);
+                replica.allocations[allocation_view_id] = r;
                 partite.dst_allocation_view_id = allocation_view_id;
             }
         }
@@ -1371,24 +1371,24 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             assert(this->is_locked());
 
             memory_allocation_view_id_t j = 0;
-            int nallocations = partition.partites[0].block->replicates[device_global_id].nallocations;
+            int nallocations = partition.partites[0].block->replicas[device_global_id].nallocations;
             size_t nblocks = partition.partites.size();
 
             /* for each allocation of the block 0 */
             while (j < nallocations)
             {
-                MemoryReplicateAllocationView * rj = partition.partites[0].block->replicates[device_global_id].allocations[j];
+                MemoryReplicaAllocationView * rj = partition.partites[0].block->replicas[device_global_id].allocations[j];
 
                 /* for each other blocks */
                 size_t i = 1;
                 while (i < nblocks)
                 {
                     /* for each allocation of other blocks */
-                    int nallocations = partition.partites[i].block->replicates[device_global_id].nallocations;
+                    int nallocations = partition.partites[i].block->replicas[device_global_id].nallocations;
                     for (memory_allocation_view_id_t k = 0 ; k < nallocations ; ++k)
                     {
                         /* this block has a view with the same allocation, check next block */
-                        MemoryReplicateAllocationView * rk = partition.partites[i].block->replicates[device_global_id].allocations[k];
+                        MemoryReplicaAllocationView * rk = partition.partites[i].block->replicas[device_global_id].allocations[k];
                         if (rj->chunk == rk->chunk)
                         {
                             partition.partites[i].dst_allocation_view_id = k;
@@ -1441,7 +1441,7 @@ next_view:
         }
 
         inline void
-        fetch_access_setup_replicates(
+        fetch_access_setup_replicas(
             access_t * access,
             device_global_id_t device_global_id,
             Search & search
@@ -1453,7 +1453,7 @@ next_view:
             const Partite & partite = search.partition.get_leftmost_uppermost_block();
             assert(partite.dst_allocation_view_id != MEMORY_REPLICATE_ALLOCATION_VIEW_NONE);
 
-            const MemoryReplicateAllocationView * r = partite.block->replicates[device_global_id].allocations[partite.dst_allocation_view_id];
+            const MemoryReplicaAllocationView * r = partite.block->replicas[device_global_id].allocations[partite.dst_allocation_view_id];
             assert(r);
 
             access->device_view = r->view;
@@ -1486,26 +1486,26 @@ next_view:
                     const memory_allocation_view_id_bitfield_t dst_allocbit = (memory_allocation_view_id_bitfield_t) (1 << dst_allocation_view_id);
 
                     /* partite and its view are already coherent on that device */
-                    MemoryReplicate & dst_replicate = partite.block->replicates[device_global_id];
-                    if (dst_replicate.coherency & dst_allocbit)
+                    MemoryReplica & dst_replica = partite.block->replicas[device_global_id];
+                    if (dst_replica.coherency & dst_allocbit)
                     {
                         partite.must_fetch = false;
                         continue ;
                     }
 
                     /* retrieve an incoherent allocation view */
-                    MemoryReplicateAllocationView * dst_allocation_view = dst_replicate.allocations[dst_allocation_view_id];
+                    MemoryReplicaAllocationView * dst_allocation_view = dst_replica.allocations[dst_allocation_view_id];
 
                     /* increment task fetch counter */
                     LOGGER_DEBUG(
                         "task `%s` fetching by `%s` on `%p`",
                         access->task->label,
-                        (dst_replicate.fetching & dst_allocbit) ? "awaiting" : (partite.block->fetching) ? "forwarding" : "launching",
+                        (dst_replica.fetching & dst_allocbit) ? "awaiting" : (partite.block->fetching) ? "forwarding" : "launching",
                         (void *) dst_allocation_view->view.addr
                     );
 
                     /* partite is already being fetched on that device */
-                    if (dst_replicate.fetching & dst_allocbit)
+                    if (dst_replica.fetching & dst_allocbit)
                     {
                         partite.must_fetch = false;
                         LOGGER_DEBUG("Skipping fetch of a block already being fetched (concurrent read)");
@@ -1539,17 +1539,17 @@ next_view:
                         assert(partite.block->coherency & (1 << src));
 
                         /* Get the first coherent allocation on that device */
-                        MemoryReplicate & src_replicate = partite.block->replicates[src];
-                        assert(src_replicate.nallocations > 0);
-                        assert(src_replicate.coherency);
+                        MemoryReplica & src_replica = partite.block->replicas[src];
+                        assert(src_replica.nallocations > 0);
+                        assert(src_replica.coherency);
 
                         # pragma message(TODO "Instead of getting the first coherent, maybe get the LARGEST coherent, so we maximize odds to merge with future allocations")
-                        memory_allocation_view_id_t src_allocation_view_id = (memory_allocation_view_id_t) (__builtin_ffs(src_replicate.coherency) - 1);
-                        assert(src_replicate.coherency & (1 << src_allocation_view_id));
-                        assert(0 <= src_allocation_view_id && src_allocation_view_id < src_replicate.nallocations);
+                        memory_allocation_view_id_t src_allocation_view_id = (memory_allocation_view_id_t) (__builtin_ffs(src_replica.coherency) - 1);
+                        assert(src_replica.coherency & (1 << src_allocation_view_id));
+                        assert(0 <= src_allocation_view_id && src_allocation_view_id < src_replica.nallocations);
 
                         /* Retrieve and set src view infos */
-                        MemoryReplicateAllocationView * src_allocation_view = src_replicate.allocations[src_allocation_view_id];
+                        MemoryReplicaAllocationView * src_allocation_view = src_replica.allocations[src_allocation_view_id];
                         partite.src_device_global_id    = src;
                         partite.src_allocation_view_id  = src_allocation_view_id;
                         partite.src_view                = src_allocation_view->view;
@@ -1570,16 +1570,16 @@ next_view:
                         assert(0 <= fetching_device_global_id && fetching_device_global_id < XKRT_DEVICES_MAX);
                         assert(partite.block->fetching & (1 << fetching_device_global_id));
 
-                        MemoryReplicate & fetching_replicate = partite.block->replicates[fetching_device_global_id];
-                        assert(fetching_replicate.fetching);
+                        MemoryReplica & fetching_replica = partite.block->replicas[fetching_device_global_id];
+                        assert(fetching_replica.fetching);
 
                         // Maybe there is several fetching alloc ? in such case, which one to pick ?
                         // Currently select the first one
-                        memory_allocation_view_id_t fetching_allocation_view_id = (memory_allocation_view_id_t) (__builtin_ffs(fetching_replicate.fetching) - 1);
-                        assert(0 <= fetching_allocation_view_id && fetching_allocation_view_id < fetching_replicate.nallocations);
-                        assert(fetching_replicate.fetching & (1 << fetching_allocation_view_id));
+                        memory_allocation_view_id_t fetching_allocation_view_id = (memory_allocation_view_id_t) (__builtin_ffs(fetching_replica.fetching) - 1);
+                        assert(0 <= fetching_allocation_view_id && fetching_allocation_view_id < fetching_replica.nallocations);
+                        assert(fetching_replica.fetching & (1 << fetching_allocation_view_id));
 
-                        MemoryReplicateAllocationView * fetching_allocation_view = fetching_replicate.allocations[fetching_allocation_view_id];
+                        MemoryReplicaAllocationView * fetching_allocation_view = fetching_replica.allocations[fetching_allocation_view_id];
                         assert(fetching_allocation_view);
 
                         LOGGER_DEBUG("registered a forward for task `%s`", access->task->label);
@@ -1608,7 +1608,7 @@ next_view:
                     }
 
                     /* update bitfields so no other concurrent fetch occurs */
-                    dst_replicate.fetching  |= dst_allocbit;
+                    dst_replica.fetching  |= dst_allocbit;
                     partite.block->fetching |= dst_devbit;
 
                     //////////////////////////////
@@ -1637,21 +1637,21 @@ next_view:
                 {
                     const memory_allocation_view_id_bitfield_t allocbit = (memory_allocation_view_id_bitfield_t) (1 << partite.dst_allocation_view_id);
 
-                    /* make all replicates incoherent */
+                    /* make all replicas incoherent */
                     # pragma message(TODO "Can coherency be managed in a lazier way ?")
                     for (device_global_id_t device_global_id = 0 ;
                             device_global_id < XKRT_DEVICES_MAX ;
                             ++device_global_id)
                     {
-                        MemoryReplicate & replicate = partite.block->replicates[device_global_id];
-                        replicate.coherency = 0;
+                        MemoryReplica & replica = partite.block->replicas[device_global_id];
+                        replica.coherency = 0;
                     }
                     partite.block->coherency = 0;
 
                     /* There is no concurrent access anyway, so make memory coherent now
                      * (even though the kernel has not executed, and the data is not rigourously coherent yet) */
-                    MemoryReplicate & replicate = partite.block->replicates[device_global_id];
-                    replicate.coherency = allocbit;
+                    MemoryReplica & replica = partite.block->replicas[device_global_id];
+                    replica.coherency = allocbit;
                     partite.block->coherency = devbit;
                 }
             }
@@ -1767,14 +1767,14 @@ next_view:
                 this->fetch_access_find_allocation(access, device_global_id, search.partition);
 
                 /* step (4) set the access view on the device (that will be used by the kernel) */
-                this->fetch_access_setup_replicates(access, device_global_id, search);
+                this->fetch_access_setup_replicas(access, device_global_id, search);
 
                 if (!only_allocates)
                 {
                     /* step (5) if read access, find src/dst, and setup views to transfer on step (7) */
                     this->fetch_access_setup_copies(access, device_global_id, search.partition);
 
-                    /* step (6) if write access, make all other replicates incoherent */
+                    /* step (6) if write access, make all other replicas incoherent */
                     this->fetch_access_set_coherent(access, device_global_id, search.partition);
                 }
 
@@ -1970,11 +1970,11 @@ next_view:
             if (da)
             {
                 // REPLICATES VIEW
-                for (MemoryReplicate & replicate : node->block.replicates)
+                for (MemoryReplica & replica : node->block.replicas)
                 {
-                    for (memory_allocation_view_id_t i = 0 ; i < replicate.nallocations ; ++i)
+                    for (memory_allocation_view_id_t i = 0 ; i < replica.nallocations ; ++i)
                     {
-                        MemoryReplicateAllocationView * allocation_view = replicate.allocations[i];
+                        MemoryReplicaAllocationView * allocation_view = replica.allocations[i];
                         const INTERVAL_DIFF_TYPE_T offset = (k == ACCESS_BLAS_ROW_DIM) ? da : (da * allocation_view->view.ld * this->sizeof_type);
                         allocation_view->view.addr += offset;
                         assert(allocation_view->view.addr >= allocation_view->chunk->ptr);
@@ -2033,20 +2033,20 @@ next_view:
                 case (Search::Type::SEARCH_FETCHED):
                 {
                     const device_global_id_bitfield_t devbit = (device_global_id_bitfield_t) (1 << search.device_global_id);
-                    MemoryReplicate & replicate = node->block.replicates[search.device_global_id];
+                    MemoryReplica & replica = node->block.replicas[search.device_global_id];
 
                     if (search.device_global_id != HOST_DEVICE_GLOBAL_ID)
                     {
                         /* this is called after completing a fetch.
                          * There must be at least one allocation available (the one that just got fetched...)
                          */
-                        assert(replicate.nallocations);
+                        assert(replica.nallocations);
 
                         /* for each allocation of that block */
-                        for (memory_allocation_view_id_t allocation_view_id = 0 ; allocation_view_id < replicate.nallocations ; ++allocation_view_id)
+                        for (memory_allocation_view_id_t allocation_view_id = 0 ; allocation_view_id < replica.nallocations ; ++allocation_view_id)
                         {
                             const memory_allocation_view_id_bitfield_t allocbit = (memory_allocation_view_id_bitfield_t) (1 << allocation_view_id);
-                            MemoryReplicateAllocationView * allocation_view = replicate.allocations[allocation_view_id];
+                            MemoryReplicaAllocationView * allocation_view = replica.allocations[allocation_view_id];
 
                             /* if it matches the allocation being searched */
                             if (allocation_view->chunk == search.chunk)
@@ -2067,26 +2067,26 @@ next_view:
                                 );
                                 allocation_view->awaiting.forwards.clear();
 
-                                /* this replicate just got fetched and is now coherent */
+                                /* this replica just got fetched and is now coherent */
 
                                 // this assertion is not always true, if coming from
                                 // an ACCESS_MODE_W, the data was already set coherent
-                                // assert((replicate.coherency & allocbit) == 0);
-                                replicate.coherency |= (memory_allocation_view_id_bitfield_t) allocbit;
+                                // assert((replica.coherency & allocbit) == 0);
+                                replica.coherency |= (memory_allocation_view_id_bitfield_t) allocbit;
 
-                                assert(replicate.fetching & allocbit);
-                                replicate.fetching &= (memory_allocation_view_id_bitfield_t) ~allocbit;
+                                assert(replica.fetching & allocbit);
+                                replica.fetching &= (memory_allocation_view_id_bitfield_t) ~allocbit;
 
                                 break ;
                             }
                         }
                         // at least one allocation must match with the chunk on which we fetched
-                        assert(replicate.coherency);
+                        assert(replica.coherency);
                     }
 
                     /* set device bits */
                     node->block.coherency |= devbit;
-                    if (replicate.fetching == 0)
+                    if (replica.fetching == 0)
                         node->block.fetching &= ~devbit;
 
                     break ;
