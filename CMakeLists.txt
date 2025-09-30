@@ -47,6 +47,13 @@ xkoption(USE_ZE_SYCL_INTEROP "Enable the compilation of SYCL interop with Level 
 xkoption(USE_JULIA    "Link with Julia to attach threads (needed for running host tasks from Julia)" OFF)
 xkoption(USE_CAIRO    "Use Cairo to generate images (memory-tree debugging purposes mostly)." OFF)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(DEBUG_BUILD ON)
+else()
+    set(DEBUG_BUILD OFF)
+endif()
+convert_bool(DEBUG_BUILD)
+
 # XKRT version
 add_custom_command(
     OUTPUT  always-run
