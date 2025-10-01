@@ -38,6 +38,7 @@
 # ifndef __XKRT_THREAD_H__
 #  define __XKRT_THREAD_H__
 
+#  include <xkrt/support.h>
 #  include <xkrt/consts.h>
 #  include <xkrt/sync/spinlock.h>
 #  include <xkrt/memory/access/blas/dependency-tree.hpp>

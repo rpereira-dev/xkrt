@@ -73,9 +73,9 @@
             abort();                                                            \
         }                                                                       \
     } while (0)
-# else /* XKRT_SUPPORT_DEBUG */
+# else /* KHP_TREE_ENABLE_COHERENCY_CHECKS */
 #  define tassert(ignore) ((void)0)
-# endif /* XKRT_SUPPORT_DEBUG */
+# endif /* KHP_TREE_ENABLE_COHERENCY_CHECKS */
 
 # include <cassert>
 # include <cstdio>

@@ -37,6 +37,7 @@
 #ifndef __LOCKABLE_HPP__
 # define __LOCKABLE_HPP__
 
+# include <xkrt/support.h>
 # include <xkrt/sync/spinlock.h>
 
 /* an abstract object that can be locked */

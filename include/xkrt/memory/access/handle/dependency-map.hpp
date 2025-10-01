@@ -40,6 +40,7 @@
 #ifndef __DEPENDENCY_MAP_HPP__
 # define __DEPENDENCY_MAP_HPP__
 
+# include <xkrt/support.h>
 # include <xkrt/memory/access/dependency-domain.hpp>
 # include <xkrt/task/task.hpp>
 
