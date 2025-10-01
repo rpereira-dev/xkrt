@@ -72,13 +72,12 @@ __task_moldable_split(
     runtime_t * runtime,
     task_t * task,
     access_t * accesses,
-    task_dep_info_t * dep,
-    task_mol_info_t * mol
+    task_dep_info_t * dep
 ) {
     // right now, all task accesses must have the same type
     const access_type_t type = (accesses + 0)->type;
 
-    # ifndef NDEBUG
+    # if XKRT_SUPPORT_DEBUG
     for (task_access_counter_t i = 1 ; i < dep->ac ; ++i)
         assert(type == (accesses + i)->type);
     # endif /* atm, only support moldable tasks with accesses of same type */
@@ -198,7 +197,7 @@ __device_prepare_task(
                 {
                     // shrink the moldable task, and resubmit the original task
                     // whose accesses got shrinked
-                    __task_moldable_split(runtime, task, accesses, dep, mol);
+                    __task_moldable_split(runtime, task, accesses, dep);
                     return runtime_submit_task(runtime, task);
                 }
                 else

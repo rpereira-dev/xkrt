@@ -90,4 +90,7 @@
 /* If Julia support is enabled */
 # define XKRT_SUPPORT_JULIA             @USE_JULIA@
 
+/* If XKRT is built in debug mode */
+# define XKRT_SUPPORT_DEBUG             @DEBUG_BUILD@
+
 #endif /* __XKRT_SUPPORT_H__ */

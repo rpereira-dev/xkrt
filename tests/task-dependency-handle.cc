@@ -90,7 +90,7 @@ main(void)
         int * args = (int *) TASK_ARGS(task, task_size);
         *args = t;
 
-        # ifndef NDEBUG
+        # if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label), "dependent-task-test-%d", t);
         # endif
 

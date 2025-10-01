@@ -19,7 +19,7 @@
 # endif
 # include <sched.h>
 
-#ifdef NDEBUG
+#if !XKRT_SUPPORT_DEBUG
 # define XKRT_ASSERT(...) if (__VA_ARGS__) {}
 #else
 # define XKRT_ASSERT(...) assert(__VA_ARGS__)

@@ -200,7 +200,7 @@ stats_tasks_report(runtime_t * runtime)
             );
     }
 
-    # ifndef NDEBUG
+    # if XKRT_SUPPORT_DEBUG
     thread_t * thread = thread_t::get_tls();
     int counter[TASK_STATE_MAX];
     memset(counter, 0, sizeof(counter));
@@ -213,7 +213,7 @@ stats_tasks_report(runtime_t * runtime)
     for (int i = 0 ; i < TASK_STATE_MAX ; ++i)
         LOGGER_WARN("  `%8d` tasks in state `%12s`", counter[i], task_state_to_str((task_state_t)i));
 
-    # endif /* NDEBUG */
+    # endif /* XKRT_SUPPORT_DEBUG */
 }
 
 void

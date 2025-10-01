@@ -58,6 +58,9 @@
 # define __KHP_TREE_H__
 
 // tree assert, must be called within a member function
+# ifndef KHP_TREE_ENABLE_COHERENCY_CHECKS
+#  define KHP_TREE_ENABLE_COHERENCY_CHECKS 0
+# endif
 # if KHP_TREE_ENABLE_COHERENCY_CHECKS
 #  pragma message("Unset `KHP_TREE_ENABLE_COHERENCY_CHECKS` for max performance")
 #  define tassert(expr)                                                         \
@@ -70,9 +73,9 @@
             abort();                                                            \
         }                                                                       \
     } while (0)
-# else /* NDEBUG */
+# else /* KHP_TREE_ENABLE_COHERENCY_CHECKS */
 #  define tassert(ignore) ((void)0)
-# endif /* NDEBUG */
+# endif /* KHP_TREE_ENABLE_COHERENCY_CHECKS */
 
 # include <cassert>
 # include <cstdio>

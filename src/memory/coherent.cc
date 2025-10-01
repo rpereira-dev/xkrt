@@ -118,9 +118,9 @@ runtime_t::memory_coherent_async(
     task_dev_info_t * dev = TASK_DEV_INFO(task);
     new (dev) task_dev_info_t(device_global_id, UNSPECIFIED_TASK_ACCESS);
 
-    # ifndef NDEBUG
+    # if XKRT_SUPPORT_DEBUG
     snprintf(task->label, sizeof(task->label), "coherent1D_async");
-    # endif /* NDEBUG */
+    # endif /* XKRT_SUPPORT_DEBUG */
 
     static_assert(AC <= TASK_MAX_ACCESSES);
     access_t * accesses = TASK_ACCESSES(task, flags);
@@ -193,9 +193,9 @@ runtime_t::memory_coherent_async(
         task_dep_info_t * dep = TASK_DEP_INFO(task);
         new (dep) task_dep_info_t(AC);
 
-        #ifndef NDEBUG
+        #if XKRT_SUPPORT_DEBUG
         strncpy(task->label, "memory_coherent_async", sizeof(task->label));
-        #endif /* NDEBUG */
+        #endif /* XKRT_SUPPORT_DEBUG */
 
         access_t * accesses = TASK_ACCESSES(task, flags);
         assert(accesses);
