@@ -40,6 +40,7 @@
 #ifndef __DEPENDENCY_MAP_HPP__
 # define __DEPENDENCY_MAP_HPP__
 
+# include <xkrt/support.h>
 # include <xkrt/memory/access/dependency-domain.hpp>
 # include <xkrt/task/task.hpp>
 
@@ -108,7 +109,7 @@ class DependencyMap : public DependencyDomain
             assert(dep);
             new (dep) task_dep_info_t(AC);
 
-            # ifndef NDEBUG
+            # if XKRT_SUPPORT_DEBUG
             snprintf(extra->label, sizeof(extra->label), "cw-empty-node");
             # endif
 

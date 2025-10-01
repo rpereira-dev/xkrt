@@ -56,6 +56,10 @@
 # define ACCESS_BLAS_ROW_DIM 0
 # define ACCESS_BLAS_COL_DIM (1 - ACCESS_BLAS_ROW_DIM)
 
+# ifndef XKRT_ACCESS_FORCE_ALIGNMENT
+#  define XKRT_ACCESS_FORCE_ALIGNMENT 0
+# endif
+
 # include <xkrt/namespace.h>
 XKRT_NAMESPACE_BEGIN
 
@@ -203,9 +207,9 @@ matrix_to_rects(
     const size_t  n = mat.n;
     const size_t  s = mat.sizeof_type;
 
-    # if ACCESS_FORCE_ALIGNMENT
+    # if XKRT_ACCESS_FORCE_ALIGNMENT
     assert((A % (ld * s)) + (m * s) <= ld * s);
-    # endif /* ACCESS_FORCE_ALIGNMENT */
+    # endif /* XKRT_ACCESS_FORCE_ALIGNMENT */
 
     // only 1 rect is needed
     if ((A % (ld * s)) + m * s <= ld * s)

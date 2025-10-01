@@ -62,7 +62,7 @@ main(void)
     task_dep_info_t * dep = TASK_DEP_INFO(task);
     new (dep) task_dep_info_t(AC);
 
-    # ifndef NDEBUG
+    # if XKRT_SUPPORT_DEBUG
     snprintf(task->label, sizeof(task->label), "dependent-task-test");
     # endif
 

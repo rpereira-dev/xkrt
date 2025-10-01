@@ -75,9 +75,9 @@ distribute1D_submit(
     thread->resolve(accesses, AC);
     # undef AC
 
-    #ifndef NDEBUG
+    #if XKRT_SUPPORT_DEBUG
     snprintf(task->label, sizeof(task->label), "distribute1d_async");
-    #endif /* NDEBUG */
+    #endif /* XKRT_SUPPORT_DEBUG */
 
     runtime->task_commit(task);
 }
@@ -125,9 +125,9 @@ distribute2D_submit(
     thread->resolve(accesses, AC);
     # undef AC
 
-    #ifndef NDEBUG
+    #if XKRT_SUPPORT_DEBUG
     snprintf(task->label, sizeof(task->label), "distribute2D_async");
-    #endif /* NDEBUG */
+    #endif /* XKRT_SUPPORT_DEBUG */
 
     runtime->task_commit(task);
 }

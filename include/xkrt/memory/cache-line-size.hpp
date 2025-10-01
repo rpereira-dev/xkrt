@@ -35,8 +35,9 @@
 **/
 
 # if !defined(CACHE_LINE_SIZE)
-#  if __cpp_lib_hardware_interference_size >= 201603
-#   include <new>
+#  include <new>
+#  include <version>
+#  if defined(__cpp_lib_hardware_interference_size) && __cpp_lib_hardware_interference_size >= 201603
 #   define CACHE_LINE_SIZE std::hardware_constructive_interference_size
 #  else
 #   define CACHE_LINE_SIZE 64

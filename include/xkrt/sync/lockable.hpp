@@ -37,6 +37,7 @@
 #ifndef __LOCKABLE_HPP__
 # define __LOCKABLE_HPP__
 
+# include <xkrt/support.h>
 # include <xkrt/sync/spinlock.h>
 
 /* an abstract object that can be locked */
@@ -45,16 +46,16 @@ class Lockable {
     public:
         spinlock_t spinlock;
 
-        # ifndef NDEBUG
+        # if XKRT_SUPPORT_DEBUG
         volatile bool locked;
-        # endif /* NDEBUG */
+        # endif /* XKRT_SUPPORT_DEBUG */
 
     public:
-        # ifndef NDEBUG
+        # if XKRT_SUPPORT_DEBUG
         Lockable() : spinlock(), locked(false) {}
         # else
         Lockable() : spinlock() {}
-        # endif /* NDEBUG */
+        # endif /* XKRT_SUPPORT_DEBUG */
 
         ~Lockable() {}
 
@@ -64,27 +65,27 @@ class Lockable {
         lock(void)
         {
             SPINLOCK_LOCK(this->spinlock);
-            # ifndef NDEBUG
+            # if XKRT_SUPPORT_DEBUG
             this->locked = true;
-            # endif /* NDEBUG */
+            # endif /* XKRT_SUPPORT_DEBUG */
         }
 
         inline void
         unlock(void)
         {
-            # ifndef NDEBUG
+            # if XKRT_SUPPORT_DEBUG
             this->locked = false;
-            # endif /* NDEBUG */
+            # endif /* XKRT_SUPPORT_DEBUG */
             SPINLOCK_UNLOCK(this->spinlock);
         }
 
-        #ifndef NDEBUG
+        #if XKRT_SUPPORT_DEBUG
         bool
         is_locked(void) const
         {
             return this->locked;
         }
-        # endif /* NDEBUG */
+        # endif /* XKRT_SUPPORT_DEBUG */
 };
 
 #endif /* __LOCKABLE_HPP__ */

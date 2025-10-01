@@ -38,6 +38,7 @@
 #ifndef __XKRT_RUNTIME_H__
 # define __XKRT_RUNTIME_H__
 
+# include <xkrt/support.h>
 # include <xkrt/types.h>
 # include <xkrt/conf/conf.h>
 # include <xkrt/distribution/distribution.h>
@@ -382,7 +383,7 @@ struct  runtime_t
             new (mol) task_mol_info_t(split_condition, args_size);
         }
 
-        # ifndef NDEBUG
+        # if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label), "capture");
         # endif
 
