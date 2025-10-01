@@ -259,8 +259,8 @@ stream_t::launch_ready_instructions(void)
                 this->pending.pos.w = (this->pending.pos.w + 1) % this->pending.capacity;
 
                 memcpy(
-                    this->pending.instr + wp,
-                    this->ready.instr   + p,
+                    (void *) (this->pending.instr + wp),
+                    (void *) (this->ready.instr   + p),
                     sizeof(stream_instruction_t)
                 );
 

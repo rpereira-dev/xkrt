@@ -131,9 +131,9 @@ memory_copy_async(
     args->src_device_mem = src_device_mem;
     args->size = size;
 
-    # ifndef NDEBUG
+    # if XKRT_SUPPORT_DEBUG
     snprintf(task->label, sizeof(task->label), "copy");
-    # endif /* NDEBUG */
+    # endif /* XKRT_SUPPORT_DEBUG */
 
     runtime->task_detachable_incr(task);
     runtime->task_commit(task);
@@ -160,7 +160,7 @@ runtime_t::copy(
     const callback_t            & callback
 ) {
     device_t * device = this->device_get(device_global_id);
-    stream_instruction_t * instr = device->offloader_stream_instruction_submit_copy<memory_view_t, memory_replica_view_t>(
+    device->offloader_stream_instruction_submit_copy<memory_view_t, memory_replica_view_t>(
         host_view,
         dst_device_global_id,
         dst_device_view,
@@ -182,7 +182,7 @@ runtime_t::copy(
 ) {
     device_t * device = this->device_get(device_global_id);
     // TODO: create 1x instruction per pinned segment, and callback
-    stream_instruction_t * instr = device->offloader_stream_instruction_submit_copy<size_t, uintptr_t>(
+    device->offloader_stream_instruction_submit_copy<size_t, uintptr_t>(
         size,
         dst_device_global_id,
         dst_device_addr,

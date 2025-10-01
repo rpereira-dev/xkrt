@@ -173,7 +173,7 @@ file_async(
         task_dep_info_t * dep = TASK_DEP_INFO(task);
         new (dep) task_dep_info_t(ac);
 
-        # ifndef NDEBUG
+        # if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label), T == XKRT_STREAM_INSTR_TYPE_FD_READ ? "fread" : "fwrite");
         # endif
 
@@ -231,7 +231,7 @@ file_async(
     task_dep_info_t * dep = TASK_DEP_INFO(task);
     new (dep) task_dep_info_t(ac);
 
-    # ifndef NDEBUG
+    # if XKRT_SUPPORT_DEBUG
     snprintf(task->label, sizeof(task->label), T == XKRT_STREAM_INSTR_TYPE_FD_READ ? "fread" : "fwrite");
     # endif
 

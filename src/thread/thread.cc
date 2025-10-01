@@ -109,9 +109,9 @@ thread_t::allocate_task(const size_t size)
     task_t * task = (task_t *) this->memory_stack_ptr;
     this->memory_stack_ptr += size;
 
-    # ifndef NDEBUG
+    # if XKRT_SUPPORT_DEBUG
     this->tasks.push_back(task);
-    # endif /* NDEBUG */
+    # endif /* XKRT_SUPPORT_DEBUG */
 
     return task;
     # else
@@ -148,7 +148,7 @@ team_barrier_fetch(team_t * team, int delta)
     if (n == 0)
     {
         team->priv.barrier.n.store(team->priv.nthreads, std::memory_order_seq_cst);
-        ++team->priv.barrier.version;
+        team->priv.barrier.version += 1;
         pthread_mutex_lock(&team->priv.barrier.mtx);
         {
             pthread_cond_broadcast(&team->priv.barrier.cond);
@@ -364,7 +364,7 @@ runtime_t::team_create(team_t * team)
     );
 
     // set all to zero
-    memset(&team->priv, 0, sizeof(team->priv));
+    memset((void *) (&team->priv), 0, sizeof(team->priv));
 
     // init parallel for
     team->priv.parallel_for.index = 0;

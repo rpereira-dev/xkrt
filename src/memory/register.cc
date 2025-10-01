@@ -151,6 +151,7 @@ runtime_t::memory_register_async(void * ptr, size_t size)
     // TODO : could be optimized using a custom format for register tasks
     this->task_spawn(
         [=, this] (task_t * task) {
+            (void) task;
             this->memory_register(ptr, size);
         }
     );
@@ -302,13 +303,13 @@ memory_op_async(
         if constexpr(T == REGISTER || T == UNREGISTER)
             new (accesses + 1) access_t(task, (const void*) NULL, mode, ACCESS_CONCURRENCY_COMMUTATIVE);
 
-        # ifndef NDEBUG
+        # if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label),
                 T == REGISTER   ? "register"   :
                 T == UNREGISTER ? "unregister" :
                 T == TOUCH      ? "touch"      :
                 "(null)");
-        # endif /* NDEBUG */
+        # endif /* XKRT_SUPPORT_DEBUG */
 
         // resolve dependencies
         tls->resolve(accesses, AC);

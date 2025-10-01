@@ -139,7 +139,7 @@ maybe_export(int step, TYPE * grid)
             args_export_t * args = (args_export_t *) TASK_ARGS(task, task_size);
             new (args) args_export_t(grid, frame);
 
-            # ifndef NDEBUG
+            # if XKRT_SUPPORT_DEBUG
             snprintf(task->label, sizeof(task->label), "export-vtk-%d", frame);
             # endif
 
@@ -530,7 +530,7 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step, unsigned i
     args_t * args = (args_t *) TASK_ARGS(task, task_size);
     new (args) args_t(src, dst, tile_x, tile_y);
 
-    # ifndef NDEBUG
+    # if XKRT_SUPPORT_DEBUG
     snprintf(task->label, sizeof(task->label), "diffusion(%d, %d, s=%d)", tile_x, tile_y, step);
     # endif
 

@@ -161,9 +161,9 @@ XKRT_NAMESPACE_BEGIN
             /* the current task */
             task_t * current_task;
 
-            # ifndef NDEBUG
+            # if XKRT_SUPPORT_DEBUG
             std::vector<task_t *> tasks;
-            # endif /* NDEBUG */
+            # endif /* XKRT_SUPPORT_DEBUG */
 
             /* the thread state, use for synchronizing */
             thread_state_t state;
@@ -249,7 +249,7 @@ XKRT_NAMESPACE_BEGIN
                 // initialize implicit task dependency domain
                 task_dom_info_t * dom = TASK_DOM_INFO(&this->implicit_task);
                 new (dom) task_dom_info_t();
-                # ifndef NDEBUG
+                # if XKRT_SUPPORT_DEBUG
                 snprintf(this->implicit_task.label, sizeof(this->implicit_task.label), "implicit");
                 # endif
 
@@ -343,7 +343,7 @@ XKRT_NAMESPACE_BEGIN
                 return __task_commit(task, F, args...);
             }
 
-            # ifndef NDEBUG
+            # if XKRT_SUPPORT_DEBUG
 
             void
             dump_tasks(FILE * f)
@@ -389,7 +389,7 @@ XKRT_NAMESPACE_BEGIN
                 fprintf(f, "}\n");
             }
 
-            # endif /* NDEBUG */
+            # endif /* XKRT_SUPPORT_DEBUG */
 
     }               thread_t;
 

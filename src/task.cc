@@ -268,6 +268,7 @@ __task_detachable_incr(
     runtime_t * runtime,
     task_t * task
 ) {
+    (void) runtime;
     assert(task->flags & TASK_FLAG_DETACHABLE);
     task_det_info_t * det = TASK_DET_INFO(task);
     det->wc.fetch_add(N, std::memory_order_relaxed);
@@ -482,7 +483,7 @@ runtime_t::task_dup(
     // TODO: probably not C++ standard, but should work ?
     memcpy(dup, task, task_size + args_size);
 
-    # ifndef NDEBUG
+    # if XKRT_SUPPORT_DEBUG
     snprintf(dup->label, sizeof(dup->label), "%s-dup", task->label);
     # endif
 

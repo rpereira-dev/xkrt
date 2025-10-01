@@ -100,7 +100,7 @@ task_state_to_str(task_state_t state)
     }
 }
 
-# ifndef NDEBUG
+# if XKRT_SUPPORT_DEBUG
 #  define LOGGER_DEBUG_TASK_STATE(task)                                                                     \
     do {                                                                                                    \
         LOGGER_DEBUG("task `%s` is now in state `%s`", task->label, task_state_to_str(task->state.value));  \
@@ -157,9 +157,9 @@ typedef struct  task_t
         /* task flags */
         task_flag_bitfield_t flags;
 
-        # ifndef NDEBUG
+        # if XKRT_SUPPORT_DEBUG
         char label[128];
-        # endif /* NDEBUG */
+        # endif /* XKRT_SUPPORT_DEBUG */
 
     public:
 

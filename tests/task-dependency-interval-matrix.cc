@@ -76,7 +76,7 @@ main(void)
         int * args = (int *) TASK_ARGS(task, task_size);
         *args = 0;
 
-        #ifndef NDEBUG
+        #if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label), "task-0");
         #endif
 
@@ -102,7 +102,7 @@ main(void)
         int * args = (int *) TASK_ARGS(task, task_size);
         *args = 1;
 
-        #ifndef NDEBUG
+        #if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label), "task-1");
         #endif
 
@@ -135,7 +135,7 @@ main(void)
         int * args = (int *) TASK_ARGS(task, task_size);
         *args = 2;
 
-        #ifndef NDEBUG
+        #if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label), "task-2");
         #endif
 

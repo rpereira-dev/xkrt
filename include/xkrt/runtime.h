@@ -382,7 +382,7 @@ struct  runtime_t
             new (mol) task_mol_info_t(split_condition, args_size);
         }
 
-        # ifndef NDEBUG
+        # if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label), "capture");
         # endif
 

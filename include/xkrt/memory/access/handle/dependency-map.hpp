@@ -108,7 +108,7 @@ class DependencyMap : public DependencyDomain
             assert(dep);
             new (dep) task_dep_info_t(AC);
 
-            # ifndef NDEBUG
+            # if XKRT_SUPPORT_DEBUG
             snprintf(extra->label, sizeof(extra->label), "cw-empty-node");
             # endif
 
