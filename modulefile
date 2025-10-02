@@ -1,18 +1,20 @@
 #%Module1.0
 
-set whatis "xkrt debug"
-set software "xkrt"
-set description "xkrt"
-set version "debug"
+set whatis "MY_WHATIS"
+set software "$whatis"
+set description "$whatis"
+set version "$whatis"
 
 conflict "$software"
 
-set prefix "/home/rpereira/install/xkrt/$version"
+set prefix "MY_PREFIX_PATH"
 
 prepend-path PATH  "$prefix/bin"
 prepend-path MANPATH  "$prefix/share/man"
 prepend-path INFOPATH  "$prefix/share/info"
+prepend-path LIBRARY_PATH  "$prefix/lib"
 prepend-path LIBRARY_PATH  "$prefix/lib64"
+prepend-path LIBRARY_PATH  "$prefix/lib/x86_64-unknown-linux-gnu/"
 prepend-path LD_LIBRARY_PATH  "$prefix/lib"
 prepend-path LD_LIBRARY_PATH  "$prefix/lib/x86_64-unknown-linux-gnu/"
 prepend-path LD_LIBRARY_PATH  "$prefix/lib64"
@@ -22,4 +24,4 @@ prepend-path CMAKE_INCLUDE_PATH "$prefix/include"
 prepend-path C_INCLUDE_PATH "$prefix/include"
 prepend-path CPATH "$prefix/include"
 
-setenv XKRT_HOME "$prefix"
+setenv MY_MODULE_HOME "$prefix"
