@@ -327,11 +327,11 @@ device_task_execute(
                     assert(XKRT_CALLBACK_ARGS_MAX >= 2);
 
                     /* submit kernel launch instruction */
-                    stream_instruction_t * instr = device->offloader_stream_instruction_submit_kernel(
+                    device->offloader_stream_instruction_submit_kernel(
                         (kernel_launcher_t) format->f[targetfmt],
-                        task
+                        task,
+                        callback
                     );
-                    instr->push_callback(callback);
                 }
             }
             else

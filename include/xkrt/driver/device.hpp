@@ -281,7 +281,8 @@ typedef struct  device_t
         int fd,
         void * buffer,
         size_t n,
-        size_t offset
+        size_t offset,
+        const callback_t & callback
     ) {
         static_assert(
             T == XKRT_STREAM_INSTR_TYPE_FD_READ ||
@@ -305,6 +306,7 @@ typedef struct  device_t
         instr->file.buffer = buffer;
         instr->file.n = n;
         instr->file.offset = offset;
+        instr->push_callback(callback);
 
         /* submit instr */
         this->offloader_stream_instruction_commit(thread, stream, instr);
@@ -315,7 +317,8 @@ typedef struct  device_t
     /* submit a kernel execution instruction */
     stream_instruction_t * offloader_stream_instruction_submit_kernel(
         kernel_launcher_t launcher,
-        void * vargs
+        void * vargs,
+        const callback_t & callback
     );
 
     /* copy */
@@ -326,7 +329,8 @@ typedef struct  device_t
         const device_global_id_t   dst_device_global_id,
         const DEVICE_VIEW_T      & dst_device_view,
         const device_global_id_t   src_device_global_id,
-        const DEVICE_VIEW_T      & src_device_view
+        const DEVICE_VIEW_T      & src_device_view,
+        const callback_t         & callback
     ) {
         assert(this->global_id == dst_device_global_id || this->global_id == src_device_global_id);
 
@@ -426,6 +430,7 @@ typedef struct  device_t
             XKRT_STATS_INCR(stream->stats.transfered, host_view.m * host_view.n * host_view.sizeof_type);
         }
 
+        instr->push_callback(callback);
         this->offloader_stream_instruction_commit(thread, stream, instr);
 
         # undef IS_1D

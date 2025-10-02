@@ -160,14 +160,14 @@ runtime_t::copy(
     const callback_t            & callback
 ) {
     device_t * device = this->device_get(device_global_id);
-    stream_instruction_t * instr = device->offloader_stream_instruction_submit_copy<memory_view_t, memory_replica_view_t>(
+    device->offloader_stream_instruction_submit_copy<memory_view_t, memory_replica_view_t>(
         host_view,
         dst_device_global_id,
         dst_device_view,
         src_device_global_id,
-        src_device_view
+        src_device_view,
+        callback
     );
-    instr->push_callback(callback);
 }
 
 void
@@ -187,9 +187,9 @@ runtime_t::copy(
         dst_device_global_id,
         dst_device_addr,
         src_device_global_id,
-        src_device_addr
+        src_device_addr,
+        callback
     );
-    instr->push_callback(callback);
 }
 
 XKRT_NAMESPACE_END

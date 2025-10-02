@@ -546,7 +546,8 @@ device_t::offloader_stream_instruction_new(
 stream_instruction_t *
 device_t::offloader_stream_instruction_submit_kernel(
     kernel_launcher_t launch,
-    void * vargs
+    void * vargs,
+    const callback_t & callback
 ) {
     /* create a new instruction and retrieve its offload stream */
     thread_t * thread;
@@ -567,6 +568,7 @@ device_t::offloader_stream_instruction_submit_kernel(
     /* create a new kernel instruction */
     instr->kern.launch  = (void (*)()) launch;
     instr->kern.vargs   = vargs;
+    instr->push_callback(callback);
 
     this->offloader_stream_instruction_commit(thread, stream, instr);
 
