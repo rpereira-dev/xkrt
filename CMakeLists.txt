@@ -28,6 +28,7 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 option(ENABLE_HEAVY_DEBUG "Heavy assertion tests in the khp-tree structure, setting this variable to 'ON' will considerably slowdown task insertion, but can help debugging the khp-trees" OFF)
 option(STRICT       "Enable strict compilation mode" ON)
+option(BUILD_C_API  "Build the C API" ON)
 option(USE_CAIRO    "Use Cairo to generate images (memory-tree debugging purposes mostly)." OFF)
 option(USE_CL       "Whether to build the OpenCL driver." OFF)
 option(USE_CUDA     "Whether to build the CUDA driver." OFF)
@@ -100,6 +101,13 @@ SET(SOURCE_FILES
     ${CMAKE_SOURCE_DIR}/src/thread/deque.cc
     ${CMAKE_SOURCE_DIR}/src/thread/thread.cc
 )
+
+if (BUILD_C_API)
+    list(APPEND SOURCE_FILES ${CMAKE_SOURCE_DIR}/api/c/src/xkrt.cc)
+    include_directories(${CMAKE_SOURCE_DIR}/api/c/src)
+    include_directories(${CMAKE_SOURCE_DIR}/api/c/include)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/api/c/include/ DESTINATION include FILES_MATCHING PATTERN "*.h")
+endif()
 
 # XKRT Lib
 add_library(${XKRT} SHARED ${SOURCE_FILES})
