@@ -250,8 +250,8 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
                     }
                     else if (search.access->mode == ACCESS_MODE_R)
                         node->last_reads.push_back(search.access);
+                    break ;
                 }
-                break ;
             }
         }
 

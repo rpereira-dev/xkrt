@@ -201,7 +201,7 @@ runtime_t::memory_coherent_async(
         assert(accesses);
 
         /* as 'conflicts' are forming a partition of 'access', it must only
-         * intersects with a single cubes of 'access' : find which of the two */
+         * intersects with a single cube of 'access' : find which of the two */
         bool found = false;
         for (const Rect & rect : access.rects())
         {
