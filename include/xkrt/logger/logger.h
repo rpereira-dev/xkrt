@@ -90,7 +90,8 @@ extern volatile uint64_t LOGGER_LAST_TIME;
             uint64_t t = (uint64_t)(_ts.tv_sec * 1000000000) +                  \
                             (uint64_t) _ts.tv_nsec;                             \
             if (LOGGER_LAST_TIME != 0)                                          \
-                LOGGER_TIME_ELAPSED += (double) (t - LOGGER_LAST_TIME) / 1e9;   \
+                LOGGER_TIME_ELAPSED = LOGGER_TIME_ELAPSED +                     \
+                                        (double) (t - LOGGER_LAST_TIME) / 1e9;  \
             LOGGER_LAST_TIME = t;                                               \
             if (isatty(STDOUT_FILENO))                                          \
                 fprintf(LOGGER_FD, "[%8lf] "                                    \

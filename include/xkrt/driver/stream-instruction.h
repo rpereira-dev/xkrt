@@ -113,7 +113,7 @@ XKRT_NAMESPACE_BEGIN
         push_callback(const callback_t & callback)
         {
             this->callbacks.list[this->callbacks.n++] = callback;
-            assert(this->callbacks.n >= 0);
+            assert(this->callbacks.n > 0);
             assert(this->callbacks.n < XKRT_INSTRUCTION_CALLBACKS_MAX);
         }
 

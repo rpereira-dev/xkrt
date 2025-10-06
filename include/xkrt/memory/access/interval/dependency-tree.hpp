@@ -216,7 +216,8 @@ class IntervalDependencyTree : public KHPTree<K, IntervalDependencyTreeSearch>, 
 
             Search search;
             search.prepare_conflicting(conflicts, access);
-            Base::intersect(search, access->segment);
+
+            Base::intersect(search, access->region.interval.segment);
         }
 
         //////////////
@@ -233,7 +234,7 @@ class IntervalDependencyTree : public KHPTree<K, IntervalDependencyTreeSearch>, 
             Node * node = reinterpret_cast<Node *>(nodebase);
             assert(node);
 
-            if (search.access->segment.intersects(node->hyperrect))
+            if (search.access->region.interval.segment.intersects(node->hyperrect))
             {
                 if (search.access->mode & ACCESS_MODE_W)
                 {
@@ -346,7 +347,7 @@ class IntervalDependencyTree : public KHPTree<K, IntervalDependencyTreeSearch>, 
         {
             Search search;
             search.prepare_resolve(access);
-            Base::intersect(search, access->segment);
+            Base::intersect(search, access->region.interval.segment);
         }
 
         void
@@ -354,7 +355,7 @@ class IntervalDependencyTree : public KHPTree<K, IntervalDependencyTreeSearch>, 
         {
             Search search;
             search.prepare_resolve(access);
-            Base::insert(search, access->segment);
+            Base::insert(search, access->region.interval.segment);
 
             this->accesses.push_front(access);
         }

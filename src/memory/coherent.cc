@@ -203,10 +203,10 @@ runtime_t::memory_coherent_async(
         /* as 'conflicts' are forming a partition of 'access', it must only
          * intersects with a single cubes of 'access' : find which of the two */
         bool found = false;
-        for (int i = 0 ; i < 2 ; ++i)
+        for (const Rect & rect : access.rects())
         {
             Rect h;
-            Rect::intersection(&h, access.rects[i], node->hyperrect);
+            Rect::intersection(&h, rect, node->hyperrect);
 
             if (!h.is_empty())
             {

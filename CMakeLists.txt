@@ -148,6 +148,12 @@ if (USE_CUDA)
     target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_cu)
     list(APPEND XKRT_TARGETS ${XKRT}_driver_cu)
 
+    # build driver_cu.cc with nvcc, so nvcc generates its header file
+    enable_language(CUDA)
+    set_source_files_properties(src/driver/driver_cu.cc PROPERTIES LANGUAGE CUDA)
+    # set_source_files_properties(src/driver/driver_cu.cc PROPERTIES COMPILE_OPTIONS "-allow-unsupported-compiler;--compiler-bindir=${CMAKE_CXX_COMPILER}")
+    set_target_properties(${XKRT}_driver_cu PROPERTIES CUDA_ARCHITECTURES "70") # ;61;70;72;75;80;86;89;90")
+
 endif()
 
 # HIP

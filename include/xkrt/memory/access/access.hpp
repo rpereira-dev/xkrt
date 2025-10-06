@@ -43,6 +43,7 @@
 # include <xkrt/memory/view.hpp>
 
 # include <vector>
+# include <span>
 
 /**
  *  We assume col major, dim 0 is for rows; dim 1 is for cols.
@@ -75,7 +76,7 @@ interval_to_rects(
     INTERVAL_DIFF_TYPE_T size,
     size_t ld,
     size_t sizeof_type,
-    Rect (& rects) [3]
+    std::span<Rect, 3> & rects
 ) {
      /**
       *  a = start address
@@ -340,7 +341,7 @@ class access_t
         // region -         depends on the access type //
         /////////////////////////////////////////////////
 
-        union {
+        union region_t {
 
             ////////////
             // HANDLE //
@@ -348,29 +349,63 @@ class access_t
 
             struct {
                 const void * handle;
-            };
+            } point;
 
             //////////////
             // INTERVAL //
             //////////////
 
             struct {
+
+                /* 1D segment */
                 Segment segment;
-            };
+
+                /* 3x 2D rects in some frame of reference (ld, s) */
+                Rect rects[3];
+
+            } interval;
 
             ///////////////////
             // BLAS MATRICES //
             ///////////////////
 
             struct {
-                /**
-                 *  BLAS matrices have 2 rects in their frame of reference (ld, s)
-                 *  Interval accesses have 3 rects different on each frame of reference (ld, s)
-                 */
-                Rect rects[3];
-            };
-            // none
-        };
+                /** BLAS matrices have 2 rects in their frame of reference (ld, s) */
+                Rect rects[2];
+            } matrix;
+
+            region_t() {}
+            ~region_t() {}
+
+        } region;
+
+        std::span<Rect>
+        rects()
+        {
+            switch (this->type)
+            {
+                case ACCESS_TYPE_INTERVAL:
+                    return { this->region.interval.rects, 3 };
+                case ACCESS_TYPE_BLAS_MATRIX:
+                    return { this->region.matrix.rects, 2 };
+                default:
+                    return {};
+            }
+        }
+
+        std::span<const Rect>
+        rects() const
+        {
+            switch (this->type)
+            {
+                case ACCESS_TYPE_INTERVAL:
+                    return { this->region.interval.rects, 3 };
+                case ACCESS_TYPE_BLAS_MATRIX:
+                    return { this->region.matrix.rects, 2 };
+                default:
+                    return {};
+            }
+        }
 
         //////////
         // data //
@@ -431,12 +466,13 @@ class access_t
             concurrency(concurrency),
             scope(scope),
             type(ACCESS_TYPE_HANDLE),
-            handle(addr),
             successors(8),
             task(task),
             host_view(MATRIX_COLMAJOR, addr, 1, 0, 0, 1, 1, 1),
             device_view()
         {
+            this->region.point.handle = addr;
+
             /* clear preallocated empty successors */
             successors.clear();
         }
@@ -470,7 +506,16 @@ class access_t
         {
             assert(a < b);
             this->type = ACCESS_TYPE_INTERVAL;
-            interval_to_rects(this->host_view.addr, this->host_view.m, this->host_view.ld, this->host_view.sizeof_type, this->rects);
+
+            // set segment
+            const Interval src[1] = {
+                Interval(a, b)
+            };
+            this->region.interval.segment.set_list(src);
+
+            // set three rects
+            std::span<Rect, 3> span(this->region.interval.rects);
+            interval_to_rects(this->host_view.addr, this->host_view.m, this->host_view.ld, this->host_view.sizeof_type, span);
         }
 
         access_t(
@@ -515,7 +560,6 @@ class access_t
             concurrency(concurrency),
             scope(scope),
             type(ACCESS_TYPE_BLAS_MATRIX),
-            rects(),
             successors(8),
             task(task),
             host_view(storage, addr, ld, offset_m, offset_n, m, n, s),
@@ -532,7 +576,7 @@ class access_t
             assert(host_view.storage == MATRIX_COLMAJOR);
 
             // creates the two rects of that memory view
-            matrix_to_rects(host_view, rects);
+            matrix_to_rects(host_view, this->region.matrix.rects);
         }
 
          access_t(
@@ -563,7 +607,6 @@ class access_t
             concurrency(concurrency),
             scope(scope),
             type(ACCESS_TYPE_BLAS_MATRIX),
-            rects(),
             successors(8),
             task(task),
             host_view(storage, 0, ld, 0, 0, 0, 0, s),
@@ -577,7 +620,7 @@ class access_t
             assert(!h.is_empty());
 
             matrix_from_rect(this->host_view, h, ld, s);
-            new (this->rects + 0) Rect(h);
+            new (this->region.matrix.rects + 0) Rect(h);
         }
 
         access_t(

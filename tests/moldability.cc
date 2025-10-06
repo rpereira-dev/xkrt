@@ -3,7 +3,7 @@
 /*   moldability.cc                                               .-*-.       */
 /*                                                              .'* *.'       */
 /*   Created: 2025/02/11 14:59:33 by Romain PEREIRA          __/_*_*(_        */
-/*   Updated: 2025/08/23 00:11:34 by Romain PEREIRA         / _______ \       */
+/*   Updated: 2025/10/06 19:29:11 by Romain PEREIRA         / _______ \       */
 /*                                                          \_)     (_/       */
 /*   License: CeCILL-C                                                        */
 /*                                                                            */
@@ -55,16 +55,15 @@ main(void)
         // split condition
         [&size] (task_t * task, access_t * accesses) {
             const access_t * access = accesses + 0;
-            // return access->segment[0].length() >= size / 16;
-            return access->segment[0].length() == size;
+            return access->region.interval.segment[0].length() == size;
         },
 
         // routine
         [] (task_t * task) {
             access_t * accesses = TASK_ACCESSES(task);
             const access_t * access = accesses + 0;
-            const uintptr_t a = access->segment[0].a;
-            const uintptr_t b = access->segment[0].b;
+            const uintptr_t a = access->region.interval.segment[0].a;
+            const uintptr_t b = access->region.interval.segment[0].b;
             LOGGER_INFO("Running [%lu, %lu]", a, b);
         }
     );

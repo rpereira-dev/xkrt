@@ -47,8 +47,10 @@ access_t::intersects(
     assert(x->type == y->type);
     switch (x->type)
     {
+        # if 0
         case (ACCESS_TYPE_INTERVAL):
             return x->segment.intersects(y->segment);
+        # endif
 
         default:
             LOGGER_FATAL("Not implemented");
@@ -74,6 +76,7 @@ access_t::split(
 ) {
     switch (x->type)
     {
+        # if 0
         case (ACCESS_TYPE_INTERVAL):
         {
             //        a                 b
@@ -91,6 +94,7 @@ access_t::split(
 
             break ;
         }
+        # endif
 
         // TODO
         case (ACCESS_TYPE_BLAS_MATRIX):
