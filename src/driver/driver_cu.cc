@@ -40,7 +40,6 @@
 
 # define XKRT_DRIVER_ENTRYPOINT(N) XKRT_DRIVER_TYPE_CU_ ## N
 
-# include <xkrt/runtime.h>
 # include <xkrt/support.h>
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
@@ -764,9 +763,6 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
         default:
             return EINVAL;
     }
-
-    /* unreachable code */
-    LOGGER_FATAL("Unreachable code");
 }
 
 static inline int
@@ -791,7 +787,6 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
     stream_cu_t * stream = (stream_cu_t *) istream;
     assert(stream);
 
-    assert(idx >= 0);
     assert(idx < stream->cu.events.capacity);
 
     CUevent * event = stream->cu.events.buffer + idx;
@@ -960,26 +955,26 @@ XKRT_DRIVER_ENTRYPOINT(module_load)(
     (void) binsize;
     assert(format == XKRT_DRIVER_MODULE_FORMAT_NATIVE);
     cu_set_context(device_driver_id);
-    driver_module_t module = NULL;
-    CU_SAFE_CALL(cuModuleLoadData((CUmodule *) &module, bin));
-    assert(module);
-    return module;
+    driver_module_t mod = NULL;
+    CU_SAFE_CALL(cuModuleLoadData((CUmodule *) &mod, bin));
+    assert(mod);
+    return mod;
 }
 
 void
 XKRT_DRIVER_ENTRYPOINT(module_unload)(
-    driver_module_t module
+    driver_module_t mod
 ) {
-    CU_SAFE_CALL(cuModuleUnload((CUmodule) module));
+    CU_SAFE_CALL(cuModuleUnload((CUmodule) mod));
 }
 
 driver_module_fn_t
 XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
-    driver_module_t module,
+    driver_module_t mod,
     const char * name
 ) {
     driver_module_fn_t fn = NULL;
-    CU_SAFE_CALL(cuModuleGetFunction((CUfunction *) &fn, (CUmodule) module, name));
+    CU_SAFE_CALL(cuModuleGetFunction((CUfunction *) &fn, (CUmodule) mod, name));
     assert(fn);
     return fn;
 }

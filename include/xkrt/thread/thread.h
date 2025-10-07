@@ -41,7 +41,6 @@
 #  include <xkrt/support.h>
 #  include <xkrt/consts.h>
 #  include <xkrt/sync/spinlock.h>
-#  include <xkrt/memory/access/blas/dependency-tree.hpp>
 #  include <xkrt/task/task.hpp>
 
 #  include <xkrt/memory/alignas.h>

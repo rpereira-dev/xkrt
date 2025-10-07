@@ -73,20 +73,25 @@
 # define UNSPECIFIED_TASK_ACCESS ((task_access_counter_t)-1)
 # define TASK_MAX_ACCESSES (1024)
 
+# ifdef __cplusplus
+#  define xkstatic_assert(X) static_assert(X)
+# else
+#  define xkstatic_assert(X) _Static_assert(X, "")
+#endif
 
 typedef uint8_t xkrt_device_driver_id_t;
-_Static_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(xkrt_device_driver_id_t)*8)), "");
+xkstatic_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(xkrt_device_driver_id_t)*8)));
 
 typedef uint8_t xkrt_device_global_id_t;
-_Static_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(xkrt_device_global_id_t)*8)), "");
+xkstatic_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(xkrt_device_global_id_t)*8)));
 
 typedef uint16_t xkrt_device_global_id_bitfield_t;
-_Static_assert(XKRT_DEVICES_MAX <= sizeof(xkrt_device_global_id_bitfield_t)*8, "");
+xkstatic_assert(XKRT_DEVICES_MAX <= sizeof(xkrt_device_global_id_bitfield_t)*8);
 
 // TODO: using smaller type here can improve perf
 typedef uint16_t xkrt_task_wait_counter_type_t;
 typedef uint16_t xkrt_task_access_counter_type_t;
-_Static_assert(TASK_MAX_ACCESSES < (1 << 8*sizeof(xkrt_task_access_counter_type_t)), "");
+xkstatic_assert(TASK_MAX_ACCESSES < (1 << 8*sizeof(xkrt_task_access_counter_type_t)));
 
 typedef enum    xkrt_driver_type_t
 {
@@ -100,9 +105,9 @@ typedef enum    xkrt_driver_type_t
 }               xkrt_driver_type_t;
 
 typedef uint8_t xkrt_driver_type_bitfield_t;
-_Static_assert(XKRT_DRIVER_TYPE_MAX <= sizeof(xkrt_driver_type_bitfield_t)*8, "");
+xkstatic_assert(XKRT_DRIVER_TYPE_MAX <= sizeof(xkrt_driver_type_bitfield_t)*8);
 
 typedef uint8_t xkrt_instruction_callback_index_t;
-_Static_assert(XKRT_INSTRUCTION_CALLBACKS_MAX < (1 << 8*sizeof(xkrt_instruction_callback_index_t)), "");
+xkstatic_assert(XKRT_INSTRUCTION_CALLBACKS_MAX < (1 << 8*sizeof(xkrt_instruction_callback_index_t)));
 
 #endif /* __CONSTS_H__ */

@@ -100,7 +100,7 @@ template <int K>
 class KMemoryForward {
 
     public:
-        using Hyperrect = KHyperrect<2>;
+        using Rect = KHyperrect<2>;
 
     public:
 
@@ -111,7 +111,7 @@ class KMemoryForward {
         area_chunk_t * chunk;
 
         /* the dst rect */
-        Hyperrect dst_hyperrect;
+        Rect dst_hyperrect;
 
         /* the dst device */
         device_global_id_t device_global_id;
@@ -124,7 +124,7 @@ class KMemoryForward {
         KMemoryForward(
             access_t * access,
             area_chunk_t * chunk,
-            const Hyperrect & dst_hyperrect,
+            const Rect & dst_hyperrect,
             device_global_id_t device_global_id,
             memory_replica_view_t & device_view
         ) :
@@ -247,7 +247,7 @@ class KMemoryReplica
 template <int K>
 class KMemoryBlock {
 
-    using Hyperrect = KHyperrect<K>;
+    using Rect = KHyperrect<K>;
     using MemoryReplica = KMemoryReplica<K>;
     using MemoryReplicaAllocationView = KMemoryReplicaAllocationView<K>;
 
@@ -281,16 +281,16 @@ class KMemoryBlock {
 
         inline void
         memory_block_init(
-            const Hyperrect & block_rect,
+            const Rect & block_rect,
             const KMemoryBlock & inheriting_block,
-            const Hyperrect & inheriting_rect,
+            const Rect & inheriting_rect,
             const size_t sizeof_type
         ) {
             /////////////////////////////////
             //  HOST_VIEW HAS TO BE OFFSET //
             /////////////////////////////////
             INTERVAL_DIFF_TYPE_T d[K];
-            Hyperrect::distance_manhattan(inheriting_rect, block_rect, d);
+            Rect::distance_manhattan(inheriting_rect, block_rect, d);
 
             //////////////////////////////////
             //  DUPPLICATE REPLICATE INFOS  //
@@ -338,9 +338,9 @@ class KMemoryBlock {
 
         /* a block from splitting an existing one */
         KMemoryBlock(
-            const Hyperrect & block_rect,
+            const Rect & block_rect,
             const KMemoryBlock & inheriting_block,
-            const Hyperrect & inheriting_rect,
+            const Rect & inheriting_rect,
             const size_t sizeof_type
         ) {
             static_assert(K == 2);
@@ -354,7 +354,7 @@ class KMemoryBlock {
 template <int K>
 class KBLASMemoryTreeNodeSearch {
 
-    using Hyperrect = KHyperrect<K>;
+    using Rect = KHyperrect<K>;
     using MemoryBlock = KMemoryBlock<K>;
     using MemoryForward = KMemoryForward<K>;
 
@@ -367,7 +367,7 @@ class KBLASMemoryTreeNodeSearch {
                 MemoryBlock * block;
 
                 /* The hyperrect of this block (intersection of the access with the tree node) */
-                const Hyperrect hyperrect;
+                const Rect hyperrect;
 
                 /* dst device */
                 device_global_id_t dst_device_global_id;
@@ -395,7 +395,7 @@ class KBLASMemoryTreeNodeSearch {
 
             public:
 
-                Partite(MemoryBlock * b, const Hyperrect & h) :
+                Partite(MemoryBlock * b, const Rect & h) :
                     block(b),
                     hyperrect(h),
                     dst_device_global_id(HOST_DEVICE_GLOBAL_ID),
@@ -588,7 +588,7 @@ template <int K>
 class KBLASMemoryTreeNode : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>::Node {
 
     using Base = typename KHPTree<K, KBLASMemoryTreeNodeSearch<K>>::Node;
-    using Hyperrect = KHyperrect<K>;
+    using Rect = KHyperrect<K>;
     using MemoryBlock = KMemoryBlock<K>;
     using MemoryReplica = KMemoryReplica<K>;
     using MemoryReplicaAllocationView = KMemoryReplicaAllocationView<K>;
@@ -606,7 +606,7 @@ class KBLASMemoryTreeNode : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>::Nod
         /* the rect was never accessed before, create a new node */
         KBLASMemoryTreeNode<K>(
             const access_t * access,
-            const Hyperrect & r,
+            const Rect & r,
             const int k,
             const Color color
         ) :
@@ -629,7 +629,7 @@ class KBLASMemoryTreeNode : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>::Nod
          *  n (src->hyperrect, r) = {} - empty intersection
          */
         KBLASMemoryTreeNode<K>(
-            const Hyperrect & r,
+            const Rect & r,
             const int k,
             const Color color,
             const Node * src,
@@ -669,7 +669,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
     public:
         using Base = KHPTree<K, KBLASMemoryTreeNodeSearch<K>>;
-        using Hyperrect = KHyperrect<K>;
+        using Rect = KHyperrect<K>;
         using MemoryBlock = KMemoryBlock<K>;
         using MemoryForward = KMemoryForward<K>;
         using MemoryReplica = KMemoryReplica<K>;
@@ -720,8 +720,8 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
         typedef struct  fetch_t
         {
-            /* the logical rects representing that fetch */
-            Hyperrect rects[2];
+            /* the rectangle of that fetch */
+            Rect rect;
 
             /* the host memory view */
             memory_view_t host_view;
@@ -792,6 +792,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
         }               fetch_list_t;
 
+        # if 0
         /* if merging is enabled, merge consecutive transfers to a single transfer */
         static inline void
         fetch_list_reduce(fetch_list_t * list)
@@ -922,6 +923,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                 }
             }
         }
+        # endif
 
         static inline void
         fetch_callback_access(
@@ -986,8 +988,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                 search.prepare_search_fetched(fetch->dst_chunk);
                 tree->lock();
                 {
-                    tree->intersect(search, fetch->rects[0]);
-                    tree->intersect(search, fetch->rects[1]);
+                    tree->intersect(search, fetch->rect);
                 }
                 tree->unlock();
 
@@ -1029,7 +1030,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
                             forward_fetch->dst_view = forward.device_view;
 
                             // only 1 rect representing the forward view
-                            forward_fetch->rects[0] = forward.dst_hyperrect;
+                            forward_fetch->rect = forward.dst_hyperrect;
 
                             // the just-fetched 'dst' is the new 'src'
                             forward_fetch->src_device_global_id = fetch->dst_device_global_id;
@@ -1091,7 +1092,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
                 /* allocate fetch info for the callback argument */
                 fetch_t * fetch = list->prepare_next_fetch();
-                fetch->rects[0]             = partite.hyperrect;
+                fetch->rect                 = partite.hyperrect;
                 fetch->host_view            = host_view;
                 fetch->src_device_global_id = partite.src_device_global_id;
                 fetch->src_view             = src_view;
@@ -1182,18 +1183,20 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         fetch_list_to_host(
             access_t * access
         ) {
+            assert(access->type == ACCESS_TYPE_BLAS_MATRIX);
+
             Search search(HOST_DEVICE_GLOBAL_ID);
             this->lock();
             {
                 /* step (1) ensure the access is represented in the tree as blocks */
                 search.prepare_insert(access);
-                this->insert(search, access->rects[0]);
-                this->insert(search, access->rects[1]);
+                for (Rect & rect : access->rects())
+                    this->insert(search, rect);
 
                 /* step (2) find all blocks representing the access */
                 search.prepare_search_partition();
-                this->intersect(search, access->rects[0]);
-                this->intersect(search, access->rects[1]);
+                for (const Rect & rect : access->rects())
+                    this->intersect(search, rect);
                 assert(search.partition.partites.size() >= 1);
 
                 /* step (5) if read access, find src/dst, and setup views to transfer on step (7) */
@@ -1337,7 +1340,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
             {
                 /* compute distance from corner */
                 INTERVAL_DIFF_TYPE_T d[K];
-                Hyperrect::distance_manhattan(corner.hyperrect, partite.hyperrect, d);
+                Rect::distance_manhattan(corner.hyperrect, partite.hyperrect, d);
                 if (d[ACCESS_BLAS_ROW_DIM] < 0)
                 {
                     d[ACCESS_BLAS_ROW_DIM] += this->ld * this->sizeof_type;
@@ -1732,6 +1735,8 @@ next_view:
             access_t * access,
             device_global_id_t device_global_id
         ) {
+            assert(access->type == ACCESS_TYPE_BLAS_MATRIX);
+
             // run the coherency protocol
             Search search(device_global_id);
             fetch_list_t * list = NULL;
@@ -1754,13 +1759,13 @@ next_view:
 
                 /* step (1) ensure the access is represented in the tree as blocks */
                 search.prepare_insert(access);
-                this->insert(search, access->rects[0]);
-                this->insert(search, access->rects[1]);
+                for (Rect & rect : access->rects())
+                    this->insert(search, rect);
 
                 /* step (2) find all blocks representing the access */
                 search.prepare_search_partition();
-                this->intersect(search, access->rects[0]);
-                this->intersect(search, access->rects[1]);
+                for (const Rect & rect : access->rects())
+                    this->intersect(search, rect);
                 assert(search.partition.partites.size() >= 1);
 
                 /* step (3) find or allocate continuous memory for that access on that device */
@@ -1831,7 +1836,10 @@ next_view:
             {
                 // reduce them
                 if (this->merge_transfers)
-                    this->fetch_list_reduce(list);
+                {
+                    LOGGER_FATAL("Transfer merge not supported");
+                    // this->fetch_list_reduce(list);
+                }
 
                 // increase task wait counter
                 __task_fetching(list->pending, access->task);
@@ -1869,14 +1877,16 @@ next_view:
         device_global_id_bitfield_t
         who_owns(access_t * access)
         {
+            assert(access->type == ACCESS_TYPE_BLAS_MATRIX);
+
             // find how much bytes are owned per device
             Search search;
             search.prepare_search_owners();
             this->lock();
             {
-                for (int i = 0 ; i < 2 ; ++i)
-                    if (!access->rects[i].is_empty())
-                        this->intersect(search, access->rects[i]);
+                for (const Rect & rect : access->rects())
+                    if (!rect.is_empty())
+                        this->intersect(search, rect);
             }
             this->unlock();
 
@@ -1990,7 +2000,7 @@ next_view:
         intersect_stop_test(
             NodeBase * nodebase,
             Search & search,
-            const Hyperrect & h
+            const Rect & h
         ) const {
 
             (void) nodebase;
@@ -2009,7 +2019,7 @@ next_view:
         on_intersect(
             NodeBase * nodebase,
             Search & search,
-            const Hyperrect & h
+            const Rect & h
         ) const {
 
             assert(nodebase);
@@ -2095,8 +2105,8 @@ next_view:
                 /* search for owners of the access */
                 case (Search::Type::SEARCH_OWNERS):
                 {
-                    Hyperrect intersect;
-                    Hyperrect::intersection(&intersect, h, node->hyperrect);
+                    Rect intersect;
+                    Rect::intersection(&intersect, h, node->hyperrect);
                     const size_t bytes = intersect.size();
                     for (device_global_id_t device_global_id = 0 ; device_global_id < XKRT_DEVICES_MAX ; ++device_global_id)
                         if (node->block.coherency & (1 << device_global_id))
@@ -2115,7 +2125,7 @@ next_view:
         Node *
         new_node(
             Search & search,
-            const Hyperrect & h,
+            const Rect & h,
             const int k,
             const Color color
         ) const {
@@ -2131,7 +2141,7 @@ next_view:
         Node *
         new_node(
             Search & search,
-            const Hyperrect & h,
+            const Rect & h,
             const int k,
             const Color color,
             const NodeBase * inherit
@@ -2175,16 +2185,16 @@ next_view:
 
             static_assert(K == 2);
             Rect rects[3];
-            interval_to_rects(a, b-a, this->ld, this->sizeof_type, rects);
+            std::span<Rect, 3> rects_span(rects);
+            interval_to_rects(a, b-a, this->ld, this->sizeof_type, rects_span);
 
             /* insert blocks in the tree with the registered bit */
             Search search;
             search.prepare(T);
             this->lock();
             {
-                this->insert(search, rects[0]);
-                this->insert(search, rects[1]);
-                this->insert(search, rects[2]);
+                for (Rect & rect : rects)
+                    this->insert(search, rect);
             }
             this->unlock();
         }
