@@ -31,7 +31,11 @@ include(BooleanUtils)
 xkoption(ENABLE_HEAVY_DEBUG "Heavy assertion tests in the khp-tree structure, setting this variable to 'ON' will considerably slowdown task insertion, but can help debugging the khp-trees" OFF)
 xkoption(STRICT       "Enable strict compilation mode" ON)
 xkoption(BUILD_C_API  "Build the C API" ON)
+
 xkoption(USE_MEMORY_REGISTER_OVERFLOW_PROTECTION "Enable the protection of memory copies over regions that are not continuously registered, by splitting into multiple copies, to avoid cuda crashes" ON)
+xkoption(USE_MEMORY_REGISTER_PAGE "Align memory registration request to lower and upper pages." ON)
+xkoption(USE_MEMORY_REGISTER_ASSISTED "Allow programmer register/unregister respectively already-registered and non-registered memory." ON)
+
 xkoption(USE_SHUT_UP  "Disable all logging activities" OFF)
 
 xkoption(USE_CL       "Whether to build the OpenCL driver." OFF)

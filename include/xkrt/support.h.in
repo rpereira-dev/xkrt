@@ -77,11 +77,22 @@
 #  define KHP_TREE_ENABLE_COHERENCY_CHECKS 1
 # endif
 
-/* Compile the protection of memory copies over regions that are not
- * continuously registered, by splitting into multiple copies, to avoid cuda
- * crashes. It is disabled by default and must be enable with an environment
+/* Compile the protection for H2D/D2H copies on host segments that may have not
+ * be registered in a single request (and thus, may not be contiguous in
+ * physical memory, leading to cuda driver crashes for instance).
+ It is disabled by default and must be enable with an environment
  * variable. See XKRT_HELP=1 */
-# define XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION @USE_MEMORY_REGISTER_OVERFLOW_PROTECTION@
+# define XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION   @USE_MEMORY_REGISTER_OVERFLOW_PROTECTION@
+
+/* Align memory registration requests to page size.
+ * For instance, register(123, 8192)    is translated by the runtime to
+ *               register(0,   12288-1) */
+# define XKRT_MEMORY_REGISTER_PAGE                  @USE_MEMORY_REGISTER_PAGE@
+
+/* Allow programmers to register the same memory multiple times, and the runtime detects
+ * and only register subsegments once. Similarly, allows unregister of non-registered memory
+ * that be detected by the runtime and perform as a no-op */
+# define XKRT_MEMORY_REGISTER_ASSISTED              @USE_MEMORY_REGISTER_ASSISTED@
 
 /* Disable all logging activities */
 # define XKRT_SHUT_UP @USE_SHUT_UP@

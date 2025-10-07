@@ -37,8 +37,11 @@
 **/
 
 # include <xkrt/runtime.h>
-# include <xkrt/memory/pageas.h>
 # include <xkrt/memory/access/blas/memory-tree.hpp>
+
+# if XKRT_MEMORY_REGISTER_PAGE
+#  include <xkrt/memory/pageas.h>
+# endif /* XKRT_MEMORY_REGISTER_PAGE */
 
 XKRT_NAMESPACE_BEGIN
 
@@ -65,10 +68,14 @@ runtime_t::memory_register(
     void * ptr,
     size_t size
 ) {
-    # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+    # if XKRT_MEMORY_REGISTER_PAGE
     if (this->conf.protect_registered_memory_overflow)
         pageas(ptr, size, (uintptr_t *) &ptr, &size);
-    # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+    # endif /* XKRT_MEMORY_REGISTER_PAGE */
+
+    # if XKRT_MEMORY_REGISTER_ASSISTED
+    LOGGER_FATAL("TODO: detect sub-segment");
+    # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
     for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
     {
@@ -114,10 +121,14 @@ runtime_t::memory_register(
 int
 runtime_t::memory_unregister(void * ptr, size_t size)
 {
-    # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+    # if XKRT_MEMORY_REGISTER_PAGE
     if (this->conf.protect_registered_memory_overflow)
         pageas(ptr, size, (uintptr_t *) &ptr, &size);
-    # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+    # endif /* XKRT_MEMORY_REGISTER_PAGE */
+
+    # if XKRT_MEMORY_REGISTER_ASSISTED
+    LOGGER_FATAL("TODO: detect sub-segment");
+    # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
     for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
     {
@@ -301,7 +312,7 @@ memory_op_async(
         // if register/unregister, create a virtual write on NULL, to
         // serialize, and avoid blocking thread in cuda driver
         if constexpr(T == REGISTER || T == UNREGISTER)
-            new (accesses + 1) access_t(task, (const void*) NULL, mode, ACCESS_CONCURRENCY_COMMUTATIVE);
+            new (accesses + 1) access_t(task, (const void *) NULL, mode, ACCESS_CONCURRENCY_COMMUTATIVE);
 
         # if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label),
