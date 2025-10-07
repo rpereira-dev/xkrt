@@ -92,8 +92,6 @@ XKRT_NAMESPACE_BEGIN
                 const stream_instruction_counter_t a = this->pos.r;
                 const stream_instruction_counter_t b = this->pos.w;
 
-                assert(a >= 0);
-                assert(b >= 0);
                 assert(a < this->capacity);
                 assert(b < this->capacity);
 

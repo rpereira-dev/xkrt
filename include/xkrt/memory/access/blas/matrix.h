@@ -154,9 +154,6 @@ typedef struct  matrix_tile_t
         const size_t offset_m,
         const size_t offset_n
     ) {
-        assert(offset_n >= 0);
-        assert(offset_m >= 0);
-
         switch (storage)
         {
             case (MATRIX_ROWMAJOR):

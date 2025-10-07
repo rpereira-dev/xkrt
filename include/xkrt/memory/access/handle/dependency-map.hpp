@@ -192,7 +192,7 @@ class DependencyMap : public DependencyDomain
         link(access_t * access)
         {
             // retrieve previous accesses on that handle
-            auto it = map.find(access->handle);
+            auto it = map.find(access->region.point.handle);
 
             // if none, no dependencies, return
             if (it == map.end())
@@ -216,7 +216,7 @@ class DependencyMap : public DependencyDomain
                      *                 / \
                      * conc-w:        O   O     // <- inserting this
                      */
-                    insert_empty_write(access->handle);
+                    insert_empty_write(access->region.point.handle);
                 }
                 // SEQ-W
                 else
@@ -249,7 +249,7 @@ class DependencyMap : public DependencyDomain
                      *                 / \
                      * seq-r:         O   O     // <- inserting this
                      */
-                    insert_empty_write(access->handle);
+                    insert_empty_write(access->region.point.handle);
                 }
                 # endif
             }
@@ -288,7 +288,7 @@ class DependencyMap : public DependencyDomain
             // https://github.com/cea-hpc/mpc/blob/master/src/MPC_OpenMP/src/mpcomp_task.c#L1274
 
             // ensure a node exists on that address
-            auto result = map.insert({access->handle, Node()});
+            auto result = map.insert({access->region.point.handle, Node()});
             if (result.second)
             {
                 // node got inserted
