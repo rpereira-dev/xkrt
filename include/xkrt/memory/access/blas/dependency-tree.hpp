@@ -355,7 +355,7 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
         }
 
         inline void
-        prepare_interval_access_rects(access_t * access, std::span<Rect, 3> & rects)
+        prepare_interval_access_rects(access_t * access, Rect (& rects) [3])
         {
             /* compute the 3 rect for that access in that LP-Tree */
             const INTERVAL_TYPE_T       ptr = (INTERVAL_TYPE_T)      access->host_view.addr;
@@ -388,8 +388,9 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
             assert(access->type == ACCESS_TYPE_INTERVAL);
 
             Rect rects[3];
+            this->prepare_interval_access_rects(access, rects);
+
             std::span<Rect, 3> rects_span(rects);
-            this->prepare_interval_access_rects(access, rects_span);
             this->link(access, rects_span);
         }
 
@@ -418,8 +419,9 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
             assert(access->type == ACCESS_TYPE_INTERVAL);
 
             Rect rects[3];
+            this->prepare_interval_access_rects(access, rects);
+
             std::span<Rect, 3> rects_span(rects);
-            this->prepare_interval_access_rects(access, rects_span);
             this->put(access, rects_span);
         }
 

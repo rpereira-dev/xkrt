@@ -94,6 +94,10 @@
  * that be detected by the runtime and perform as a no-op */
 # define XKRT_MEMORY_REGISTER_ASSISTED              @USE_MEMORY_REGISTER_ASSISTED@
 
+# if XKRT_MEMORY_REGISTER_ASSISTED && !XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+#  error "`XKRT_MEMORY_REGISTER_ASSISTED` is set, but `XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION` is not. Please enable `XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION`"
+# endif
+
 /* Disable all logging activities */
 # define XKRT_SHUT_UP @USE_SHUT_UP@
 # define LOGGER_SHUT_UP XKRT_SHUT_UP
