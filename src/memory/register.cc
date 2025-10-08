@@ -107,34 +107,45 @@ runtime_t::memory_register(
 
     /* retrieve the subset of memory that is not registered in that segment */
     std::vector<Interval> intervals;
-    ((BLASMemoryTree *) memcontroller)->get_unregistered(a, size);
-    LOGGER_FATAL("TODO: detect sub-segment");
+    ((BLASMemoryTree *) memcontroller)->get_registered(a, size, intervals);
+    std::sort(intervals.begin(), intervals.end());
 
-    /* register it */
-    for (const Interval & interval : intervals)
+    unsigned int i = 0;
+    uintptr_t p1 = a;
+
+    while (1)
     {
-        void * ptr = (void *) interval.a;
-        const size_t size = interval.b - interval.a;
-        assert(ptr);
-        assert(size);
+        uintptr_t p2 = (i == intervals.size()) ? b : intervals[i].a;
+        if (p1 < p2)
+        {
+            ptr  = (void *) p1;
+            size = p2 - p1;
+
     # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
-        /* register the memory segment in each driver */
-        for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
-        {
-            driver_t * driver = this->driver_get((driver_type_t) driver_id);
-            if (!driver)
-                continue ;
-            if (!driver->f_memory_host_register)
-                LOGGER_DEBUG("Driver `%u` does not implement memory register", driver_id);
-            else if (driver->f_memory_host_register(ptr, size))
-                LOGGER_ERROR("Could not register memory for driver `%s`", driver->f_get_name());
-        }
+            LOGGER_DEBUG("Registering [%lu..%lu] to all devices",
+                    (uintptr_t) ptr, ((uintptr_t) ptr) + size);
+
+            /* register the memory segment in each driver */
+            for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
+            {
+                driver_t * driver = this->driver_get((driver_type_t) driver_id);
+                if (!driver)
+                    continue ;
+                if (!driver->f_memory_host_register)
+                    LOGGER_DEBUG("Driver `%u` does not implement memory register", driver_id);
+                else if (driver->f_memory_host_register(ptr, size))
+                    LOGGER_ERROR("Could not register memory for driver `%s`", driver->f_get_name());
+            }
 
     # if XKRT_MEMORY_REGISTER_ASSISTED
+        }
+        if (i == intervals.size())
+            break ;
+        p1 = intervals[i].b;
+        ++i;
     }
     # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
-
 
     # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
     if (this->conf.protect_registered_memory_overflow)

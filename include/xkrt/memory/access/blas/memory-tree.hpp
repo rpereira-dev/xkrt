@@ -1750,7 +1750,8 @@ next_view:
             access_t * access,
             device_global_id_t device_global_id
         ) {
-            assert(access->type == ACCESS_TYPE_BLAS_MATRIX);
+            assert(access->type == ACCESS_TYPE_INTERVAL ||
+                    access->type == ACCESS_TYPE_BLAS_MATRIX);
 
             // run the coherency protocol
             Search search(device_global_id);
@@ -2248,18 +2249,18 @@ next_view:
 
         # if XKRT_MEMORY_REGISTER_ASSISTED
         void
-        get_unregistered(
+        get_registered(
             uintptr_t ptr,
-            size_t size
+            size_t size,
+            std::vector<Interval> & intervals
         ) {
-
             /* convert segment to 3 rects */
             Rect rects[3];
             interval_to_rects(ptr, size, this->ld, this->sizeof_type, rects);
 
             /* search for all intersecting rects that are not registered */
             Search search;
-            search.prepare(Search::Type::SEARCH_UNREGISTERED);
+            search.prepare(Search::Type::SEARCH_REGISTERED);
             this->lock();
             {
                 for (Rect & rect : rects)
@@ -2268,7 +2269,14 @@ next_view:
             this->unlock();
 
             /* convert rects to a list of segments */
-            LOGGER_FATAL("TODO");
+            for (Rect & rect : search.rects)
+            {
+                // TODO: only implement for segment memory tree
+                assert(this->ld == SIZE_MAX);
+                assert(this->sizeof_type == 1);
+                assert(rect[1].a == 0 && rect[1].b == 1);
+                intervals.push_back(rect[0]);
+            }
         }
         # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
