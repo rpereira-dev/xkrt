@@ -48,39 +48,39 @@ main(void)
 
     assert(runtime.init() == 0);
 
+    team_t * team = runtime.team_get(XKRT_DRIVER_TYPE_HOST);
+    assert(team);
+
     const size_t size = 10000;
     void * ptr = calloc(1, size);
     assert(ptr);
 
     uintptr_t p = (uintptr_t) ptr;
+    int nchunks = 4;
 
     // r[xxxxxxxxxxxxxxxxxx....................]
-    runtime.memory_register_async((void *)p, size / 2);
-    runtime.task_wait();
+    runtime.memory_register_async(team, (void *)p, size / 2, nchunks);
 
     // +
     // r[.........xxxxxxxxxxxxxxxxxxx..........]
     // =
     // r[xxxxxxxxxxxxxxxxxxxxxxxxxxxx..........]
-    runtime.memory_register_async((void *) (p + size/4), size / 2);
-    runtime.task_wait();
+    runtime.memory_register_async(team, (void *) (p + size/4), size / 2, nchunks);
 
     // +
     // r[..................xxxxxxxxxxxxxxxxxxxx]
     // =
     // r[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
-    runtime.memory_register_async((void *) (p + size/2), size / 2);
-    runtime.task_wait();
+    runtime.memory_register_async(team, (void *) (p + size/2), size / 2, nchunks);
 
     // distribute the segment to all gpus
     runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC1D, ptr, size, size/64, 0);
-    runtime.task_wait();
 
     // -
     // r[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
     // =
     // r[......................................]
-    runtime.memory_unregister_async((void *) p, size);
+    runtime.memory_unregister_async(team, (void *) p, size, nchunks);
     runtime.task_wait();
 
     assert(runtime.deinit() == 0);

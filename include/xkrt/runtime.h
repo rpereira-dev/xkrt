@@ -268,7 +268,7 @@ struct  runtime_t
     int memory_unregister(void * ptr, size_t size);
 
     /**
-     * Memory registration async
+     * Spawn an independent task to register the passed memory
      */
     int memory_register_async  (void * ptr, size_t size);
     int memory_unregister_async(void * ptr, size_t size);

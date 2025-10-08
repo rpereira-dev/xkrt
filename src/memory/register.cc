@@ -73,7 +73,8 @@ __memory_register_get_memory_controller_task(runtime_t * runtime)
     assert(task);
 
     /* if registering within a registration task, then retrieve parent memory controller */
-    if (task->fmtid == runtime->formats.memory_register_async)
+    if (task->fmtid == runtime->formats.memory_register_async ||
+            task->fmtid == runtime->formats.host_capture)
     {
         assert(task->parent);
         assert(task->parent->flags & TASK_FLAG_DOMAIN);
