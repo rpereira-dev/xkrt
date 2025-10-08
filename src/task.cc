@@ -595,11 +595,13 @@ submit_task_device(
     assert(devices_bitfield);
     device_global_id_t device_global_id = HOST_DEVICE_GLOBAL_ID;
 
-    // if any device available, pick a random one
+    // if any device available, pick one
     if (devices_bitfield != (1 << HOST_DEVICE_GLOBAL_ID))
     {
         // bitmask of all devices but the host
         device_global_id_bitfield_t bitmask = (device_global_id_bitfield_t) ((1 << runtime->drivers.devices.n) - 1) & ~(1 << HOST_DEVICE_GLOBAL_ID);
+
+        // pick randomly
         device_global_id = (device_global_id_t) __random_set_bit(devices_bitfield & bitmask) - 1;
     }
 

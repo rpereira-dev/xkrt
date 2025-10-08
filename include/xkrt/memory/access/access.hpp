@@ -198,14 +198,11 @@ matrix_from_rects(
 }
 
 /* rects must have at least a capacity of 2x Rect */
-template <int NRECTS>
 static inline void
 matrix_to_rects(
     matrix_tile_t & mat,
-    Rect (& rects) [NRECTS]
+    Rect (& rects) [2]
 ) {
-    static_assert(NRECTS >= 2);
-
     const size_t  A = mat.begin_addr();
     const size_t ld = mat.ld;
     const size_t  m = mat.m;
@@ -241,6 +238,7 @@ matrix_to_rects(
             assert(!rects[0].is_empty());
         }
 
+        new (rects + 1) Rect();
         assert(rects[1].is_empty());
     }
     // 2 rects are needed
@@ -625,6 +623,7 @@ class access_t
 
             matrix_from_rect(this->host_view, h, ld, s);
             new (this->region.matrix.rects + 0) Rect(h);
+            new (this->region.matrix.rects + 1) Rect();
         }
 
         access_t(

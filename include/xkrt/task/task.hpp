@@ -169,7 +169,11 @@ typedef struct  task_t
             state { .lock = SPINLOCK_INITIALIZER, .value = TASK_STATE_ALLOCATED },
             fmtid(fmtid),
             flags(flags)
-        {}
+        {
+            # if XKRT_SUPPORT_DEBUG
+            strncpy(this->label, "(unamed)", sizeof(this->label));
+            # endif
+        }
 
 }               task_t;
 
