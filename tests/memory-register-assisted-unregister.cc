@@ -70,8 +70,8 @@ main(void)
     runtime.memory_register((void *) (p + size/2), size / 2);
 
     // distribute the segment to all gpus
-    // runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC1D, ptr, size, size/64, 0);
-    // runtime.task_wait();
+    runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC1D, ptr, size, size/64, 0);
+    runtime.task_wait();
 
     // -
     // r[xxxxxxxxxxxxxxxxxx....................]

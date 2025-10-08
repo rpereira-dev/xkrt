@@ -486,10 +486,6 @@ class KBLASMemoryTreeNodeSearch {
             REGISTER             = 4,    // mark memory block as registered
             UNREGISTER           = 5,    // mark memory block as unregistered
             # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
-            # if XKRT_MEMORY_REGISTER_ASSISTED
-            SEARCH_REGISTERED    = 6,    // search for unregistered segments
-            SEARCH_UNREGISTERED  = 7,    // search for unregistered segments
-            # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
        };
 
    public:
@@ -534,17 +530,6 @@ class KBLASMemoryTreeNodeSearch {
         // used if type == SEARCH_OWNERS //
         ///////////////////////////////////
         size_t bytes_owned[XKRT_DEVICES_MAX];
-
-        # if XKRT_MEMORY_REGISTER_ASSISTED
-
-        ///////////////////////////////////////
-        // used if type == SEARCH_REGISTERED //
-        ///////////////////////////////////////
-        std::vector<Rect> rects;
-
-        # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
-
-
 
    public:
        KBLASMemoryTreeNodeSearch() : KBLASMemoryTreeNodeSearch(HOST_DEVICE_GLOBAL_ID) {}
@@ -2130,22 +2115,6 @@ next_view:
                     break ;
                 }
 
-                # if XKRT_MEMORY_REGISTER_ASSISTED
-                case (Search::Type::SEARCH_REGISTERED):
-                {
-                    if (node->block.registered)
-                        search.rects.push_back(node->hyperrect);
-                    break ;
-                }
-
-                case (Search::Type::SEARCH_UNREGISTERED):
-                {
-                    if (!node->block.registered)
-                        search.rects.push_back(node->hyperrect);
-                    break ;
-                }
-                # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
-
                 default:
                 {
                     LOGGER_FATAL("Invalid search type in memory tree");
@@ -2246,39 +2215,6 @@ next_view:
         }
 
         # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
-
-        # if XKRT_MEMORY_REGISTER_ASSISTED
-        void
-        get_registered(
-            uintptr_t ptr,
-            size_t size,
-            std::vector<Interval> & intervals
-        ) {
-            /* convert segment to 3 rects */
-            Rect rects[3];
-            interval_to_rects(ptr, size, this->ld, this->sizeof_type, rects);
-
-            /* search for all intersecting rects that are not registered */
-            Search search;
-            search.prepare(Search::Type::SEARCH_REGISTERED);
-            this->lock();
-            {
-                for (Rect & rect : rects)
-                    this->intersect(search, rect);
-            }
-            this->unlock();
-
-            /* convert rects to a list of segments */
-            for (Rect & rect : search.rects)
-            {
-                // TODO: only implement for segment memory tree
-                assert(this->ld == SIZE_MAX);
-                assert(this->sizeof_type == 1);
-                assert(rect[1].a == 0 && rect[1].b == 1);
-                intervals.push_back(rect[0]);
-            }
-        }
-        # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
 };
 

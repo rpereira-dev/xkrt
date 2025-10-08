@@ -45,6 +45,7 @@
 # include <xkrt/driver/driver.h>
 # include <xkrt/thread/thread.h>
 # include <xkrt/memory/access/coherency-controller.hpp>
+# include <xkrt/memory/access/common/interval-set.hpp>
 # include <xkrt/memory/register.h>
 # include <xkrt/memory/routing/router-affinity.hpp>
 # include <xkrt/stats/stats.h>
@@ -92,6 +93,10 @@ struct  runtime_t
     /* registered memory segments, map: addr -> size */
     std::map<uintptr_t, size_t> registered_memory;
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
+    # if XKRT_MEMORY_REGISTER_ASSISTED
+    IntervalSet<uintptr_t> registered_pages;
+    # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
     /* hwloc topology, read only, initialized at init */
     hwloc_topology_t topology;

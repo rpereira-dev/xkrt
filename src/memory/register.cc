@@ -63,6 +63,7 @@ XKRT_NAMESPACE_BEGIN
 
 # pragma message(TODO "The current implementation spawn independent tasks. Maybe make it dependent to a specific type of access")
 
+# if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
 static inline task_t *
 __memory_register_get_memory_controller_task(runtime_t * runtime)
 {
@@ -83,15 +84,7 @@ __memory_register_get_memory_controller_task(runtime_t * runtime)
     assert(task && (task->flags & TASK_FLAG_DOMAIN));
     return task;
 }
-
-//  TODO: on `XKRT_MEMORY_REGISTER_ASSISTED`
-//
-//  It is currently using the Memory Tree for segments accesses to keep track
-//  of registered/unregisterd pages.
-//  This will cause crashes if the programmer also spawns tasks with segment
-//  accesses not aligned on pages.
-//
-//  To fix this, we should maintain registered/unregistered pages in a separate tree
+# endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
 int
 runtime_t::memory_register(
@@ -104,154 +97,160 @@ runtime_t::memory_register(
     # endif /* XKRT_MEMORY_REGISTER_PAGE */
 
     # if XKRT_MEMORY_REGISTER_ASSISTED
-
-    /* 1. retrieve the memory coherence controller for segment accesses */
-    task_t * task = __memory_register_get_memory_controller_task(this);
-
     const uintptr_t a = (const uintptr_t) ptr;
     const uintptr_t b = a + size;
-    const access_t access(task, a, b, ACCESS_MODE_V);
-
-    MemoryCoherencyController * memcontroller = task_get_memory_controller(this, task, &access);
-    assert(memcontroller);
-
-    /* retrieve the subset of memory that is registered in that segment */
-    std::vector<Interval> intervals;
-    ((BLASMemoryTree *) memcontroller)->get_registered(a, size, intervals);
-    std::sort(intervals.begin(), intervals.end());
-
-    unsigned int i = 0;
-    uintptr_t p1 = a;
-
-    while (1)
-    {
-        uintptr_t p2 = (i == intervals.size()) ? b : intervals[i].a;
-        if (p1 < p2)
-        {
-            ptr  = (void *) p1;
-            size = p2 - p1;
-
-    # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
-
-            LOGGER_DEBUG("Registering [%lu..%lu] to all devices",
-                    (uintptr_t) ptr, ((uintptr_t) ptr) + size);
-
-            /* register the memory segment in each driver */
-            for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
-            {
-                driver_t * driver = this->driver_get((driver_type_t) driver_id);
-                if (!driver)
-                    continue ;
-                if (!driver->f_memory_host_register)
-                    LOGGER_DEBUG("Driver `%u` does not implement memory register", driver_id);
-                else if (driver->f_memory_host_register(ptr, size))
-                    LOGGER_ERROR("Could not register memory for driver `%s`", driver->f_get_name());
-            }
-
-    # if XKRT_MEMORY_REGISTER_ASSISTED
-        }
-        if (i == intervals.size())
-            break ;
-        p1 = intervals[i].b;
-        ++i;
-    }
     # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
     # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
-    if (this->conf.protect_registered_memory_overflow)
-    {
-        /* save in the registered map, for later accesses, that may use
-         * different memory controllers */
-        this->registered_memory[(uintptr_t)ptr] = size;
-
-        /* notify the current memory coherency controllers that the memory got registered */
-        task_t * task = __memory_register_get_memory_controller_task(this);
-        task_dom_info_t * dom = TASK_DOM_INFO(task);
-        assert(dom);
-
-        if (dom->mccs.interval)
-            ((BLASMemoryTree *) dom->mccs.interval)->registered((uintptr_t)ptr, size);
-
-        for (MemoryCoherencyController * mcc : dom->mccs.blas)
-            ((BLASMemoryTree *)mcc)->registered((uintptr_t)ptr, size);
-    }
+    /* notify the current memory coherency controllers that the memory got registered */
+    task_t * task = __memory_register_get_memory_controller_task(this);
+    task_dom_info_t * dom = TASK_DOM_INFO(task);
+    assert(dom);
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
-    # if XKRT_SUPPORT_STATS
-    this->stats.memory.registered += size;
-    # endif /* XKRT_SUPPORT_STATS */
+    /* register the memory segment in each driver */
+    for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
+    {
+        driver_t * driver = this->driver_get((driver_type_t) driver_id);
+        if (!driver)
+            continue ;
+        if (!driver->f_memory_host_register)
+            LOGGER_DEBUG("Driver `%u` does not implement memory register", driver_id);
+        else
+        {
+            # if XKRT_MEMORY_REGISTER_ASSISTED
+            std::vector<Interval> intervals;
+            this->registered_pages.find(a, b, intervals);
+            assert(std::is_sorted(intervals.begin(), intervals.end()));
+
+            unsigned int i = 0;
+            uintptr_t p1 = a;
+
+            while (1)
+            {
+                uintptr_t p2 = (i == intervals.size()) ? b : intervals[i].a;
+                if (p1 < p2)
+                {
+                    ptr  = (void *) p1;
+                    size = p2 - p1;
+                    LOGGER_DEBUG("Registering [%lu..%lu] to driver %u", (uintptr_t) ptr, ((uintptr_t) ptr) + size, driver_id);
+            # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
+
+                    if (driver->f_memory_host_register(ptr, size))
+                        LOGGER_ERROR("Could not register memory for driver `%s`", driver->f_get_name());
+
+                    # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+                    if (this->conf.protect_registered_memory_overflow)
+                    {
+                        /* save in the registered map, for later accesses, that may use
+                         * different memory controllers */
+                        this->registered_memory[(uintptr_t)ptr] = size;
+
+                        if (dom->mccs.interval)
+                            ((BLASMemoryTree *) dom->mccs.interval)->registered((uintptr_t)ptr, size);
+
+                        for (MemoryCoherencyController * mcc : dom->mccs.blas)
+                            ((BLASMemoryTree *)mcc)->registered((uintptr_t)ptr, size);
+                    }
+                    # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
+                    # if XKRT_SUPPORT_STATS
+                    this->stats.memory.registered += size;
+                    # endif /* XKRT_SUPPORT_STATS */
+
+            # if XKRT_MEMORY_REGISTER_ASSISTED
+                }
+                if (i == intervals.size())
+                    break ;
+                p1 = intervals[i].b;
+                ++i;
+            }
+            # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
+        }
+    }
+
+    # if XKRT_MEMORY_REGISTER_ASSISTED
+    this->registered_pages.fill(a, b);
+    # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
     return 0;
 }
 
 int
-runtime_t::memory_unregister(void * ptr, size_t size)
-{
+runtime_t::memory_unregister(
+    void * ptr,
+    size_t size
+) {
     # if XKRT_MEMORY_REGISTER_PAGE
     if (this->conf.protect_registered_memory_overflow)
         pageas(ptr, size, (uintptr_t *) &ptr, &size);
     # endif /* XKRT_MEMORY_REGISTER_PAGE */
 
     # if XKRT_MEMORY_REGISTER_ASSISTED
-    /* retrieve the memory coherence controller for segment accesses */
-    task_t * task = __memory_register_get_memory_controller_task(this);
-
     const uintptr_t a = (const uintptr_t) ptr;
     const uintptr_t b = a + size;
-    const access_t access(task, a, b, ACCESS_MODE_V);
-
-    MemoryCoherencyController * memcontroller = task_get_memory_controller(this, task, &access);
-    assert(memcontroller);
-
-    /* retrieve the subset of memory that is registered in that segment */
-    std::vector<Interval> intervals;
-    ((BLASMemoryTree *) memcontroller)->get_registered(a, size, intervals);
-    for (Interval & interval : intervals)
-    {
-        ptr  = (void *) interval.a;
-        size = interval.length();
-
-        LOGGER_DEBUG("Unregistering [%lu..%lu] to all devices",
-                (uintptr_t) ptr, ((uintptr_t) ptr) + size);
-
-    # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
-
-        for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
-        {
-            driver_t * driver = this->driver_get((driver_type_t) driver_id);
-            if (!driver)
-                continue ;
-            if (!driver->f_memory_host_unregister)
-                LOGGER_DEBUG("Driver `%u` does not implement memory unregister", driver_id);
-            else if (driver->f_memory_host_unregister(ptr, size))
-                LOGGER_ERROR("Could not unregister memory for driver `%s`", driver->f_get_name());
-        }
-    # if XKRT_MEMORY_REGISTER_ASSISTED
-    }
     # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
     # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
-    if (this->conf.protect_registered_memory_overflow)
-    {
-        /* remove from the registered map */
-        this->registered_memory.erase((uintptr_t)ptr);
-
-        /* notify the current memory coherency controllers that the memory got unregistered */
-        task_t * task = __memory_register_get_memory_controller_task(this);
-        task_dom_info_t * dom = TASK_DOM_INFO(task);
-        assert(dom);
-
-        if (dom->mccs.interval)
-            ((BLASMemoryTree *) dom->mccs.interval)->unregistered((uintptr_t)ptr, size);
-
-        for (MemoryCoherencyController * mcc : dom->mccs.blas)
-            ((BLASMemoryTree *)mcc)->unregistered((uintptr_t)ptr, size);
-    }
+    /* notify the current memory coherency controllers that the memory got unregistered */
+    task_t * task = __memory_register_get_memory_controller_task(this);
+    task_dom_info_t * dom = TASK_DOM_INFO(task);
+    assert(dom);
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
-    # if XKRT_SUPPORT_STATS
-    this->stats.memory.unregistered += size;
-    # endif /* XKRT_SUPPORT_STATS */
+    /* register the memory segment in each driver */
+    for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
+    {
+        driver_t * driver = this->driver_get((driver_type_t) driver_id);
+        if (!driver)
+            continue ;
+        if (!driver->f_memory_host_unregister)
+            LOGGER_DEBUG("Driver `%u` does not implement memory unregister", driver_id);
+        else
+        {
+            # if XKRT_MEMORY_REGISTER_ASSISTED
+            std::vector<Interval> intervals;
+            this->registered_pages.find(a, b, intervals);
+            assert(std::is_sorted(intervals.begin(), intervals.end()));
+
+            for (Interval & interval : intervals)
+            {
+                ptr  = (void *) interval.a;
+                size = interval.length();
+                LOGGER_DEBUG("Unregistering [%lu..%lu] to driver %u", (uintptr_t) ptr, ((uintptr_t) ptr) + size, driver_id);
+            # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
+
+                if (driver->f_memory_host_unregister(ptr, size))
+                    LOGGER_ERROR("Could not unregister memory for driver `%s`", driver->f_get_name());
+
+                # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
+                if (this->conf.protect_registered_memory_overflow)
+                {
+                    /* save in the registered map, for later accesses, that may use
+                     * different memory controllers */
+                    this->registered_memory.erase((uintptr_t)ptr);
+
+                    if (dom->mccs.interval)
+                        ((BLASMemoryTree *) dom->mccs.interval)->unregistered((uintptr_t)ptr, size);
+
+                    for (MemoryCoherencyController * mcc : dom->mccs.blas)
+                        ((BLASMemoryTree *)mcc)->unregistered((uintptr_t)ptr, size);
+                }
+                # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
+
+                # if XKRT_SUPPORT_STATS
+                this->stats.memory.unregistered += size;
+                # endif /* XKRT_SUPPORT_STATS */
+
+            # if XKRT_MEMORY_REGISTER_ASSISTED
+            }
+            # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
+        }
+    }
+
+    # if XKRT_MEMORY_REGISTER_ASSISTED
+    this->registered_pages.unfill(a, b);
+    # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
     return 0;
 }
