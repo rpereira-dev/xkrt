@@ -76,7 +76,7 @@ interval_to_rects(
     INTERVAL_TYPE_T size,
     size_t ld,
     size_t sizeof_type,
-    std::span<Rect, 3> & rects
+    Rect (& rects) [3]
 ) {
      /**
       *  a = start address
@@ -468,7 +468,7 @@ class access_t
             concurrency(concurrency),
             scope(scope),
             type(ACCESS_TYPE_HANDLE),
-            successors(8),
+            successors(),
             task(task),
             host_view(MATRIX_COLMAJOR, addr, 1, 0, 0, 1, 1, 1),
             device_view()
@@ -476,7 +476,7 @@ class access_t
             this->region.point.handle = addr;
 
             /* clear preallocated empty successors */
-            successors.clear();
+            successors.reserve(8);
         }
 
         //////////////////////////////////////////////////////////////////////
@@ -491,23 +491,24 @@ class access_t
             access_concurrency_t concurrency = ACCESS_CONCURRENCY_SEQUENTIAL,
             access_scope_t scope = ACCESS_SCOPE_NONUNIFIED
         ) :
-            access_t(
-                task,
-                MATRIX_COLMAJOR,    // storage
-                (const void *) a,   // addr
-                SIZE_MAX,           // ld
-                0,                  // offset_m
-                0,                  // offset_n
-                (size_t) (b - a),   // m
-                1,                  // n
-                1,                  // s
-                mode,
-                concurrency,
-                scope
-            )
+            state(ACCESS_STATE_INIT),
+            mode(mode),
+            concurrency(concurrency),
+            scope(scope),
+            type(ACCESS_TYPE_INTERVAL),
+            successors(),
+            task(task),
+            //         storage        addr      ld    offset_m  offset_n          m         n  s
+            host_view(MATRIX_COLMAJOR, a,    SIZE_MAX,    0,     0,     (size_t) (b - a), 1, 1),
+            device_view()
         {
+            successors.reserve(8);
+
+            /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
+            assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL ||
+                    concurrency == ACCESS_CONCURRENCY_COMMUTATIVE);
+
             assert(a < b);
-            this->type = ACCESS_TYPE_INTERVAL;
 
             // set segment
             const Interval src[1] = {
@@ -516,8 +517,7 @@ class access_t
             this->region.interval.segment.set_list(src);
 
             // set three rects
-            std::span<Rect, 3> span(this->region.interval.rects);
-            interval_to_rects(this->host_view.addr, this->host_view.m, this->host_view.ld, this->host_view.sizeof_type, span);
+            interval_to_rects(this->host_view.addr, this->host_view.m, this->host_view.ld, this->host_view.sizeof_type, this->region.interval.rects);
         }
 
         access_t(
@@ -562,13 +562,12 @@ class access_t
             concurrency(concurrency),
             scope(scope),
             type(ACCESS_TYPE_BLAS_MATRIX),
-            successors(8),
+            successors(),
             task(task),
             host_view(storage, addr, ld, offset_m, offset_n, m, n, s),
             device_view()
         {
-            /* clear preallocated empty successors */
-            successors.clear();
+            successors.reserve(8);
 
             /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
             assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL ||
@@ -609,13 +608,12 @@ class access_t
             concurrency(concurrency),
             scope(scope),
             type(ACCESS_TYPE_BLAS_MATRIX),
-            successors(8),
+            successors(),
             task(task),
             host_view(storage, 0, ld, 0, 0, 0, 0, s),
             device_view()
         {
-            /* clear preallocated empty successors */
-            successors.clear();
+            successors.reserve(8);
 
             assert(storage == MATRIX_COLMAJOR);
             assert(mode == ACCESS_MODE_R); // not a big deal, but right now only called from `coherent_async`
@@ -662,13 +660,12 @@ class access_t
             concurrency(concurrency),
             scope(scope),
             type(ACCESS_TYPE_NULL),
-            successors(8),
+            successors(),
             task(task),
             host_view(MATRIX_COLMAJOR, 0, 0, 0, 0, 0, 0, 0),
             device_view()
         {
-            /* clear preallocated empty successors */
-            successors.clear();
+            successors.reserve(8);
 
             /* Only ACCESS_CONCURRENCY_SEQUENTIAL is supported yet */
             assert(concurrency == ACCESS_CONCURRENCY_SEQUENTIAL);
