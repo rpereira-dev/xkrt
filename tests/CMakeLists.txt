@@ -15,6 +15,10 @@ set(TEST_SOURCES
     memory-register-async-legacy-memcpy-split.cc
     memory-register-async-legacy.cc
     memory-register-async.cc
+    memory-register-assisted.cc
+    memory-register-assisted-unregister.cc
+    memory-register-assisted-async.cc
+    memory-register-assisted-async-depend.cc
     memory-register-protection.cc
     memory-touch-async.cc
     memory-touch-register-unregister-async.cc
