@@ -55,29 +55,26 @@ main(void)
     uintptr_t p = (uintptr_t) ptr;
 
     // r[xxxxxxxxxxxxxxxxxx....................]
-    runtime.memory_register((void *)p, size / 2);
+    runtime.memory_register_async((void *)p, size / 2);
+    runtime.task_wait();
 
     // +
     // r[.........xxxxxxxxxxxxxxxxxxx..........]
     // =
     // r[xxxxxxxxxxxxxxxxxxxxxxxxxxxx..........]
-    runtime.memory_register((void *) (p + size/4), size / 2);
+    runtime.memory_register_async((void *) (p + size/4), size / 2);
+    runtime.task_wait();
 
     // +
     // r[..................xxxxxxxxxxxxxxxxxxxx]
     // =
     // r[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
-    runtime.memory_register((void *) (p + size/2), size / 2);
+    runtime.memory_register_async((void *) (p + size/2), size / 2);
+    runtime.task_wait();
 
     // distribute the segment to all gpus
     runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC1D, ptr, size, size/64, 0);
     runtime.task_wait();
-
-    // -
-    // r[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
-    // =
-    // r[......................................]
-    runtime.memory_unregister((void *) p, size);
 
     assert(runtime.deinit() == 0);
 

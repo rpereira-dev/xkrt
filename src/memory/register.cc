@@ -56,9 +56,9 @@ XKRT_NAMESPACE_BEGIN
 
 
 //  Some ideas:
-//      - can we pin memory independently of CUDA / HIP / ... via 'mlock' and
-//      notify the driver that the memory is pinned ? Would be better in case
-//      of server with different GPU vendors...
+//      - can we lock pages in memory independently from CUDA / HIP / ... via
+//      'mlock' and notify the driver that the memory is locked ? Would be
+//      better in case of server with different GPU vendors...
 
 
 # pragma message(TODO "The current implementation spawn independent tasks. Maybe make it dependent to a specific type of access")
@@ -84,6 +84,15 @@ __memory_register_get_memory_controller_task(runtime_t * runtime)
     return task;
 }
 
+//  TODO: on `XKRT_MEMORY_REGISTER_ASSISTED`
+//
+//  It is currently using the Memory Tree for segments accesses to keep track
+//  of registered/unregisterd pages.
+//  This will cause crashes if the programmer also spawns tasks with segment
+//  accesses not aligned on pages.
+//
+//  To fix this, we should maintain registered/unregistered pages in a separate tree
+
 int
 runtime_t::memory_register(
     void * ptr,
@@ -106,7 +115,7 @@ runtime_t::memory_register(
     MemoryCoherencyController * memcontroller = task_get_memory_controller(this, task, &access);
     assert(memcontroller);
 
-    /* retrieve the subset of memory that is not registered in that segment */
+    /* retrieve the subset of memory that is registered in that segment */
     std::vector<Interval> intervals;
     ((BLASMemoryTree *) memcontroller)->get_registered(a, size, intervals);
     std::sort(intervals.begin(), intervals.end());
@@ -184,26 +193,59 @@ runtime_t::memory_unregister(void * ptr, size_t size)
     # endif /* XKRT_MEMORY_REGISTER_PAGE */
 
     # if XKRT_MEMORY_REGISTER_ASSISTED
-    // Nothing to do I believe think, because we aligned on pages
-    assert(XKRT_MEMORY_REGISTER_PAGE);
+    /* retrieve the memory coherence controller for segment accesses */
+    task_t * task = __memory_register_get_memory_controller_task(this);
+
+    const uintptr_t a = (const uintptr_t) ptr;
+    const uintptr_t b = a + size;
+    const access_t access(task, a, b, ACCESS_MODE_V);
+
+    MemoryCoherencyController * memcontroller = task_get_memory_controller(this, task, &access);
+    assert(memcontroller);
+
+    /* retrieve the subset of memory that is registered in that segment */
+    std::vector<Interval> intervals;
+    ((BLASMemoryTree *) memcontroller)->get_registered(a, size, intervals);
+    for (Interval & interval : intervals)
+    {
+        ptr  = (void *) interval.a;
+        size = interval.length();
+
+        LOGGER_DEBUG("Unregistering [%lu..%lu] to all devices",
+                (uintptr_t) ptr, ((uintptr_t) ptr) + size);
+
     # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
-    for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
-    {
-        driver_t * driver = this->driver_get((driver_type_t) driver_id);
-        if (!driver)
-            continue ;
-        if (!driver->f_memory_host_unregister)
-            LOGGER_DEBUG("Driver `%u` does not implement memory unregister", driver_id);
-        else if (driver->f_memory_host_unregister(ptr, size))
-            LOGGER_ERROR("Could not unregister memory for driver `%s`", driver->f_get_name());
+        for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
+        {
+            driver_t * driver = this->driver_get((driver_type_t) driver_id);
+            if (!driver)
+                continue ;
+            if (!driver->f_memory_host_unregister)
+                LOGGER_DEBUG("Driver `%u` does not implement memory unregister", driver_id);
+            else if (driver->f_memory_host_unregister(ptr, size))
+                LOGGER_ERROR("Could not unregister memory for driver `%s`", driver->f_get_name());
+        }
+    # if XKRT_MEMORY_REGISTER_ASSISTED
     }
+    # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
     # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
     if (this->conf.protect_registered_memory_overflow)
     {
         /* remove from the registered map */
         this->registered_memory.erase((uintptr_t)ptr);
+
+        /* notify the current memory coherency controllers that the memory got unregistered */
+        task_t * task = __memory_register_get_memory_controller_task(this);
+        task_dom_info_t * dom = TASK_DOM_INFO(task);
+        assert(dom);
+
+        if (dom->mccs.interval)
+            ((BLASMemoryTree *) dom->mccs.interval)->unregistered((uintptr_t)ptr, size);
+
+        for (MemoryCoherencyController * mcc : dom->mccs.blas)
+            ((BLASMemoryTree *)mcc)->unregistered((uintptr_t)ptr, size);
     }
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 

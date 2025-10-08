@@ -76,13 +76,6 @@ main(void)
     // distribute the segment to all gpus
     runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC1D, ptr, size, size/64, 0);
 
-    // -
-    // r[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
-    // =
-    // r[......................................]
-    runtime.memory_unregister_async(team, (void *) p, size, nchunks);
-    runtime.task_wait();
-
     assert(runtime.deinit() == 0);
 
     return 0;
