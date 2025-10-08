@@ -60,7 +60,6 @@ static inline void
 task_format_register(runtime_t * runtime)
 {
     task_formats_init(&(runtime->formats.list));
-    memory_copy_async_register_format(runtime);
     task_host_capture_register_format(runtime);
     memory_async_register_format(runtime);
     file_async_register_format(runtime);

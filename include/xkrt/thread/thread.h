@@ -351,7 +351,7 @@ XKRT_NAMESPACE_BEGIN
                 fprintf(f, "digraph G {\n");
                 for (task_t * & task : tasks)
                 {
-                    fprintf(f, "    \"%p\" [label=\"%s\"] ;\n", task, task->label);
+                    fprintf(f, "    \"%p\" [label=\"%s\"] ;\n", (void *) task, task->label);
                     if (task->flags & TASK_FLAG_DEPENDENT)
                     {
                         task_dep_info_t * dep = TASK_DEP_INFO(task);
@@ -360,7 +360,7 @@ XKRT_NAMESPACE_BEGIN
                         {
                             access_t * pred = accesses + i;
                             for (access_t * succ : pred->successors)
-                                fprintf(f, "    \"%p\" -> \"%p\" ;\n", pred->task, succ->task);
+                                fprintf(f, "    \"%p\" -> \"%p\" ;\n", (void *) pred->task, (void *) succ->task);
                         }
                     }
                 }
@@ -380,9 +380,9 @@ XKRT_NAMESPACE_BEGIN
                         for (int i = 0 ; i < dep->ac ; ++i)
                         {
                             access_t * pred = accesses + i;
-                            fprintf(f, "    \"%p\" [label=\"%s - ac %d\"] ;\n", pred, task->label, i);
+                            fprintf(f, "    \"%p\" [label=\"%s - ac %d\"] ;\n", (void *) pred, task->label, i);
                             for (access_t * succ : pred->successors)
-                                fprintf(f, "    \"%p\" -> \"%p\" ;\n", pred, succ);
+                                fprintf(f, "    \"%p\" -> \"%p\" ;\n", (void *) pred, (void *) succ);
                         }
                     }
                 }

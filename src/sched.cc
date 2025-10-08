@@ -349,6 +349,16 @@ device_thread_main_loop(
 //  MAIN //
 ///////////
 
+static void
+bits_to_str(char * buffer, unsigned char * mem, size_t nbytes)
+{
+    buffer[8*nbytes] = 0;
+    size_t k = 8*nbytes - 1;
+    for (int i = (int)nbytes - 1 ; i >= 0 ; --i)
+        for (int j = 0 ; j < 8 ; ++j)
+            buffer[k--] = (mem[i] & (1 << j)) ? '1' : '0';
+}
+
 /* Main entry thread created per device */
 void *
 device_thread_main(

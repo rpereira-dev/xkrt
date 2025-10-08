@@ -74,7 +74,6 @@ struct  runtime_t
     /* task formats */
     struct {
         task_formats_t list;
-        task_format_id_t copy_async;
         task_format_id_t host_capture;
         task_format_id_t memory_touch_async;
         task_format_id_t memory_register_async;
@@ -592,9 +591,6 @@ struct  runtime_t
 
 /* submit a ready task */
 void runtime_submit_task(runtime_t * runtime, task_t * task);
-
-/* memory async thread management */
-void memory_copy_async_register_format(runtime_t * runtime);
 
 /* host capture task format */
 void task_host_capture_register_format(runtime_t * runtime);

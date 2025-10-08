@@ -41,7 +41,7 @@
 
 # define Stringize( L )     #L
 # define MakeString( M, L ) M(L)
-# define $Line MakeString( Stringize, __LINE__ )
-# define TODO __FILE__ "(" $Line ") : TODO: "
+# define MakeLine MakeString( Stringize, __LINE__ )
+# define TODO __FILE__ "(" MakeLine ") : TODO: "
 
 #endif

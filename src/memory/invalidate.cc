@@ -66,8 +66,7 @@ memory_deallocate_all(
 }
 
 # pragma message(TODO "This interface definition is fucked: deallocating all device memory is not safe here if there is multiple threads submitting tasks to the device. It also releases both memory controllers and dependency trees: are we sure about this ?")
-extern "C"
-void
+static void
 coherency_reset(runtime_t * runtime)
 {
     LOGGER_DEBUG("Invalidate XKBlas devices memory");

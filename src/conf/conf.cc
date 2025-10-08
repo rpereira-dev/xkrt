@@ -92,28 +92,28 @@ static void
 __parse_nstreams_h2d(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_H2D].n = (uint8_t) MAX(atoi(value), 0);
+        conf->device.offloader.streams[STREAM_TYPE_H2D].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
 __parse_nstreams_d2h(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_D2H].n = (uint8_t) MAX(atoi(value), 0);
+        conf->device.offloader.streams[STREAM_TYPE_D2H].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
 __parse_nstreams_d2d(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_D2D].n = (uint8_t) MAX(atoi(value), 0);
+        conf->device.offloader.streams[STREAM_TYPE_D2D].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
 __parse_nstreams_kern(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_KERN].n = (uint8_t) MAX(atoi(value), 0);
+        conf->device.offloader.streams[STREAM_TYPE_KERN].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
@@ -283,8 +283,8 @@ __parse_help(conf_t * conf, char const * value)
     }
 }
 
-void
-__parse_with_respect_to_prefix(conf_t * conf, const char* prefix)
+static void
+__parse_with_respect_to_prefix(conf_t * conf, const char * prefix)
 {
     // check all environment variable and report unknown variables begining by prefix
     for (char ** s = environ; *s; ++s)
@@ -298,7 +298,7 @@ __parse_with_respect_to_prefix(conf_t * conf, const char* prefix)
         int error = 0;
         if (strncmp(*s, prefix, strlen(prefix)) ==0) error = 1;
         char const * ss = strchr(*s, '=');
-        int len = (int)(ss - *s);
+        size_t len = (size_t)(ss - *s);
         for (conf_parse_t * var = CONF_PARSE ; var->name ; ++var)
         {
             if (strncmp(*s, var->name, len)==0)

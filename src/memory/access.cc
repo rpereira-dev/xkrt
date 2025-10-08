@@ -76,7 +76,6 @@ access_t::split(
 ) {
     switch (x->type)
     {
-        # if 0
         case (ACCESS_TYPE_INTERVAL):
         {
             //        a                 b
@@ -86,15 +85,14 @@ access_t::split(
             //  y = [ . . . . [         b
             //  x =           [ . . . . [
 
-            const uintptr_t a = x->segment[0].a;
-            const uintptr_t b = x->segment[0].b;
+            const uintptr_t a = x->region.interval.segment[0].a;
+            const uintptr_t b = x->region.interval.segment[0].b;
             const uintptr_t h = (b - a) / 2;
             new (y) access_t( y_task, a + 0, a + h, x->mode, x->concurrency, x->scope);
             new (x) access_t(x->task, a + h, b + 0, x->mode, x->concurrency, x->scope);
 
             break ;
         }
-        # endif
 
         // TODO
         case (ACCESS_TYPE_BLAS_MATRIX):

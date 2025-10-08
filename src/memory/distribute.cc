@@ -132,8 +132,7 @@ distribute2D_submit(
     runtime->task_commit(task);
 }
 
-extern "C"
-void
+static void
 distribute2D_async(
     runtime_t * runtime,
     distribution_type_t type,
@@ -170,7 +169,7 @@ runtime_t::distribute_async(
     distribute2D_async(this, type, storage, ptr, ld, m, n, mb, nb, sizeof_type, hx, hy);
 }
 
-void
+static void
 distribute1D_async(
     runtime_t * runtime,
     distribution_type_t type,
@@ -208,7 +207,7 @@ runtime_t::distribute_async(
     distribute1D_async(this, type, ptr, size, bs, h);
 }
 
-void
+static void
 distribute1D_array_async(
     runtime_t * runtime,
     distribution_type_t type,

@@ -76,7 +76,6 @@ SET(SOURCE_FILES
     ${CMAKE_SOURCE_DIR}/src/driver/driver.cc
     ${CMAKE_SOURCE_DIR}/src/driver/stream.cc
     ${CMAKE_SOURCE_DIR}/src/file/readwrite.cc
-    ${CMAKE_SOURCE_DIR}/src/logger/bits-to-str.cc
     ${CMAKE_SOURCE_DIR}/src/logger/logger.cc
     ${CMAKE_SOURCE_DIR}/src/logger/metric.cc
     ${CMAKE_SOURCE_DIR}/src/memory.cc
@@ -245,10 +244,38 @@ if (USE_CAIRO)
 endif()
 
 if (STRICT)
-    SET(STRICT_OPTIONS -Wall -Wextra -Wundef -Wfatal-errors -Werror=conversion -ftrapv -Wno-sign-conversion)
-    target_compile_options(${XKRT} PRIVATE ${STRICT_OPTIONS})
+    target_compile_options(${XKRT} PRIVATE
+        -Wall          # Common warnings
+        -Wextra        # Extra warnings
+        -Werror        # Treat warnings as errors
+        -Wshadow       # Warn if a variable hides another
+        -Wconversion   # Implicit type conversions
+        -Wsign-conversion
+        -Wformat=2     # Strict format checking
+        -Wfloat-equal  # Detect floating point equality checks
+        -Wundef        # Warn on undefined macros
+        #-Wcast-align   # Warn about pointer alignment
+        -Wpointer-arith
+        -Wstrict-overflow=5
+        -fno-common
+        -ftrapv
+        -Werror=conversion
+        -fstack-protector-strong
+        -fstrict-aliasing
+        -Wstack-protector
+        -Wundef
+        #-Wpedantic     # Enforce strict ISO compliance
+        #-Wfatal-errors
+        -Wmissing-declarations
+        -Wmissing-prototypes
+        -Wold-style-definition
+        -Wno-gnu-anonymous-struct
+        -Wno-shadow
+        -Wno-nested-anon-types
+        -Wno-sign-conversion
+    )
     if (${CUDA_DRIVER_FOUND})
-        target_compile_options(${XKRT}_driver_cu PRIVATE ${STRICT_OPTIONS})
+        target_compile_options(${XKRT}_driver_cu PRIVATE -Wall -Wextra -Wundef)
     endif()
 endif()
 

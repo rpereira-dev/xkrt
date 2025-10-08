@@ -72,8 +72,8 @@ using Rect      = KHyperrect<2>;
 
 static inline void
 interval_to_rects(
-    INTERVAL_TYPE_T      a,
-    INTERVAL_DIFF_TYPE_T size,
+    INTERVAL_TYPE_T a,
+    INTERVAL_TYPE_T size,
     size_t ld,
     size_t sizeof_type,
     std::span<Rect, 3> & rects
@@ -152,8 +152,8 @@ matrix_from_rect(
     mat.storage     = MATRIX_COLMAJOR;
     mat.addr        = x + y * ld * sizeof_type;
     mat.ld          = ld;
-    mat.m           = dx / sizeof_type;
-    mat.n           = dy;
+    mat.m           = (INTERVAL_TYPE_T) dx / sizeof_type;
+    mat.n           = (INTERVAL_TYPE_T) dy;
     mat.sizeof_type = sizeof_type;
 
     // accesses must be aligned on sizeof(type)
@@ -176,6 +176,9 @@ matrix_from_rects(
     assert(0 <= xf && xf <= (INTERVAL_DIFF_TYPE_T) (ld * sizeof_type));
     assert(y0 < yf);
 
+    const INTERVAL_DIFF_TYPE_T l = (INTERVAL_DIFF_TYPE_T) ld;
+    const INTERVAL_DIFF_TYPE_T s = (INTERVAL_DIFF_TYPE_T) sizeof_type;
+
     INTERVAL_DIFF_TYPE_T n = yf - y0;
     INTERVAL_DIFF_TYPE_T m = xf - x0;
     if (m < 0)
@@ -183,10 +186,11 @@ matrix_from_rects(
         m += ld * sizeof_type;
         n -= 1;
     }
-    m = m / sizeof_type;
+    assert(m >= 0);
+    m = m / s;
 
-    mat.storage        = MATRIX_COLMAJOR;
-    mat.addr         = x0 + y0 * ld * sizeof_type;
+    mat.storage      = MATRIX_COLMAJOR;
+    mat.addr         = (uintptr_t) (x0 + y0 * l * s);
     mat.ld           = ld;
     mat.m            = (size_t) m;
     mat.n            = (size_t) n;
