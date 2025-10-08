@@ -57,15 +57,27 @@ main(void)
     // r[xxxxxxxxxxxxxxxxxx....................]
     runtime.memory_register((void *)p, size / 2);
 
+    // +
     // r[.........xxxxxxxxxxxxxxxxxxx..........]
     // =
     // r[xxxxxxxxxxxxxxxxxxxxxxxxxxxx..........]
     runtime.memory_register((void *) (p + size/4), size / 2);
 
-    // distribute the entire segment to all gpus
-    const size_t h = 0;
-    runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC1D, ptr, size, size, h);
+    // +
+    // r[..................xxxxxxxxxxxxxxxxxxxx]
+    // =
+    // r[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
+    runtime.memory_register((void *) (p + size/2), size / 2);
+
+    // distribute the segment to all gpus
+    runtime.distribute_async(XKRT_DISTRIBUTION_TYPE_CYCLIC1D, ptr, size, size/64, 0);
     runtime.task_wait();
+
+    // -
+    // r[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
+    // =
+    // r[......................................]
+    runtime.memory_unregister((void *) p, size);
 
     assert(runtime.deinit() == 0);
 

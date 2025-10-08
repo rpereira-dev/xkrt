@@ -183,7 +183,8 @@ runtime_t::memory_unregister(void * ptr, size_t size)
     # endif /* XKRT_MEMORY_REGISTER_PAGE */
 
     # if XKRT_MEMORY_REGISTER_ASSISTED
-    LOGGER_FATAL("TODO: detect sub-segment");
+    // Nothing to do I believe think, because we aligned on pages
+    assert(XKRT_MEMORY_REGISTER_PAGE);
     # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
     for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
