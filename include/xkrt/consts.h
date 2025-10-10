@@ -62,7 +62,7 @@
 # define UNSPECIFIED_DEVICE_GLOBAL_ID (XKRT_DEVICES_MAX)
 
 /* a bitmask that represents all devices */
-# define XKRT_DEVICES_MASK_ALL (~((device_global_id_bitfield_t)0))
+# define XKRT_DEVICES_MASK_ALL (~((xkrt_device_global_id_bitfield_t)0))
 
 /* maximum number of threads per device */
 # define XKRT_MAX_THREADS_PER_DEVICE (16)
