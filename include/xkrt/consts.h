@@ -70,8 +70,8 @@
 /* maximum number of memory per thread */
 # define THREAD_MAX_MEMORY ((size_t)4*1024*1024*1024)
 
-# define UNSPECIFIED_TASK_ACCESS ((task_access_counter_t)-1)
 # define TASK_MAX_ACCESSES (1024)
+# define UNSPECIFIED_TASK_ACCESS ((xkrt_task_access_counter_type_t) TASK_MAX_ACCESSES)
 
 # ifdef __cplusplus
 #  define xkstatic_assert(X) static_assert(X)

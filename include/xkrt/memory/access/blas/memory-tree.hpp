@@ -1878,8 +1878,6 @@ next_view:
         device_global_id_bitfield_t
         who_owns(access_t * access)
         {
-            assert(access->type == ACCESS_TYPE_BLAS_MATRIX);
-
             // find how much bytes are owned per device
             Search search;
             search.prepare_search_owners();
