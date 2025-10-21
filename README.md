@@ -47,7 +47,8 @@ CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE
 ## Available environment variable
 - `XKAAPI_HELP=1` - displays available environment variables.
 
-# Directions for improvements
+# Directions for improvements / known issues
+- There is currently 1x coherence controller per couple `(LD, sizeof(TYPE))` while there should be for `LD * sizeof(TYPE)` - which can be useful for in-place mixed-precision conversions
 - Add C/Julia bindings
 - Rework interface for distributions - so it is an abstract object that may be passed to various constructs - look at what PGAS do
 - Add explicit/synchronous driver interfaces, to allow users to bypas event/polling/coherency/tasking. Particularly for OpenMP blocking constructs
