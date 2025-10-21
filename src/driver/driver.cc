@@ -168,7 +168,7 @@ drivers_init(runtime_t * runtime)
             };
 
             // get cpuset for the device
-            for (uint8_t i = 0; i < ndevices_for_driver ; ++i)
+            for (unsigned i = 0; i < ndevices_for_driver ; ++i)
             {
                 assert(driver->f_device_cpuset);
                 int err = driver->f_device_cpuset(runtime->topology, places + i, i);
@@ -177,7 +177,7 @@ drivers_init(runtime_t * runtime)
                 else
                 {
                     args.devices[args.ndevices].driver_type      = (driver_type_t) driver_type;
-                    args.devices[args.ndevices].device_driver_id = i;
+                    args.devices[args.ndevices].device_driver_id = (device_driver_id_t) i;
                     ++ndevices;
                     ++args.ndevices;
                 }
@@ -313,7 +313,7 @@ support_driver(driver_type_t driver_type)
 }
 
 device_t *
-driver_device_get(driver_t * driver, device_global_id_t device_driver_id)
+driver_device_get(driver_t * driver, device_driver_id_t device_driver_id)
 {
     assert(device_driver_id >= 0);
     assert(device_driver_id < driver->ndevices_commited);

@@ -1255,6 +1255,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_unregister)(
     void * ptr,
     uint64_t size
 ) {
+    (void) size;
     if (ext[ZE_DEFAULT_DRIVER_ID].zexDriverReleaseImportedPointer == NULL)
         LOGGER_FATAL("zexDriverReleaseImportedPointer is NULL");
     ZE_SAFE_CALL(ext[ZE_DEFAULT_DRIVER_ID].zexDriverReleaseImportedPointer(ze_drivers[ZE_DEFAULT_DRIVER_ID], ptr));

@@ -108,7 +108,7 @@ typedef struct  device_t
     driver_type_t driver_type;
 
     /* driver device id in [0..ndevices_for_device] */
-    uint8_t driver_id;
+    device_driver_id_t driver_id;
 
     /* global device id in [0, XKRT_DEVICES_MAX[ - host is a virtual device of id 'XKRT_DEVICES_MAX' */
     device_global_id_t global_id;
