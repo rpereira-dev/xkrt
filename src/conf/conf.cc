@@ -354,17 +354,11 @@ conf_t::init(void)
 
     // set to -1 so the driver's stream-suggest API fills these values if not
     // set by an env variable
-    this->device.offloader.streams[STREAM_TYPE_KERN].n = -1;
-    this->device.offloader.streams[STREAM_TYPE_KERN].concurrency = 64;
-
-    this->device.offloader.streams[STREAM_TYPE_D2D].n = -1;
-    this->device.offloader.streams[STREAM_TYPE_D2D].concurrency = 64;
-
-    this->device.offloader.streams[STREAM_TYPE_D2H].n = -1;
-    this->device.offloader.streams[STREAM_TYPE_D2H].concurrency = 64;
-
-    this->device.offloader.streams[STREAM_TYPE_H2D].n = -1;
-    this->device.offloader.streams[STREAM_TYPE_H2D].concurrency = 64;
+    for (int stype = 0 ; stype < STREAM_TYPE_ALL ; ++stype)
+    {
+        this->device.offloader.streams[stype].n = -1;
+        this->device.offloader.streams[stype].concurrency = 64;
+    }
 
     //////////////////
     //  DEVICE CONF //

@@ -47,10 +47,6 @@ typedef struct  file_args_t
     size_t offset;
     void * buffer;
     size_t size;
-    # if 0
-    unsigned int nchunks;
-    std::atomic<unsigned int> nchunks_completed;
-    # endif
 }               file_args_t;
 
 /* the task completes once all segment completed */
@@ -67,15 +63,7 @@ body_file_async_callback(void * vargs [XKRT_CALLBACK_ARGS_MAX])
 
     /* retrieve task args */
     file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
-
-    # if 1
     args->runtime->task_detachable_decr(task);
-    # else
-    LOGGER_WARN("TODO: Implement partitioned accesses");
-    // if all read/write completed, complete the task
-    if (args->nchunks_completed.fetch_add(1, std::memory_order_relaxed) == args->nchunks - 1)
-        args->runtime->task_detachable_post(task);
-    # endif
 }
 
 template<stream_instruction_type_t T>
@@ -93,31 +81,14 @@ body_file_async(task_t * task)
     device_t * device = args->runtime->device_get(HOST_DEVICE_GLOBAL_ID);
     assert(device);
 
-    # if 1
+    /* task completion must wait for detachable event to reach 0, i.e., want
+     * the `body_file_async_callback` was called, when the file had been read */
+    args->runtime->task_detachable_incr(task);
 
-    stream_instruction_t * instr = device->offloader_stream_instruction_submit_file<T>(
-        args->fd, args->buffer, args->size, args->offset
+    /* submit a file i/o instruction */
+    device->offloader_stream_instruction_submit_file<T>(
+        args->fd, args->buffer, args->size, args->offset, callback
     );
-    instr->push_callback(callback);
-
-    # else
-    // compute chunk size
-    const size_t chunksize = args->n / args->nchunks;
-    assert(chunksize > 0);
-
-    const uintptr_t ptr = (const uintptr_t) args->buffer;
-    for (size_t i = 0 ; i < args->nchunks ; ++i)
-    {
-        callback.args[1] = (void *) i;
-
-        device->offloader_stream_instruction_submit_file<T>(
-            args->fd,
-            (void *) (ptr + i * chunksize),
-            (i == args->nchunks - 1) ? (args->n - i*chunksize) : chunksize,
-            callback
-        );
-    }
-    # endif
 }
 
 // TODO: reimplement using partitionned dependencies
@@ -130,8 +101,6 @@ file_async(
     size_t n,
     unsigned int nchunks
 ) {
-    # if 1
-
     static_assert(T == XKRT_STREAM_INSTR_TYPE_FD_READ || T == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
     assert(nchunks > 0);
 
@@ -155,7 +124,7 @@ file_async(
     for (unsigned int i = 0 ; i < nchunks ; ++i)
     {
         task_t * task = thread->allocate_task(task_size + args_size);
-        new(task) task_t(fmtid, flags);
+        new (task) task_t(fmtid, flags);
 
         // copy arguments
         file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
@@ -187,68 +156,10 @@ file_async(
         thread->resolve(accesses, 1);
 
         // commit
-        runtime->task_detachable_incr(task);
         runtime->task_commit(task);
     }
 
     return 0;
-
-    # else
-    // OLD IMPLEMENTATION WITH 1 single task, use that once we have partitioned dependencies
-    LOGGER_FATAL("TODO: reimplement to create 'n' tasks");
-
-    static_assert(T == XKRT_STREAM_INSTR_TYPE_FD_READ || T == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
-    assert(nchunks > 0);
-
-    // compute number of instructions to spawn
-    if (n < nchunks)
-       nchunks = (unsigned int) n;
-
-    // create the task that submit the i/o instruction
-    thread_t * thread = thread_t::get_tls();
-    assert(thread);
-
-    // get task format
-    const task_format_id_t fmtid = (T == XKRT_STREAM_INSTR_TYPE_FD_READ) ? runtime->formats.file_read_async : runtime->formats.file_write_async;
-
-    task_t * task = thread->allocate_task(task_size + args_size);
-    new(task) task_t(fmtid, flags);
-
-    // copy arguments
-    file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
-    args->runtime = runtime;
-    args->fd = fd;
-    args->buffer = buffer;
-    args->n = n;
-    args->nchunks = nchunks;
-    args->nchunks_completed.store(0);
-
-    # if 0 /* no need to init det info if initializing dep info */
-    task_det_info_t * det = TASK_DET_INFO(task);
-    new (det) task_det_info_t();
-    # endif
-
-    task_dep_info_t * dep = TASK_DEP_INFO(task);
-    new (dep) task_dep_info_t(ac);
-
-    # if XKRT_SUPPORT_DEBUG
-    snprintf(task->label, sizeof(task->label), T == XKRT_STREAM_INSTR_TYPE_FD_READ ? "fread" : "fwrite");
-    # endif
-
-    // detached virtual write onto the memory segment
-    access_t * accesses = TASK_ACCESSES(task, flags);
-    // constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V | ACCESS_MODE_D);
-    constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V);
-    LOGGER_WARN("Right now, fulfilling all dependencies on task completion... implemented detached accesses and fix me");
-    const uintptr_t ptr = (const uintptr_t) buffer;
-    new(accesses + 0) access_t(task, ptr, ptr + n, mode);
-    thread->resolve(accesses, 1);
-
-    // commit
-    runtime->task_commit(task);
-
-    return 0;
-    # endif
 }
 
 int

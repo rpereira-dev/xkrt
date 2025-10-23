@@ -54,14 +54,14 @@ constexpr const char * filename = "file.bin";             // filename
 constexpr size_t buffer_size = (1024 * 1024);             // 1MB
 //constexpr size_t total_size  = (1L * 1024 * 1024 * 1024); // 1GB
 constexpr size_t total_size  = (8L * 1024 * 1024);      // 8MB
-constexpr int    nchunks      = 4;                        // tasks that reads the file
+constexpr int    nchunks     = 16;                        // tasks that reads the file
 
 static runtime_t runtime;
 
 static void
 createfile(void)
 {
-    LOGGER_INFO("Creating %luGB file", total_size/1024/1024/1024);
+    LOGGER_INFO("Creating %.4lfGB file", total_size/1024/1024/1024.0);
     int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd < 0)
     {
@@ -106,6 +106,7 @@ main(void)
 
     unsigned char * buffer = (unsigned char *) malloc(total_size);
     assert(buffer);
+    memset(buffer, 0, total_size);
 
     int fd = open(filename, O_RDONLY, 0644);
     if (fd < 0)
@@ -121,16 +122,15 @@ main(void)
     /* spawn tasks that read the file */
     runtime.file_read_async(fd, buffer, total_size, nchunks);
 
-    /* spawn a successor for each read task */
+    /* spawn a successor task for each chunk */
     runtime.file_foreach_chunk(buffer, total_size, nchunks, [] (const uintptr_t a, const uintptr_t b) {
             runtime.task_spawn<1>(
                 [a, b] (task_t * task, access_t * accesses) {
-                    access_t * access = accesses + 0;
-                    new (access) access_t(task, a, b, ACCESS_MODE_R);
+                    new (accesses + 0) access_t(task, a, b, ACCESS_MODE_R);
                 },
 
                 [a, b] (task_t * task) {
-                    LOGGER_INFO("File chunk [%lu, %lu] is read", a, b);
+                    LOGGER_INFO("File chunk [%lu, %lu] is ready", a, b);
                     for (uintptr_t x = a ; x < b ; ++x)
                         assert(*((unsigned char *) x) == 1);
                 }

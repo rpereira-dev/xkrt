@@ -1183,7 +1183,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         fetch_list_to_host(
             access_t * access
         ) {
-            assert(access->type == ACCESS_TYPE_BLAS_MATRIX);
+            assert(access->type == ACCESS_TYPE_INTERVAL || access->type == access->type == ACCESS_TYPE_BLAS_MATRIX);
 
             Search search(HOST_DEVICE_GLOBAL_ID);
             this->lock();

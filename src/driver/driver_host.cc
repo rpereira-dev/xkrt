@@ -269,11 +269,11 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
             struct io_uring_sqe * sqe = &stream->io_uring.sqes[index];
 
             /* Fill in the parameters required for the read or write operation */
-            sqe->opcode = (instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ) ? IORING_OP_READ : IORING_OP_WRITE;
-            sqe->fd = instr->file.fd;
-            sqe->addr = (unsigned long) instr->file.buffer;
-            sqe->len = instr->file.n;
-            sqe->off = instr->file.offset;
+            sqe->opcode    = (instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ) ? IORING_OP_READ : IORING_OP_WRITE;
+            sqe->fd        = instr->file.fd;
+            sqe->addr      = (unsigned long) instr->file.buffer;
+            sqe->len       = instr->file.n;
+            sqe->off       = instr->file.offset;
             sqe->user_data = (__u64) idx;
 
             stream->io_uring.sq_array[index] = index;
@@ -282,15 +282,10 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
             /* Update the tail */
             io_uring_smp_store_release(stream->io_uring.sq_tail, tail);
 
-            /*
-             * Tell the kernel we have submitted events with the io_uring_enter()
-             * system call. We also pass in the IOURING_ENTER_GETEVENTS flag which
-             * causes the io_uring_enter() call to wait until min_complete
-             * (the 3rd param) events complete.
-             */
-            const int to_submit = 1;
-            const int min_complete = 1;
-            const unsigned int flags = IORING_ENTER_GETEVENTS;
+            /* Tell the kernel we have submitted events with the io_uring_enter() system call. */
+            const int to_submit      = 1;
+            const int min_complete   = 0;
+            const unsigned int flags = 0; // IORING_ENTER_GETEVENTS;
             int r = (int) syscall(__NR_io_uring_enter, stream->io_uring.fd, to_submit, min_complete, flags, NULL, 0);
             if (r < 0)
                 LOGGER_FATAL("__NR_io_uring_enter");
@@ -327,7 +322,28 @@ static inline int
 XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
     stream_t * istream
 ) {
-    LOGGER_FATAL("Not supported");
+    assert(istream);
+    stream_host_t * stream = (stream_host_t *) istream;
+
+    switch (stream->super.type)
+    {
+        case (STREAM_TYPE_FD_READ):
+        case (STREAM_TYPE_FD_WRITE):
+        {
+            int min_completion = stream->super.pending.size();
+            if (min_completion)
+            {
+                LOGGER_DEBUG("Waiting for %d i/o instructions to complete", min_completion);
+                int r = (int) syscall(__NR_io_uring_enter, stream->io_uring.fd, 0, min_completion, IORING_ENTER_GETEVENTS, NULL, 0);
+                if (r < 0)
+                    LOGGER_FATAL("__NR_io_uring_enter (wait) failed: %s", strerror(errno));
+            }
+            break ;
+        }
+
+        default:
+            LOGGER_FATAL("Not supported");
+    }
     return 0;
 }
 
@@ -337,7 +353,25 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
     stream_instruction_t * instr,
     stream_instruction_counter_t idx
 ) {
-    LOGGER_FATAL("Not supported");
+    assert(instr);
+
+    // TODO: currently naively wait for all events to complete, instead we
+    // should wait for the specific i/o instruction
+    XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(istream);
+
+    # if 0
+    switch (instr->type)
+    {
+        case (STREAM_TYPE_FD_READ):
+        case (STREAM_TYPE_FD_WRITE):
+        {
+        }
+
+        default:
+            LOGGER_FATAL("Not supported");
+    }
+    # endif
+
     return 0;
 }
 

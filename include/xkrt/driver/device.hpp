@@ -279,10 +279,11 @@ typedef struct  device_t
     /* submit a file I/O instruction */
     template <stream_instruction_type_t T>
     stream_instruction_t * offloader_stream_instruction_submit_file(
-        int fd,
+        int    fd,
         void * buffer,
         size_t n,
-        size_t offset
+        size_t offset,
+        const callback_t & callback
     ) {
         static_assert(
             T == XKRT_STREAM_INSTR_TYPE_FD_READ ||
@@ -308,6 +309,7 @@ typedef struct  device_t
         instr->file.offset = offset;
 
         /* submit instr */
+        instr->push_callback(callback);
         this->offloader_stream_instruction_commit(thread, stream, instr);
 
         return instr;
