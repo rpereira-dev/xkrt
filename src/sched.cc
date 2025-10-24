@@ -234,7 +234,7 @@ __device_prepare_task(
 
             /* decrease the task 'fetching' counter to detect early-fetch completion */
             __task_fetched(1, task, device_task_execute, runtime, device);
-            /* else the task will be launched in a callback while all accesses were fetched */
+            /* else the task will be launched in a callback once all accesses got fetched */
         }
     }
     else
