@@ -1095,6 +1095,36 @@ int XKRT_DRIVER_ENTRYPOINT(kernel_launch)(
     return 0;
 }
 
+int
+XKRT_DRIVER_ENTRYPOINT(memory_device_advise)(
+    const xkrt_device_driver_id_t device_driver_id,
+    const void * addr,
+    const size_t size
+) {
+    const CUmem_advise advice = CU_MEM_ADVISE_SET_ACCESSED_BY;
+    const CUmemLocation location = {
+        .type = CU_MEM_LOCATION_TYPE_DEVICE,
+        .id   = device_driver_id
+    };
+    CU_SAFE_CALL(cuMemAdvise_v2((CUdeviceptr)addr, size, advice, location));
+
+    return 0;
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(memory_host_advise)(
+    const void * addr,
+    const size_t size
+) {
+    const CUmem_advise advice = CU_MEM_ADVISE_SET_ACCESSED_BY;
+    const CUmemLocation location = {
+        .type = CU_MEM_LOCATION_TYPE_HOST,
+        .id   = 0 // ignored
+    };
+    CU_SAFE_CALL(cuMemAdvise_v2((CUdeviceptr)addr, size, advice, location));
+    return 0;
+}
+
 driver_t *
 XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 {
@@ -1134,6 +1164,8 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(memory_host_unregister);
     REGISTER(memory_unified_allocate);
     REGISTER(memory_unified_deallocate);
+    REGISTER(memory_device_advise);
+    REGISTER(memory_host_advise);
 
     REGISTER(device_cpuset);
 

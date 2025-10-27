@@ -174,4 +174,26 @@ runtime_t::memory_unified_deallocate(
     }
 }
 
+int
+runtime_t::memory_advise(
+    const device_global_id_t device_global_id,
+    const void * addr,
+    const size_t size
+) {
+    if (device_global_id == HOST_DEVICE_GLOBAL_ID)
+    {
+        LOGGER_FATAL("TODO");
+    }
+    else
+    {
+        device_t * device = this->device_get(device_global_id);
+        driver_t * driver = this->driver_get(device->driver_type);
+        if (driver->f_memory_device_advise)
+            driver->f_memory_device_advise(device->driver_id, addr, size);
+        else
+            LOGGER_WARN("memory_host_advise not supported for driver `%u`", device->driver_type);
+    }
+    return 0;
+}
+
 XKRT_NAMESPACE_END
