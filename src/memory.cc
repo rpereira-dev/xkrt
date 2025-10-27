@@ -182,7 +182,16 @@ runtime_t::memory_advise(
 ) {
     if (device_global_id == HOST_DEVICE_GLOBAL_ID)
     {
-        LOGGER_FATAL("TODO");
+        for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
+        {
+            driver_t * driver = this->driver_get((driver_type_t) driver_id);
+            if (!driver)
+                continue ;
+            if (!driver->f_memory_host_advise)
+                LOGGER_DEBUG("Driver `%u` does not implement host memory advice", driver_id);
+            else
+                driver->f_memory_device_advise((driver_type_t) driver_id, addr, size);
+        }
     }
     else
     {
