@@ -145,6 +145,10 @@ XKRT_NAMESPACE_BEGIN
         int    (*f_memory_host_register)(void * mem, uint64_t size);
         int    (*f_memory_host_unregister)(void * mem, uint64_t size);
 
+        /* unified memory prefetch hints */
+        int (*f_memory_device_advise)(const device_driver_id_t device_global_id, const void * addr, const size_t size);
+        int (*f_memory_host_advise)(const void * addr, const size_t size);
+
         //////////////////////
         // MEMORY TRANSFERS //
         //////////////////////

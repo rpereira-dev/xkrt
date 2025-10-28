@@ -58,6 +58,8 @@ typedef struct  device_stats_t
         } allocated;
         stats_int_t registered;
         stats_int_t unregistered;
+        stats_int_t device_advised;
+        stats_int_t host_advised;
     } memory;
 
     struct {
@@ -77,6 +79,8 @@ stats_device_agg_gather(runtime_t * runtime, device_stats_t * agg)
 {
     agg->memory.registered += runtime->stats.memory.registered;
     agg->memory.unregistered += runtime->stats.memory.unregistered;
+    agg->memory.device_advised += runtime->stats.memory.device_advised;
+    agg->memory.host_advised += runtime->stats.memory.host_advised;
 }
 
 static void
@@ -128,6 +132,15 @@ stats_device_report(device_stats_t * stats)
 
         metric_byte(buffer, sizeof(buffer), stats->memory.unregistered.load());
         LOGGER_WARN("    Unregistered: %s", buffer);
+    }
+
+    if (stats->memory.device_advised.load() || stats->memory.host_advised.load())
+    {
+        metric_byte(buffer, sizeof(buffer), stats->memory.device_advised.load());
+        LOGGER_WARN("    Device Advised: %s", buffer);
+
+        metric_byte(buffer, sizeof(buffer), stats->memory.host_advised.load());
+        LOGGER_WARN("    Host Advised: %s", buffer);
     }
 
     LOGGER_WARN("  Streams");
