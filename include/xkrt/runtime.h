@@ -262,6 +262,9 @@ struct  runtime_t
     void memory_coherent_async(device_global_id_t device_global_id, void * ptr, size_t size);
     void memory_coherent_async(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
+    /* hint the unified memory system to prefetch memory to the given device */
+    int memory_advise(const device_global_id_t device_global_id, const void * addr, const size_t size);
+
     /////////////////////////
     // MEMORY REGISTRATION //
     /////////////////////////
@@ -580,6 +583,8 @@ struct  runtime_t
         struct {
             stats_int_t registered;
             stats_int_t unregistered;
+            stats_int_t device_advised;
+            stats_int_t host_advised;
         } memory;
     } stats;
 

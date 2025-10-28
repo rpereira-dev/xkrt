@@ -29,7 +29,7 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 include(BooleanUtils)
 
 xkoption(ENABLE_HEAVY_DEBUG "Heavy assertion tests in the khp-tree structure, setting this variable to 'ON' will considerably slowdown task insertion, but can help debugging the khp-trees" OFF)
-xkoption(STRICT       "Enable strict compilation mode" ON)
+xkoption(STRICT       "Enable strict compilation mode" OFF)
 xkoption(BUILD_C_API  "Build the C API" ON)
 
 xkoption(USE_MEMORY_REGISTER_OVERFLOW_PROTECTION "Enable the protection of memory copies over regions that are not continuously registered, by splitting into multiple copies, to avoid cuda crashes" ON)
