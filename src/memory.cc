@@ -153,9 +153,7 @@ runtime_t::memory_unified_allocate(
     if (driver->f_memory_unified_allocate)
         return driver->f_memory_unified_allocate(device->driver_id, size);
     else
-    {
         LOGGER_FATAL("Driver `%s` does not implement memory_alloc_unified", driver->f_get_name());
-    }
 }
 
 void
@@ -190,7 +188,15 @@ runtime_t::memory_advise(
             if (!driver->f_memory_host_advise)
                 LOGGER_DEBUG("Driver `%u` does not implement host memory advice", driver_id);
             else
-                driver->f_memory_device_advise((driver_type_t) driver_id, addr, size);
+            {
+                if (driver->f_memory_device_advise((driver_type_t) driver_id, addr, size) == 0)
+                {
+                    # if XKRT_SUPPORT_STATS
+                    this->stats.memory.host_advised += size;
+                    # endif /* XKRT_SUPPORT_STATS */
+                    break ;
+                }
+            }
         }
     }
     else
@@ -198,9 +204,16 @@ runtime_t::memory_advise(
         device_t * device = this->device_get(device_global_id);
         driver_t * driver = this->driver_get(device->driver_type);
         if (driver->f_memory_device_advise)
-            driver->f_memory_device_advise(device->driver_id, addr, size);
-        else
-            LOGGER_WARN("memory_host_advise not supported for driver `%u`", device->driver_type);
+        {
+            if (driver->f_memory_device_advise(device->driver_id, addr, size) == 0)
+            {
+                # if XKRT_SUPPORT_STATS
+                this->stats.memory.device_advised += size;
+                # endif /* XKRT_SUPPORT_STATS */
+            }
+            else
+                LOGGER_WARN("memory_host_advise not supported for driver `%u`", device->driver_type);
+        }
     }
     return 0;
 }

@@ -440,7 +440,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(
 static void *
 XKRT_DRIVER_ENTRYPOINT(memory_unified_allocate)(int device_driver_id, const size_t size)
 {
-    (void) device_driver_id;
+    cu_set_context(device_driver_id);
     CUdeviceptr device_ptr;
     CU_SAFE_CALL(cuMemAllocManaged(&device_ptr, size, CU_MEM_ATTACH_GLOBAL));
     return (void *) device_ptr;
@@ -449,8 +449,8 @@ XKRT_DRIVER_ENTRYPOINT(memory_unified_allocate)(int device_driver_id, const size
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_unified_deallocate)(int device_driver_id, void * ptr, const size_t size)
 {
-    (void) device_driver_id;
     (void) size;
+    cu_set_context(device_driver_id);
     CU_SAFE_CALL(cuMemFree((CUdeviceptr) ptr));
 }
 
@@ -1101,13 +1101,24 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_advise)(
     const void * addr,
     const size_t size
 ) {
-    const CUmem_advise advice = CU_MEM_ADVISE_SET_ACCESSED_BY;
+    int attr = 0;
+    cuDeviceGetAttribute(&attr, CU_DEVICE_ATTRIBUTE_CONCURRENT_MANAGED_ACCESS, device_driver_id);
+    printf("CONCURRENT_MANAGED_ACCESS = %d\n", attr);
+
+    # if 1
+    const CUmem_advise advice = CU_MEM_ADVISE_SET_ACCESSED_BY; // CU_MEM_ADVISE_SET_PREFERRED_LOCATION;
     const CUmemLocation location = {
         .type = CU_MEM_LOCATION_TYPE_DEVICE,
         .id   = device_driver_id
     };
-    CU_SAFE_CALL(cuMemAdvise_v2((CUdeviceptr)addr, size, advice, location));
-
+    CU_SAFE_CALL(cuMemAdvise_v2((const CUdeviceptr) addr, size, advice, location));
+    # else
+    const struct cudaMemLocation loc = {
+        .type = cudaMemLocationTypeDevice,
+        .id   = device_driver_id
+    };
+    CUDA_SAFE_CALL(cudaMemAdvise_v2(addr, size, cudaMemAdviseSetPreferredLocation, loc));
+    # endif
     return 0;
 }
 
@@ -1116,7 +1127,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_advise)(
     const void * addr,
     const size_t size
 ) {
-    const CUmem_advise advice = CU_MEM_ADVISE_SET_ACCESSED_BY;
+    const CUmem_advise advice = CU_MEM_ADVISE_SET_ACCESSED_BY; // CU_MEM_ADVISE_SET_PREFERRED_LOCATION;
     const CUmemLocation location = {
         .type = CU_MEM_LOCATION_TYPE_HOST,
         .id   = 0 // ignored

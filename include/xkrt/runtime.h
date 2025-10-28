@@ -583,6 +583,8 @@ struct  runtime_t
         struct {
             stats_int_t registered;
             stats_int_t unregistered;
+            stats_int_t device_advised;
+            stats_int_t host_advised;
         } memory;
     } stats;
 
