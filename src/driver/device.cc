@@ -274,67 +274,67 @@ device_t::memory_allocate(const size_t user_size)
 }
 
 ///////////////////////
-// STREAM MANAGEMENT //
+// QUEUE MANAGEMENT //
 ///////////////////////
 
 void
 device_t::offloader_init(
-    int (*f_stream_suggest)(int device_driver_id, stream_type_t type)
+    int (*f_queue_suggest)(device_driver_id_t device_driver_id, queue_type_t type)
 ) {
-    /* next stream to use (round robin) */
+    /* next queue to use (round robin) */
     this->next_thread = 0;
-    memset(this->next_stream, 0, sizeof(this->next_stream));
+    memset(this->next_queue, 0, sizeof(this->next_queue));
 
-    /* count total number of stream */
-    this->nstreams_per_thread = 0;
+    /* count total number of queue */
+    this->nqueues_per_thread = 0;
 
-    for (int stype = 0 ; stype < STREAM_TYPE_ALL ; ++stype)
+    for (int qtype = 0 ; qtype < QUEUE_TYPE_ALL ; ++qtype)
     {
-        this->count[stype] = (this->conf->offloader.streams[stype].n >= 0) ? this->conf->offloader.streams[stype].n : f_stream_suggest ? f_stream_suggest(this->driver_id, (stream_type_t) stype) : 4;
-        this->nstreams_per_thread += this->count[stype];
+        this->count[qtype] = (this->conf->offloader.queues[qtype].n >= 0) ? this->conf->offloader.queues[qtype].n : f_queue_suggest ? f_queue_suggest(this->driver_id, (queue_type_t) qtype) : 4;
+        this->nqueues_per_thread += this->count[qtype];
     }
 }
 
 void
 device_t::offloader_init_thread(
     uint8_t device_tid,
-    stream_t * (*f_stream_create)(device_t * device, stream_type_t type, stream_instruction_counter_t capacity)
+    queue_t * (*f_queue_create)(device_t * device, queue_type_t type, queue_counter_t capacity)
 ) {
-    if (this->nstreams_per_thread == 0)
+    if (this->nqueues_per_thread == 0)
         return ;
 
-    /* retrieve the thread that is initializing its streams */
+    /* retrieve the thread that is initializing its queues */
     thread_t * thread = this->threads[device_tid];
     assert(thread);
 
-    /* allocate streams array */
-    assert(this->nstreams_per_thread);
-    stream_t ** all_streams = (stream_t **) malloc(sizeof(stream_t *) * this->nstreams_per_thread);
-    assert(all_streams);
+    /* allocate queues array */
+    assert(this->nqueues_per_thread);
+    queue_t ** all_queues = (queue_t **) malloc(sizeof(queue_t *) * this->nqueues_per_thread);
+    assert(all_queues);
 
-    /* retrieve stream offset per type */
+    /* retrieve queue offset per type */
     uint16_t i = 0;
-    for (int stype = 0 ; stype < STREAM_TYPE_ALL ; ++stype)
+    for (int qtype = 0 ; qtype < QUEUE_TYPE_ALL ; ++qtype)
     {
-        this->streams[device_tid][stype] = all_streams + i;
-        for (int j = 0 ; j < this->count[stype] ; ++j, ++i)
+        this->queues[device_tid][qtype] = all_queues + i;
+        for (int j = 0 ; j < this->count[qtype] ; ++j, ++i)
         {
-            // create a new stream
-            all_streams[i] = f_stream_create(this, static_cast<stream_type_t>(stype), this->conf->offloader.capacity);
-            if (all_streams[i] == NULL)
+            // create a new queue
+            all_queues[i] = f_queue_create(this, static_cast<queue_type_t>(qtype), this->conf->offloader.capacity);
+            if (all_queues[i] == NULL)
             {
-                this->count[stype] = j;
+                this->count[qtype] = j;
                 break ;
             }
         }
     }
-    assert(i <= this->nstreams_per_thread);
+    assert(i <= this->nqueues_per_thread);
 }
 
 void
-device_t::offloader_streams_are_empty(
+device_t::offloader_queues_are_empty(
     uint8_t device_tid,
-    const stream_type_t stype,
+    const queue_type_t qtype,
     bool * ready,
     bool * pending
 ) const {
@@ -342,17 +342,17 @@ device_t::offloader_streams_are_empty(
     *ready   = false;
     *pending = false;
 
-    unsigned int bgn = (stype == STREAM_TYPE_ALL) ?                    0 : stype;
-    unsigned int end = (stype == STREAM_TYPE_ALL) ? STREAM_TYPE_ALL : stype + 1;
+    unsigned int bgn = (qtype == QUEUE_TYPE_ALL) ?                    0 : qtype;
+    unsigned int end = (qtype == QUEUE_TYPE_ALL) ? QUEUE_TYPE_ALL : qtype + 1;
 
     for (unsigned int s = bgn ; s < end ; ++s)
     {
         for (int i = 0 ; i < this->count[s] ; ++i)
         {
-            const stream_t * stream = this->streams[device_tid][s][i];
-            if (*ready == false && !stream->ready.is_empty())
+            const queue_t * queue = this->queues[device_tid][s][i];
+            if (*ready == false && !queue->ready.is_empty())
                 *ready = true;
-            if (*pending == false && !stream->pending.is_empty())
+            if (*pending == false && !queue->pending.is_empty())
                 *pending = true;
             if (*ready && *pending)
                 return ;
@@ -361,24 +361,24 @@ device_t::offloader_streams_are_empty(
 }
 
 int
-device_t::offloader_stream_instructions_launch(
+device_t::offloader_queue_commands_launch(
     uint8_t device_tid,
-    const stream_type_t stype
+    const queue_type_t qtype
 ) {
     int err = 0;
 
-    unsigned int bgn = (stype == STREAM_TYPE_ALL) ?                    0 : stype;
-    unsigned int end = (stype == STREAM_TYPE_ALL) ? STREAM_TYPE_ALL : stype + 1;
+    unsigned int bgn = (qtype == QUEUE_TYPE_ALL) ?                    0 : qtype;
+    unsigned int end = (qtype == QUEUE_TYPE_ALL) ? QUEUE_TYPE_ALL : qtype + 1;
     for (unsigned int s = bgn ; s < end ; ++s)
     {
         for (int i = 0 ; i < this->count[s] ; ++i)
         {
-            stream_t * stream = this->streams[device_tid][s][i];
-            assert(stream);
+            queue_t * queue = this->queues[device_tid][s][i];
+            assert(queue);
 
-            stream->lock();
-            int r = stream->launch_ready_instructions();
-            stream->unlock();
+            queue->lock();
+            int r = queue->launch_ready_commands();
+            queue->unlock();
 
             switch (r)
             {
@@ -399,7 +399,7 @@ device_t::offloader_stream_instructions_launch(
 
                 default:
                 {
-                    LOGGER_FATAL("Driver implementation of `stream_instruction_launch` returned an unknown error code");
+                    LOGGER_FATAL("Driver implementation of `queue_command_launch` returned an unknown error code");
                     break ;
                 }
             }
@@ -410,28 +410,28 @@ device_t::offloader_stream_instructions_launch(
 }
 
 void
-device_t::offloader_stream_next(
-    stream_type_t stype,
-    thread_t ** pthread,       /* OUT */
-    stream_t ** pstream        /* OUT */
+device_t::offloader_queue_next(
+    queue_type_t qtype,
+    thread_t ** pthread,    /* OUT */
+    queue_t ** pqueue       /* OUT */
 ) {
-    // round robin on the thread for this stream type
+    // round robin on the thread for this queue type
     uint8_t next_thread = this->next_thread.fetch_add(1, std::memory_order_relaxed) % this->nthreads;
 
-    // round robin on streams for the streams of the given type on the choosen thread
-    int count = this->count[stype];
+    // round robin on queues for the queues of the given type on the choosen thread
+    int count = this->count[qtype];
     assert(count);
-    int snext = this->next_stream[next_thread][stype].fetch_add(1, std::memory_order_relaxed) % count;
+    int snext = this->next_queue[next_thread][qtype].fetch_add(1, std::memory_order_relaxed) % count;
 
-    // save thread/stream
+    // save thread/queue
     *pthread = this->threads[next_thread];
-    *pstream  = this->streams[next_thread][stype][snext];
+    *pqueue  = this->queues[next_thread][qtype][snext];
 }
 
 int
 device_t::offloader_launch(uint8_t device_tid)
 {
-    int err = this->offloader_stream_instructions_launch(device_tid, STREAM_TYPE_ALL);
+    int err = this->offloader_queue_commands_launch(device_tid, QUEUE_TYPE_ALL);
     assert((err == 0) || (err == EINPROGRESS));
 
     return err;
@@ -440,48 +440,48 @@ device_t::offloader_launch(uint8_t device_tid)
 int
 device_t::offloader_progress(uint8_t device_tid)
 {
-    int err = this->offloader_stream_instructions_progress<false>(device_tid, STREAM_TYPE_ALL);
+    int err = this->offloader_queue_commands_progress<false>(device_tid, QUEUE_TYPE_ALL);
     assert((err == 0) || (err == EINPROGRESS));
 
     return err;
 }
 
 int
-device_t::offloader_wait_random_instruction(uint8_t device_tid)
+device_t::offloader_wait_random_command(uint8_t device_tid)
 {
     static unsigned int seed = 0x42;
 
-    // randomly pick a type and a stream
-    static_assert(STREAM_TYPE_ALL > 0);
+    // randomly pick a type and a queue
+    static_assert(QUEUE_TYPE_ALL > 0);
     unsigned int rtype   = rand_r(&seed);
-    unsigned int rstream = rand_r(&seed);
-    for (unsigned int itype = 0 ; itype < STREAM_TYPE_ALL ; ++itype)
+    unsigned int rqueue = rand_r(&seed);
+    for (unsigned int itype = 0 ; itype < QUEUE_TYPE_ALL ; ++itype)
     {
-        unsigned int s = (rtype + itype) % STREAM_TYPE_ALL;
+        unsigned int s = (rtype + itype) % QUEUE_TYPE_ALL;
 
-        stream_t * stream = NULL;
-        for (int istream = 0 ; istream < this->count[s] ; ++istream)
+        queue_t * queue = NULL;
+        for (int iqueue = 0 ; iqueue < this->count[s] ; ++iqueue)
         {
-            unsigned int i = (rstream + istream) % this->count[s];
+            unsigned int i = (rqueue + iqueue) % this->count[s];
 
-            stream = this->streams[device_tid][s][i];
-            assert(stream);
+            queue = this->queues[device_tid][s][i];
+            assert(queue);
 
-            // if the stream has pending instructions
-            if (!stream->pending.is_empty())
+            // if the queue has pending commands
+            if (!queue->pending.is_empty())
             {
-                const stream_instruction_counter_t i = stream->pending.pos.r;
+                const queue_counter_t i = queue->pending.pos.r;
                 assert(i >= 0);
-                assert(i < stream->pending.capacity);
+                assert(i < queue->pending.capacity);
 
-                stream_instruction_t * instr = stream->pending.instr + i;
-                assert(instr);
-                assert(!instr->completed);
+                command_t * cmd = queue->pending.cmd + i;
+                assert(cmd);
+                assert(!cmd->completed);
 
-                assert(stream->f_instruction_wait);
+                assert(queue->f_command_wait);
 
-                // waiting on the first event of the randomly elected stream
-                int err = stream->f_instruction_wait(stream, instr, i);
+                // waiting on the first event of the randomly elected queue
+                int err = queue->f_command_wait(queue, cmd, i);
 
                 // calling this to complete events and move queues pointers
                 // but also detect out-of-order completions
@@ -495,83 +495,83 @@ device_t::offloader_wait_random_instruction(uint8_t device_tid)
 }
 
 ////////////////////////////
-// INSTRUCTION SUBMISSION //
+// COMMAND SUBMISSION //
 ////////////////////////////
 
-/* commit a stream instruction and wakeup thread */
+/* commit a queue command and wakeup thread */
 void
-device_t::offloader_stream_instruction_commit(
+device_t::offloader_queue_command_commit(
     thread_t * thread,
-    stream_t * stream,
-    stream_instruction_t * instr
+    queue_t * queue,
+    command_t * cmd
 ) {
-    /* commit instruction to the stream */
-    stream->commit(instr);
+    /* commit command to the queue */
+    queue->commit(cmd);
 
     /* wakeup device worker thread */
     thread->wakeup();
 }
 
 void
-device_t::offloader_stream_instruction_new(
-    const stream_type_t stype,             /* IN  */
-          thread_t ** pthread,             /* OUT */
-          stream_t ** pstream,             /* OUT */
-    const stream_instruction_type_t itype, /* IN  */
-          stream_instruction_t ** pinstr   /* OUT */
+device_t::offloader_queue_command_new(
+    const queue_type_t qtype,       /* IN  */
+          thread_t ** pthread,      /* OUT */
+          queue_t ** pqueue,        /* OUT */
+    const command_type_t itype,     /* IN  */
+          command_t ** pcmd         /* OUT */
 ) {
-    assert(pstream);
-    assert(pinstr);
+    assert(pqueue);
+    assert(pcmd);
 
-    /* retrieve native stream */
-    this->offloader_stream_next(stype, pthread, pstream);
+    /* retrieve native queue */
+    this->offloader_queue_next(qtype, pthread, pqueue);
     assert(*pthread);
-    assert(*pstream);
-    assert((*pstream)->type == stype);
+    assert(*pqueue);
+    assert((*pqueue)->type == qtype);
 
-    /* allocate the instruction */
+    /* allocate the command */
     do {
-        (*pstream)->lock();
-        (*pinstr) = (*pstream)->instruction_new(itype);
-        if (*pinstr)
+        (*pqueue)->lock();
+        (*pcmd) = (*pqueue)->command_new(itype);
+        if (*pcmd)
             break ;
-        (*pstream)->unlock();
+        (*pqueue)->unlock();
 
         LOGGER_FATAL("Stream is full, increase 'XKRT_OFFLOADER_CAPACITY' or implement support for full-queue management yourself :-) (sorry)");
 
     } while (1);
 
-    /* stream is locked, will be unlocked in the commit */
+    /* queue is locked, will be unlocked in the commit */
 }
 
-stream_instruction_t *
-device_t::offloader_stream_instruction_submit_kernel(
+command_t *
+device_t::offloader_queue_command_submit_kernel(
     kernel_launcher_t launch,
     void * vargs,
     const callback_t & callback
 ) {
-    /* create a new instruction and retrieve its offload stream */
+    /* create a new command and retrieve its offload queue */
     thread_t * thread;
-    stream_t * stream;
-    stream_instruction_t * instr;
-    this->offloader_stream_instruction_new(
-        STREAM_TYPE_KERN,               /* IN */
+    queue_t * queue;
+    command_t * cmd;
+    this->offloader_queue_command_new(
+        QUEUE_TYPE_KERN,               /* IN */
        &thread,                         /* OUT */
-       &stream,                         /* OUT */
-        XKRT_STREAM_INSTR_TYPE_KERN,    /* IN */
-       &instr                           /* OUT */
+       &queue,                         /* OUT */
+        COMMAND_TYPE_KERN,    /* IN */
+       &cmd                           /* OUT */
     );
     assert(thread);
-    assert(stream);
-    assert(instr);
-    assert(stream->is_locked());
+    assert(queue);
+    assert(cmd);
+    assert(queue->is_locked());
 
-    /* create a new kernel instruction */
-    instr->kern.launch  = (void (*)()) launch;
-    instr->kern.vargs   = vargs;
-    instr->push_callback(callback);
+    /* create a new kernel command */
+    cmd->kern.launch  = (void (*)()) launch;
+    cmd->kern.vargs   = vargs;
+    cmd->push_callback(callback);
 
-    this->offloader_stream_instruction_commit(thread, stream, instr);
+    this->offloader_queue_command_commit(thread, queue, cmd);
 
-    return instr;
+    return cmd;
 }

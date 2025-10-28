@@ -71,7 +71,7 @@ runtime_t::copy(
     const callback_t            & callback
 ) {
     device_t * device = this->device_get(device_global_id);
-    device->offloader_stream_instruction_submit_copy<memory_view_t, memory_replica_view_t>(
+    device->offloader_queue_command_submit_copy<memory_view_t, memory_replica_view_t>(
         host_view,
         dst_device_global_id,
         dst_device_view,
@@ -92,8 +92,8 @@ runtime_t::copy(
     const callback_t         & callback
 ) {
     device_t * device = this->device_get(device_global_id);
-    // TODO: create 1x instruction per pinned segment, and callback
-    device->offloader_stream_instruction_submit_copy<size_t, uintptr_t>(
+    // TODO: create 1x command per pinned segment, and callback
+    device->offloader_queue_command_submit_copy<size_t, uintptr_t>(
         size,
         dst_device_global_id,
         dst_device_addr,

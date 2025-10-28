@@ -40,16 +40,16 @@
 # define __DRIVER_CU_H__
 
 # include <xkrt/driver/driver.h>
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 # include <cuda.h>
 # include <cublas_v2.h>
 # include <cusparse.h>
 
 XKRT_NAMESPACE_BEGIN
 
-    typedef struct  stream_cu_t
+    typedef struct  queue_cu_t
     {
-        stream_t super;
+        queue_t super;
 
         struct {
 
@@ -60,7 +60,7 @@ XKRT_NAMESPACE_BEGIN
 
             struct {
                 CUevent * buffer;
-                stream_instruction_counter_t capacity;
+                queue_counter_t capacity;
             } events;
 
             struct {
@@ -72,7 +72,7 @@ XKRT_NAMESPACE_BEGIN
             } sparse;
 
         } cu;
-    }               stream_cu_t;
+    }               queue_cu_t;
 
 
     typedef struct  device_cu_t

@@ -43,7 +43,7 @@
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver-ze.h>
 # include <xkrt/driver/driver.h>
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 # include <xkrt/logger/logger-hwloc.h>
 # include <xkrt/logger/logger-ze.h>
 # include <xkrt/logger/metric.h>
@@ -444,19 +444,19 @@ XKRT_DRIVER_ENTRYPOINT(device_commit)(
 }
 
 ////////////
-// STREAM //
+// QUEUE //
 ////////////
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
-    stream_t * istream,
-    stream_instruction_t * instr,
-    stream_instruction_counter_t idx
+XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
+    queue_t * iqueue,
+    command_t * cmd,
+    queue_counter_t idx
 ) {
-    stream_ze_t * stream = (stream_ze_t *) istream;
-    assert(stream);
+    queue_ze_t * queue = (queue_ze_t *) iqueue;
+    assert(queue);
 
-    ze_event_handle_t ze_event_handle = stream->ze.events.list[idx];
+    ze_event_handle_t ze_event_handle = queue->ze.events.list[idx];
 
     // TODO : try zeCommandListAppendEventReset and see if it reduces latency
     ZE_SAFE_CALL(zeEventHostReset(ze_event_handle));
@@ -466,18 +466,18 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 
     int err = EINPROGRESS;
 
-    switch (instr->type)
+    switch (cmd->type)
     {
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
+        case (COMMAND_TYPE_COPY_H2D_1D):
+        case (COMMAND_TYPE_COPY_D2H_1D):
+        case (COMMAND_TYPE_COPY_D2D_1D):
         {
-                  void * dst    = (      void *) instr->copy_1D.dst_device_addr;
-            const void * src    = (const void *) instr->copy_1D.src_device_addr;
-            const size_t size   = instr->copy_1D.size;
+                  void * dst    = (      void *) cmd->copy_1D.dst_device_addr;
+            const void * src    = (const void *) cmd->copy_1D.src_device_addr;
+            const size_t size   = cmd->copy_1D.size;
             ZE_SAFE_CALL(
                 zeCommandListAppendMemoryCopy(
-                    stream->ze.command.list,
+                    queue->ze.command.list,
                     dst,
                     src,
                     size,
@@ -489,18 +489,18 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
             break ;
         }
 
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+        case (COMMAND_TYPE_COPY_H2D_2D):
+        case (COMMAND_TYPE_COPY_D2H_2D):
+        case (COMMAND_TYPE_COPY_D2D_2D):
         {
-                  void * dst    = (      void *) instr->copy_2D.dst_device_view.addr;
-            const void * src    = (const void *) instr->copy_2D.src_device_view.addr;
+                  void * dst    = (      void *) cmd->copy_2D.dst_device_view.addr;
+            const void * src    = (const void *) cmd->copy_2D.src_device_view.addr;
 
-            const size_t dst_pitch = instr->copy_2D.dst_device_view.ld * instr->copy_2D.sizeof_type;
-            const size_t src_pitch = instr->copy_2D.src_device_view.ld * instr->copy_2D.sizeof_type;
+            const size_t dst_pitch = cmd->copy_2D.dst_device_view.ld * cmd->copy_2D.sizeof_type;
+            const size_t src_pitch = cmd->copy_2D.src_device_view.ld * cmd->copy_2D.sizeof_type;
 
-            const size_t width  = instr->copy_2D.m * instr->copy_2D.sizeof_type;
-            const size_t height = instr->copy_2D.n;
+            const size_t width  = cmd->copy_2D.m * cmd->copy_2D.sizeof_type;
+            const size_t height = cmd->copy_2D.n;
 
             const uint32_t dst_slice_pitch = 0;
             const ze_copy_region_t dst_region = {
@@ -527,7 +527,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 
             ZE_SAFE_CALL(
                 zeCommandListAppendMemoryCopyRegion(
-                    stream->ze.command.list,
+                    queue->ze.command.list,
                     dst,
                    &dst_region,
                     dst_pitch,
@@ -552,15 +552,15 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_commands_wait)(
+    queue_t * iqueue
 ) {
-    stream_ze_t * stream = (stream_ze_t *) istream;
-    assert(stream);
+    queue_ze_t * queue = (queue_ze_t *) iqueue;
+    assert(queue);
 
     const uint64_t timeout = UINT64_MAX;
 # if 1
-    ZE_SAFE_CALL(zeCommandListHostSynchronize(stream->ze.command.list, timeout));
+    ZE_SAFE_CALL(zeCommandListHostSynchronize(queue->ze.command.list, timeout));
 # else
     LOGGER_FATAL("Not supported");
 # endif
@@ -568,15 +568,15 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
 }
 
 static inline int
-XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
-    stream_t * istream,
-    stream_instruction_t * instr,
-    stream_instruction_counter_t idx
+XKRT_DRIVER_ENTRYPOINT(queue_command_wait)(
+    queue_t * iqueue,
+    command_t * cmd,
+    queue_counter_t idx
 ) {
-    stream_ze_t * stream = (stream_ze_t *) istream;
-    assert(stream);
+    queue_ze_t * queue = (queue_ze_t *) iqueue;
+    assert(queue);
 
-    ze_event_handle_t event = stream->ze.events.list[idx];
+    ze_event_handle_t event = queue->ze.events.list[idx];
     const uint64_t timeout = UINT64_MAX;
 
     ZE_SAFE_CALL(zeEventHostSynchronize(event, timeout));
@@ -585,24 +585,24 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
+XKRT_DRIVER_ENTRYPOINT(queue_suggest)(
     int device_driver_id,
-    stream_type_t stype
+    command_type_t stype
 ) {
     (void) device_driver_id;
 
     switch (stype)
     {
-        case (STREAM_TYPE_KERN):
+        case (QUEUE_TYPE_KERN):
             return 8;
 
-        case (STREAM_TYPE_H2D):
-        case (STREAM_TYPE_D2H):
-        case (STREAM_TYPE_D2D):
+        case (QUEUE_TYPE_H2D):
+        case (QUEUE_TYPE_D2H):
+        case (QUEUE_TYPE_D2D):
             return 4;
 
-        case (STREAM_TYPE_FD_READ):
-        case (STREAM_TYPE_FD_WRITE):
+        case (QUEUE_TYPE_FD_READ):
+        case (QUEUE_TYPE_FD_WRITE):
             return 0;
 
         default:
@@ -611,39 +611,39 @@ XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
+    queue_t * iqueue
 ) {
-    assert(istream);
+    assert(iqueue);
 
     int r = 0;
 
-    istream->pending.iterate([&istream, &r] (stream_instruction_counter_t p) {
+    iqueue->pending.iterate([&iqueue, &r] (queue_counter_t p) {
 
-        stream_instruction_t * instr = istream->pending.instr + p;
-        if (instr->completed)
+        command_t * cmd = iqueue->pending.cmd + p;
+        if (cmd->completed)
             return true;
 
-        stream_ze_t * stream = (stream_ze_t *) istream;
-        ze_event_handle_t event = stream->ze.events.list[p];
+        queue_ze_t * queue = (queue_ze_t *) iqueue;
+        ze_event_handle_t event = queue->ze.events.list[p];
 
-        switch (instr->type)
+        switch (cmd->type)
         {
-            case (XKRT_STREAM_INSTR_TYPE_KERN):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+            case (COMMAND_TYPE_KERN):
+            case (COMMAND_TYPE_COPY_H2H_1D):
+            case (COMMAND_TYPE_COPY_H2D_1D):
+            case (COMMAND_TYPE_COPY_D2H_1D):
+            case (COMMAND_TYPE_COPY_D2D_1D):
+            case (COMMAND_TYPE_COPY_H2H_2D):
+            case (COMMAND_TYPE_COPY_H2D_2D):
+            case (COMMAND_TYPE_COPY_D2H_2D):
+            case (COMMAND_TYPE_COPY_D2D_2D):
             {
                 ze_result_t res = zeEventQueryStatus(event);
                 if (res == ZE_RESULT_NOT_READY)
                     r = EINPROGRESS;
                 else if (res == ZE_RESULT_SUCCESS)
-                    istream->complete_instruction(p);
+                    iqueue->complete_command(p);
                 else
                     ZE_SAFE_CALL(res);
 
@@ -651,7 +651,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
             }
 
             default:
-                LOGGER_FATAL("Wrong instruction");
+                LOGGER_FATAL("Wrong command");
         }
 
         return true;
@@ -705,53 +705,53 @@ device_command_queue_group_next(
     return ordinal_with_least_queues;
 }
 
-static stream_t *
-XKRT_DRIVER_ENTRYPOINT(stream_create)(
+static queue_t *
+XKRT_DRIVER_ENTRYPOINT(queue_create)(
     device_t * idevice,
-    stream_type_t type,
-    stream_instruction_counter_t capacity
+    command_type_t type,
+    queue_counter_t capacity
 ) {
     assert(idevice);
 
-    stream_ze_t * stream = (stream_ze_t *) malloc(sizeof(stream_ze_t));
-    assert(stream);
+    queue_ze_t * queue = (queue_ze_t *) malloc(sizeof(queue_ze_t));
+    assert(queue);
 
-    stream_init(
-        (stream_t *) stream,
+    queue_init(
+        (queue_t *) queue,
         type,
         capacity,
-        XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
-        XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress),
-        XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait),
-        XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)
+        XKRT_DRIVER_ENTRYPOINT(queue_command_launch),
+        XKRT_DRIVER_ENTRYPOINT(queue_commands_progress),
+        XKRT_DRIVER_ENTRYPOINT(queue_commands_wait),
+        XKRT_DRIVER_ENTRYPOINT(queue_command_wait)
     );
 
     device_ze_t * device = (device_ze_t *) idevice;
-    stream->ze.device = device;
+    queue->ze.device = device;
 
     // Round robin over copy engines
 
     # if 0
-    // convert xkrt stream type to a command queue group flag
+    // convert xkrt queue type to a command queue group flag
     ze_command_queue_group_property_flag_t flag;
     switch (type)
     {
-        case (STREAM_TYPE_H2D):
-        case (STREAM_TYPE_D2H):
-        case (STREAM_TYPE_D2D):
+        case (QUEUE_TYPE_H2D):
+        case (QUEUE_TYPE_D2H):
+        case (QUEUE_TYPE_D2D):
         {
             flag = ZE_COMMAND_QUEUE_GROUP_PROPERTY_FLAG_COPY;
             break ;
         }
 
-        case (STREAM_TYPE_KERN):
+        case (QUEUE_TYPE_KERN):
         {
             flag = ZE_COMMAND_QUEUE_GROUP_PROPERTY_FLAG_COMPUTE;
             break ;
         }
 
         default:
-            LOGGER_FATAL("Unknown stream type");
+            LOGGER_FATAL("Unknown queue type");
     }
 
     uint32_t ordinal = device_command_queue_group_next<ze_command_queue_group_property_flag_t, f_equals>(device, flag);
@@ -759,29 +759,29 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     {
         ordinal = device_command_queue_group_next<ze_command_queue_group_property_flag_t, f_and>(device, flag);
         if (ordinal == UINT32_MAX)
-            LOGGER_FATAL("No command queue group available for stream");
+            LOGGER_FATAL("No command queue group available for queue");
     }
     # else
     /* https://github.com/pmodels/mpich/blob/main/src/mpl/src/gpu/mpl_gpu_ze.c#L656-L660 */
     uint32_t ordinal;
     switch (type)
     {
-        case (STREAM_TYPE_KERN):
+        case (QUEUE_TYPE_KERN):
         {
             ordinal = 0;
             break ;
         }
 
-        case (STREAM_TYPE_H2D):
-        case (STREAM_TYPE_D2H):
-        case (STREAM_TYPE_D2D):
+        case (QUEUE_TYPE_H2D):
+        case (QUEUE_TYPE_D2H):
+        case (QUEUE_TYPE_D2D):
         {
             ordinal = 1;
             break ;
         }
 
         default:
-            LOGGER_FATAL("Unknown stream type");
+            LOGGER_FATAL("Unknown queue type");
     }
     # endif
 
@@ -799,7 +799,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
         .mode       = ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS,
         .priority   = ZE_COMMAND_QUEUE_PRIORITY_NORMAL // ZE_COMMAND_QUEUE_PRIORITY_PRIORITY_LOW
     };
-    LOGGER_DEBUG("Creating stream of type `%4s` with (ordinal, index) = (%d, %d)", stream_type_to_str(type), ordinal, index);
+    LOGGER_DEBUG("Creating queue of type `%4s` with (ordinal, index) = (%d, %d)", command_type_to_str(type), ordinal, index);
 
     # if 0 /* use a command list and command queue */
     ZE_SAFE_CALL(
@@ -807,7 +807,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
             device->ze.context,
             device->ze.handle,
            &ze_command_queue_desc,
-           &stream->ze.command.queue
+           &queue->ze.command.queue
         )
     );
 
@@ -824,7 +824,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
             device->ze.context,
             device->ze.handle,
            &ze_command_queue_desc,
-           &stream->ze.command.list
+           &queue->ze.command.list
         )
     );
 
@@ -833,12 +833,12 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     sycl::queue queue = sycl::make_queue<sycl::backend::ext_oneapi_level_zero>(
         device->sycl.context,
         device->sycl.device,
-        (ur_native_handle_t) stream->ze.command.list,
+        (ur_native_handle_t) queue->ze.command.list,
         true,   /* immediate */
         true,   /* keep ownership */
         props
     );
-    new (&stream->sycl.queue) sycl::queue(queue);
+    new (&queue->sycl.queue) sycl::queue(queue);
     # endif /* XKRT_SUPPORT_ZE_SYCL_INTEROP */
 
     # endif
@@ -851,11 +851,11 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
         .count  = capacity
     };
     const uint32_t ndevices = 1;
-    ZE_SAFE_CALL(zeEventPoolCreate(device->ze.context, &ze_event_pool_desc, ndevices, &device->ze.handle, &stream->ze.events.pool));
+    ZE_SAFE_CALL(zeEventPoolCreate(device->ze.context, &ze_event_pool_desc, ndevices, &device->ze.handle, &queue->ze.events.pool));
 
-    stream->ze.events.list = (ze_event_handle_t *) malloc(sizeof(ze_event_handle_t) * capacity);
-    assert(stream->ze.events.list);
-    for (stream_instruction_counter_t i = 0 ; i < capacity ; ++i)
+    queue->ze.events.list = (ze_event_handle_t *) malloc(sizeof(ze_event_handle_t) * capacity);
+    assert(queue->ze.events.list);
+    for (queue_counter_t i = 0 ; i < capacity ; ++i)
     {
         ze_event_desc_t event_desc = {
             .stype  = ZE_STRUCTURE_TYPE_EVENT_DESC,
@@ -864,20 +864,20 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
             .signal = ZE_EVENT_SCOPE_FLAG_HOST,
             .wait   = ZE_EVENT_SCOPE_FLAG_HOST
         };
-        ZE_SAFE_CALL(zeEventCreate(stream->ze.events.pool, &event_desc, stream->ze.events.list + i));
+        ZE_SAFE_CALL(zeEventCreate(queue->ze.events.pool, &event_desc, queue->ze.events.list + i));
     }
 
-    return (stream_t *) stream;
+    return (queue_t *) queue;
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(stream_delete)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_delete)(
+    queue_t * iqueue
 ) {
-    stream_ze_t * stream = (stream_ze_t *) istream;
-    ZE_SAFE_CALL(zeEventPoolDestroy(stream->ze.events.pool));
-    ZE_SAFE_CALL(zeCommandListDestroy(stream->ze.command.list));
-    free(stream);
+    queue_ze_t * queue = (queue_ze_t *) iqueue;
+    ZE_SAFE_CALL(zeEventPoolDestroy(queue->ze.events.pool));
+    ZE_SAFE_CALL(zeCommandListDestroy(queue->ze.command.list));
+    free(queue);
 }
 
 ////////////
@@ -1198,10 +1198,10 @@ XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
 }
 
 static inline int
-XKRT_DRIVER_ENTRYPOINT(transfer_async)(void * dst, void * src, const size_t size, stream_t * istream)
+XKRT_DRIVER_ENTRYPOINT(transfer_async)(void * dst, void * src, const size_t size, queue_t * iqueue)
 {
-    stream_ze_t * stream = (stream_ze_t *) istream;
-    assert(stream);
+    queue_ze_t * queue = (queue_ze_t *) iqueue;
+    assert(queue);
 
     ze_event_handle_t ze_event_handle = nullptr;
     const uint32_t num_wait_events = 0;
@@ -1209,7 +1209,7 @@ XKRT_DRIVER_ENTRYPOINT(transfer_async)(void * dst, void * src, const size_t size
 
     ZE_SAFE_CALL(
         zeCommandListAppendMemoryCopy(
-            stream->ze.command.list,
+            queue->ze.command.list,
             dst,
             src,
             size,
@@ -1222,21 +1222,21 @@ XKRT_DRIVER_ENTRYPOINT(transfer_async)(void * dst, void * src, const size_t size
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, stream_t * istream)
+XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, queue_t * iqueue)
 {
-    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
+    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, iqueue);
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, stream_t * istream)
+XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, queue_t * iqueue)
 {
-    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
+    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, iqueue);
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, stream_t * istream)
+XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, queue_t * iqueue)
 {
-    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, istream);
+    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, iqueue);
 }
 
 static int
@@ -1308,9 +1308,9 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     // REGISTER(memory_unified_allocate);
     // REGISTER(memory_unified_deallocate);
 
-    REGISTER(stream_suggest);
-    REGISTER(stream_create);
-    REGISTER(stream_delete);
+    REGISTER(queue_suggest);
+    REGISTER(queue_create);
+    REGISTER(queue_delete);
 
     REGISTER(module_load);
     REGISTER(module_unload);

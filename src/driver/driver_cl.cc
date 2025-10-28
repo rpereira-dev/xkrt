@@ -42,7 +42,7 @@
 # include <xkrt/conf/conf.h>
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 # include <xkrt/sync/bits.h>
 # include <xkrt/sync/mutex.h>
 
@@ -305,17 +305,17 @@ XKRT_DRIVER_ENTRYPOINT(device_info)(
 }
 
 ////////////
-// STREAM //
+// QUEUE //
 ////////////
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
+XKRT_DRIVER_ENTRYPOINT(queue_suggest)(
     int device_driver_id,
-    stream_type_t stype
+    command_type_t stype
 ) {
     switch (stype)
     {
-        case (STREAM_TYPE_KERN):
+        case (QUEUE_TYPE_KERN):
             return 8;
         default:
             return 2;
@@ -323,42 +323,42 @@ XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
-    stream_t * istream,
-    stream_instruction_t * instr,
-    stream_instruction_counter_t idx
+XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
+    queue_t * iqueue,
+    command_t * cmd,
+    queue_counter_t idx
 ) {
-    stream_cl_t * stream = (stream_cl_t *) istream;
-    assert(stream);
+    queue_cl_t * queue = (queue_cl_t *) iqueue;
+    assert(queue);
 
-    cl_event * event = stream->cl.events + idx;
+    cl_event * event = queue->cl.events + idx;
 
-    switch (instr->type)
+    switch (cmd->type)
     {
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
+        case (COMMAND_TYPE_COPY_H2D_1D):
+        case (COMMAND_TYPE_COPY_D2H_1D):
+        case (COMMAND_TYPE_COPY_D2D_1D):
         {
-            const uintptr_t dst = instr->copy_1D.dst_device_addr;
-            const uintptr_t src = instr->copy_1D.src_device_addr;
-            const size_t size   = instr->copy_1D.size;
+            const uintptr_t dst = cmd->copy_1D.dst_device_addr;
+            const uintptr_t src = cmd->copy_1D.src_device_addr;
+            const size_t size   = cmd->copy_1D.size;
 
             const cl_bool blocking = CL_FALSE;
 
             cl_uint num_events_in_wait_list = 0;
             const cl_event * event_wait_list = NULL;
 
-            switch (instr->type)
+            switch (cmd->type)
             {
-                case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
+                case (COMMAND_TYPE_COPY_H2D_1D):
                 {
                     cl_mem dst_buffer;
                     size_t dst_offset;
-                    driver_cl_get_buffer_and_offset_1D(stream->device, (uintptr_t) dst, &dst_buffer, &dst_offset);
+                    driver_cl_get_buffer_and_offset_1D(queue->device, (uintptr_t) dst, &dst_buffer, &dst_offset);
 
                     CL_SAFE_CALL(
                         clEnqueueWriteBuffer(
-                            stream->cl.queue,
+                            queue->cl.queue,
                             dst_buffer,
                             blocking,
                             dst_offset,
@@ -372,15 +372,15 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                     break ;
                 }
 
-                case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
+                case (COMMAND_TYPE_COPY_D2H_1D):
                 {
                     size_t src_offset;
                     cl_mem src_buffer;
-                    driver_cl_get_buffer_and_offset_1D(stream->device, (uintptr_t) src, &src_buffer, &src_offset);
+                    driver_cl_get_buffer_and_offset_1D(queue->device, (uintptr_t) src, &src_buffer, &src_offset);
 
                     CL_SAFE_CALL(
                         clEnqueueReadBuffer(
-                            stream->cl.queue,
+                            queue->cl.queue,
                             src_buffer,
                             blocking,
                             src_offset,
@@ -394,7 +394,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                     break ;
                 }
 
-                case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
+                case (COMMAND_TYPE_COPY_D2D_1D):
                 {
                     cl_mem src_buffer;
                     size_t src_offset;
@@ -408,7 +408,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 
                     CL_SAFE_CALL(
                         clEnqueueCopyBuffer(
-                            stream->cl.queue,
+                            queue->cl.queue,
                             src_buffer,
                             dst_buffer,
                             src_offset,
@@ -429,19 +429,19 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
             break ;
         }
 
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+        case (COMMAND_TYPE_COPY_H2D_2D):
+        case (COMMAND_TYPE_COPY_D2H_2D):
+        case (COMMAND_TYPE_COPY_D2D_2D):
         {
-            const uintptr_t dst     = instr->copy_2D.dst_device_view.addr;
-            const uintptr_t src     = instr->copy_2D.src_device_view.addr;
+            const uintptr_t dst     = cmd->copy_2D.dst_device_view.addr;
+            const uintptr_t src     = cmd->copy_2D.src_device_view.addr;
 
-            size_t dst_row_pitch    = instr->copy_2D.dst_device_view.ld * instr->copy_2D.sizeof_type;
-            size_t src_row_pitch    = instr->copy_2D.src_device_view.ld * instr->copy_2D.sizeof_type;
+            size_t dst_row_pitch    = cmd->copy_2D.dst_device_view.ld * cmd->copy_2D.sizeof_type;
+            size_t src_row_pitch    = cmd->copy_2D.src_device_view.ld * cmd->copy_2D.sizeof_type;
 
             // assume col major - if not, need to do some shit here
-            const size_t width  = instr->copy_2D.m * instr->copy_2D.sizeof_type;
-            const size_t height = instr->copy_2D.n;
+            const size_t width  = cmd->copy_2D.m * cmd->copy_2D.sizeof_type;
+            const size_t height = cmd->copy_2D.n;
             assert(width >= 0);
             assert(height >= 0);
 
@@ -457,16 +457,16 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
             cl_uint num_events_in_wait_list = 0;
             const cl_event * event_wait_list = NULL;
 
-            switch (instr->type)
+            switch (cmd->type)
             {
-                case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
+                case (COMMAND_TYPE_COPY_H2D_2D):
                 {
                     cl_mem dst_buffer;
-                    driver_cl_get_buffer_and_offset_2D(stream->device, (uintptr_t) dst, dst_row_pitch, &dst_buffer, dst_origin);
+                    driver_cl_get_buffer_and_offset_2D(queue->device, (uintptr_t) dst, dst_row_pitch, &dst_buffer, dst_origin);
 
                     CL_SAFE_CALL(
                         clEnqueueWriteBufferRect(
-                            stream->cl.queue,
+                            queue->cl.queue,
                             dst_buffer,
                             blocking,
                             dst_origin,
@@ -485,14 +485,14 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                     break ;
                 }
 
-                case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
+                case (COMMAND_TYPE_COPY_D2H_2D):
                 {
                     cl_mem src_buffer;
-                    driver_cl_get_buffer_and_offset_2D(stream->device, (uintptr_t) src, src_row_pitch, &src_buffer, src_origin);
+                    driver_cl_get_buffer_and_offset_2D(queue->device, (uintptr_t) src, src_row_pitch, &src_buffer, src_origin);
 
                     CL_SAFE_CALL(
                         clEnqueueReadBufferRect(
-                            stream->cl.queue,
+                            queue->cl.queue,
                             src_buffer,
                             blocking,
                             src_origin,
@@ -511,7 +511,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                     break ;
                 }
 
-                case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+                case (COMMAND_TYPE_COPY_D2D_2D):
                 {
                     cl_mem src_buffer;
                     device_cl_t * src_device = device_cl_get_from_addr(src);
@@ -523,7 +523,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 
                     CL_SAFE_CALL(
                         clEnqueueCopyBufferRect(
-                            stream->cl.queue,
+                            queue->cl.queue,
                             src_buffer,
                             dst_buffer,
                             src_origin,
@@ -544,7 +544,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 
                 default:
                 {
-                    LOGGER_FATAL("instr->type got modified, something went really wrong");
+                    LOGGER_FATAL("cmd->type got modified, something went really wrong");
                     break ;
                 }
             }
@@ -556,70 +556,70 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
     }
 
     // that flush may be unnecessary
-    CL_SAFE_CALL(clFlush(stream->cl.queue));
+    CL_SAFE_CALL(clFlush(queue->cl.queue));
     return EINPROGRESS;
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_commands_wait)(
+    queue_t * iqueue
 ) {
-    stream_cl_t * stream = (stream_cl_t *) istream;
-    assert(stream);
+    queue_cl_t * queue = (queue_cl_t *) iqueue;
+    assert(queue);
 
-    CL_SAFE_CALL(clFinish(stream->cl.queue));
+    CL_SAFE_CALL(clFinish(queue->cl.queue));
     return 0;
 }
 
 static inline int
-XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
-    stream_t * istream,
-    stream_instruction_t * instr,
-    stream_instruction_counter_t idx
+XKRT_DRIVER_ENTRYPOINT(queue_command_wait)(
+    queue_t * iqueue,
+    command_t * cmd,
+    queue_counter_t idx
 ) {
-    stream_cl_t * stream = (stream_cl_t *) istream;
-    assert(stream);
+    queue_cl_t * queue = (queue_cl_t *) iqueue;
+    assert(queue);
 
-    cl_event event = stream->cl.events[idx];
+    cl_event event = queue->cl.events[idx];
     CL_SAFE_CALL(clWaitForEvents(1, &event));
 
     return 0;
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
+    queue_t * iqueue
 ) {
-    assert(istream);
+    assert(iqueue);
 
     int r = 0;
 
-    istream->pending.iterate([&istream, &r] (stream_instruction_counter_t p) {
+    iqueue->pending.iterate([&iqueue, &r] (queue_counter_t p) {
 
-        stream_instruction_t * instr = istream->pending.instr + p;
-        if (instr->completed)
+        command_t * cmd = iqueue->pending.cmd + p;
+        if (cmd->completed)
             return true;
 
-        stream_cl_t * stream = (stream_cl_t *) istream;
-        cl_event event = stream->cl.events[p];
+        queue_cl_t * queue = (queue_cl_t *) iqueue;
+        cl_event event = queue->cl.events[p];
 
-        switch (instr->type)
+        switch (cmd->type)
         {
-            case (XKRT_STREAM_INSTR_TYPE_KERN):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+            case (COMMAND_TYPE_KERN):
+            case (COMMAND_TYPE_COPY_H2D_1D):
+            case (COMMAND_TYPE_COPY_H2H_1D):
+            case (COMMAND_TYPE_COPY_D2H_1D):
+            case (COMMAND_TYPE_COPY_D2D_1D):
+            case (COMMAND_TYPE_COPY_H2D_2D):
+            case (COMMAND_TYPE_COPY_H2H_2D):
+            case (COMMAND_TYPE_COPY_D2H_2D):
+            case (COMMAND_TYPE_COPY_D2D_2D):
             {
                 /* poll event */
                 cl_int event_status;
                 CL_SAFE_CALL(clGetEventInfo(event, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &event_status, NULL));
                 if (event_status == CL_COMPLETE)
-                    istream->complete_instruction(p);
+                    iqueue->complete_command(p);
                 else
                     r = EINPROGRESS;
 
@@ -627,7 +627,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
             }
 
             default:
-                LOGGER_FATAL("Wrong instruction");
+                LOGGER_FATAL("Wrong command");
         }
 
         return true;
@@ -637,29 +637,29 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
 }
 
 
-static stream_t *
-XKRT_DRIVER_ENTRYPOINT(stream_create)(
+static queue_t *
+XKRT_DRIVER_ENTRYPOINT(queue_create)(
     device_t * idevice,
-    stream_type_t type,
-    stream_instruction_counter_t capacity
+    command_type_t type,
+    queue_counter_t capacity
 ) {
     assert(idevice);
 
-    uint8_t * mem = (uint8_t *) malloc(sizeof(stream_cl_t) + sizeof(cl_event) * capacity);
+    uint8_t * mem = (uint8_t *) malloc(sizeof(queue_cl_t) + sizeof(cl_event) * capacity);
     assert(mem);
 
-    stream_init(
-        (stream_t *) mem,
+    queue_init(
+        (queue_t *) mem,
         type,
         capacity,
-        XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
-        XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress),
-        XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait),
-        XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)
+        XKRT_DRIVER_ENTRYPOINT(queue_command_launch),
+        XKRT_DRIVER_ENTRYPOINT(queue_commands_progress),
+        XKRT_DRIVER_ENTRYPOINT(queue_commands_wait),
+        XKRT_DRIVER_ENTRYPOINT(queue_command_wait)
     );
 
     device_cl_t * device = (device_cl_t *) idevice;
-    stream_cl_t * stream = (stream_cl_t *) mem;
+    queue_cl_t * queue = (queue_cl_t *) mem;
 
     // TODO : no control over the queue type with OpenCL
     (void) type;
@@ -673,36 +673,36 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
         0                                                               // end of properties
     };
     int err;
-    stream->cl.queue = clCreateCommandQueueWithProperties(device->cl.context, device->cl.id, 0, &err);
+    queue->cl.queue = clCreateCommandQueueWithProperties(device->cl.context, device->cl.id, 0, &err);
     CL_SAFE_CALL(err);
 
     // create events
-    stream->cl.events = (cl_event *) (stream + 1);
-    for (stream_instruction_counter_t i = 0 ; i < capacity ; ++i)
+    queue->cl.events = (cl_event *) (queue + 1);
+    for (queue_counter_t i = 0 ; i < capacity ; ++i)
     {
         int err;
-        stream->cl.events[i] = clCreateUserEvent(device->cl.context, &err);
+        queue->cl.events[i] = clCreateUserEvent(device->cl.context, &err);
         CL_SAFE_CALL(err);
     }
 
     // save context for later buffer use
-    stream->device = device;
+    queue->device = device;
 
-    return (stream_t *) stream;
+    return (queue_t *) queue;
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(stream_delete)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_delete)(
+    queue_t * iqueue
 ) {
-    stream_cl_t * stream = (stream_cl_t *) istream;
+    queue_cl_t * queue = (queue_cl_t *) iqueue;
 
-    for (stream_instruction_counter_t i = 0 ; i < istream->pending.capacity ; ++i)
-        CL_SAFE_CALL(clReleaseEvent(stream->cl.events[i]));
+    for (queue_counter_t i = 0 ; i < iqueue->pending.capacity ; ++i)
+        CL_SAFE_CALL(clReleaseEvent(queue->cl.events[i]));
 
-    CL_SAFE_CALL(clReleaseCommandQueue(stream->cl.queue));
+    CL_SAFE_CALL(clReleaseCommandQueue(queue->cl.queue));
 
-    free(stream);
+    free(queue);
 }
 
 ////////////
@@ -807,9 +807,9 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 
     REGISTER(device_cpuset);
 
-    REGISTER(stream_suggest);
-    REGISTER(stream_create);
-    REGISTER(stream_delete);
+    REGISTER(queue_suggest);
+    REGISTER(queue_create);
+    REGISTER(queue_delete);
 
     # undef REGISTER
 

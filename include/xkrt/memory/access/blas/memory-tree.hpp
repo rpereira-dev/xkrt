@@ -83,7 +83,7 @@ XKRT_NAMESPACE_BEGIN
 
 # pragma message(TODO "Memory allocation is currently performed within a critical section... If memory eviction must be performed, this creates double-locking + a lot of time spent in the critical section. Reason is : we need a partition (in the memory tree) of the access to write the allocation information on each block of the partition")
 
-# pragma message(TODO "'fetch' implementation should be optimize by reducing critical sections to the minimum number of instructions. We could also consider making the structure lock-free but im concerned of actual performances (will lead to a lot of false-sharing...)")
+# pragma message(TODO "'fetch' implementation should be optimize by reducing critical sections to the minimum number of commands. We could also consider making the structure lock-free but im concerned of actual performances (will lead to a lot of false-sharing...)")
 
 # define MEMORY_REPLICATE_ALLOCATION_VIEWS_MAX   (8)
 # define MEMORY_REPLICATE_ALLOCATION_VIEW_NONE   (MEMORY_REPLICATE_ALLOCATION_VIEWS_MAX)
@@ -1686,7 +1686,7 @@ next_view:
             callback.args[2] = list;
             callback.args[3] = (void *) i;
 
-            /* the device on which a stream will perform the device - use the dst device if not the host */
+            /* the device on which a queue will perform the device - use the dst device if not the host */
             assert(fetch->src_device_global_id != HOST_DEVICE_GLOBAL_ID || fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID);
             device_global_id_t device_global_id = (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID) ? fetch->dst_device_global_id : fetch->src_device_global_id;
 

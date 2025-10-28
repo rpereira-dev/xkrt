@@ -44,7 +44,7 @@
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
 # include <xkrt/driver/driver-cu.h>
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/logger-cu.h>
 # include <xkrt/logger/logger-cublas.h>
@@ -77,19 +77,19 @@ XKRT_NAMESPACE_BEGIN
 static device_cu_t DEVICES[XKRT_DEVICES_MAX];
 
 static inline device_t *
-device_get(int device_driver_id)
+device_get(device_driver_id_t device_driver_id)
 {
     return (device_t *) (DEVICES + device_driver_id);
 }
 
 static inline device_cu_t *
-device_cu_get(int device_driver_id)
+device_cu_get(device_driver_id_t device_driver_id)
 {
     return (device_cu_t *) device_get(device_driver_id);
 }
 
 static inline void
-cu_set_context(int device_driver_id)
+cu_set_context(device_driver_id_t device_driver_id)
 {
     device_cu_t * device = device_cu_get(device_driver_id);
     CU_SAFE_CALL(cuCtxSetCurrent(device->cu.context));
@@ -303,7 +303,7 @@ static int
 XKRT_DRIVER_ENTRYPOINT(device_cpuset)(
     hwloc_topology_t topology,
     cpu_set_t * schedset,
-    int device_driver_id
+    device_driver_id_t device_driver_id
 ) {
     assert(device_driver_id >= 0);
     assert(device_driver_id < XKRT_DEVICES_MAX);
@@ -320,7 +320,7 @@ XKRT_DRIVER_ENTRYPOINT(device_cpuset)(
 }
 
 static device_t *
-XKRT_DRIVER_ENTRYPOINT(device_create)(driver_t * driver, int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_create)(driver_t * driver, device_driver_id_t device_driver_id)
 {
     (void) driver;
 
@@ -333,7 +333,7 @@ XKRT_DRIVER_ENTRYPOINT(device_create)(driver_t * driver, int device_driver_id)
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(device_init)(int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_init)(device_driver_id_t device_driver_id)
 {
     cu_set_context(device_driver_id);
 
@@ -355,7 +355,7 @@ XKRT_DRIVER_ENTRYPOINT(device_init)(int device_driver_id)
 # if USE_MMAP_EXPLICITLY
 static inline void
 get_prop_and_size(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     const size_t size,
     CUmemAllocationProp * prop,
     size_t * actualsize
@@ -382,7 +382,7 @@ get_prop_and_size(
 
 static void *
 XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     const size_t size,
     int area_idx
 ) {
@@ -418,7 +418,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     void * ptr,
     const size_t size,
     int area_idx
@@ -438,7 +438,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(
 }
 
 static void *
-XKRT_DRIVER_ENTRYPOINT(memory_unified_allocate)(int device_driver_id, const size_t size)
+XKRT_DRIVER_ENTRYPOINT(memory_unified_allocate)(device_driver_id_t device_driver_id, const size_t size)
 {
     cu_set_context(device_driver_id);
     CUdeviceptr device_ptr;
@@ -447,7 +447,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_unified_allocate)(int device_driver_id, const size
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(memory_unified_deallocate)(int device_driver_id, void * ptr, const size_t size)
+XKRT_DRIVER_ENTRYPOINT(memory_unified_deallocate)(device_driver_id_t device_driver_id, void * ptr, const size_t size)
 {
     (void) size;
     cu_set_context(device_driver_id);
@@ -455,7 +455,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_unified_deallocate)(int device_driver_id, void * p
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(memory_device_info)(int device_driver_id, device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX], int * nmemories)
+XKRT_DRIVER_ENTRYPOINT(memory_device_info)(device_driver_id_t device_driver_id, device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX], int * nmemories)
 {
     cu_set_context(device_driver_id);
 
@@ -468,7 +468,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_info)(int device_driver_id, device_memory_i
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_destroy)(device_driver_id_t device_driver_id)
 {
     device_cu_t * device = device_cu_get(device_driver_id);
     (void) device;
@@ -478,7 +478,7 @@ XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
 /* Called for each device of the driver once they all have been initialized */
 static int
 XKRT_DRIVER_ENTRYPOINT(device_commit)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     device_global_id_bitfield_t * affinity
 ) {
     assert(affinity);
@@ -574,7 +574,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_unregister)(
 
 static void *
 XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     uint64_t size
 ) {
     (void) device_driver_id;
@@ -587,7 +587,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_host_deallocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     void * mem,
     uint64_t size
 ) {
@@ -597,15 +597,15 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_deallocate)(
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
-    int device_driver_id,
-    stream_type_t stype
+XKRT_DRIVER_ENTRYPOINT(queue_suggest)(
+    device_driver_id_t device_driver_id,
+    queue_type_t qtype
 ) {
     (void) device_driver_id;
 
-    switch (stype)
+    switch (qtype)
     {
-        case (STREAM_TYPE_KERN):
+        case (QUEUE_TYPE_KERN):
             return 8;
         default:
             return 4;
@@ -613,44 +613,44 @@ XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
-    stream_t * istream,
-    stream_instruction_t * instr,
-    stream_instruction_counter_t idx
+XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
+    queue_t * iqueue,
+    command_t * cmd,
+    queue_counter_t idx
 ) {
-    stream_cu_t * stream = (stream_cu_t *) istream;
-    assert(stream);
+    queue_cu_t * queue = (queue_cu_t *) iqueue;
+    assert(queue);
 
-    CUevent event = stream->cu.events.buffer[idx];
-    CUstream handle = stream->cu.handle.high;
+    CUevent event = queue->cu.events.buffer[idx];
+    CUstream handle = queue->cu.handle.high;
 
-    switch (instr->type)
+    switch (cmd->type)
     {
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
+        case (COMMAND_TYPE_COPY_H2D_1D):
+        case (COMMAND_TYPE_COPY_D2H_1D):
+        case (COMMAND_TYPE_COPY_D2D_1D):
         {
-            const size_t count  = instr->copy_1D.size;
+            const size_t count  = cmd->copy_1D.size;
             assert(count > 0);
 
-            void * src = (void *) instr->copy_1D.src_device_addr;
-            void * dst = (void *) instr->copy_1D.dst_device_addr;
+            void * src = (void *) cmd->copy_1D.src_device_addr;
+            void * dst = (void *) cmd->copy_1D.dst_device_addr;
 
-            switch (instr->type)
+            switch (cmd->type)
             {
-                case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
+                case (COMMAND_TYPE_COPY_H2D_1D):
                 {
                     CU_SAFE_CALL(cuMemcpyHtoDAsync((CUdeviceptr) dst, src, count, handle));
                     break ;
                 }
 
-                case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
+                case (COMMAND_TYPE_COPY_D2H_1D):
                 {
                     CU_SAFE_CALL(cuMemcpyDtoHAsync(dst, (CUdeviceptr) src, count, handle));
                     break ;
                 }
 
-                case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
+                case (COMMAND_TYPE_COPY_D2D_1D):
                 {
                     CU_SAFE_CALL(cuMemcpyDtoDAsync((CUdeviceptr) dst, (CUdeviceptr) src, count, handle));
                     break ;
@@ -667,20 +667,20 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
             return EINPROGRESS;
         }
 
-        case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
-        case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+        case (COMMAND_TYPE_COPY_H2D_2D):
+        case (COMMAND_TYPE_COPY_D2H_2D):
+        case (COMMAND_TYPE_COPY_D2D_2D):
         {
             CUdeviceptr src_deviceptr, dst_deviceptr;
             CUmemorytype src_type, dst_type;
             void * src_host, * dst_host;
 
-            void * src = (void *) instr->copy_2D.src_device_view.addr;
-            void * dst = (void *) instr->copy_2D.dst_device_view.addr;
+            void * src = (void *) cmd->copy_2D.src_device_view.addr;
+            void * dst = (void *) cmd->copy_2D.dst_device_view.addr;
 
-            switch (instr->type)
+            switch (cmd->type)
             {
-                case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
+                case (COMMAND_TYPE_COPY_H2D_2D):
                 {
                     src_type = CU_MEMORYTYPE_HOST;
                     dst_type = CU_MEMORYTYPE_DEVICE;
@@ -694,7 +694,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                     break ;
                 }
 
-                case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
+                case (COMMAND_TYPE_COPY_D2H_2D):
                 {
                     src_type = CU_MEMORYTYPE_DEVICE;
                     dst_type = CU_MEMORYTYPE_HOST;
@@ -708,7 +708,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                     break ;
                 }
 
-                case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+                case (COMMAND_TYPE_COPY_D2D_2D):
                 {
                     src_type = CU_MEMORYTYPE_DEVICE;
                     dst_type = CU_MEMORYTYPE_DEVICE;
@@ -729,11 +729,11 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
                 }
             }
 
-            const size_t dpitch = instr->copy_2D.dst_device_view.ld * instr->copy_2D.sizeof_type;
-            const size_t spitch = instr->copy_2D.src_device_view.ld * instr->copy_2D.sizeof_type;
+            const size_t dpitch = cmd->copy_2D.dst_device_view.ld * cmd->copy_2D.sizeof_type;
+            const size_t spitch = cmd->copy_2D.src_device_view.ld * cmd->copy_2D.sizeof_type;
 
-            const size_t width  = instr->copy_2D.m * instr->copy_2D.sizeof_type;
-            const size_t height = instr->copy_2D.n;
+            const size_t width  = cmd->copy_2D.m * cmd->copy_2D.sizeof_type;
+            const size_t height = cmd->copy_2D.n;
             assert(width > 0);
             assert(height > 0);
 
@@ -766,30 +766,30 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 }
 
 static inline int
-XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_commands_wait)(
+    queue_t * iqueue
 ) {
-    stream_cu_t * stream = (stream_cu_t *) istream;
-    assert(stream);
+    queue_cu_t * queue = (queue_cu_t *) iqueue;
+    assert(queue);
 
-    CU_SAFE_CALL(cuStreamSynchronize(stream->cu.handle.high));
-    CU_SAFE_CALL(cuStreamSynchronize(stream->cu.handle.low));
+    CU_SAFE_CALL(cuStreamSynchronize(queue->cu.handle.high));
+    CU_SAFE_CALL(cuStreamSynchronize(queue->cu.handle.low));
 
     return 0;
 }
 
 static inline int
-XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
-    stream_t * istream,
-    stream_instruction_t * instr,
-    stream_instruction_counter_t idx
+XKRT_DRIVER_ENTRYPOINT(queue_command_wait)(
+    queue_t * iqueue,
+    command_t * cmd,
+    queue_counter_t idx
 ) {
-    stream_cu_t * stream = (stream_cu_t *) istream;
-    assert(stream);
+    queue_cu_t * queue = (queue_cu_t *) iqueue;
+    assert(queue);
 
-    assert(idx < stream->cu.events.capacity);
+    assert(idx < queue->cu.events.capacity);
 
-    CUevent * event = stream->cu.events.buffer + idx;
+    CUevent * event = queue->cu.events.buffer + idx;
     assert(event);
 
     CU_SAFE_CALL(cuEventSynchronize(*event));
@@ -798,46 +798,46 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
+    queue_t * iqueue
 ) {
-    assert(istream);
+    assert(iqueue);
 
     int r = 0;
 
-    istream->pending.iterate([&] (stream_instruction_counter_t p) {
+    iqueue->pending.iterate([&] (queue_counter_t p) {
 
-        stream_instruction_t * instr = istream->pending.instr + p;
-        if (instr->completed)
+        command_t * cmd = iqueue->pending.cmd + p;
+        if (cmd->completed)
             return true;
 
-        stream_cu_t * stream = (stream_cu_t *) istream;
-        CUevent event = stream->cu.events.buffer[p];
+        queue_cu_t * queue = (queue_cu_t *) iqueue;
+        CUevent event = queue->cu.events.buffer[p];
 
-        switch (instr->type)
+        switch (cmd->type)
         {
-            case (XKRT_STREAM_INSTR_TYPE_KERN):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+            case (COMMAND_TYPE_KERN):
+            case (COMMAND_TYPE_COPY_H2H_1D):
+            case (COMMAND_TYPE_COPY_H2D_1D):
+            case (COMMAND_TYPE_COPY_D2H_1D):
+            case (COMMAND_TYPE_COPY_D2D_1D):
+            case (COMMAND_TYPE_COPY_H2H_2D):
+            case (COMMAND_TYPE_COPY_H2D_2D):
+            case (COMMAND_TYPE_COPY_D2H_2D):
+            case (COMMAND_TYPE_COPY_D2D_2D):
             {
                 CUresult res = cuEventQuery(event);
                 if (res == CUDA_ERROR_NOT_READY)
                     r = EINPROGRESS;
                 else if (res == CUDA_SUCCESS)
-                    istream->complete_instruction(p);
+                    iqueue->complete_command(p);
                 else
                     LOGGER_FATAL("Error querying event");
                 break ;
             }
 
             default:
-                LOGGER_FATAL("Wrong instruction");
+                LOGGER_FATAL("Wrong command");
         }
         return true;
     });
@@ -845,31 +845,31 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     return r;
 }
 
-static stream_t *
-XKRT_DRIVER_ENTRYPOINT(stream_create)(
+static queue_t *
+XKRT_DRIVER_ENTRYPOINT(queue_create)(
     device_t * device,
-    stream_type_t type,
-    stream_instruction_counter_t capacity
+    queue_type_t type,
+    queue_counter_t capacity
 ) {
     assert(device);
     cu_set_context(device->driver_id);
 
-    uint8_t * mem = (uint8_t *) malloc(sizeof(stream_cu_t) + capacity * sizeof(CUevent));
+    uint8_t * mem = (uint8_t *) malloc(sizeof(queue_cu_t) + capacity * sizeof(CUevent));
     assert(mem);
 
-    stream_cu_t * stream = (stream_cu_t *) mem;
+    queue_cu_t * queue = (queue_cu_t *) mem;
 
     /*************************/
-    /* init xkrt stream      */
+    /* init xkrt queue      */
     /*************************/
-    stream_init(
-        (stream_t *) stream,
+    queue_init(
+        (queue_t *) queue,
         type,
         capacity,
-        XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
-        XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress),
-        XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait),
-        XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)
+        XKRT_DRIVER_ENTRYPOINT(queue_command_launch),
+        XKRT_DRIVER_ENTRYPOINT(queue_commands_progress),
+        XKRT_DRIVER_ENTRYPOINT(queue_commands_wait),
+        XKRT_DRIVER_ENTRYPOINT(queue_command_wait)
     );
 
     /*************************/
@@ -877,47 +877,47 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
     /*************************/
 
     /* events */
-    stream->cu.events.buffer = (CUevent *) (stream + 1);
-    stream->cu.events.capacity = capacity;
+    queue->cu.events.buffer = (CUevent *) (queue + 1);
+    queue->cu.events.capacity = capacity;
 
     for (unsigned int i = 0 ; i < capacity ; ++i)
-        CU_SAFE_CALL(cuEventCreate(stream->cu.events.buffer + i, CU_EVENT_DISABLE_TIMING));
+        CU_SAFE_CALL(cuEventCreate(queue->cu.events.buffer + i, CU_EVENT_DISABLE_TIMING));
 
-    /* streams */
+    /* queues */
     int leastPriority, greatestPriority;
     CU_SAFE_CALL(cuCtxGetStreamPriorityRange(&leastPriority, &greatestPriority));
-    CU_SAFE_CALL(cuStreamCreateWithPriority(&stream->cu.handle.high, CU_STREAM_NON_BLOCKING, greatestPriority));
-    CU_SAFE_CALL(cuStreamCreateWithPriority(&stream->cu.handle.low, CU_STREAM_NON_BLOCKING, leastPriority));
+    CU_SAFE_CALL(cuStreamCreateWithPriority(&queue->cu.handle.high, CU_STREAM_NON_BLOCKING, greatestPriority));
+    CU_SAFE_CALL(cuStreamCreateWithPriority(&queue->cu.handle.low, CU_STREAM_NON_BLOCKING, leastPriority));
 
-    if (type == STREAM_TYPE_KERN)
+    if (type == QUEUE_TYPE_KERN)
     {
-        CUBLAS_SAFE_CALL(cublasCreate(&stream->cu.blas.handle));
-        CUBLAS_SAFE_CALL(cublasSetStream(stream->cu.blas.handle, stream->cu.handle.high));
+        CUBLAS_SAFE_CALL(cublasCreate(&queue->cu.blas.handle));
+        CUBLAS_SAFE_CALL(cublasSetStream(queue->cu.blas.handle, queue->cu.handle.high));
 
-        CUSPARSE_SAFE_CALL(cusparseCreate(&stream->cu.sparse.handle));
-        CUSPARSE_SAFE_CALL(cusparseSetStream(stream->cu.sparse.handle, stream->cu.handle.high));
+        CUSPARSE_SAFE_CALL(cusparseCreate(&queue->cu.sparse.handle));
+        CUSPARSE_SAFE_CALL(cusparseSetStream(queue->cu.sparse.handle, queue->cu.handle.high));
     }
     else
     {
-        stream->cu.blas.handle   = 0;
-        stream->cu.sparse.handle = 0;
+        queue->cu.blas.handle   = 0;
+        queue->cu.sparse.handle = 0;
     }
 
-    return (stream_t *) stream;
+    return (queue_t *) queue;
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(stream_delete)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_delete)(
+    queue_t * iqueue
 ) {
-    stream_cu_t * stream = (stream_cu_t *) istream;
-    if (stream->cu.blas.handle)
-        cublasDestroy(stream->cu.blas.handle);
-    if (stream->cu.sparse.handle)
-        cusparseDestroy(stream->cu.sparse.handle);
-    CU_SAFE_CALL(cuStreamDestroy(stream->cu.handle.high));
-    CU_SAFE_CALL(cuStreamDestroy(stream->cu.handle.low));
-    free(stream);
+    queue_cu_t * queue = (queue_cu_t *) iqueue;
+    if (queue->cu.blas.handle)
+        cublasDestroy(queue->cu.blas.handle);
+    if (queue->cu.sparse.handle)
+        cusparseDestroy(queue->cu.sparse.handle);
+    CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.high));
+    CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.low));
+    free(queue);
 }
 
 static inline void
@@ -929,7 +929,7 @@ _print_mask(char * buffer, ssize_t size, uint64_t v)
 
 void
 XKRT_DRIVER_ENTRYPOINT(device_info)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     char * buffer,
     size_t size
 ) {
@@ -947,7 +947,7 @@ XKRT_DRIVER_ENTRYPOINT(device_info)(
 
 driver_module_t
 XKRT_DRIVER_ENTRYPOINT(module_load)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     uint8_t * bin,
     size_t binsize,
     driver_module_format_t format
@@ -981,7 +981,7 @@ XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
 
 # if XKRT_SUPPORT_NVML
 void
-XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, power_t * pwr)
+XKRT_DRIVER_ENTRYPOINT(power_start)(device_driver_id_t device_driver_id, power_t * pwr)
 {
     (void) device_driver_id;
     (void) pwr;
@@ -989,7 +989,7 @@ XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, power_t * pwr)
 }
 
 void
-XKRT_DRIVER_ENTRYPOINT(power_stop)(int device_driver_id, power_t * pwr)
+XKRT_DRIVER_ENTRYPOINT(power_stop)(device_driver_id_t device_driver_id, power_t * pwr)
 {
     (void) device_driver_id;
     (void) pwr;
@@ -1020,33 +1020,33 @@ XKRT_DRIVER_ENTRYPOINT(transfer_d2d)(void * dst, void * src, const size_t size)
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, stream_t * istream)
+XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, queue_t * iqueue)
 {
-    stream_cu_t * stream = (stream_cu_t *) istream;
-    CU_SAFE_CALL(cuMemcpyHtoDAsync((CUdeviceptr) dst, src, size, stream->cu.handle.high));
+    queue_cu_t * queue = (queue_cu_t *) iqueue;
+    CU_SAFE_CALL(cuMemcpyHtoDAsync((CUdeviceptr) dst, src, size, queue->cu.handle.high));
     return 0;
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, stream_t * istream)
+XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, queue_t * iqueue)
 {
-    stream_cu_t * stream = (stream_cu_t *) istream;
-    CU_SAFE_CALL(cuMemcpyDtoHAsync(dst, (CUdeviceptr) src, size, stream->cu.handle.high));
+    queue_cu_t * queue = (queue_cu_t *) iqueue;
+    CU_SAFE_CALL(cuMemcpyDtoHAsync(dst, (CUdeviceptr) src, size, queue->cu.handle.high));
     return 0;
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, stream_t * istream)
+XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, queue_t * iqueue)
 {
-    stream_cu_t * stream = (stream_cu_t *) istream;
-    CU_SAFE_CALL(cuMemcpyDtoDAsync((CUdeviceptr)dst, (CUdeviceptr) src, size, stream->cu.handle.high));
+    queue_cu_t * queue = (queue_cu_t *) iqueue;
+    CU_SAFE_CALL(cuMemcpyDtoDAsync((CUdeviceptr)dst, (CUdeviceptr) src, size, queue->cu.handle.high));
     return 0;
 }
 
 // kernel launch
 int XKRT_DRIVER_ENTRYPOINT(kernel_launch)(
-    stream_t * istream,
-    stream_instruction_counter_t idx,
+    queue_t * iqueue,
+    queue_counter_t idx,
     const driver_module_fn_t * fn,
     const unsigned int gx,
     const unsigned int gy,
@@ -1058,8 +1058,8 @@ int XKRT_DRIVER_ENTRYPOINT(kernel_launch)(
     void * args,
     const size_t args_size
 ) {
-    stream_cu_t * stream = (stream_cu_t *) istream;
-    assert(stream);
+    queue_cu_t * queue = (queue_cu_t *) iqueue;
+    assert(queue);
 
     void * conf[] = {
         CU_LAUNCH_PARAM_BUFFER_POINTER,
@@ -1069,7 +1069,7 @@ int XKRT_DRIVER_ENTRYPOINT(kernel_launch)(
         CU_LAUNCH_PARAM_END
     };
 
-    CUstream handle = stream->cu.handle.high;
+    CUstream handle = queue->cu.handle.high;
 
     CU_SAFE_CALL(
         cuLaunchKernel(
@@ -1084,11 +1084,11 @@ int XKRT_DRIVER_ENTRYPOINT(kernel_launch)(
     );
 
     # if 1
-    CUevent event = stream->cu.events.buffer[idx];
+    CUevent event = queue->cu.events.buffer[idx];
     CU_SAFE_CALL(cuEventRecord(event, handle));
     # else
     // TODO - sync on event, this is temporary to design itnerfaces
-    cuStreamSynchronize(stream->cu.handle.high);
+    cuStreamSynchronize(queue->cu.handle.high);
     LOGGER_ERROR("remove the sync");
     # endif
 
@@ -1170,9 +1170,9 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 
     REGISTER(device_cpuset);
 
-    REGISTER(stream_suggest);
-    REGISTER(stream_create);
-    REGISTER(stream_delete);
+    REGISTER(queue_suggest);
+    REGISTER(queue_create);
+    REGISTER(queue_delete);
 
     REGISTER(module_load);
     REGISTER(module_unload);

@@ -56,7 +56,7 @@ typedef xkrt_device_global_id_bitfield_t        device_global_id_bitfield_t;
 typedef xkrt_driver_type_t                      driver_type_t;
 typedef xkrt_driver_type_bitfield_t             driver_type_bitfield_t;
 
-typedef xkrt_instruction_callback_index_t       instruction_callback_index_t;
+typedef xkrt_command_callback_index_t           command_callback_index_t;
 
 XKRT_NAMESPACE_END
 

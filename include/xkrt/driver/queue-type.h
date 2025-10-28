@@ -36,34 +36,26 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __STREAM_INSTRUCTION_TYPE_H__
-# define __STREAM_INSTRUCTION_TYPE_H__
+#ifndef __QUEUE_TYPE_HPP__
+# define __QUEUE_TYPE_HPP__
 
 XKRT_NAMESPACE_BEGIN
 
-    typedef enum    stream_instruction_type_t
+    /* DONT CHANGE ORDER HERE !! Can have side effects (in the Offloader class for instance) */
+    typedef enum    queue_type_t
     {
-        XKRT_STREAM_INSTR_TYPE_KERN         = 0,
+        QUEUE_TYPE_H2D        = 0,    /* from CPU to GPU */
+        QUEUE_TYPE_D2H        = 1,    /* from GPU to CPU */
+        QUEUE_TYPE_D2D        = 2,    /* from GPU to GPU */
+        QUEUE_TYPE_KERN       = 3,
+        QUEUE_TYPE_FD_READ    = 4,
+        QUEUE_TYPE_FD_WRITE   = 5,
+        QUEUE_TYPE_ALL                /* internal purpose */
 
-        XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D  = 1,
-        XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D  = 2,
-        XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D  = 3,
-        XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D  = 4,
+    }               queue_type_t;
 
-        XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D  = 5,
-        XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D  = 6,
-        XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D  = 7,
-        XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D  = 8,
-
-        XKRT_STREAM_INSTR_TYPE_FD_READ      = 9,
-        XKRT_STREAM_INSTR_TYPE_FD_WRITE     = 10,
-
-        XKRT_STREAM_INSTR_TYPE_MAX          = 11
-
-    }               stream_instruction_type_t;
-
-    const char * stream_instruction_type_to_str(stream_instruction_type_t type);
+    const char * queue_type_to_str(queue_type_t type);
 
 XKRT_NAMESPACE_END
 
-#endif /* __STREAM_INSTRUCTION_H__ */
+# endif /* __QUEUE_TYPE_HPP__ */

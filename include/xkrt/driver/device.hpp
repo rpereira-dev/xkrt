@@ -41,13 +41,14 @@
 
 # include <stdint.h>    /* uint64_t */
 
-# include <xkrt/support.h>
 # include <xkrt/conf/conf.h>
 # include <xkrt/driver/driver-type.h>
+# include <xkrt/driver/queue.h>
 # include <xkrt/logger/todo.h>
 # include <xkrt/memory/area.h>
 # include <xkrt/memory/cache-line-size.hpp>
 # include <xkrt/stats/stats.h>
+# include <xkrt/support.h>
 # include <xkrt/sync/mutex.h>
 # include <xkrt/task/task.hpp>
 
@@ -94,7 +95,7 @@ typedef struct  device_memory_info_t
 }               device_memory_info_t;
 
 /* A device virtualize a ressource with its one address space and
-   a communication stream between host and the ressource */
+   a communication queue between host and the ressource */
 typedef struct  device_t
 {
     /////////////////
@@ -166,119 +167,119 @@ typedef struct  device_t
     void memory_set_chunk0(uintptr_t device_ptr, size_t size, int area_idx);
 
     ///////////////////////
-    // STREAM MANAGEMENT //
+    // QUEUE MANAGEMENT //
     ///////////////////////
 
-    /* total number of stream (sum of count[:]) */
-    int nstreams_per_thread;
+    /* total number of queue (sum of count[:]) */
+    int nqueues_per_thread;
 
-    /* number of stream per type */
-    int count[STREAM_TYPE_ALL];
+    /* number of queue per type */
+    int count[QUEUE_TYPE_ALL];
 
-    /* next thread to use for offloading an instruction */
+    /* next thread to use for offloading an command */
     std::atomic<uint8_t> next_thread;
 
-    /* next stream to use for the given thread and type */
-    std::atomic<int> next_stream[XKRT_MAX_THREADS_PER_DEVICE][STREAM_TYPE_ALL];
+    /* next queue to use for the given thread and type */
+    std::atomic<int> next_queue[XKRT_MAX_THREADS_PER_DEVICE][QUEUE_TYPE_ALL];
 
-    /* basic stream */
-    stream_t ** streams[XKRT_MAX_THREADS_PER_DEVICE][STREAM_TYPE_ALL];
+    /* basic queue */
+    queue_t ** queues[XKRT_MAX_THREADS_PER_DEVICE][QUEUE_TYPE_ALL];
 
     /* initialize the offloader (must be called once before any thread called the 'thread' version) */
     void offloader_init(
-        int (*f_stream_suggest)(int device_driver_id, stream_type_t type)
+        int (*f_queue_suggest)(device_driver_id_t device_driver_id, queue_type_t type)
     );
 
     /* initialize a thread of the offloader */
     void offloader_init_thread(
         uint8_t device_tid,
-        stream_t * (*f_stream_create)(device_t * device, stream_type_t type, stream_instruction_counter_t capacity)
+        queue_t * (*f_queue_create)(device_t * device, queue_type_t type, queue_counter_t capacity)
     );
 
-    /* launch ready instructions in every streams */
+    /* launch ready commands in every queues */
     int offloader_launch(uint8_t device_tid);
 
-    /* progress pending instructions in every streams */
+    /* progress pending commands in every queues */
     int offloader_progress(uint8_t device_tid);
 
-    /* progress pending instructions in every streams */
-    int offloader_wait_random_instruction(uint8_t device_tid);
+    /* progress pending commands in every queues */
+    int offloader_wait_random_command(uint8_t device_tid);
 
     /* set 'ready' and 'pending' to false whether there is ready/pending
-     * instructions in the streams of the given type */
-    void offloader_streams_are_empty(uint8_t device_id, const stream_type_t stype, bool * ready, bool * pending) const;
+     * commands in the queues of the given type */
+    void offloader_queues_are_empty(uint8_t device_id, const queue_type_t qtype, bool * ready, bool * pending) const;
 
-    /* get next stream to use for submitting an instruction for the given type */
-    void offloader_stream_next(
-        const stream_type_t type,
-        thread_t ** pthread,       /* OUT */
-        stream_t ** pstream        /* OUT */
+    /* get next queue to use for submitting an command for the given type */
+    void offloader_queue_next(
+        const queue_type_t type,
+        thread_t ** pthread,        /* OUT */
+        queue_t ** pqueue           /* OUT */
     );
 
-    /* launch ready instructions dispatching them in streams of the given type */
-    int offloader_stream_instructions_launch(uint8_t device_id, const stream_type_t stype);
+    /* launch ready commands dispatching them in queues of the given type */
+    int offloader_queue_commands_launch(uint8_t device_id, const queue_type_t qtype);
 
-    /* progress pending instructions in streams of the given type of the given thread.
-     * If blocking is true, also waits for the completion of pending instructions */
+    /* progress pending commands in queues of the given type of the given thread.
+     * If blocking is true, also waits for the completion of pending commands */
     template <bool blocking>
     int
-    offloader_stream_instructions_progress(
+    offloader_queue_commands_progress(
         uint8_t device_tid,
-        const stream_type_t stype
+        const queue_type_t qtype
     ) {
         int err = 0;
-        unsigned int bgn = (stype == STREAM_TYPE_ALL) ?               0 : stype;
-        unsigned int end = (stype == STREAM_TYPE_ALL) ? STREAM_TYPE_ALL : stype + 1;
+        unsigned int bgn = (qtype == QUEUE_TYPE_ALL) ?               0 : qtype;
+        unsigned int end = (qtype == QUEUE_TYPE_ALL) ? QUEUE_TYPE_ALL : qtype + 1;
         for (unsigned int s = bgn ; s < end ; ++s)
         {
             for (int i = 0 ; i < this->count[s] ; ++i)
             {
-                stream_t * stream = this->streams[device_tid][s][i];
-                assert(stream);
+                queue_t * queue = this->queues[device_tid][s][i];
+                assert(queue);
 
-                if (stream->pending.is_empty())
+                if (queue->pending.is_empty())
                     continue ;
 
-                stream_instruction_counter_t n;
+                queue_counter_t n;
                 do {
-                    stream->lock();
+                    queue->lock();
                     if (blocking)
                     {
-                        stream->wait_pending_instructions();
+                        queue->wait_pending_commands();
                         err = 0;
                     }
                     else
-                        err = stream->progress_pending_instructions();
-                    stream->unlock();
-                    n = stream->pending.size();
-                    assert(n < stream->pending.capacity);
-                } while (n > this->conf->offloader.streams[s].concurrency);
+                        err = queue->progress_pending_commands();
+                    queue->unlock();
+                    n = queue->pending.size();
+                    assert(n < queue->pending.capacity);
+                } while (n > this->conf->offloader.queues[s].concurrency);
                 assert(err == 0 || err == EINPROGRESS);
             }
         }
         return 0;
     }
 
-    /* create a new instruction and lock the stream */
-    void offloader_stream_instruction_new(
-        const stream_type_t stype,             /* IN  */
-              thread_t ** pthread,             /* OUT */
-              stream_t ** pstream,             /* OUT */
-        const stream_instruction_type_t itype, /* IN  */
-              stream_instruction_t ** pinstr   /* OUT */
+    /* create a new command and lock the queue */
+    void offloader_queue_command_new(
+        const queue_type_t qtype,       /* IN  */
+              thread_t ** pthread,      /* OUT */
+              queue_t ** pqueue,        /* OUT */
+        const command_type_t ctype,     /* IN  */
+              command_t ** pcmd         /* OUT */
     );
 
-    /* commit an instruction previously returned with
-     * "offloader_stream_instruction_new" and unlock the stream */
-    void offloader_stream_instruction_commit(
+    /* commit an command previously returned with
+     * "offloader_queue_command_new" and unlock the queue */
+    void offloader_queue_command_commit(
         thread_t * thread,
-        stream_t * stream,
-        stream_instruction_t * instr
+        queue_t * queue,
+        command_t * cmd
     );
 
-    /* submit a file I/O instruction */
-    template <stream_instruction_type_t T>
-    stream_instruction_t * offloader_stream_instruction_submit_file(
+    /* submit a file I/O command */
+    template <command_type_t T>
+    command_t * offloader_queue_command_submit_file(
         int    fd,
         void * buffer,
         size_t n,
@@ -286,37 +287,37 @@ typedef struct  device_t
         const callback_t & callback
     ) {
         static_assert(
-            T == XKRT_STREAM_INSTR_TYPE_FD_READ ||
-            T == XKRT_STREAM_INSTR_TYPE_FD_WRITE
+            T == COMMAND_TYPE_FD_READ ||
+            T == COMMAND_TYPE_FD_WRITE
         );
 
-        /* create a new instruction and retrieve its offload stream */
-        constexpr stream_type_t stype = (T == XKRT_STREAM_INSTR_TYPE_FD_READ) ? STREAM_TYPE_FD_READ : STREAM_TYPE_FD_WRITE;
-        constexpr stream_instruction_type_t itype = T;
+        /* create a new command and retrieve its offload queue */
+        constexpr queue_type_t   qtype = (T == COMMAND_TYPE_FD_READ) ? QUEUE_TYPE_FD_READ : QUEUE_TYPE_FD_WRITE;
+        constexpr command_type_t ctype = T;
 
         thread_t * thread;
-        stream_t * stream;
-        stream_instruction_t * instr;
-        this->offloader_stream_instruction_new(stype, &thread, &stream, itype, &instr);
+        queue_t * queue;
+        command_t * cmd;
+        this->offloader_queue_command_new(qtype, &thread, &queue, ctype, &cmd);
         assert(thread);
-        assert(stream);
-        assert(instr);
+        assert(queue);
+        assert(cmd);
 
-        /* create a new file i/o instruction */
-        instr->file.fd = fd;
-        instr->file.buffer = buffer;
-        instr->file.n = n;
-        instr->file.offset = offset;
+        /* create a new file i/o command */
+        cmd->file.fd = fd;
+        cmd->file.buffer = buffer;
+        cmd->file.n = n;
+        cmd->file.offset = offset;
 
-        /* submit instr */
-        instr->push_callback(callback);
-        this->offloader_stream_instruction_commit(thread, stream, instr);
+        /* submit cmd */
+        cmd->push_callback(callback);
+        this->offloader_queue_command_commit(thread, queue, cmd);
 
-        return instr;
+        return cmd;
     }
 
-    /* submit a kernel execution instruction */
-    stream_instruction_t * offloader_stream_instruction_submit_kernel(
+    /* submit a kernel execution command */
+    command_t * offloader_queue_command_submit_kernel(
         kernel_launcher_t launcher,
         void * vargs,
         const callback_t & callback
@@ -324,8 +325,8 @@ typedef struct  device_t
 
     /* copy */
     template <typename HOST_VIEW_T, typename DEVICE_VIEW_T>
-    stream_instruction_t *
-    offloader_stream_instruction_submit_copy(
+    command_t *
+    offloader_queue_command_submit_copy(
         const HOST_VIEW_T        & host_view,
         const device_global_id_t   dst_device_global_id,
         const DEVICE_VIEW_T      & dst_device_view,
@@ -335,8 +336,8 @@ typedef struct  device_t
     ) {
         assert(this->global_id == dst_device_global_id || this->global_id == src_device_global_id);
 
-        /* find the instruction type */
-        stream_instruction_type_t itype;
+        /* find the command type */
+        command_type_t ctype;
         const int src_is_host = (src_device_global_id == HOST_DEVICE_GLOBAL_ID) ? 1 : 0;
         const int dst_is_host = (dst_device_global_id == HOST_DEVICE_GLOBAL_ID) ? 1 : 0;
 
@@ -348,11 +349,11 @@ typedef struct  device_t
             assert(host_view);
             assert(dst_device_view);
             assert(src_device_view);
-            itype = ( src_is_host &&  dst_is_host) ? XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D :
-                    ( src_is_host && !dst_is_host) ? XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D :
-                    (!src_is_host &&  dst_is_host) ? XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D :
-                    (!src_is_host && !dst_is_host) ? XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D :
-                    XKRT_STREAM_INSTR_TYPE_MAX;
+            ctype = ( src_is_host &&  dst_is_host) ? COMMAND_TYPE_COPY_H2H_1D :
+                    ( src_is_host && !dst_is_host) ? COMMAND_TYPE_COPY_H2D_1D :
+                    (!src_is_host &&  dst_is_host) ? COMMAND_TYPE_COPY_D2H_1D :
+                    (!src_is_host && !dst_is_host) ? COMMAND_TYPE_COPY_D2D_1D :
+                    COMMAND_TYPE_MAX;
         } else if constexpr(IS_2D) {
             assert(host_view.m);
             assert(host_view.n);
@@ -364,39 +365,39 @@ typedef struct  device_t
             assert(src_device_view.addr);
             assert(src_device_view.ld);
 
-            itype = ( src_is_host &&  dst_is_host) ? XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D :
-                    ( src_is_host && !dst_is_host) ? XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D :
-                    (!src_is_host &&  dst_is_host) ? XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D :
-                    (!src_is_host && !dst_is_host) ? XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D :
-                    XKRT_STREAM_INSTR_TYPE_MAX;
+            ctype = ( src_is_host &&  dst_is_host) ? COMMAND_TYPE_COPY_H2H_2D :
+                    ( src_is_host && !dst_is_host) ? COMMAND_TYPE_COPY_H2D_2D :
+                    (!src_is_host &&  dst_is_host) ? COMMAND_TYPE_COPY_D2H_2D :
+                    (!src_is_host && !dst_is_host) ? COMMAND_TYPE_COPY_D2D_2D :
+                    COMMAND_TYPE_MAX;
         } else {
             LOGGER_FATAL("Wrong parameters");
         }
 
-        /* find the type of stream to use */
-        stream_type_t stype;
-        switch(itype)
+        /* find the type of queue to use */
+        queue_type_t qtype;
+        switch(ctype)
         {
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2H_2D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_H2D_2D):
+            case (COMMAND_TYPE_COPY_H2H_1D):
+            case (COMMAND_TYPE_COPY_H2D_1D):
+            case (COMMAND_TYPE_COPY_H2H_2D):
+            case (COMMAND_TYPE_COPY_H2D_2D):
             {
-               stype = STREAM_TYPE_H2D;
+               qtype = QUEUE_TYPE_H2D;
                break ;
             }
 
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2H_2D):
+            case (COMMAND_TYPE_COPY_D2H_1D):
+            case (COMMAND_TYPE_COPY_D2H_2D):
             {
-                stype = STREAM_TYPE_D2H;
+                qtype = QUEUE_TYPE_D2H;
                 break ;
             }
 
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_1D):
-            case (XKRT_STREAM_INSTR_TYPE_COPY_D2D_2D):
+            case (COMMAND_TYPE_COPY_D2D_1D):
+            case (COMMAND_TYPE_COPY_D2D_2D):
             {
-                stype = STREAM_TYPE_D2D;
+                qtype = QUEUE_TYPE_D2D;
                 break ;
             }
 
@@ -407,37 +408,37 @@ typedef struct  device_t
             }
         }
 
-        /* create a new instruction and retrieve its offload stream */
+        /* create a new command and retrieve its offload queue */
         thread_t * thread;
-        stream_t * stream;
-        stream_instruction_t * instr;
-        this->offloader_stream_instruction_new(stype, &thread, &stream, itype, &instr);
+        queue_t * queue;
+        command_t * cmd;
+        this->offloader_queue_command_new(qtype, &thread, &queue, ctype, &cmd);
         assert(thread);
-        assert(stream);
-        assert(instr);
+        assert(queue);
+        assert(cmd);
 
-        /* create a new copy instruction */
+        /* create a new copy command */
         if constexpr (IS_1D) {
-            instr->copy_1D.size = host_view;
-            instr->copy_1D.dst_device_addr  = dst_device_view;
-            instr->copy_1D.src_device_addr  = src_device_view;
-            XKRT_STATS_INCR(stream->stats.transfered, instr->copy_1D.size);
+            cmd->copy_1D.size = host_view;
+            cmd->copy_1D.dst_device_addr  = dst_device_view;
+            cmd->copy_1D.src_device_addr  = src_device_view;
+            XKRT_STATS_INCR(queue->stats.transfered, cmd->copy_1D.size);
         } else if constexpr (IS_2D) {
-            instr->copy_2D.m                = host_view.m;
-            instr->copy_2D.n                = host_view.n;
-            instr->copy_2D.sizeof_type      = host_view.sizeof_type;
-            instr->copy_2D.dst_device_view  = dst_device_view;
-            instr->copy_2D.src_device_view  = src_device_view;
-            XKRT_STATS_INCR(stream->stats.transfered, host_view.m * host_view.n * host_view.sizeof_type);
+            cmd->copy_2D.m                = host_view.m;
+            cmd->copy_2D.n                = host_view.n;
+            cmd->copy_2D.sizeof_type      = host_view.sizeof_type;
+            cmd->copy_2D.dst_device_view  = dst_device_view;
+            cmd->copy_2D.src_device_view  = src_device_view;
+            XKRT_STATS_INCR(queue->stats.transfered, host_view.m * host_view.n * host_view.sizeof_type);
         }
 
-        instr->push_callback(callback);
-        this->offloader_stream_instruction_commit(thread, stream, instr);
+        cmd->push_callback(callback);
+        this->offloader_queue_command_commit(thread, queue, cmd);
 
         # undef IS_1D
         # undef IS_2D
 
-        return instr;
+        return cmd;
     }
 
     //////////////////////

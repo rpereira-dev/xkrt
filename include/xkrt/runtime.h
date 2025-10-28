@@ -122,7 +122,7 @@ struct  runtime_t
     // DATA MOVEMENTS //
     ////////////////////
 
-    /* Submit a copy instruction to a stream of the device */
+    /* Submit a copy command to a queue of the device */
     void copy(
         const device_global_id_t   device_global_id,
         const size_t               size,
@@ -133,7 +133,7 @@ struct  runtime_t
         const callback_t         & callback
     );
 
-    /* Submit a copy instruction to a stream of the device */
+    /* Submit a copy command to a queue of the device */
     void copy(
         const device_global_id_t      device_global_id,
         const memory_view_t         & host_view,
@@ -201,7 +201,7 @@ struct  runtime_t
         size_t nchunks,
         const std::function<void(uintptr_t, uintptr_t)> & func)
     {
-        // compute number of instructions to spawn
+        // compute number of commands to spawn
         if (total_size < nchunks)
             nchunks = (unsigned int) total_size;
 
