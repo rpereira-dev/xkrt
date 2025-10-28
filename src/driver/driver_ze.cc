@@ -73,7 +73,7 @@ static device_ze_t * DEVICES;
 static uint32_t n_devices = 0;
 
 static device_ze_t *
-device_ze_get(int device_driver_id)
+device_ze_get(device_driver_id_t device_driver_id)
 {
     assert(device_driver_id >= 0);
     assert((uint32_t) device_driver_id < n_devices);
@@ -109,7 +109,7 @@ static
 void convert_zes_device_to_ze_device(void)
 {
     // for each xkrt devices
-    for (unsigned int device_driver_id = 0 ; device_driver_id < n_devices ; ++device_driver_id)
+    for (unsigned device_driver_id_t device_driver_id = 0 ; device_driver_id < n_devices ; ++device_driver_id)
     {
         // figure out the mapping ze to zes
         device_ze_t * device = device_ze_get(device_driver_id);
@@ -302,7 +302,7 @@ XKRT_DRIVER_ENTRYPOINT(init)(
 
 void
 XKRT_DRIVER_ENTRYPOINT(device_info)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     char * buffer,
     size_t size
 ) {
@@ -359,7 +359,7 @@ XKRT_DRIVER_ENTRYPOINT(get_ndevices_max)(void)
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * schedset, int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * schedset, device_driver_id_t device_driver_id)
 {
     device_ze_t * device = device_ze_get(device_driver_id);
 
@@ -375,7 +375,7 @@ XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * sch
 static device_t *
 XKRT_DRIVER_ENTRYPOINT(device_create)(
     driver_t * driver,
-    int device_driver_id
+    device_driver_id_t device_driver_id
 ) {
     (void) driver;
     assert(device_driver_id >= 0 && device_driver_id < XKRT_DEVICES_MAX);
@@ -401,14 +401,14 @@ XKRT_DRIVER_ENTRYPOINT(device_create)(
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(device_init)(int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_init)(device_driver_id_t device_driver_id)
 {
     // TODO : move some stuff from driver init to here
     (void) device_driver_id;
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_destroy)(device_driver_id_t device_driver_id)
 {
     device_ze_t * device = device_ze_get(device_driver_id);
     delete [] device->ze.command_queue_group_used;
@@ -418,7 +418,7 @@ XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
 /* Called for each device of the driver once they all have been initialized */
 static int
 XKRT_DRIVER_ENTRYPOINT(device_commit)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     device_global_id_bitfield_t * affinity
 ) {
     // TODO: Intel API `zeDeviceGetP2PProperties` currently does not have a property about P2P performances
@@ -586,12 +586,12 @@ XKRT_DRIVER_ENTRYPOINT(queue_command_wait)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(queue_suggest)(
-    int device_driver_id,
-    command_type_t stype
+    device_driver_id_t device_driver_id,
+    queue_type_t qtype
 ) {
     (void) device_driver_id;
 
-    switch (stype)
+    switch (qtype)
     {
         case (QUEUE_TYPE_KERN):
             return 8;
@@ -708,7 +708,7 @@ device_command_queue_group_next(
 static queue_t *
 XKRT_DRIVER_ENTRYPOINT(queue_create)(
     device_t * idevice,
-    command_type_t type,
+    queue_type_t type,
     queue_command_list_counter_t capacity
 ) {
     assert(idevice);
@@ -885,7 +885,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_delete)(
 ////////////
 
 static void *
-XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(int device_driver_id, const size_t size, int area_idx)
+XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(device_driver_id_t device_driver_id, const size_t size, int area_idx)
 {
     if (size == 0)
         return NULL;
@@ -975,7 +975,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(int device_driver_id, const size_
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(int device_driver_id, void * ptr, const size_t size, int area_idx)
+XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(device_driver_id_t device_driver_id, void * ptr, const size_t size, int area_idx)
 {
     (void) size;
     (void) area_idx;
@@ -996,7 +996,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(int device_driver_id, void * pt
 //  Otherwise, it will report 1 memory of 128GB virtualizing the 2 HBM with `ZE_FLAT_DEVICE_HIERARCHY=COMPOSITE` - or 1 memory of 64GB if `ZE_FLAT_DEVICE_HIERARCHY=FLAT` that is the stack HBM
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_device_info)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX],
     int * nmemories
 ) {
@@ -1056,7 +1056,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_info)(
 
 static void *
 XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     uint64_t size
 ) {
     device_ze_t * device = device_ze_get(device_driver_id);
@@ -1075,7 +1075,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_host_deallocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     void * mem,
     uint64_t size
 ) {
@@ -1087,7 +1087,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_deallocate)(
 
 driver_module_t
 XKRT_DRIVER_ENTRYPOINT(module_load)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     uint8_t * bin,
     size_t binsize,
     driver_module_format_t format
@@ -1132,7 +1132,7 @@ XKRT_DRIVER_ENTRYPOINT(module_load)(
 # if XKRT_SUPPORT_ZES
 
 void
-XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, power_t * pwr)
+XKRT_DRIVER_ENTRYPOINT(power_start)(device_driver_id_t device_driver_id, power_t * pwr)
 {
     // problem is, there is multiple power handle for a ze device: which one to use ?
     LOGGER_FATAL("Not implemented");
@@ -1150,7 +1150,7 @@ XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, power_t * pwr)
 }
 
 void
-XKRT_DRIVER_ENTRYPOINT(power_stop)(int device_driver_id, power_t * pwr)
+XKRT_DRIVER_ENTRYPOINT(power_stop)(device_driver_id_t device_driver_id, power_t * pwr)
 {
     // problem is, there is multiple power handle for a ze device: which one to use ?
     LOGGER_FATAL("Not implemented");

@@ -80,13 +80,13 @@ static std::optional<device_sycl_t> DEVICES[XKRT_DEVICES_MAX];
 static int ndevices_max;
 
 static inline device_t *
-device_get(int device_driver_id)
+device_get(device_driver_id_t device_driver_id)
 {
     return (device_t *) (DEVICES + device_driver_id);
 }
 
 static inline device_sycl_t *
-device_sycl_get(int device_driver_id)
+device_sycl_get(device_driver_id_t device_driver_id)
 {
     return (device_sycl_t *) device_get(device_driver_id);
 }
@@ -154,7 +154,7 @@ static int
 XKRT_DRIVER_ENTRYPOINT(device_cpuset)(
     hwloc_topology_t topology,
     cpu_set_t * schedset,
-    int device_driver_id
+    device_driver_id_t device_driver_id
 ) {
     device_sycl_t * device = device_sycl_get(device_driver_id);
     hwloc_cpuset_t cpuset = hwloc_bitmap_alloc();
@@ -182,7 +182,7 @@ XKRT_DRIVER_ENTRYPOINT(device_cpuset)(
 static device_t *
 XKRT_DRIVER_ENTRYPOINT(device_create)(
     driver_t * driver,
-    int device_driver_id
+    device_driver_id_t device_driver_id
 ) {
     device_sycl_t * device = device_sycl_get(device_driver_id);
     assert(device->inherited.state == XKRT_DEVICE_STATE_DEALLOCATED);
@@ -191,7 +191,7 @@ XKRT_DRIVER_ENTRYPOINT(device_create)(
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(device_init)(int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_init)(device_driver_id_t device_driver_id)
 {
     device_sycl_t * device = device_sycl_get(device_driver_id);
     assert(device->inherited.state == XKRT_DEVICE_STATE_CREATE);
@@ -199,7 +199,7 @@ XKRT_DRIVER_ENTRYPOINT(device_init)(int device_driver_id)
 
 static void *
 XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     const size_t size,
     int area_idx
 ) {
@@ -211,7 +211,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     void * ptr,
     const size_t size,
     int area_idx
@@ -226,7 +226,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(
 
 static void *
 XKRT_DRIVER_ENTRYPOINT(memory_unified_allocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     const size_t size
 ) {
     (void) device_driver_id;
@@ -237,7 +237,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_unified_allocate)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_unified_deallocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     void * ptr,
     const size_t size
 ) {
@@ -251,7 +251,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_unified_deallocate)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_device_info)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX],
     int * nmemories
 ) {
@@ -263,7 +263,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_info)(
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_destroy)(device_driver_id_t device_driver_id)
 {
     device_sycl_t * device = device_sycl_get(device_driver_id);
     (void) device;
@@ -273,7 +273,7 @@ XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
 /* Called for each device of the driver once they all have been initialized */
 static int
 XKRT_DRIVER_ENTRYPOINT(device_commit)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     device_global_id_bitfield_t * affinity
 ) {
     assert(affinity);
@@ -315,7 +315,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_unregister)(
 
 static void *
 XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     uint64_t size
 ) {
     (void) device_driver_id;
@@ -328,7 +328,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_host_deallocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     void * mem,
     uint64_t size
 ) {
@@ -341,12 +341,12 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_deallocate)(
 
 static int
 XKRT_DRIVER_ENTRYPOINT(queue_suggest)(
-    int device_driver_id,
-    command_type_t stype
+    device_driver_id_t device_driver_id,
+    queue_type_t qtype
 ) {
     (void) device_driver_id;
 
-    switch (stype)
+    switch (qtype)
     {
         case (QUEUE_TYPE_KERN):
             return 8;
@@ -561,7 +561,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
 static queue_t *
 XKRT_DRIVER_ENTRYPOINT(queue_create)(
     device_t * idevice,
-    command_type_t type,
+    queue_type_t type,
     queue_command_list_counter_t capacity
 ) {
     assert(idevice);
@@ -617,7 +617,7 @@ _print_mask(char * buffer, ssize_t size, uint64_t v)
 
 void
 XKRT_DRIVER_ENTRYPOINT(device_info)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     char * buffer,
     size_t size
 ) {
@@ -645,7 +645,7 @@ XKRT_DRIVER_ENTRYPOINT(device_info)(
 #if 0
 driver_module_t
 XKRT_DRIVER_ENTRYPOINT(module_load)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     uint8_t * bin,
     size_t binsize,
     driver_module_format_t format
@@ -680,7 +680,7 @@ XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
 
 # if 0
 void
-XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, power_t * pwr)
+XKRT_DRIVER_ENTRYPOINT(power_start)(device_driver_id_t device_driver_id, power_t * pwr)
 {
     (void) device_driver_id;
     (void) pwr;
@@ -688,7 +688,7 @@ XKRT_DRIVER_ENTRYPOINT(power_start)(int device_driver_id, power_t * pwr)
 }
 
 void
-XKRT_DRIVER_ENTRYPOINT(power_stop)(int device_driver_id, power_t * pwr)
+XKRT_DRIVER_ENTRYPOINT(power_stop)(device_driver_id_t device_driver_id, power_t * pwr)
 {
     (void) device_driver_id;
     (void) pwr;
