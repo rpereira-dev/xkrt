@@ -1101,24 +1101,13 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_advise)(
     const void * addr,
     const size_t size
 ) {
-    int attr = 0;
-    cuDeviceGetAttribute(&attr, CU_DEVICE_ATTRIBUTE_CONCURRENT_MANAGED_ACCESS, device_driver_id);
-    printf("CONCURRENT_MANAGED_ACCESS = %d\n", attr);
-
-    # if 1
-    const CUmem_advise advice = CU_MEM_ADVISE_SET_ACCESSED_BY; // CU_MEM_ADVISE_SET_PREFERRED_LOCATION;
+    // const CUmem_advise advice = CU_MEM_ADVISE_SET_ACCESSED_BY;
+    const CUmem_advise advice = CU_MEM_ADVISE_SET_PREFERRED_LOCATION;
     const CUmemLocation location = {
         .type = CU_MEM_LOCATION_TYPE_DEVICE,
         .id   = device_driver_id
     };
     CU_SAFE_CALL(cuMemAdvise_v2((const CUdeviceptr) addr, size, advice, location));
-    # else
-    const struct cudaMemLocation loc = {
-        .type = cudaMemLocationTypeDevice,
-        .id   = device_driver_id
-    };
-    CUDA_SAFE_CALL(cudaMemAdvise_v2(addr, size, cudaMemAdviseSetPreferredLocation, loc));
-    # endif
     return 0;
 }
 
@@ -1127,12 +1116,13 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_advise)(
     const void * addr,
     const size_t size
 ) {
-    const CUmem_advise advice = CU_MEM_ADVISE_SET_ACCESSED_BY; // CU_MEM_ADVISE_SET_PREFERRED_LOCATION;
+    // const CUmem_advise advice = CU_MEM_ADVISE_SET_ACCESSED_BY;
+    const CUmem_advise advice = CU_MEM_ADVISE_SET_PREFERRED_LOCATION;
     const CUmemLocation location = {
         .type = CU_MEM_LOCATION_TYPE_HOST,
         .id   = 0 // ignored
     };
-    CU_SAFE_CALL(cuMemAdvise_v2((CUdeviceptr)addr, size, advice, location));
+    CU_SAFE_CALL(cuMemAdvise_v2((const CUdeviceptr) addr, size, advice, location));
     return 0;
 }
 
