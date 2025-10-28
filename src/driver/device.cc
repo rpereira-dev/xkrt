@@ -298,7 +298,7 @@ device_t::offloader_init(
 void
 device_t::offloader_init_thread(
     uint8_t device_tid,
-    queue_t * (*f_queue_create)(device_t * device, queue_type_t type, queue_counter_t capacity)
+    queue_t * (*f_queue_create)(device_t * device, queue_type_t type, queue_command_list_counter_t capacity)
 ) {
     if (this->nqueues_per_thread == 0)
         return ;
@@ -470,7 +470,7 @@ device_t::offloader_wait_random_command(uint8_t device_tid)
             // if the queue has pending commands
             if (!queue->pending.is_empty())
             {
-                const queue_counter_t i = queue->pending.pos.r;
+                const queue_command_list_counter_t i = queue->pending.pos.r;
                 assert(i >= 0);
                 assert(i < queue->pending.capacity);
 

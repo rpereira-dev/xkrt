@@ -62,7 +62,7 @@ typedef struct  queue_hip_t
 
         struct {
             hipEvent_t * buffer;
-            queue_counter_t capacity;
+            queue_command_list_counter_t capacity;
         } events;
 
         struct {

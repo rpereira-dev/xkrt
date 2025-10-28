@@ -607,7 +607,7 @@ static int
 XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
     queue_t * iqueue,
     command_t * cmd,
-    queue_counter_t idx
+    queue_command_list_counter_t idx
 ) {
     queue_hip_t * queue = (queue_hip_t *) iqueue;
     assert(queue);
@@ -776,7 +776,7 @@ static inline int
 XKRT_DRIVER_ENTRYPOINT(queue_command_wait)(
     queue_t * iqueue,
     command_t * cmd,
-    queue_counter_t idx
+    queue_command_list_counter_t idx
 ) {
     queue_hip_t * queue = (queue_hip_t *) iqueue;
     assert(queue);
@@ -799,7 +799,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
     assert(iqueue);
     int r = 0;
 
-    iqueue->pending.iterate([&iqueue, &r] (queue_counter_t p) {
+    iqueue->pending.iterate([&iqueue, &r] (queue_command_list_counter_t p) {
 
         command_t * cmd = iqueue->pending.cmd + p;
         if (cmd->completed)
@@ -844,7 +844,7 @@ static queue_t *
 XKRT_DRIVER_ENTRYPOINT(queue_create)(
     device_t * device,
     command_type_t type,
-    queue_counter_t capacity
+    queue_command_list_counter_t capacity
 ) {
     assert(device);
     hip_set_context(device->driver_id);

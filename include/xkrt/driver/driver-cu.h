@@ -60,7 +60,7 @@ XKRT_NAMESPACE_BEGIN
 
             struct {
                 CUevent * buffer;
-                queue_counter_t capacity;
+                queue_command_list_counter_t capacity;
             } events;
 
             struct {

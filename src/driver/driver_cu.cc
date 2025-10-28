@@ -616,7 +616,7 @@ static int
 XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
     queue_t * iqueue,
     command_t * cmd,
-    queue_counter_t idx
+    queue_command_list_counter_t idx
 ) {
     queue_cu_t * queue = (queue_cu_t *) iqueue;
     assert(queue);
@@ -782,7 +782,7 @@ static inline int
 XKRT_DRIVER_ENTRYPOINT(queue_command_wait)(
     queue_t * iqueue,
     command_t * cmd,
-    queue_counter_t idx
+    queue_command_list_counter_t idx
 ) {
     queue_cu_t * queue = (queue_cu_t *) iqueue;
     assert(queue);
@@ -805,7 +805,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
 
     int r = 0;
 
-    iqueue->pending.iterate([&] (queue_counter_t p) {
+    iqueue->pending.iterate([&] (queue_command_list_counter_t p) {
 
         command_t * cmd = iqueue->pending.cmd + p;
         if (cmd->completed)
@@ -849,7 +849,7 @@ static queue_t *
 XKRT_DRIVER_ENTRYPOINT(queue_create)(
     device_t * device,
     queue_type_t type,
-    queue_counter_t capacity
+    queue_command_list_counter_t capacity
 ) {
     assert(device);
     cu_set_context(device->driver_id);
@@ -1046,7 +1046,7 @@ XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t 
 // kernel launch
 int XKRT_DRIVER_ENTRYPOINT(kernel_launch)(
     queue_t * iqueue,
-    queue_counter_t idx,
+    queue_command_list_counter_t idx,
     const driver_module_fn_t * fn,
     const unsigned int gx,
     const unsigned int gy,

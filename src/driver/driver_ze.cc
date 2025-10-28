@@ -451,7 +451,7 @@ static int
 XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
     queue_t * iqueue,
     command_t * cmd,
-    queue_counter_t idx
+    queue_command_list_counter_t idx
 ) {
     queue_ze_t * queue = (queue_ze_t *) iqueue;
     assert(queue);
@@ -571,7 +571,7 @@ static inline int
 XKRT_DRIVER_ENTRYPOINT(queue_command_wait)(
     queue_t * iqueue,
     command_t * cmd,
-    queue_counter_t idx
+    queue_command_list_counter_t idx
 ) {
     queue_ze_t * queue = (queue_ze_t *) iqueue;
     assert(queue);
@@ -618,7 +618,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
 
     int r = 0;
 
-    iqueue->pending.iterate([&iqueue, &r] (queue_counter_t p) {
+    iqueue->pending.iterate([&iqueue, &r] (queue_command_list_counter_t p) {
 
         command_t * cmd = iqueue->pending.cmd + p;
         if (cmd->completed)
@@ -709,7 +709,7 @@ static queue_t *
 XKRT_DRIVER_ENTRYPOINT(queue_create)(
     device_t * idevice,
     command_type_t type,
-    queue_counter_t capacity
+    queue_command_list_counter_t capacity
 ) {
     assert(idevice);
 
@@ -855,7 +855,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_create)(
 
     queue->ze.events.list = (ze_event_handle_t *) malloc(sizeof(ze_event_handle_t) * capacity);
     assert(queue->ze.events.list);
-    for (queue_counter_t i = 0 ; i < capacity ; ++i)
+    for (queue_command_list_counter_t i = 0 ; i < capacity ; ++i)
     {
         ze_event_desc_t event_desc = {
             .stype  = ZE_STRUCTURE_TYPE_EVENT_DESC,

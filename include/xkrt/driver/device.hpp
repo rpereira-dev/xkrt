@@ -193,7 +193,7 @@ typedef struct  device_t
     /* initialize a thread of the offloader */
     void offloader_init_thread(
         uint8_t device_tid,
-        queue_t * (*f_queue_create)(device_t * device, queue_type_t type, queue_counter_t capacity)
+        queue_t * (*f_queue_create)(device_t * device, queue_type_t type, queue_command_list_counter_t capacity)
     );
 
     /* launch ready commands in every queues */
@@ -240,7 +240,7 @@ typedef struct  device_t
                 if (queue->pending.is_empty())
                     continue ;
 
-                queue_counter_t n;
+                queue_command_list_counter_t n;
                 do {
                     queue->lock();
                     if (blocking)

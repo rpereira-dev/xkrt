@@ -166,7 +166,7 @@ XKRT_NAMESPACE_BEGIN
 
         int (*f_kernel_launch)(
             queue_t * iqueue,                       // the queue
-            queue_counter_t idx,            // index of the event associated with the kernel launch
+            queue_command_list_counter_t idx,            // index of the event associated with the kernel launch
             const driver_module_fn_t * fn,          // the function
             const unsigned int gx,                  // grid size
             const unsigned int gy,
@@ -194,7 +194,7 @@ XKRT_NAMESPACE_BEGIN
         int (*f_queue_suggest)(device_driver_id_t device_driver_id, queue_type_t qtype);
 
         /* alllocate and initialize a queue */
-        queue_t * (*f_queue_create)(device_t * device, queue_type_t qtype, queue_counter_t capacity);
+        queue_t * (*f_queue_create)(device_t * device, queue_type_t qtype, queue_command_list_counter_t capacity);
 
         /* deallocate a queue */
         void (*f_queue_delete)(queue_t * iqueue);

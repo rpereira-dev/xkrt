@@ -56,10 +56,10 @@ XKRT_NAMESPACE_BEGIN
         public:
 
             command_t * cmd;                /* commands buffer */
-            queue_counter_t capacity;       /* buffer capacity */
+            queue_command_list_counter_t capacity;       /* buffer capacity */
             struct {
-                volatile queue_counter_t r; /* first command to process */
-                volatile queue_counter_t w; /* next position for inserting commands */
+                volatile queue_command_list_counter_t r; /* first command to process */
+                volatile queue_command_list_counter_t w; /* next position for inserting commands */
             } pos;
 
         public:
@@ -77,7 +77,7 @@ XKRT_NAMESPACE_BEGIN
                 return (this->pos.r == this->pos.w);
             }
 
-            queue_counter_t
+            queue_command_list_counter_t
             size(void) const
             {
                 if (this->pos.r <= this->pos.w)
@@ -87,22 +87,22 @@ XKRT_NAMESPACE_BEGIN
             }
 
             template<typename Func>
-            queue_counter_t
+            queue_command_list_counter_t
             iterate(Func && process)
             {
-                const queue_counter_t a = this->pos.r;
-                const queue_counter_t b = this->pos.w;
+                const queue_command_list_counter_t a = this->pos.r;
+                const queue_command_list_counter_t b = this->pos.w;
 
                 assert(a < this->capacity);
                 assert(b < this->capacity);
 
                 if (a <= b) {
-                    for (queue_counter_t i = a; i < b; ++i)
+                    for (queue_command_list_counter_t i = a; i < b; ++i)
                         if (!process(i)) return i;
                 } else {
-                    for (queue_counter_t i = a; i < capacity; ++i)
+                    for (queue_command_list_counter_t i = a; i < capacity; ++i)
                         if (!process(i)) return i;
-                    for (queue_counter_t i = 0; i < b; ++i)
+                    for (queue_command_list_counter_t i = 0; i < b; ++i)
                         if (!process(i)) return i;
                 }
                 return b;
@@ -136,7 +136,7 @@ XKRT_NAMESPACE_BEGIN
             # endif /* XKRT_SUPPORT_STATS */
 
             /* launch a queue command */
-            int (*f_command_launch)(queue_t * queue, command_t * cmd, queue_counter_t idx);
+            int (*f_command_launch)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx);
 
             /* progrtream command */
             int (*f_commands_progress)(queue_t * queue);
@@ -145,7 +145,7 @@ XKRT_NAMESPACE_BEGIN
             int (*f_commands_wait)(queue_t * queue);
 
             /* wait commands completion on a queue */
-            int (*f_command_wait)(queue_t * queue, command_t * cmd, queue_counter_t idx);
+            int (*f_command_wait)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx);
 
         public:
 
@@ -153,7 +153,7 @@ XKRT_NAMESPACE_BEGIN
             command_t * command_new(const command_type_t itype);
 
             /* complete the command at the i-th position in the pending queue (invoke callbacks) */
-            void complete_command(const queue_counter_t p);
+            void complete_command(const queue_command_list_counter_t p);
 
             /* complete the command that must be in the pending queue */
             void complete_command(command_t * cmd);
@@ -168,7 +168,7 @@ XKRT_NAMESPACE_BEGIN
             int progress_pending_commands(void);
 
             /* (internal) complete all commands to 'ok_p' */
-            void complete_commands(const queue_counter_t ok_p);
+            void complete_commands(const queue_command_list_counter_t ok_p);
 
             /* wait for completion of all pending commands */
             void wait_pending_commands(void);
@@ -185,11 +185,11 @@ XKRT_NAMESPACE_BEGIN
     void queue_init(
         queue_t * queue,
         queue_type_t qtype,
-        queue_counter_t capacity,
-        int (*f_command_launch)(queue_t * queue, command_t * cmd, queue_counter_t idx),
+        queue_command_list_counter_t capacity,
+        int (*f_command_launch)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx),
         int (*f_commands_progress)(queue_t * queue),
         int (*f_commands_wait)(queue_t * queue),
-        int (*f_command_wait)(queue_t * queue, command_t * cmd, queue_counter_t idx)
+        int (*f_command_wait)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx)
     );
 
     void queue_deinit(queue_t * queue);
@@ -198,7 +198,7 @@ XKRT_NAMESPACE_BEGIN
     typedef void (*kernel_launcher_t)(
         queue_t * iqueue,
         command_t * cmd,
-        queue_counter_t idx
+        queue_command_list_counter_t idx
     );
 
 XKRT_NAMESPACE_END

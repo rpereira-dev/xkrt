@@ -53,7 +53,7 @@
 XKRT_NAMESPACE_BEGIN
 
     /* counter for the queue queues */
-    typedef uint32_t queue_counter_t;
+    typedef uint32_t queue_command_list_counter_t;
 
     /* move data between devices */
     typedef struct  queue_command_copy_1D_t
@@ -78,7 +78,7 @@ XKRT_NAMESPACE_BEGIN
     typedef struct  queue_command_kernel_t
     {
         // arguments are:
-        //   queue_t * iqueue, queue_command * cmd, queue_counter_t idx)
+        //   queue_t * iqueue, queue_command * cmd, queue_command_list_counter_t idx)
         void (*launch)();
         void * vargs;
     }               queue_command_kernel_t;

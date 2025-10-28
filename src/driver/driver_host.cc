@@ -244,7 +244,7 @@ static int
 XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
     queue_t * iqueue,
     command_t * cmd,
-    queue_counter_t idx
+    queue_command_list_counter_t idx
 ) {
     (void) iqueue;
     (void) idx;
@@ -351,7 +351,7 @@ static inline int
 XKRT_DRIVER_ENTRYPOINT(queue_command_wait)(
     queue_t * iqueue,
     command_t * cmd,
-    queue_counter_t idx
+    queue_command_list_counter_t idx
 ) {
     assert(cmd);
 
@@ -408,7 +408,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
                 LOGGER_FATAL("Error: %s", strerror(abs(cqe->res)));
             else
             {
-                const queue_counter_t p = (const queue_counter_t) cqe->user_data;
+                const queue_command_list_counter_t p = (const queue_command_list_counter_t) cqe->user_data;
                 command_t * cmd = iqueue->pending.cmd + p;
                 assert(cmd);
                 assert(cmd->completed == false);
@@ -432,7 +432,7 @@ static queue_t *
 XKRT_DRIVER_ENTRYPOINT(queue_create)(
     device_t * idevice,
     queue_type_t type,
-    queue_counter_t capacity
+    queue_command_list_counter_t capacity
 ) {
     (void)idevice;
     (void)type;

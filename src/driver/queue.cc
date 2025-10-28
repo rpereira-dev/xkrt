@@ -85,7 +85,7 @@ static inline void
 queue_command_list_init(
     queue_command_list_t * list,
     uint8_t * buffer,
-    queue_counter_t capacity
+    queue_command_list_counter_t capacity
 ) {
     list->cmd = (command_t *) buffer;
     list->capacity = capacity;
@@ -97,11 +97,11 @@ void
 queue_init(
     queue_t * queue,
     queue_type_t type,
-    queue_counter_t capacity,
-    int (*f_queue_launch)(queue_t * queue, command_t * cmd, queue_counter_t idx),
+    queue_command_list_counter_t capacity,
+    int (*f_queue_launch)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx),
     int (*f_queues_progress)(queue_t * queue),
     int (*f_queues_wait)(queue_t * queue),
-    int (*f_queue_wait)(queue_t * queue, command_t * cmd, queue_counter_t idx)
+    int (*f_queue_wait)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx)
 ) {
     queue->type = type;
     queue->spinlock = SPINLOCK_INITIALIZER;
@@ -188,7 +188,7 @@ queue_t::launch_ready_commands(void)
     int err = 0;
 
     /* for each ready command */
-    const queue_counter_t p = this->ready.iterate([this, &err] (queue_counter_t p) {
+    const queue_command_list_counter_t p = this->ready.iterate([this, &err] (queue_command_list_counter_t p) {
 
         /* if the pending queue is full, we cannot start more commands */
         if (this->pending.is_full())
@@ -255,7 +255,7 @@ queue_t::launch_ready_commands(void)
             {
                 /* the pending queue must not be full at that point */
                 assert(!this->pending.is_full());
-                const queue_counter_t wp = this->pending.pos.w;
+                const queue_command_list_counter_t wp = this->pending.pos.w;
                 this->pending.pos.w = (this->pending.pos.w + 1) % this->pending.capacity;
 
                 memcpy(
@@ -329,7 +329,7 @@ __complete_command_internal(
 
 template <bool set_completed_flag>
 static inline void
-__complete_command_internal(queue_t * queue, const queue_counter_t p)
+__complete_command_internal(queue_t * queue, const queue_command_list_counter_t p)
 {
     command_t * cmd = queue->pending.cmd + p;
     __complete_command_internal<set_completed_flag>(queue, cmd);
@@ -337,7 +337,7 @@ __complete_command_internal(queue_t * queue, const queue_counter_t p)
 
 // complete the given command
 void
-queue_t::complete_command(const queue_counter_t p)
+queue_t::complete_command(const queue_command_list_counter_t p)
 {
     assert(p >= 0);
     assert(p <  this->pending.capacity);
@@ -351,9 +351,9 @@ queue_t::complete_command(command_t * cmd)
 }
 
 void
-queue_t::complete_commands(const queue_counter_t p)
+queue_t::complete_commands(const queue_command_list_counter_t p)
 {
-    this->pending.iterate([this] (queue_counter_t p) {
+    this->pending.iterate([this] (queue_command_list_counter_t p) {
         __complete_command_internal<false>(this, p);
         return true;
     });
@@ -385,7 +385,7 @@ queue_t::progress_pending_commands(void)
     const int r = this->f_commands_progress(this);
 
     // move reading position to first uncompleted cmd
-    const queue_counter_t p = this->pending.iterate([this] (queue_counter_t p) {
+    const queue_command_list_counter_t p = this->pending.iterate([this] (queue_command_list_counter_t p) {
         return (this->pending.cmd[p].completed) ? true : false;
     });
     this->pending.pos.r = p;
