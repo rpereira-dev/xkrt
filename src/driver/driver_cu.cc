@@ -1096,7 +1096,7 @@ int XKRT_DRIVER_ENTRYPOINT(kernel_launch)(
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(memory_device_advise)(
+XKRT_DRIVER_ENTRYPOINT(memory_unified_advise_device)(
     const xkrt_device_driver_id_t device_driver_id,
     const void * addr,
     const size_t size
@@ -1112,7 +1112,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_advise)(
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(memory_host_advise)(
+XKRT_DRIVER_ENTRYPOINT(memory_unified_advise_host)(
     const void * addr,
     const size_t size
 ) {
@@ -1123,6 +1123,37 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_advise)(
         .id   = 0 // ignored
     };
     CU_SAFE_CALL(cuMemAdvise_v2((const CUdeviceptr) addr, size, advice, location));
+    return 0;
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(memory_unified_prefetch_device)(
+    const xkrt_device_driver_id_t device_driver_id,
+    const void * addr,
+    const size_t size
+) {
+    const CUmemLocation location = {
+        .type = CU_MEM_LOCATION_TYPE_DEVICE,
+        .id   = device_driver_id
+    };
+    unsigned int flags = 0;
+    CUstream hStream = TODO;
+    CU_SAFE_CALL(cuMemPrefetch_v2((const CUdeviceptr) addr, size, location, flags, stream));
+    return 0;
+}
+
+int
+XKRT_DRIVER_ENTRYPOINT(memory_unified_prefetch_host)(
+    const void * addr,
+    const size_t size
+) {
+    const CUmemLocation location = {
+        .type = CU_MEM_LOCATION_TYPE_HOST,
+        .id   = 0 // ignored
+    };
+    unsigned int flags = 0;
+    CUstream hStream = ?;
+    CU_SAFE_CALL(cuMemPrefetch_v2((const CUdeviceptr) addr, size, location, flags, stream));
     return 0;
 }
 
@@ -1165,8 +1196,10 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(memory_host_unregister);
     REGISTER(memory_unified_allocate);
     REGISTER(memory_unified_deallocate);
-    REGISTER(memory_device_advise);
-    REGISTER(memory_host_advise);
+    REGISTER(memory_unified_advise_device);
+    REGISTER(memory_unified_advise_host);
+    REGISTER(memory_unified_prefetch_device);
+    REGISTER(memory_unified_prefetch_host);
 
     REGISTER(device_cpuset);
 

@@ -173,7 +173,7 @@ runtime_t::memory_unified_deallocate(
 }
 
 int
-runtime_t::memory_advise(
+runtime_t::memory_unified_advise(
     const device_global_id_t device_global_id,
     const void * addr,
     const size_t size
@@ -185,14 +185,14 @@ runtime_t::memory_advise(
             driver_t * driver = this->driver_get((driver_type_t) driver_id);
             if (!driver)
                 continue ;
-            if (!driver->f_memory_host_advise)
+            if (!driver->f_memory_unified_advise_host)
                 LOGGER_DEBUG("Driver `%u` does not implement host memory advice", driver_id);
             else
             {
-                if (driver->f_memory_device_advise((driver_type_t) driver_id, addr, size) == 0)
+                if (driver->f_memory_unified_advise_host(addr, size) == 0)
                 {
                     # if XKRT_SUPPORT_STATS
-                    this->stats.memory.host_advised += size;
+                    this->stats.memory.unified.advised.device += size;
                     # endif /* XKRT_SUPPORT_STATS */
                     break ;
                 }
@@ -203,18 +203,65 @@ runtime_t::memory_advise(
     {
         device_t * device = this->device_get(device_global_id);
         driver_t * driver = this->driver_get(device->driver_type);
-        if (driver->f_memory_device_advise)
+        if (driver->f_memory_unified_advise_device)
         {
-            if (driver->f_memory_device_advise(device->driver_id, addr, size) == 0)
+            if (driver->f_memory_unified_advise_device(device->driver_id, addr, size) == 0)
             {
                 # if XKRT_SUPPORT_STATS
-                this->stats.memory.device_advised += size;
+                this->stats.memory.unified.advised.device += size;
                 # endif /* XKRT_SUPPORT_STATS */
             }
             else
-                LOGGER_WARN("memory_host_advise not supported for driver `%u`", device->driver_type);
+                LOGGER_WARN("memory_unified_advise not supported for driver `%u`", device->driver_type);
         }
     }
+    return 0;
+}
+
+int
+runtime_t::memory_unified_prefetch(
+    const device_global_id_t device_global_id,
+    const void * addr,
+    const size_t size
+) {
+    if (device_global_id == HOST_DEVICE_GLOBAL_ID)
+    {
+        for (uint8_t driver_id = 0 ; driver_id < XKRT_DRIVER_TYPE_MAX; ++driver_id)
+        {
+            driver_t * driver = this->driver_get((driver_type_t) driver_id);
+            if (!driver)
+                continue ;
+            if (!driver->f_memory_unified_prefetch_host)
+                LOGGER_DEBUG("Driver `%u` does not implement host memory prefetch", driver_id);
+            else
+            {
+                if (driver->f_memory_unified_prefetch_host(addr, size) == 0)
+                {
+                    # if XKRT_SUPPORT_STATS
+                    this->stats.memory.unified.prefetched.host += size;
+                    # endif /* XKRT_SUPPORT_STATS */
+                    break ;
+                }
+            }
+        }
+    }
+    else
+    {
+        device_t * device = this->device_get(device_global_id);
+        driver_t * driver = this->driver_get(device->driver_type);
+        if (driver->f_memory_unified_prefetch_device)
+        {
+            if (driver->f_memory_unified_prefetch_device(device->driver_id, addr, size) == 0)
+            {
+                # if XKRT_SUPPORT_STATS
+                this->stats.memory.unified.prefetched.device += size;
+                # endif /* XKRT_SUPPORT_STATS */
+            }
+            else
+                LOGGER_WARN("memory_unified_prefetch not supported for driver `%u`", device->driver_type);
+        }
+    }
+
     return 0;
 }
 

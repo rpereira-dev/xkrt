@@ -1813,7 +1813,14 @@ next_view:
             if (access->scope == ACCESS_SCOPE_UNIFIED)
             {
                 // TODO: cuda does not provide a 'cuMemAdvise2D' so kinda fucked here
-                this->runtime->memory_advise(
+                this->runtime->memory_unified_advise(
+                    device_global_id,
+                    (const void *) access->host_view.begin_addr(),
+                    (size_t) (access->host_view.end_addr() - access->host_view.begin_addr())
+                );
+
+                // TODO: cuda does not provide a 'cuMemAdvise2D' so kinda fucked here
+                this->runtime->memory_unified_prefetch(
                     device_global_id,
                     (const void *) access->host_view.begin_addr(),
                     (size_t) (access->host_view.end_addr() - access->host_view.begin_addr())

@@ -58,8 +58,16 @@ typedef struct  device_stats_t
         } allocated;
         stats_int_t registered;
         stats_int_t unregistered;
-        stats_int_t device_advised;
-        stats_int_t host_advised;
+        struct {
+            struct {
+                stats_int_t device;
+                stats_int_t host;
+            } advised;
+            struct {
+                stats_int_t device;
+                stats_int_t host;
+            } prefetched;
+        } unified;
     } memory;
 
     struct {
@@ -77,10 +85,14 @@ typedef struct  device_stats_t
 static void
 stats_device_agg_gather(runtime_t * runtime, device_stats_t * agg)
 {
-    agg->memory.registered += runtime->stats.memory.registered;
+    agg->memory.registered   += runtime->stats.memory.registered;
     agg->memory.unregistered += runtime->stats.memory.unregistered;
-    agg->memory.device_advised += runtime->stats.memory.device_advised;
-    agg->memory.host_advised += runtime->stats.memory.host_advised;
+
+    agg->memory.unified.advised.device += runtime->stats.memory.unified.advised.device;
+    agg->memory.unified.advised.host   += runtime->stats.memory.unified.advised.host;
+
+    agg->memory.unified.prefetched.device += runtime->stats.memory.unified.prefetched.device;
+    agg->memory.unified.prefetched.host   += runtime->stats.memory.unified.prefetched.host;
 }
 
 static void
