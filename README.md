@@ -1,4 +1,4 @@
-# XKaapi 2
+# XKRT
 
 Welcome to the new experimental XKaapi implementation.   
 This repository is highly experimental and not yet fully compatible with older XKaapi/XKBlas releases located at http://gitlab.inria.fr/xkblas/versions.
@@ -7,11 +7,11 @@ It is a C++ implementation and interfaces of the XKaapi dataflow and task-based 
 Please open any issue at https://github.com/rpereira-dev/xkaapi
 
 # Related Projects
-This repository hosts the XKaapi runtime system.    
+This repository hosts the XKRT runtime system.    
 Other repository hosts specialization layers built on top of the runtime:
 - [XKBlas](https://gitlab.inria.fr/xkblas/dev/-/tree/v2.0) is a multi-gpu BLAS implementation that allows the tiling and composition of kernels, with asynchronous overlap of computation/transfers. If you want a copy of XKBlas, please contact thierry.gautier@inrialpes.fr or rpereira@anl.gov (https://gitlab.inria.fr/xkblas/dev)
 - [XKBM](https://github.com/anlsys/xkbm) is a suite of benchmark for measuring multi-gpu architectures performances, to assist in the design of runtime systems.
-- [XKOMP](https://github.com/anlsys/xkomp) is an experimental OpenMP runtime built on top of XKaapi
+- [XKOMP](https://github.com/anlsys/xkomp) is an experimental OpenMP runtime built on top of XKRT
 
 # Getting started
 
