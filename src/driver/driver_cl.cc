@@ -78,7 +78,7 @@ static_assert((uintptr_t)(VIRT_MEM_ORIGIN + VIRT_MEM_PER_DEVICE_MAX * XKRT_DEVIC
 
 // platforms
 static cl_platform_id cl_platforms[XKRT_DEVICES_MAX];
-static cl_device_id cl_devices[XKRT_DEVICES_MAX];
+static cl_device_id cl_device_ids[XKRT_DEVICES_MAX];
 
 static device_cl_t DEVICES[XKRT_DEVICES_MAX];
 static cl_uint cl_n_devices = 0;
@@ -166,25 +166,25 @@ XKRT_DRIVER_ENTRYPOINT(init)(
 ) {
     (void) use_p2p;
 
-    assert(0 < ndevices);
+    assert(ndevices > 0);
     assert(ndevices <= XKRT_DEVICES_MAX);
 
     // get all drivers
-    cl_uint cl_n_platforms = ndevices; // i believe cl ensure at least 1 device per platform ?
-    CL_SAFE_CALL(clGetPlatformIDs(cl_n_platforms, cl_platforms, &cl_n_platforms));
+    cl_uint cl_n_platforms; // i believe cl ensure at least 1 device per platform ?
+    CL_SAFE_CALL(clGetPlatformIDs(XKRT_DEVICES_MAX, cl_platforms, &cl_n_platforms));
     assert(0 <= cl_n_platforms);
 
     for (cl_uint i = 0; i < cl_n_platforms; ++i)
     {
         // retrieve cl device ids
-        cl_device_id * devices = cl_devices + cl_n_devices;
-        cl_uint ndevices = ndevices - cl_n_devices;
-        int err = clGetDeviceIDs(cl_platforms[i], CL_DEVICE_TYPE_GPU, ndevices, devices, &ndevices);
+        cl_device_id * device_ids = cl_device_ids + cl_n_devices;
+        cl_uint num_entries;
+        int err = clGetDeviceIDs(cl_platforms[i], CL_DEVICE_TYPE_GPU, XKRT_DEVICES_MAX - cl_n_devices, device_ids, &num_entries);
         if (err == CL_DEVICE_NOT_FOUND)
             continue ;
         CL_SAFE_CALL(err);
-        assert(0 <= ndevices);
-        assert(ndevices <= ndevices - cl_n_devices);
+        assert(num_entries >= 0);
+        // assert(num_entries <= ndevices - cl_n_devices);
 
         // create a context for all these platform devices
         const cl_context_properties properties[] = {
@@ -192,13 +192,13 @@ XKRT_DRIVER_ENTRYPOINT(init)(
             (cl_context_properties)cl_platforms[i],
             0 // end of properties
         };
-        cl_context context = clCreateContext(properties, ndevices, devices, cl_pfn_notify, NULL, &err);
+        cl_context context = clCreateContext(properties, num_entries, device_ids, cl_pfn_notify, NULL, &err);
         CL_SAFE_CALL(err);
 
-        for (cl_uint j = 0; j < ndevices ; ++j)
+        for (cl_uint j = 0; j < num_entries ; ++j)
         {
             device_cl_t * device = DEVICES + cl_n_devices;
-            device->cl.id = devices[j];
+            device->cl.id = device_ids[j];
             device->cl.context = context;
 
             // initialize device virtual memory
