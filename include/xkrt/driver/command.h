@@ -36,14 +36,14 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __STREAM_INSTRUCTION_H__
-# define __STREAM_INSTRUCTION_H__
+#ifndef __QUEUE_COMMAND_H__
+# define __QUEUE_COMMAND_H__
 
 # include <xkrt/callback.h>
 # include <xkrt/consts.h>
 # include <xkrt/types.h>
 # include <xkrt/memory/view.hpp>
-# include <xkrt/driver/stream-instruction-type.h>
+# include <xkrt/driver/command-type.h>
 # include <xkrt/logger/todo.h>
 # include <xkrt/memory/cache-line-size.hpp>
 # include <xkrt/sync/mutex.h>
@@ -52,19 +52,19 @@
 
 XKRT_NAMESPACE_BEGIN
 
-    /* counter for the stream queues */
-    typedef uint32_t stream_instruction_counter_t;
+    /* counter for the queue queues */
+    typedef uint32_t queue_command_list_counter_t;
 
     /* move data between devices */
-    typedef struct  stream_instruction_copy_1D_t
+    typedef struct  queue_command_copy_1D_t
     {
         size_t size;
         uintptr_t dst_device_addr;
         uintptr_t src_device_addr;
 
-    }               stream_instruction_copy_1D_t;
+    }               queue_command_copy_1D_t;
 
-    typedef struct  stream_instruction_copy_2D_t
+    typedef struct  queue_command_copy_2D_t
     {
         size_t m;
         size_t n;
@@ -72,41 +72,41 @@ XKRT_NAMESPACE_BEGIN
         memory_replica_view_t dst_device_view;
         memory_replica_view_t src_device_view;
 
-    }               stream_instruction_copy_2D_t;
+    }               queue_command_copy_2D_t;
 
     /* kernel : to launch kernel on the device */
-    typedef struct  stream_instruction_kernel_t
+    typedef struct  queue_command_kernel_t
     {
         // arguments are:
-        //   stream_t * istream, stream_instruction * instr, stream_instruction_counter_t idx)
+        //   queue_t * iqueue, queue_command * cmd, queue_command_list_counter_t idx)
         void (*launch)();
         void * vargs;
-    }               stream_instruction_kernel_t;
+    }               queue_command_kernel_t;
 
     /* read/write files */
-    typedef struct  stream_instruction_file_t
+    typedef struct  queue_command_file_t
     {
         int fd;
         void * buffer;
         size_t n;
         size_t offset;
-    }               stream_instruction_file_t;
+    }               queue_command_file_t;
 
-    /* instructions */
-    typedef struct  stream_instruction_t
+    /* commands */
+    typedef struct  command_t
     {
-        stream_instruction_type_t type;
+        command_type_t type;
         union
         {
-            stream_instruction_copy_1D_t   copy_1D;
-            stream_instruction_copy_2D_t   copy_2D;
-            stream_instruction_kernel_t    kern;
-            stream_instruction_file_t      file;
+            queue_command_copy_1D_t   copy_1D;
+            queue_command_copy_2D_t   copy_2D;
+            queue_command_kernel_t    kern;
+            queue_command_file_t      file;
         };
         bool completed;
         struct {
-            callback_t list[XKRT_INSTRUCTION_CALLBACKS_MAX];
-            instruction_callback_index_t n;
+            callback_t list[XKRT_COMMAND_CALLBACKS_MAX];
+            command_callback_index_t n;
         } callbacks;
 
         inline void
@@ -114,11 +114,11 @@ XKRT_NAMESPACE_BEGIN
         {
             this->callbacks.list[this->callbacks.n++] = callback;
             assert(this->callbacks.n > 0);
-            assert(this->callbacks.n < XKRT_INSTRUCTION_CALLBACKS_MAX);
+            assert(this->callbacks.n < XKRT_COMMAND_CALLBACKS_MAX);
         }
 
-    }               stream_instruction_t;
+    }               command_t;
 
 XKRT_NAMESPACE_END
 
-#endif /* __STREAM_INSTRUCTION_H__ */
+#endif /* __QUEUE_COMMAND_H__ */

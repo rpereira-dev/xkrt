@@ -42,17 +42,17 @@
 # include <atomic>
 
 # include <xkrt/driver/driver.h>
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 
 # include <linux/io_uring.h>
 
 XKRT_NAMESPACE_BEGIN
 
-    typedef std::atomic<uint8_t> stream_host_event_t;
+    typedef std::atomic<uint8_t> queue_host_event_t;
 
-    typedef struct  stream_host_t
+    typedef struct  queue_host_t
     {
-        stream_t super;
+        queue_t super;
 
         /* async i/o */
         struct {
@@ -78,7 +78,7 @@ XKRT_NAMESPACE_BEGIN
             struct io_uring_cqe * cqes;
 
         } io_uring;
-    }               stream_host_t;
+    }               queue_host_t;
 
     typedef struct  driver_host_t
     {

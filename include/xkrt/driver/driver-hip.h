@@ -43,15 +43,15 @@
 #  define __HIP_PLATFORM_AMD__
 # endif
 
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 # include <hip/hip_runtime.h>
 # include <hipblas/hipblas.h>
 
 XKRT_NAMESPACE_BEGIN
 
-typedef struct  stream_hip_t
+typedef struct  queue_hip_t
 {
-    stream_t super;
+    queue_t super;
 
     struct {
 
@@ -62,7 +62,7 @@ typedef struct  stream_hip_t
 
         struct {
             hipEvent_t * buffer;
-            stream_instruction_counter_t capacity;
+            queue_command_list_counter_t capacity;
         } events;
 
         struct {
@@ -70,7 +70,7 @@ typedef struct  stream_hip_t
         } blas;
 
     } hip;
-}               stream_hip_t;
+}               queue_hip_t;
 
 typedef struct  device_hip_t
 {

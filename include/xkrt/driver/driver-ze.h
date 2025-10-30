@@ -39,7 +39,7 @@
 
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 
 # include <xkrt/support.h>
 
@@ -127,9 +127,9 @@ XKRT_NAMESPACE_BEGIN
     }               device_ze_t;
 
 
-    typedef struct  stream_ze_t
+    typedef struct  queue_ze_t
     {
-        stream_t super;
+        queue_t super;
 
         struct {
             struct {
@@ -151,7 +151,7 @@ XKRT_NAMESPACE_BEGIN
         } sycl;
         # endif /* XKRT_SUPPORT_ZE_SYCL_INTEROP */
 
-    }               stream_ze_t;
+    }               queue_ze_t;
 
 
     typedef struct  driver_ze_t

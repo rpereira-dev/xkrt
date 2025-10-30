@@ -37,7 +37,7 @@
 #ifndef __DRIVER_CL_H__
 # define __DRIVER_CL_H__
 
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 # include <CL/cl.h>
 
 XKRT_NAMESPACE_BEGIN
@@ -72,9 +72,9 @@ typedef struct  device_cl_t
     } memory;
 }               device_cl_t;
 
-typedef struct  stream_cl_t
+typedef struct  queue_cl_t
 {
-    stream_t super;
+    queue_t super;
 
     struct {
         cl_command_queue queue;
@@ -83,7 +83,7 @@ typedef struct  stream_cl_t
 
     device_cl_t * device;
 
-}               stream_cl_t;
+}               queue_cl_t;
 
 typedef struct  driver_cl_t
 {

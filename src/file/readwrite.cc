@@ -66,7 +66,7 @@ body_file_async_callback(void * vargs [XKRT_CALLBACK_ARGS_MAX])
     args->runtime->task_detachable_decr(task);
 }
 
-template<stream_instruction_type_t T>
+template<command_type_t T>
 static void
 body_file_async(task_t * task)
 {
@@ -85,14 +85,14 @@ body_file_async(task_t * task)
      * the `body_file_async_callback` was called, when the file had been read */
     args->runtime->task_detachable_incr(task);
 
-    /* submit a file i/o instruction */
-    device->offloader_stream_instruction_submit_file<T>(
+    /* submit a file i/o command */
+    device->offloader_queue_command_submit_file<T>(
         args->fd, args->buffer, args->size, args->offset, callback
     );
 }
 
 // TODO: reimplement using partitionned dependencies
-template<stream_instruction_type_t T>
+template<command_type_t T>
 static inline int
 file_async(
     runtime_t * runtime,
@@ -101,10 +101,10 @@ file_async(
     size_t n,
     unsigned int nchunks
 ) {
-    static_assert(T == XKRT_STREAM_INSTR_TYPE_FD_READ || T == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
+    static_assert(T == COMMAND_TYPE_FD_READ || T == COMMAND_TYPE_FD_WRITE);
     assert(nchunks > 0);
 
-    // compute number of instructions to spawn
+    // compute number of commands to spawn
     if (n < nchunks)
        nchunks = (unsigned int) n;
 
@@ -112,12 +112,12 @@ file_async(
     const size_t chunksize = n / nchunks;
     assert(chunksize > 0);
 
-    // create the task that submit the i/o instruction
+    // create the task that submit the i/o command
     thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     // get task format
-    const task_format_id_t fmtid = (T == XKRT_STREAM_INSTR_TYPE_FD_READ) ? runtime->formats.file_read_async : runtime->formats.file_write_async;
+    const task_format_id_t fmtid = (T == COMMAND_TYPE_FD_READ) ? runtime->formats.file_read_async : runtime->formats.file_write_async;
 
     const uintptr_t p = (const uintptr_t) buffer;
 
@@ -143,7 +143,7 @@ file_async(
         new (dep) task_dep_info_t(ac);
 
         # if XKRT_SUPPORT_DEBUG
-        snprintf(task->label, sizeof(task->label), T == XKRT_STREAM_INSTR_TYPE_FD_READ ? "fread" : "fwrite");
+        snprintf(task->label, sizeof(task->label), T == COMMAND_TYPE_FD_READ ? "fread" : "fwrite");
         # endif
 
         const uintptr_t a = (const uintptr_t) args->buffer;
@@ -169,7 +169,7 @@ runtime_t::file_read_async(
     size_t n,
     unsigned int nchunks
 ) {
-    return file_async<XKRT_STREAM_INSTR_TYPE_FD_READ>(this, fd, buffer, n, nchunks);
+    return file_async<COMMAND_TYPE_FD_READ>(this, fd, buffer, n, nchunks);
 }
 
 int
@@ -179,7 +179,7 @@ runtime_t::file_write_async(
     size_t n,
     unsigned int nchunks
 ) {
-    return file_async<XKRT_STREAM_INSTR_TYPE_FD_WRITE>(this, fd, buffer, n, nchunks);
+    return file_async<COMMAND_TYPE_FD_WRITE>(this, fd, buffer, n, nchunks);
 }
 
 void
@@ -188,7 +188,7 @@ file_async_register_format(runtime_t * runtime)
     {
         task_format_t format;
         memset(format.f, 0, sizeof(format.f));
-        format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_file_async<XKRT_STREAM_INSTR_TYPE_FD_READ>;
+        format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_file_async<COMMAND_TYPE_FD_READ>;
         snprintf(format.label, sizeof(format.label), "file_read_async");
         runtime->formats.file_read_async = task_format_create(&(runtime->formats.list), &format);
     }
@@ -196,7 +196,7 @@ file_async_register_format(runtime_t * runtime)
     {
         task_format_t format;
         memset(format.f, 0, sizeof(format.f));
-        format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_file_async<XKRT_STREAM_INSTR_TYPE_FD_WRITE>;
+        format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_file_async<COMMAND_TYPE_FD_WRITE>;
         snprintf(format.label, sizeof(format.label), "file_write_async");
         runtime->formats.file_write_async = task_format_create(&(runtime->formats.list), &format);
     }

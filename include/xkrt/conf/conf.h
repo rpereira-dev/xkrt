@@ -43,7 +43,7 @@
 
 # include <xkrt/logger/todo.h>
 # include <xkrt/driver/driver-type.h>
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue-type.h>
 
 XKRT_NAMESPACE_BEGIN
 
@@ -51,29 +51,29 @@ XKRT_NAMESPACE_BEGIN
 //  DEVICE CONF //
 //////////////////
 
-typedef struct  conf_stream_t
+typedef struct  conf_queue_t
 {
-    /* number of stream per operation (<=> cuda stream) */
+    /* number of queue per operation type */
     int8_t n;
 
     /* number of concurrent operations */
     uint32_t concurrency;
 
-}               conf_stream_t;
+}               conf_queue_t;
 
 typedef struct  conf_offloader_t
 {
-    conf_stream_t streams[STREAM_TYPE_ALL];
+    conf_queue_t queues[QUEUE_TYPE_ALL];
     uint16_t capacity;
 
 }               conf_offloader_t;
 
 typedef struct  conf_device_t
 {
-    float gpu_mem_percent;              /* % of gpu memory to allocate initially */
-    int ngpus;                          /* number of GPU for this node */
-    bool use_p2p;                       /* enable/disable p2p */
-    conf_offloader_t offloader;    /* offloader conf */
+    float gpu_mem_percent;      /* % of gpu memory to allocate initially */
+    int ngpus;                  /* number of GPU for this node */
+    bool use_p2p;               /* enable/disable p2p */
+    conf_offloader_t offloader; /* offloader conf */
 }               conf_device_t;
 
 typedef struct  conf_driver_t
@@ -107,12 +107,12 @@ typedef struct  conf_s
      * transfer now */
     bool enable_prefetching;
 
-    /* pause progress thread until a random instruction completed,
-     * when there is nothing to do but progress pending instructions.
-     * If disabled, progression threads actively polls streams */
+    /* pause progress thread until a random command completed,
+     * when there is nothing to do but progress pending commands.
+     * If disabled, progression threads actively polls queues */
     bool enable_progress_thread_pause;
 
-    /* pause progression threads when there is no ready tasks, or no pending/ready instructions */
+    /* pause progression threads when there is no ready tasks, or no pending/ready commands */
     bool enable_busy_polling;
 
     /* to warmup threads/devices on init (touch memory pages, allocate device memory...) */
