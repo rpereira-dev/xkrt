@@ -1137,8 +1137,21 @@ XKRT_DRIVER_ENTRYPOINT(memory_unified_prefetch_device)(
         .id   = device_driver_id
     };
     unsigned int flags = 0;
-    CUstream hStream = TODO;
-    CU_SAFE_CALL(cuMemPrefetch_v2((const CUdeviceptr) addr, size, location, flags, stream));
+
+    // retrieve a H2D stream
+    device_t * device = device_get(device_driver_id);
+    assert(device);
+
+    thread_t * thread;
+    queue_t * iqueue;
+    device->offloader_queue_next(QUEUE_TYPE_H2D, &thread, &iqueue);
+    assert(thread);
+    assert(iqueue);
+
+    queue_cu_t * queue = (queue_cu_t *) iqueue;
+    CUstream stream = queue->cu.handle.high;
+
+    CU_SAFE_CALL(cuMemPrefetchAsync_v2((const CUdeviceptr) addr, size, location, flags, stream));
     return 0;
 }
 
@@ -1152,8 +1165,9 @@ XKRT_DRIVER_ENTRYPOINT(memory_unified_prefetch_host)(
         .id   = 0 // ignored
     };
     unsigned int flags = 0;
-    CUstream hStream = ?;
-    CU_SAFE_CALL(cuMemPrefetch_v2((const CUdeviceptr) addr, size, location, flags, stream));
+    CUstream stream = NULL;
+    LOGGER_FATAL("What stream to use?");
+    CU_SAFE_CALL(cuMemPrefetchAsync_v2((const CUdeviceptr) addr, size, location, flags, stream));
     return 0;
 }
 

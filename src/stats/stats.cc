@@ -146,13 +146,22 @@ stats_device_report(device_stats_t * stats)
         LOGGER_WARN("    Unregistered: %s", buffer);
     }
 
-    if (stats->memory.device_advised.load() || stats->memory.host_advised.load())
+    if (stats->memory.unified.advised.device.load() || stats->memory.unified.advised.host.load())
     {
-        metric_byte(buffer, sizeof(buffer), stats->memory.device_advised.load());
-        LOGGER_WARN("    Device Advised: %s", buffer);
+        metric_byte(buffer, sizeof(buffer), stats->memory.unified.advised.device.load());
+        LOGGER_WARN("    Unified Advised Device: %s", buffer);
 
-        metric_byte(buffer, sizeof(buffer), stats->memory.host_advised.load());
-        LOGGER_WARN("    Host Advised: %s", buffer);
+        metric_byte(buffer, sizeof(buffer), stats->memory.unified.advised.host.load());
+        LOGGER_WARN("    Unified Advised Host: %s", buffer);
+    }
+
+    if (stats->memory.unified.prefetched.device.load() || stats->memory.unified.prefetched.host.load())
+    {
+        metric_byte(buffer, sizeof(buffer), stats->memory.unified.prefetched.host.load());
+        LOGGER_WARN("    Unified Prefetched Device: %s", buffer);
+
+        metric_byte(buffer, sizeof(buffer), stats->memory.unified.prefetched.host.load());
+        LOGGER_WARN("    Unified Prefetched Host: %s", buffer);
     }
 
     LOGGER_WARN("  Streams");

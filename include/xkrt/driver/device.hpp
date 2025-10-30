@@ -176,7 +176,7 @@ typedef struct  device_t
     /* number of queue per type */
     int count[QUEUE_TYPE_ALL];
 
-    /* next thread to use for offloading an command */
+    /* next thread to use for offloading a command */
     std::atomic<uint8_t> next_thread;
 
     /* next queue to use for the given thread and type */
@@ -209,7 +209,7 @@ typedef struct  device_t
      * commands in the queues of the given type */
     void offloader_queues_are_empty(uint8_t device_id, const queue_type_t qtype, bool * ready, bool * pending) const;
 
-    /* get next queue to use for submitting an command for the given type */
+    /* get next queue to use for submitting a command for the given type */
     void offloader_queue_next(
         const queue_type_t type,
         thread_t ** pthread,        /* OUT */
@@ -269,7 +269,7 @@ typedef struct  device_t
               command_t ** pcmd         /* OUT */
     );
 
-    /* commit an command previously returned with
+    /* commit a command previously returned with
      * "offloader_queue_command_new" and unlock the queue */
     void offloader_queue_command_commit(
         thread_t * thread,
