@@ -39,7 +39,7 @@
 # include <xkrt/runtime.h>
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/bits-to-str.h>
 # include <xkrt/logger/todo.h>
@@ -367,8 +367,8 @@ device_task_execute(
                     callback.args[1] = task;
                     assert(XKRT_CALLBACK_ARGS_MAX >= 2);
 
-                    /* submit kernel launch instruction */
-                    device->offloader_stream_instruction_submit_kernel(
+                    /* submit kernel launch command */
+                    device->offloader_queue_command_submit_kernel(
                         (kernel_launcher_t) format->f[targetfmt],
                         task,
                         callback

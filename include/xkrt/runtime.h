@@ -122,7 +122,7 @@ struct  runtime_t
     // DATA MOVEMENTS //
     ////////////////////
 
-    /* Submit a copy instruction to a stream of the device */
+    /* Submit a copy command to a queue of the device */
     void copy(
         const device_global_id_t   device_global_id,
         const size_t               size,
@@ -133,7 +133,7 @@ struct  runtime_t
         const callback_t         & callback
     );
 
-    /* Submit a copy instruction to a stream of the device */
+    /* Submit a copy command to a queue of the device */
     void copy(
         const device_global_id_t      device_global_id,
         const memory_view_t         & host_view,
@@ -201,7 +201,7 @@ struct  runtime_t
         size_t nchunks,
         const std::function<void(uintptr_t, uintptr_t)> & func)
     {
-        // compute number of instructions to spawn
+        // compute number of commands to spawn
         if (total_size < nchunks)
             nchunks = (unsigned int) total_size;
 
@@ -262,8 +262,10 @@ struct  runtime_t
     void memory_coherent_async(device_global_id_t device_global_id, void * ptr, size_t size);
     void memory_coherent_async(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
-    /* hint the unified memory system to prefetch memory to the given device */
-    int memory_advise(const device_global_id_t device_global_id, const void * addr, const size_t size);
+    /* hint the unified memory system that the given memory will be used by the device */
+    int memory_unified_advise  (const device_global_id_t device_global_id, const void * addr, const size_t size);
+    /* tell the unified memory system to move the memory so it is coherent on the given device */
+    int memory_unified_prefetch(const device_global_id_t device_global_id, const void * addr, const size_t size);
 
     /////////////////////////
     // MEMORY REGISTRATION //
@@ -583,8 +585,16 @@ struct  runtime_t
         struct {
             stats_int_t registered;
             stats_int_t unregistered;
-            stats_int_t device_advised;
-            stats_int_t host_advised;
+            struct {
+                struct {
+                    stats_int_t device;
+                    stats_int_t host;
+                } advised;
+                struct {
+                    stats_int_t device;
+                    stats_int_t host;
+                } prefetched;
+            } unified;
         } memory;
     } stats;
 

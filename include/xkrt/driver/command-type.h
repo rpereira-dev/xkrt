@@ -36,26 +36,34 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __STREAM_TYPE_HPP__
-# define __STREAM_TYPE_HPP__
+#ifndef __QUEUE_COMMAND_TYPE_H__
+# define __QUEUE_COMMAND_TYPE_H__
 
 XKRT_NAMESPACE_BEGIN
 
-    /* DONT CHANGE ORDER HERE !! Can have side effects (in the Offloader class for instance) */
-    typedef enum    stream_type_t
+    typedef enum    command_type_t
     {
-        STREAM_TYPE_H2D        = 0,    /* from CPU to GPU */
-        STREAM_TYPE_D2H        = 1,    /* from GPU to CPU */
-        STREAM_TYPE_D2D        = 2,    /* from GPU to GPU */
-        STREAM_TYPE_KERN       = 3,
-        STREAM_TYPE_FD_READ    = 4,
-        STREAM_TYPE_FD_WRITE   = 5,
-        STREAM_TYPE_ALL                /* internal purpose */
+        COMMAND_TYPE_KERN         = 0,
 
-    }               stream_type_t;
+        COMMAND_TYPE_COPY_H2H_1D  = 1,
+        COMMAND_TYPE_COPY_H2D_1D  = 2,
+        COMMAND_TYPE_COPY_D2H_1D  = 3,
+        COMMAND_TYPE_COPY_D2D_1D  = 4,
 
-    const char * stream_type_to_str(stream_type_t type);
+        COMMAND_TYPE_COPY_H2H_2D  = 5,
+        COMMAND_TYPE_COPY_H2D_2D  = 6,
+        COMMAND_TYPE_COPY_D2H_2D  = 7,
+        COMMAND_TYPE_COPY_D2D_2D  = 8,
+
+        COMMAND_TYPE_FD_READ      = 9,
+        COMMAND_TYPE_FD_WRITE     = 10,
+
+        COMMAND_TYPE_MAX          = 11
+
+    }               command_type_t;
+
+    const char * command_type_to_str(command_type_t type);
 
 XKRT_NAMESPACE_END
 
-# endif /* __STREAM_TYPE_HPP__ */
+#endif /* __QUEUE_COMMAND_H__ */

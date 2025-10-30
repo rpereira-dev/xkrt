@@ -58,29 +58,41 @@ typedef struct  device_stats_t
         } allocated;
         stats_int_t registered;
         stats_int_t unregistered;
-        stats_int_t device_advised;
-        stats_int_t host_advised;
+        struct {
+            struct {
+                stats_int_t device;
+                stats_int_t host;
+            } advised;
+            struct {
+                stats_int_t device;
+                stats_int_t host;
+            } prefetched;
+        } unified;
     } memory;
 
     struct {
         stats_int_t n;
         stats_int_t transfered;
-    } streams[STREAM_TYPE_ALL];
+    } queues[QUEUE_TYPE_ALL];
 
     struct {
         stats_int_t commited;
         stats_int_t completed;
-    } instructions[XKRT_STREAM_INSTR_TYPE_MAX];
+    } commands[COMMAND_TYPE_MAX];
 
 }               device_stats_t;
 
 static void
 stats_device_agg_gather(runtime_t * runtime, device_stats_t * agg)
 {
-    agg->memory.registered += runtime->stats.memory.registered;
+    agg->memory.registered   += runtime->stats.memory.registered;
     agg->memory.unregistered += runtime->stats.memory.unregistered;
-    agg->memory.device_advised += runtime->stats.memory.device_advised;
-    agg->memory.host_advised += runtime->stats.memory.host_advised;
+
+    agg->memory.unified.advised.device += runtime->stats.memory.unified.advised.device;
+    agg->memory.unified.advised.host   += runtime->stats.memory.unified.advised.host;
+
+    agg->memory.unified.prefetched.device += runtime->stats.memory.unified.prefetched.device;
+    agg->memory.unified.prefetched.host   += runtime->stats.memory.unified.prefetched.host;
 }
 
 static void
@@ -90,16 +102,16 @@ stats_device_agg(device_stats_t * src, device_stats_t * agg)
     agg->memory.allocated.total += src->memory.allocated.total;
     agg->memory.allocated.currently += src->memory.allocated.currently;
 
-    for (int stype = 0 ; stype < STREAM_TYPE_ALL ; ++stype)
+    for (int stype = 0 ; stype < QUEUE_TYPE_ALL ; ++stype)
     {
-        agg->streams[stype].n += src->streams[stype].n;
-        agg->streams[stype].transfered += src->streams[stype].transfered;
+        agg->queues[stype].n += src->queues[stype].n;
+        agg->queues[stype].transfered += src->queues[stype].transfered;
     }
 
-    for (int instr_type = 0 ; instr_type < XKRT_STREAM_INSTR_TYPE_MAX ; ++instr_type)
+    for (int cmd_type = 0 ; cmd_type < COMMAND_TYPE_MAX ; ++cmd_type)
     {
-        agg->instructions[instr_type].commited += src->instructions[instr_type].commited;
-        agg->instructions[instr_type].completed += src->instructions[instr_type].completed;
+        agg->commands[cmd_type].commited += src->commands[cmd_type].commited;
+        agg->commands[cmd_type].completed += src->commands[cmd_type].completed;
     }
 }
 
@@ -134,34 +146,43 @@ stats_device_report(device_stats_t * stats)
         LOGGER_WARN("    Unregistered: %s", buffer);
     }
 
-    if (stats->memory.device_advised.load() || stats->memory.host_advised.load())
+    if (stats->memory.unified.advised.device.load() || stats->memory.unified.advised.host.load())
     {
-        metric_byte(buffer, sizeof(buffer), stats->memory.device_advised.load());
-        LOGGER_WARN("    Device Advised: %s", buffer);
+        metric_byte(buffer, sizeof(buffer), stats->memory.unified.advised.device.load());
+        LOGGER_WARN("    Unified Advised Device: %s", buffer);
 
-        metric_byte(buffer, sizeof(buffer), stats->memory.host_advised.load());
-        LOGGER_WARN("    Host Advised: %s", buffer);
+        metric_byte(buffer, sizeof(buffer), stats->memory.unified.advised.host.load());
+        LOGGER_WARN("    Unified Advised Host: %s", buffer);
+    }
+
+    if (stats->memory.unified.prefetched.device.load() || stats->memory.unified.prefetched.host.load())
+    {
+        metric_byte(buffer, sizeof(buffer), stats->memory.unified.prefetched.host.load());
+        LOGGER_WARN("    Unified Prefetched Device: %s", buffer);
+
+        metric_byte(buffer, sizeof(buffer), stats->memory.unified.prefetched.host.load());
+        LOGGER_WARN("    Unified Prefetched Host: %s", buffer);
     }
 
     LOGGER_WARN("  Streams");
-    for (int stype = 0 ; stype < STREAM_TYPE_ALL ; ++stype)
+    for (int stype = 0 ; stype < QUEUE_TYPE_ALL ; ++stype)
     {
         # if 0
-        metric_byte(buffer, sizeof(buffer), stats->streams[stype].transfered.load());
-        LOGGER_WARN("    `%4s` - with %2lu streams - transfered %s", stream_type_to_str((stream_type_t) stype), stats->streams[stype].n.load(), buffer);
+        metric_byte(buffer, sizeof(buffer), stats->queues[stype].transfered.load());
+        LOGGER_WARN("    `%4s` - with %2lu queues - transfered %s", command_type_to_str((queue_type_t) stype), stats->queues[stype].n.load(), buffer);
         # else
-        LOGGER_WARN("    `%4s` - with %2lu streams - transfered %zuB", stream_type_to_str((stream_type_t) stype), stats->streams[stype].n.load(), stats->streams[stype].transfered.load());
+        LOGGER_WARN("    `%4s` - with %2lu queues - transfered %zuB", queue_type_to_str((queue_type_t) stype), stats->queues[stype].n.load(), stats->queues[stype].transfered.load());
         # endif
     }
 
     LOGGER_WARN("  Instructions");
-    for (int instr_type = 0 ; instr_type < XKRT_STREAM_INSTR_TYPE_MAX ; ++instr_type)
+    for (int cmd_type = 0 ; cmd_type < COMMAND_TYPE_MAX ; ++cmd_type)
     {
         LOGGER_WARN(
             "    `%12s` - commited %6zu - completed %6zu",
-            stream_instruction_type_to_str((stream_instruction_type_t) instr_type),
-            stats->instructions[instr_type].commited.load(),
-            stats->instructions[instr_type].completed.load()
+            command_type_to_str((command_type_t) cmd_type),
+            stats->commands[cmd_type].commited.load(),
+            stats->commands[cmd_type].completed.load()
         );
     }
 }
@@ -179,19 +200,19 @@ stats_device_gather(
 
     for (uint8_t device_tid = 0 ; device_tid < device->nthreads ; ++device_tid)
     {
-        for (int stype = 0 ; stype < STREAM_TYPE_ALL ; ++stype)
+        for (int stype = 0 ; stype < QUEUE_TYPE_ALL ; ++stype)
         {
-            for (int stream_id = 0 ; stream_id < device->count[stype] ; ++stream_id)
+            for (int queue_id = 0 ; queue_id < device->count[stype] ; ++queue_id)
             {
-                stream_t * stream = device->streams[device_tid][stype][stream_id];
-                for (int instr_type = 0 ; instr_type < XKRT_STREAM_INSTR_TYPE_MAX ; ++instr_type)
+                queue_t * queue = device->queues[device_tid][stype][queue_id];
+                for (int cmd_type = 0 ; cmd_type < COMMAND_TYPE_MAX ; ++cmd_type)
                 {
-                    stats->instructions[instr_type].commited += stream->stats.instructions[instr_type].commited.load();
-                    stats->instructions[instr_type].completed += stream->stats.instructions[instr_type].completed.load();
+                    stats->commands[cmd_type].commited += queue->stats.commands[cmd_type].commited.load();
+                    stats->commands[cmd_type].completed += queue->stats.commands[cmd_type].completed.load();
                 }
-                stats->streams[stype].transfered += stream->stats.transfered.load();
+                stats->queues[stype].transfered += queue->stats.transfered.load();
             }
-            stats->streams[stype].n += device->count[stype];
+            stats->queues[stype].n += device->count[stype];
         }
     }
 }

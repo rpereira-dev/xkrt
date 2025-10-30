@@ -61,59 +61,59 @@ __parse_merge_transfers(conf_t * conf, char const * value)
 }
 
 static void
-__parse_kern_per_stream(conf_t * conf, char const * value)
+__parse_kern_per_queue(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_KERN].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.queues[QUEUE_TYPE_KERN].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
-__parse_h2d_per_stream(conf_t * conf, char const * value)
+__parse_h2d_per_queue(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_H2D].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.queues[QUEUE_TYPE_H2D].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
-__parse_d2h_per_stream(conf_t * conf, char const * value)
+__parse_d2h_per_queue(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_D2H].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.queues[QUEUE_TYPE_D2H].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
-__parse_d2d_per_stream(conf_t * conf, char const * value)
+__parse_d2d_per_queue(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_D2D].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.queues[QUEUE_TYPE_D2D].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
-__parse_nstreams_h2d(conf_t * conf, char const * value)
+__parse_nqueues_h2d(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_H2D].n = (int8_t) MAX(atoi(value), 0);
+        conf->device.offloader.queues[QUEUE_TYPE_H2D].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
-__parse_nstreams_d2h(conf_t * conf, char const * value)
+__parse_nqueues_d2h(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_D2H].n = (int8_t) MAX(atoi(value), 0);
+        conf->device.offloader.queues[QUEUE_TYPE_D2H].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
-__parse_nstreams_d2d(conf_t * conf, char const * value)
+__parse_nqueues_d2d(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_D2D].n = (int8_t) MAX(atoi(value), 0);
+        conf->device.offloader.queues[QUEUE_TYPE_D2D].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
-__parse_nstreams_kern(conf_t * conf, char const * value)
+__parse_nqueues_kern(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.streams[STREAM_TYPE_KERN].n = (int8_t) MAX(atoi(value), 0);
+        conf->device.offloader.queues[QUEUE_TYPE_KERN].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
@@ -244,25 +244,25 @@ typedef struct  conf_parse_t
 // variables are parsed in-order
 static conf_parse_t CONF_PARSE[] = {
     {"XKAAPI_CACHE_LIMIT",                      NULL,                       NULL},
-    {"XKAAPI_D2D_PER_STREAM",                   __parse_d2d_per_stream,     "Number of concurrent copies per D2D stream before throttling device-thread"},
-    {"XKAAPI_D2H_PER_STREAM",                   __parse_d2h_per_stream,     "Number of concurrent copies per D2H stream before throttling device-thread"},
+    {"XKAAPI_D2D_PER_QUEUE",                   __parse_d2d_per_queue,     "Number of concurrent copies per D2D queue before throttling device-thread"},
+    {"XKAAPI_D2H_PER_QUEUE",                   __parse_d2h_per_queue,     "Number of concurrent copies per D2H queue before throttling device-thread"},
     {"XKAAPI_DEFAULT_MATH",                     NULL,                       NULL},
     {"XKAAPI_DRIVERS",                          __parse_drivers,            "Exemple: 'cuda,4;hip,2;host,3' - will enable drivers cuda, hip and host respectively with 4, 2, and 3 threads per device."},
     {"XKAAPI_GPU_MEM_PERCENT",                  __parse_gpu_mem_percent,    "%% of total memory to allocate initially per GPU (in ]0..100["},
-    {"XKAAPI_H2D_PER_STREAM",                   __parse_h2d_per_stream,     "Number of concurrent copies per H2D stream before throttling device-thread"},
+    {"XKAAPI_H2D_PER_QUEUE",                   __parse_h2d_per_queue,     "Number of concurrent copies per H2D queue before throttling device-thread"},
     {"XKAAPI_HELP",                             __parse_help,               "Show this helper"},
-    {"XKAAPI_KERN_PER_STREAM",                  __parse_kern_per_stream,    "Number of concurrent kernels per KERN stream before throttling device-thread"},
+    {"XKAAPI_KERN_PER_QUEUE",                  __parse_kern_per_queue,    "Number of concurrent kernels per KERN queue before throttling device-thread"},
     {"XKAAPI_MERGE_TRANSFERS",                  __parse_merge_transfers,    "Merge memory transfers over continuous virtual memory"},
     {"XKAAPI_NGPUS",                            __parse_ngpus,              "Number of gpus to use"},
     {"XKAAPI_MEMORY_REGISTER_PROTECT_OVERFLOW", __parse_register_overflow,  "Split memory transfers to avoid overflow over registered/unregistered memory that causes cuda to crash"},
-    {"XKAAPI_PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,  "When progression threads have nothing else to do but poll pending instructions, put it to sleep until the completion of a random instruction of a random steam."},
-    {"XKAAPI_BUSY_POLLING",                     __parse_busy_polling,       "Whether progression threads should pause when there is no tasks and no ready/pending instructions"},
+    {"XKAAPI_PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,  "When progression threads have nothing else to do but poll pending commands, put it to sleep until the completion of a random command of a random steam."},
+    {"XKAAPI_BUSY_POLLING",                     __parse_busy_polling,       "Whether progression threads should pause when there is no tasks and no ready/pending commands"},
     {"XKAAPI_TASK_PREFETCH",                    __parse_task_prefetch,      "If enabled, after completing a task, initiate data transfers for all its WaR successors that place of execution is already known (else, transfers only starts once the successor is ready)."},
-    {"XKAAPI_NSTREAMS_D2D",                     __parse_nstreams_d2d,       "Number of D2D streams per GPU"},
-    {"XKAAPI_NSTREAMS_D2H",                     __parse_nstreams_d2h,       "Number of D2H streams per GPU"},
-    {"XKAAPI_NSTREAMS_H2D",                     __parse_nstreams_h2d,       "Number of H2D streams per GPU"},
-    {"XKAAPI_NSTREAMS_KERN",                    __parse_nstreams_kern,      "Number of KERN streams per GPU"},
-    {"XKAAPI_OFFLOADER_CAPACITY",               __parse_offloader_capacity, "Maximum number of pending instructions per stream"},
+    {"XKAAPI_NQUEUES_D2D",                     __parse_nqueues_d2d,       "Number of D2D queues per GPU"},
+    {"XKAAPI_NQUEUES_D2H",                     __parse_nqueues_d2h,       "Number of D2H queues per GPU"},
+    {"XKAAPI_NQUEUES_H2D",                     __parse_nqueues_h2d,       "Number of H2D queues per GPU"},
+    {"XKAAPI_NQUEUES_KERN",                    __parse_nqueues_kern,      "Number of KERN queues per GPU"},
+    {"XKAAPI_OFFLOADER_CAPACITY",               __parse_offloader_capacity, "Maximum number of pending commands per queue"},
     {"XKAAPI_PRECISION",                        NULL,                       NULL},
     {"XKAAPI_STATS",                            __parse_stats,              "Boolean to dump stats on deinit"},
     {"XKAAPI_USE_P2P",                          __parse_p2p,                "Boolean to enable/disable the use of p2p transfers"},
@@ -352,12 +352,12 @@ conf_t::init(void)
     //////////////////
     this->device.offloader.capacity = 512;
 
-    // set to -1 so the driver's stream-suggest API fills these values if not
+    // set to -1 so the driver's queue-suggest API fills these values if not
     // set by an env variable
-    for (int stype = 0 ; stype < STREAM_TYPE_ALL ; ++stype)
+    for (int stype = 0 ; stype < QUEUE_TYPE_ALL ; ++stype)
     {
-        this->device.offloader.streams[stype].n = -1;
-        this->device.offloader.streams[stype].concurrency = 64;
+        this->device.offloader.queues[stype].n = -1;
+        this->device.offloader.queues[stype].concurrency = 64;
     }
 
     //////////////////

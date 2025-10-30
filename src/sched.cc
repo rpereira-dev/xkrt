@@ -40,7 +40,7 @@
 # include <xkrt/runtime.h>
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/bits-to-str.h>
 # include <xkrt/logger/todo.h>
@@ -266,7 +266,7 @@ device_thread_main_loop(
     // test whether the thread should be put to sleep, all three conditions must be met:
     //  - the device is running
     //  - there is no ready tasks
-    //  - there is no pending instructions
+    //  - there is no pending commands
     auto test = [&] (void)
     {
         // the device must stop
@@ -277,8 +277,8 @@ device_thread_main_loop(
         if (task == NULL)
             task = thread->deque.pop();
 
-        /// find instructions pending or ready
-        device->offloader_streams_are_empty(device_tid, STREAM_TYPE_ALL, &ready, &pending);
+        /// find commands pending or ready
+        device->offloader_queues_are_empty(device_tid, QUEUE_TYPE_ALL, &ready, &pending);
 
         // is there is anything to progress, wake up
         if (task || ready || pending)
@@ -307,21 +307,21 @@ device_thread_main_loop(
         if (task)
             __device_prepare_task(runtime, device, task);
 
-        // if there are instructions ready, launch them
+        // if there are commands ready, launch them
         if (ready)
         {
             device->offloader_launch(device_tid);
             pending = true;
         }
 
-        // if there are pending instructions, progress them
+        // if there are pending commands, progress them
         if (pending)
         {
             // no more tasks to launch
             // pause the thread until some progress has been made
             if (task == NULL && runtime->conf.enable_progress_thread_pause)
             {
-                device->offloader_wait_random_instruction(device_tid);
+                device->offloader_wait_random_command(device_tid);
             }
             // some task was ready, so maybe there is more.
             // Just poll events a bit (potentially unlocking more tasks)
@@ -477,16 +477,16 @@ device_thread_main(
         }
 
         // init offloader
-        device->offloader_init(driver->f_stream_suggest);
+        device->offloader_init(driver->f_queue_suggest);
     }
 
     // wait for all devices to be in the 'commit' state with the offloader init
     pthread_barrier_wait(&driver->barrier);
 
-    // initialize offloader thread to initialize streams
-    device->offloader_init_thread(device_tid, driver->f_stream_create);
+    // initialize offloader thread to initialize queues
+    device->offloader_init_thread(device_tid, driver->f_queue_create);
 
-    // wait for all threads to have streams initialized
+    // wait for all threads to have queues initialized
     pthread_barrier_wait(&driver->barrier);
     // cannot use 'args->barrier' after this point
 
@@ -494,13 +494,13 @@ device_thread_main(
     int err = device_thread_main_loop(runtime, device, thread, device_tid);
     assert((err==0) || (err==EINTR));
 
-    // delete streams
-    if (driver->f_stream_delete)
-        for (uint8_t j = 0 ; j < STREAM_TYPE_ALL ; ++j)
+    // delete queues
+    if (driver->f_queue_delete)
+        for (uint8_t j = 0 ; j < QUEUE_TYPE_ALL ; ++j)
             for (int k = 0 ; k < device->count[j] ; ++k)
-                driver->f_stream_delete(device->streams[device_tid][j][k]);
+                driver->f_queue_delete(device->queues[device_tid][j][k]);
 
-    // wait for all thread to delete their streams
+    // wait for all thread to delete their queues
     pthread_barrier_wait(&driver->barrier);
 
     /* deinitialize driver */

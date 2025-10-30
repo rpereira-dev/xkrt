@@ -168,16 +168,16 @@ drivers_init(runtime_t * runtime)
             };
 
             // get cpuset for the device
-            for (unsigned i = 0; i < ndevices_for_driver ; ++i)
+            for (device_driver_id_t device_driver_id = 0; device_driver_id < ndevices_for_driver ; ++device_driver_id)
             {
                 assert(driver->f_device_cpuset);
-                int err = driver->f_device_cpuset(runtime->topology, places + i, i);
+                int err = driver->f_device_cpuset(runtime->topology, places + device_driver_id, device_driver_id);
                 if (err)
-                    LOGGER_WARN("Invalid cpuset returned for device %d - using default cpuset", i);
+                    LOGGER_WARN("Invalid cpuset returned for device %d - using default cpuset", device_driver_id);
                 else
                 {
                     args.devices[args.ndevices].driver_type      = (driver_type_t) driver_type;
-                    args.devices[args.ndevices].device_driver_id = (device_driver_id_t) i;
+                    args.devices[args.ndevices].device_driver_id = device_driver_id;
                     ++ndevices;
                     ++args.ndevices;
                 }
@@ -204,7 +204,7 @@ drivers_init(runtime_t * runtime)
             // wait for all devices to be created
             pthread_barrier_wait(barrier);    // init
             pthread_barrier_wait(barrier);    // commit
-            pthread_barrier_wait(barrier);    // offloader streams
+            pthread_barrier_wait(barrier);    // offloader queues
 
             // set devices bitfield
             driver->devices_bitfield = 0;
@@ -251,7 +251,7 @@ drivers_deinit(runtime_t * runtime)
         {
             if (driver->ndevices_commited.load())
             {
-                // wait for threads stream deletion
+                // wait for threads queue deletion
                 pthread_barrier_wait(&driver->barrier);
 
                 // wait for main thread driver deinitialization

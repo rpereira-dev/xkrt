@@ -43,7 +43,7 @@
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
 # include <xkrt/driver/driver-host.h>
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 # include <xkrt/sync/bits.h>
 # include <xkrt/sync/mutex.h>
 
@@ -84,7 +84,7 @@ XKRT_DRIVER_ENTRYPOINT(init)(
 
 void
 XKRT_DRIVER_ENTRYPOINT(device_info)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     char * buffer,
     size_t size
 ) {
@@ -124,7 +124,7 @@ XKRT_DRIVER_ENTRYPOINT(get_ndevices_max)(void)
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * schedset, int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * schedset, device_driver_id_t device_driver_id)
 {
     (void) topology;
     assert(device_driver_id == 0);
@@ -133,7 +133,7 @@ XKRT_DRIVER_ENTRYPOINT(device_cpuset)(hwloc_topology_t topology, cpu_set_t * sch
 }
 
 static device_t *
-XKRT_DRIVER_ENTRYPOINT(device_create)(driver_t * driver, int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_create)(driver_t * driver, device_driver_id_t device_driver_id)
 {
     (void) driver;
     assert(device_driver_id == 0);
@@ -142,13 +142,13 @@ XKRT_DRIVER_ENTRYPOINT(device_create)(driver_t * driver, int device_driver_id)
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(device_init)(int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_init)(device_driver_id_t device_driver_id)
 {
     (void) device_driver_id;
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
+XKRT_DRIVER_ENTRYPOINT(device_destroy)(device_driver_id_t device_driver_id)
 {
     (void) device_driver_id;
     return 0;
@@ -156,7 +156,7 @@ XKRT_DRIVER_ENTRYPOINT(device_destroy)(int device_driver_id)
 
 /* Called for each device of the driver once they all have been initialized */
 static int
-XKRT_DRIVER_ENTRYPOINT(device_commit)(int device_driver_id, device_global_id_bitfield_t * affinity)
+XKRT_DRIVER_ENTRYPOINT(device_commit)(device_driver_id_t device_driver_id, device_global_id_bitfield_t * affinity)
 {
     (void) device_driver_id;
     (void) affinity;
@@ -164,7 +164,7 @@ XKRT_DRIVER_ENTRYPOINT(device_commit)(int device_driver_id, device_global_id_bit
 }
 
 ////////////
-// STREAM //
+// QUEUE //
 ////////////
 
 /* Macros for barriers needed by io_uring */
@@ -176,14 +176,14 @@ XKRT_DRIVER_ENTRYPOINT(device_commit)(int device_driver_id, device_global_id_bit
 
 /** see : https://man7.org/linux/man-pages/man7/io_uring.7.html */
 static inline void
-XKRT_DRIVER_ENTRYPOINT(io_uring_init)(stream_host_t * stream)
+XKRT_DRIVER_ENTRYPOINT(io_uring_init)(queue_host_t * queue)
 {
     // TODO: what is this ?
     # define QUEUE_DEPTH 1
     struct io_uring_params p;
     memset(&p, 0, sizeof(p));
-    stream->io_uring.fd = (int) syscall(__NR_io_uring_setup, QUEUE_DEPTH, &p);
-    // stream->io_uring.fd = io_uring_setup(QUEUE_DEPTH, &p);
+    queue->io_uring.fd = (int) syscall(__NR_io_uring_setup, QUEUE_DEPTH, &p);
+    // queue->io_uring.fd = io_uring_setup(QUEUE_DEPTH, &p);
     # undef QUEUE_DEPTH
 
     /*
@@ -210,83 +210,83 @@ XKRT_DRIVER_ENTRYPOINT(io_uring_init)(stream_host_t * stream)
     /* Map in the submission and completion queue ring buffers.
      *  Kernels < 5.4 only map in the submission queue, though. */
 
-    stream->io_uring.sq_ptr = (unsigned char *) mmap(0, sring_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, stream->io_uring.fd, IORING_OFF_SQ_RING);
-    if (stream->io_uring.sq_ptr == MAP_FAILED)
+    queue->io_uring.sq_ptr = (unsigned char *) mmap(0, sring_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, queue->io_uring.fd, IORING_OFF_SQ_RING);
+    if (queue->io_uring.sq_ptr == MAP_FAILED)
         LOGGER_FATAL("Failed to mmap io_uring for asynchronous file i/o (1)");
 
     if (p.features & IORING_FEAT_SINGLE_MMAP) {
-        stream->io_uring.cq_ptr = stream->io_uring.sq_ptr;
+        queue->io_uring.cq_ptr = queue->io_uring.sq_ptr;
     } else {
         /* Map in the completion queue ring buffer in older kernels separately */
-        stream->io_uring.cq_ptr = (unsigned char *) mmap(0, cring_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, stream->io_uring.fd, IORING_OFF_CQ_RING);
-        if (stream->io_uring.cq_ptr == MAP_FAILED)
+        queue->io_uring.cq_ptr = (unsigned char *) mmap(0, cring_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, queue->io_uring.fd, IORING_OFF_CQ_RING);
+        if (queue->io_uring.cq_ptr == MAP_FAILED)
             LOGGER_FATAL("Failed to mmap io_uring for asynchronous file i/o (2)");
     }
 
     /* Save useful fields for later easy reference */
-    stream->io_uring.sq_tail  = stream->io_uring.sq_ptr + p.sq_off.tail;
-    stream->io_uring.sq_mask  = stream->io_uring.sq_ptr + p.sq_off.ring_mask;
-    stream->io_uring.sq_array = stream->io_uring.sq_ptr + p.sq_off.array;
+    queue->io_uring.sq_tail  = queue->io_uring.sq_ptr + p.sq_off.tail;
+    queue->io_uring.sq_mask  = queue->io_uring.sq_ptr + p.sq_off.ring_mask;
+    queue->io_uring.sq_array = queue->io_uring.sq_ptr + p.sq_off.array;
 
     /* Map in the submission queue entries array */
-    stream->io_uring.sqes = (struct io_uring_sqe *) mmap(0, p.sq_entries * sizeof(struct io_uring_sqe), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, stream->io_uring.fd, IORING_OFF_SQES);
-    if (stream->io_uring.sqes == MAP_FAILED)
+    queue->io_uring.sqes = (struct io_uring_sqe *) mmap(0, p.sq_entries * sizeof(struct io_uring_sqe), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, queue->io_uring.fd, IORING_OFF_SQES);
+    if (queue->io_uring.sqes == MAP_FAILED)
         LOGGER_FATAL("Failed to mmap io_uring for asynchronous file i/o (3)");
 
     /* Save useful fields for later easy reference */
-    stream->io_uring.cq_head = stream->io_uring.cq_ptr + p.cq_off.head;
-    stream->io_uring.cq_tail = stream->io_uring.cq_ptr + p.cq_off.tail;
-    stream->io_uring.cq_mask = stream->io_uring.cq_ptr + p.cq_off.ring_mask;
-    stream->io_uring.cqes    = (struct io_uring_cqe *) (stream->io_uring.cq_ptr + p.cq_off.cqes);
+    queue->io_uring.cq_head = queue->io_uring.cq_ptr + p.cq_off.head;
+    queue->io_uring.cq_tail = queue->io_uring.cq_ptr + p.cq_off.tail;
+    queue->io_uring.cq_mask = queue->io_uring.cq_ptr + p.cq_off.ring_mask;
+    queue->io_uring.cqes    = (struct io_uring_cqe *) (queue->io_uring.cq_ptr + p.cq_off.cqes);
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
-    stream_t * istream,
-    stream_instruction_t * instr,
-    stream_instruction_counter_t idx
+XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
+    queue_t * iqueue,
+    command_t * cmd,
+    queue_command_list_counter_t idx
 ) {
-    (void) istream;
+    (void) iqueue;
     (void) idx;
 
-    assert(instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ ||
-            instr->type == XKRT_STREAM_INSTR_TYPE_FD_WRITE);
+    assert(cmd->type == COMMAND_TYPE_FD_READ ||
+            cmd->type == COMMAND_TYPE_FD_WRITE);
 
-    stream_host_t * stream = (stream_host_t *) istream;
+    queue_host_t * queue = (queue_host_t *) iqueue;
 
-    switch (instr->type)
+    switch (cmd->type)
     {
-        case (XKRT_STREAM_INSTR_TYPE_FD_READ):
-        case (XKRT_STREAM_INSTR_TYPE_FD_WRITE):
+        case (COMMAND_TYPE_FD_READ):
+        case (COMMAND_TYPE_FD_WRITE):
         {
-            if (stream->io_uring.sq_ptr == NULL)
-                XKRT_DRIVER_ENTRYPOINT(io_uring_init)(stream);
-            assert(stream->io_uring.sq_ptr);
+            if (queue->io_uring.sq_ptr == NULL)
+                XKRT_DRIVER_ENTRYPOINT(io_uring_init)(queue);
+            assert(queue->io_uring.sq_ptr);
 
             /* Add our submission queue entry to the tail of the SQE ring buffer */
-            unsigned tail  = *stream->io_uring.sq_tail;
-            unsigned index = tail & *stream->io_uring.sq_mask;
-            struct io_uring_sqe * sqe = &stream->io_uring.sqes[index];
+            unsigned tail  = *queue->io_uring.sq_tail;
+            unsigned index = tail & *queue->io_uring.sq_mask;
+            struct io_uring_sqe * sqe = &queue->io_uring.sqes[index];
 
             /* Fill in the parameters required for the read or write operation */
-            sqe->opcode    = (instr->type == XKRT_STREAM_INSTR_TYPE_FD_READ) ? IORING_OP_READ : IORING_OP_WRITE;
-            sqe->fd        = instr->file.fd;
-            sqe->addr      = (unsigned long) instr->file.buffer;
-            sqe->len       = instr->file.n;
-            sqe->off       = instr->file.offset;
+            sqe->opcode    = (cmd->type == COMMAND_TYPE_FD_READ) ? IORING_OP_READ : IORING_OP_WRITE;
+            sqe->fd        = cmd->file.fd;
+            sqe->addr      = (unsigned long) cmd->file.buffer;
+            sqe->len       = cmd->file.n;
+            sqe->off       = cmd->file.offset;
             sqe->user_data = (__u64) idx;
 
-            stream->io_uring.sq_array[index] = index;
+            queue->io_uring.sq_array[index] = index;
             ++tail;
 
             /* Update the tail */
-            io_uring_smp_store_release(stream->io_uring.sq_tail, tail);
+            io_uring_smp_store_release(queue->io_uring.sq_tail, tail);
 
             /* Tell the kernel we have submitted events with the io_uring_enter() system call. */
             const int to_submit      = 1;
             const int min_complete   = 0;
             const unsigned int flags = 0; // IORING_ENTER_GETEVENTS;
-            int r = (int) syscall(__NR_io_uring_enter, stream->io_uring.fd, to_submit, min_complete, flags, NULL, 0);
+            int r = (int) syscall(__NR_io_uring_enter, queue->io_uring.fd, to_submit, min_complete, flags, NULL, 0);
             if (r < 0)
                 LOGGER_FATAL("__NR_io_uring_enter");
 
@@ -301,15 +301,15 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch)(
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
-    int device_driver_id,
-    stream_type_t stype
+XKRT_DRIVER_ENTRYPOINT(queue_suggest)(
+    device_driver_id_t device_driver_id,
+    queue_type_t qtype
 ) {
     assert(device_driver_id == 0);
-    switch (stype)
+    switch (qtype)
     {
-        case (STREAM_TYPE_FD_READ):
-        case (STREAM_TYPE_FD_WRITE):
+        case (QUEUE_TYPE_FD_READ):
+        case (QUEUE_TYPE_FD_WRITE):
             return 1;
 
         default:
@@ -319,22 +319,22 @@ XKRT_DRIVER_ENTRYPOINT(stream_suggest)(
 }
 
 static inline int
-XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_commands_wait)(
+    queue_t * iqueue
 ) {
-    assert(istream);
-    stream_host_t * stream = (stream_host_t *) istream;
+    assert(iqueue);
+    queue_host_t * queue = (queue_host_t *) iqueue;
 
-    switch (stream->super.type)
+    switch (queue->super.type)
     {
-        case (STREAM_TYPE_FD_READ):
-        case (STREAM_TYPE_FD_WRITE):
+        case (QUEUE_TYPE_FD_READ):
+        case (QUEUE_TYPE_FD_WRITE):
         {
-            int min_completion = stream->super.pending.size();
+            int min_completion = queue->super.pending.size();
             if (min_completion)
             {
-                LOGGER_DEBUG("Waiting for %d i/o instructions to complete", min_completion);
-                int r = (int) syscall(__NR_io_uring_enter, stream->io_uring.fd, 0, min_completion, IORING_ENTER_GETEVENTS, NULL, 0);
+                LOGGER_DEBUG("Waiting for %d i/o commands to complete", min_completion);
+                int r = (int) syscall(__NR_io_uring_enter, queue->io_uring.fd, 0, min_completion, IORING_ENTER_GETEVENTS, NULL, 0);
                 if (r < 0)
                     LOGGER_FATAL("__NR_io_uring_enter (wait) failed: %s", strerror(errno));
             }
@@ -348,22 +348,22 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(
 }
 
 static inline int
-XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
-    stream_t * istream,
-    stream_instruction_t * instr,
-    stream_instruction_counter_t idx
+XKRT_DRIVER_ENTRYPOINT(queue_command_wait)(
+    queue_t * iqueue,
+    command_t * cmd,
+    queue_command_list_counter_t idx
 ) {
-    assert(instr);
+    assert(cmd);
 
     // TODO: currently naively wait for all events to complete, instead we
-    // should wait for the specific i/o instruction
-    XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait)(istream);
+    // should wait for the specific i/o command
+    XKRT_DRIVER_ENTRYPOINT(queue_commands_wait)(iqueue);
 
     # if 0
-    switch (instr->type)
+    switch (cmd->type)
     {
-        case (STREAM_TYPE_FD_READ):
-        case (STREAM_TYPE_FD_WRITE):
+        case (QUEUE_TYPE_FD_READ):
+        case (QUEUE_TYPE_FD_WRITE):
         {
         }
 
@@ -376,15 +376,15 @@ XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)(
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
+    queue_t * iqueue
 ) {
-    assert(istream);
+    assert(iqueue);
 
-    stream_host_t * stream = (stream_host_t *) istream;
+    queue_host_t * queue = (queue_host_t *) iqueue;
     int r = 0;
 
-    // no need to iterate through instr, its saved in the completion queue for I/O Instructions
+    // no need to iterate through cmd, its saved in the completion queue for I/O Instructions
     {
         /*
          * Read from completion queue.
@@ -395,32 +395,32 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
         while (1)
         {
             /* Read barrier */
-            unsigned head = io_uring_smp_load_acquire(stream->io_uring.cq_head);
+            unsigned head = io_uring_smp_load_acquire(queue->io_uring.cq_head);
 
             /* If head == tail, it means that the buffer is empty. */
-            if (head == *stream->io_uring.cq_tail)
+            if (head == *queue->io_uring.cq_tail)
                 break ;
 
             /* Get the entry */
-            struct io_uring_cqe * cqe = &stream->io_uring.cqes[head & (*stream->io_uring.cq_mask)];
+            struct io_uring_cqe * cqe = &queue->io_uring.cqes[head & (*queue->io_uring.cq_mask)];
 
             if (cqe->res < 0)
                 LOGGER_FATAL("Error: %s", strerror(abs(cqe->res)));
             else
             {
-                const stream_instruction_counter_t p = (const stream_instruction_counter_t) cqe->user_data;
-                stream_instruction_t * instr = istream->pending.instr + p;
-                assert(instr);
-                assert(instr->completed == false);
-                assert(cqe->res == instr->file.n);
+                const queue_command_list_counter_t p = (const queue_command_list_counter_t) cqe->user_data;
+                command_t * cmd = iqueue->pending.cmd + p;
+                assert(cmd);
+                assert(cmd->completed == false);
+                assert(cqe->res == cmd->file.n);
 
                 ++head;
 
                 /* Write barrier so that update to the head are made visible */
-                io_uring_smp_store_release(stream->io_uring.cq_head, head);
+                io_uring_smp_store_release(queue->io_uring.cq_head, head);
 
-                /* complete kinstruction */
-                istream->complete_instruction(instr);
+                /* complete kcommand */
+                iqueue->complete_command(cmd);
             }
         }
     }
@@ -428,36 +428,36 @@ XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress)(
     return r;
 }
 
-static stream_t *
-XKRT_DRIVER_ENTRYPOINT(stream_create)(
+static queue_t *
+XKRT_DRIVER_ENTRYPOINT(queue_create)(
     device_t * idevice,
-    stream_type_t type,
-    stream_instruction_counter_t capacity
+    queue_type_t type,
+    queue_command_list_counter_t capacity
 ) {
     (void)idevice;
     (void)type;
     (void)capacity;
 
-    if (type != STREAM_TYPE_FD_READ && type != STREAM_TYPE_FD_WRITE)
+    if (type != QUEUE_TYPE_FD_READ && type != QUEUE_TYPE_FD_WRITE)
         return NULL;
-    assert(type == STREAM_TYPE_FD_READ || type == STREAM_TYPE_FD_WRITE);
+    assert(type == QUEUE_TYPE_FD_READ || type == QUEUE_TYPE_FD_WRITE);
 
-    uint8_t * mem = (uint8_t *) malloc(sizeof(stream_host_t));
+    uint8_t * mem = (uint8_t *) malloc(sizeof(queue_host_t));
     assert(mem);
 
-    stream_host_t * stream = (stream_host_t *) mem;
+    queue_host_t * queue = (queue_host_t *) mem;
 
     /*************************/
-    /* init xkrt stream */
+    /* init xkrt queue */
     /*************************/
-    stream_init(
-        (stream_t *) stream,
+    queue_init(
+        (queue_t *) queue,
         type,
         capacity,
-        XKRT_DRIVER_ENTRYPOINT(stream_instruction_launch),
-        XKRT_DRIVER_ENTRYPOINT(stream_instructions_progress),
-        XKRT_DRIVER_ENTRYPOINT(stream_instructions_wait),
-        XKRT_DRIVER_ENTRYPOINT(stream_instruction_wait)
+        XKRT_DRIVER_ENTRYPOINT(queue_command_launch),
+        XKRT_DRIVER_ENTRYPOINT(queue_commands_progress),
+        XKRT_DRIVER_ENTRYPOINT(queue_commands_wait),
+        XKRT_DRIVER_ENTRYPOINT(queue_command_wait)
     );
 
     /*************************/
@@ -466,14 +466,14 @@ XKRT_DRIVER_ENTRYPOINT(stream_create)(
 
     // nothing to do
 
-    return (stream_t *) stream;
+    return (queue_t *) queue;
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(stream_delete)(
-    stream_t * istream
+XKRT_DRIVER_ENTRYPOINT(queue_delete)(
+    queue_t * iqueue
 ) {
-    free(istream);
+    free(iqueue);
 }
 
 ////////////
@@ -482,7 +482,7 @@ XKRT_DRIVER_ENTRYPOINT(stream_delete)(
 
 # if 0
 static void *
-XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(int device_driver_id, const size_t size, int area_idx)
+XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(device_driver_id_t device_driver_id, const size_t size, int area_idx)
 {
     (void)device_driver_id;
     (void)size;
@@ -491,7 +491,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(int device_driver_id, const size_
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(int device_driver_id, void * ptr, const size_t size, int area_idx)
+XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(device_driver_id_t device_driver_id, void * ptr, const size_t size, int area_idx)
 {
     (void)device_driver_id;
     (void)ptr;
@@ -502,7 +502,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(int device_driver_id, void * pt
 
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_device_info)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     device_memory_info_t info[XKRT_DEVICE_MEMORIES_MAX],
     int * nmemories
 ) {
@@ -528,7 +528,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_device_info)(
 # if 0
 static void *
 XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     uint64_t size
 ) {
     (void)device_driver_id;
@@ -538,7 +538,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_allocate)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_host_deallocate)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     void * mem,
     uint64_t size
 ) {
@@ -549,7 +549,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_host_deallocate)(
 
 driver_module_t
 XKRT_DRIVER_ENTRYPOINT(module_load)(
-    int device_driver_id,
+    device_driver_id_t device_driver_id,
     uint8_t * bin,
     size_t binsize,
     driver_module_format_t format
@@ -615,9 +615,9 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 
     REGISTER(device_cpuset);
 
-    REGISTER(stream_suggest);
-    REGISTER(stream_create);
-    REGISTER(stream_delete);
+    REGISTER(queue_suggest);
+    REGISTER(queue_create);
+    REGISTER(queue_delete);
 
  // REGISTER(module_load);
  // REGISTER(module_unload);

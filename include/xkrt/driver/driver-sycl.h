@@ -39,7 +39,7 @@
 
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
-# include <xkrt/driver/stream.h>
+# include <xkrt/driver/queue.h>
 
 # include <xkrt/support.h>
 
@@ -60,9 +60,9 @@ XKRT_NAMESPACE_BEGIN
     }               device_sycl_t;
 
 
-    typedef struct  stream_sycl_t
+    typedef struct  queue_sycl_t
     {
-        stream_t super;
+        queue_t super;
 
         struct {
             sycl::queue queue;
@@ -71,7 +71,7 @@ XKRT_NAMESPACE_BEGIN
                 size_t capacity;
             } events ;
         } sycl;
-    }               stream_sycl_t;
+    }               queue_sycl_t;
 
 
     typedef struct  driver_sycl_t
