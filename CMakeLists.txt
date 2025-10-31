@@ -134,9 +134,8 @@ find_package(Threads REQUIRED)
 target_link_libraries(${XKRT} PRIVATE Threads::Threads)
 
 # HWLOC
-find_package(HWLOC REQUIRED)
-include_directories(${HWLOC_INCLUDE_DIRS})
-target_link_libraries(${XKRT} PRIVATE ${HWLOC_LIBRARIES})
+find_package(hwloc REQUIRED)
+target_link_libraries(${XKRT} PRIVATE hwloc::hwloc)
 
 # Host driver
 add_library(${XKRT}_driver_host SHARED src/driver/driver_host.cc)
@@ -151,7 +150,7 @@ if (USE_CUDA)
 
     add_library(${XKRT}_driver_cu SHARED src/driver/driver_cu.cc)
     add_dependencies(${XKRT}_driver_cu always_generate_files)
-    target_link_libraries(${XKRT}_driver_cu PRIVATE ${HWLOC_LIBRARIES} CUDA::cudart CUDA::cuda_driver CUDA::cublas CUDA::cusparse)
+    target_link_libraries(${XKRT}_driver_cu PRIVATE hwloc::hwloc CUDA::cudart CUDA::cuda_driver CUDA::cublas CUDA::cusparse CUDA::cusolver)
     target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_cu)
     list(APPEND XKRT_TARGETS ${XKRT}_driver_cu)
 
@@ -174,7 +173,7 @@ if (USE_HIP)
 
     add_library(${XKRT}_driver_hip SHARED src/driver/driver_hip.cc)
     add_dependencies(${XKRT}_driver_hip always_generate_files)
-    target_link_libraries(${XKRT}_driver_hip PRIVATE ${HWLOC_LIBRARIES} ${HIP_LIBRARIES} ${HIPBLAS_LIBRARIES})
+    target_link_libraries(${XKRT}_driver_hip PRIVATE hwloc::hwloc ${HIP_LIBRARIES} ${HIPBLAS_LIBRARIES})
     target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_hip)
     list(APPEND XKRT_TARGETS ${XKRT}_driver_hip)
 
@@ -188,7 +187,7 @@ if (USE_ZE)
 
     add_library(${XKRT}_driver_ze SHARED src/driver/driver_ze.cc)
     add_dependencies(${XKRT}_driver_ze always_generate_files)
-    target_link_libraries(${XKRT}_driver_ze PRIVATE ${HWLOC_LIBRARIES} ${ZE_LIBRARIES})
+    target_link_libraries(${XKRT}_driver_ze PRIVATE hwloc::hwloc ${ZE_LIBRARIES})
     target_link_libraries(${XKRT} PRIVATE ${XKRT}_driver_ze)
     list(APPEND XKRT_TARGETS ${XKRT}_driver_ze)
 
