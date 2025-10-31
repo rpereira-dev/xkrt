@@ -48,6 +48,7 @@
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/logger-cu.h>
 # include <xkrt/logger/logger-cublas.h>
+# include <xkrt/logger/logger-cusolver.h>
 # include <xkrt/logger/logger-cusparse.h>
 # include <xkrt/logger/logger-hwloc.h>
 # include <xkrt/logger/metric.h>
@@ -896,6 +897,9 @@ XKRT_DRIVER_ENTRYPOINT(queue_create)(
 
         CUSPARSE_SAFE_CALL(cusparseCreate(&queue->cu.sparse.handle));
         CUSPARSE_SAFE_CALL(cusparseSetStream(queue->cu.sparse.handle, queue->cu.handle.high));
+
+        CUSOLVER_SAFE_CALL(cusolverDnCreate(&queue->cu.solver.handle));
+        CUSOLVER_SAFE_CALL(cusolverDnSetStream(queue->cu.solver.handle, queue->cu.handle.high));
     }
     else
     {
@@ -915,6 +919,8 @@ XKRT_DRIVER_ENTRYPOINT(queue_delete)(
         cublasDestroy(queue->cu.blas.handle);
     if (queue->cu.sparse.handle)
         cusparseDestroy(queue->cu.sparse.handle);
+    if (queue->cu.solver.handle)
+        cusolverDnDestroy(queue->cu.solver.handle);
     CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.high));
     CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.low));
     free(queue);

@@ -44,6 +44,7 @@
 # include <cuda.h>
 # include <cublas_v2.h>
 # include <cusparse.h>
+# include <cusolverDn.h>
 
 XKRT_NAMESPACE_BEGIN
 
@@ -70,6 +71,10 @@ XKRT_NAMESPACE_BEGIN
             struct {
                 cusparseHandle_t handle;
             } sparse;
+
+            struct {
+                cusolverDnHandle_t handle;
+            } solver;
 
         } cu;
     }               queue_cu_t;

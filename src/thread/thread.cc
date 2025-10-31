@@ -555,7 +555,7 @@ runtime_t::task_wait(void)
             backoff = (backoff << 1);
         WAIT64 ;
 
-        // TODO : maybe block in a pthread_cond
+        // TODO : block in a pthread_cond after some threshold
     }
 
     # undef WAIT
@@ -568,9 +568,9 @@ template<bool ws>
 void
 runtime_t::team_barrier(
     team_t * team,
-    thread_t * thread)
-{
-    this->task_wait();
+    thread_t * thread
+) {
+    this->task_wait();  // TODO: i think we should remove this
 
     if (team->priv.nthreads == 1)
         return ;
