@@ -129,7 +129,7 @@ main(void)
                     new (accesses + 0) access_t(task, a, b, ACCESS_MODE_R);
                 },
 
-                [a, b] (runtime_t * runtime, task_t * task) {
+                [a, b] (runtime_t * runtime, device_t * device, task_t * task) {
                     LOGGER_INFO("File chunk [%lu, %lu] is ready", a, b);
                     for (uintptr_t x = a ; x < b ; ++x)
                         assert(*((unsigned char *) x) == 1);

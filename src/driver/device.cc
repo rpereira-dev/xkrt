@@ -555,11 +555,11 @@ device_t::offloader_queue_command_submit_kernel(
     queue_t * queue;
     command_t * cmd;
     this->offloader_queue_command_new(
-        QUEUE_TYPE_KERN,               /* IN */
-       &thread,                         /* OUT */
-       &queue,                         /* OUT */
-        COMMAND_TYPE_KERN,    /* IN */
-       &cmd                           /* OUT */
+        QUEUE_TYPE_KERN,        /* IN */
+        &thread,                /* OUT */
+        &queue,                 /* OUT */
+        COMMAND_TYPE_KERN,      /* IN */
+        &cmd                    /* OUT */
     );
     assert(thread);
     assert(queue);

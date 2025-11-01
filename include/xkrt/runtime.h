@@ -354,7 +354,7 @@ struct  runtime_t
     task_instanciate(
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
-        const std::function<void(runtime_t *, task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         static_assert(ac == 0 || has_set_accesses);     // must have both or none
         static_assert(!has_split_condition || ac > 0);  // cannot split if task has no accesses
@@ -375,8 +375,8 @@ struct  runtime_t
         task_t * task = tls->allocate_task(task_size + args_size);
         new (task) task_t(this->formats.host_capture, flags);
 
-        std::function<void(runtime_t *, task_t *)> * fcpy = (std::function<void(runtime_t *, task_t *)> *) TASK_ARGS(task, task_size);
-        new (fcpy) std::function<void(runtime_t *, task_t *)>(f);
+        std::function<void(runtime_t *, device_t *, task_t *)> * fcpy = (std::function<void(runtime_t *, device_t *, task_t *)> *) TASK_ARGS(task, task_size);
+        new (fcpy) std::function<void(runtime_t *, device_t *, task_t *)>(f);
 
         if (depflag)
         {
@@ -407,7 +407,7 @@ struct  runtime_t
     task_spawn(
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
-        const std::function<void(runtime_t *, task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         // create the task
         task_t * task = this->task_instanciate<ac, has_set_accesses, has_split_condition>(set_accesses, split_condition, f);
@@ -423,7 +423,7 @@ struct  runtime_t
     task_spawn(
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
-        const std::function<void(runtime_t *, task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         return this->task_spawn<ac, true, true>(set_accesses, split_condition, f);
     }
@@ -432,14 +432,14 @@ struct  runtime_t
     inline void
     task_spawn(
         const std::function<void(task_t *, access_t *)> & set_accesses,
-        const std::function<void(runtime_t *, task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         this->task_spawn<ac, true, false>(set_accesses, nullptr, f);
     }
 
     inline void
     task_spawn(
-        const std::function<void(runtime_t *, task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         this->task_spawn<0, false, false>(nullptr, nullptr, f);
     }
@@ -487,7 +487,7 @@ struct  runtime_t
         team_t * team,
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
-        const std::function<void(runtime_t *, task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         // create the task
         task_t * task = task_instanciate<ac, has_set_accesses, has_split_condition>(set_accesses, split_condition, f);
@@ -504,7 +504,7 @@ struct  runtime_t
         team_t * team,
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
-        const std::function<void(runtime_t *, task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         return this->team_task_spawn<ac, true, true>(team, set_accesses, split_condition, f);
     }
@@ -514,7 +514,7 @@ struct  runtime_t
     team_task_spawn(
         team_t * team,
         const std::function<void(task_t *, access_t *)> & set_accesses,
-        const std::function<void(runtime_t *, task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         this->team_task_spawn<ac, true, false>(team, set_accesses, nullptr, f);
     }
@@ -522,7 +522,7 @@ struct  runtime_t
     inline void
     team_task_spawn(
         team_t * team,
-        const std::function<void(runtime_t *, task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         this->team_task_spawn<0, false, false>(team, nullptr, nullptr, f);
     }

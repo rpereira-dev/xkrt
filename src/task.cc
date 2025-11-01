@@ -330,7 +330,7 @@ task_execute(runtime_t * runtime, device_t * device, task_t * task)
             {
                 task_t * current = thread->current_task;
                 thread->current_task = task;
-                ((void (*)(runtime_t *, task_t *)) format->f[TASK_FORMAT_TARGET_HOST])(runtime, task);
+                ((void (*)(runtime_t *, device_t *, task_t *)) format->f[targetfmt])(runtime, device, task);
                 thread->current_task = current;
 
                 /* if the task yielded, requeue it */
@@ -352,12 +352,13 @@ task_execute(runtime_t * runtime, device_t * device, task_t * task)
 }
 
 static void
-body_host_capture(task_t * task)
+body_host_capture(runtime_t * runtime, device_t * device, task_t * task)
 {
     assert(task);
 
-    std::function<void(task_t *)> * f = (std::function<void(task_t *)> *) TASK_ARGS(task);
-    (*f)(task);
+    std::function<void(runtime_t *, device_t *, task_t *)> * f =
+        (std::function<void(runtime_t *, device_t *, task_t *)> *) TASK_ARGS(task);
+    (*f)(runtime, device, task);
 }
 
 void

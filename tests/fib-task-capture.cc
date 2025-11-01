@@ -70,13 +70,13 @@ fib(int n, int depth = 0)
     else
     {
         runtime.task_spawn(
-            [&n, &fn1, depth] (runtime_t * runtime, task_t * task) {
+            [&n, &fn1, depth] (runtime_t * runtime, device_t * device, task_t * task) {
                 fn1 = fib(n - 1, depth + 1);
             }
         );
 
         runtime.task_spawn(
-            [&n, &fn2, depth] (runtime_t * runtime, task_t * task) {
+            [&n, &fn2, depth] (runtime_t * runtime, device_t * device, task_t * task) {
                 fn2 = fib(n - 2, depth + 1);
             }
         );

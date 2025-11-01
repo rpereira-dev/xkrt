@@ -55,7 +55,7 @@ void xkrt_task_detachable_decr(xkrt_runtime_t * runtime, xkrt_task_t * task);
 void xkrt_task_enqueue(xkrt_runtime_t * runtime, xkrt_task_t * task);
 
 /* TASK SPAWN */
-typedef void (*xkrt_task_func_t)(xkrt_runtime_t * runtime, xkrt_task_t * task, void * user_data);
+typedef void (*xkrt_task_func_t)(xkrt_runtime_t * runtime, xkrt_device_t * device, xkrt_task_t * task, void * user_data);
 
 void xkrt_task_spawn(
     xkrt_runtime_t * runtime,

@@ -260,8 +260,8 @@ runtime_t::memory_register_async(void * ptr, size_t size)
 {
     // TODO : could be optimized using a custom format for register tasks
     this->task_spawn(
-        [=] (runtime_t * runtime, task_t * task) {
-            (void) task;
+        [=] (runtime_t * runtime, device_t * device, task_t * task) {
+            (void) device; (void) task;
             runtime->memory_register(ptr, size);
         }
     );
@@ -273,8 +273,8 @@ runtime_t::memory_unregister_async(void * ptr, size_t size)
 {
     // TODO : could be optimized using a custom format for unregister tasks
     this->task_spawn(
-        [=] (runtime_t * runtime, task_t * task) {
-            (void) task;
+        [=] (runtime_t * runtime, device_t * device, task_t * task) {
+            (void) device; (void) task;
             runtime->memory_unregister(ptr, size);
         }
     );
