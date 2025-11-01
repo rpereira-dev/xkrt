@@ -168,6 +168,7 @@ __device_prepare_task(
     LOGGER_DEBUG("Preparing task `%s` of format `%d` on device `%d` - on a thread of device `%d`",
             task->label, task->fmtid, device_global_id, device->global_id);
 
+    /* if the task has accesses, ensure each of them are coherent before starting execution */
     if (task->flags & TASK_FLAG_DEPENDENT)
     {
         task_dep_info_t * dep = TASK_DEP_INFO(task);
@@ -233,13 +234,13 @@ __device_prepare_task(
             }
 
             /* decrease the task 'fetching' counter to detect early-fetch completion */
-            __task_fetched(1, task, device_task_execute, runtime, device);
+            __task_fetched(1, task, task_execute, runtime, device);
             /* else the task will be launched in a callback once all accesses got fetched */
         }
     }
     else
     {
-        device_task_execute(runtime, device, task);
+        task_execute(runtime, device, task);
     }
 }
 

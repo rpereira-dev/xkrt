@@ -281,8 +281,8 @@ xkrt_task_spawn(
     assert(runtime && *runtime);
     runtime_t * rt = (runtime_t *)(*runtime);
 
-    auto wrapper = [func, user_data](task_t * task) {
-        func((xkrt_task_t *) task, user_data);
+    auto wrapper = [func, user_data](runtime_t * runtime, task_t * task) {
+        func((xkrt_runtime_t *) &runtime, (xkrt_task_t *) task, user_data);
     };
 
     return rt->task_spawn(wrapper);
@@ -334,8 +334,8 @@ xkrt_team_task_spawn(
     assert(runtime && *runtime);
     runtime_t * rt = (runtime_t *)(*runtime);
 
-    auto wrapper = [func, user_data](task_t * task) {
-        func((xkrt_task_t *) task, user_data);
+    auto wrapper = [func, user_data](runtime_t * runtime, task_t * task) {
+        func((xkrt_runtime_t *) &runtime, (xkrt_task_t *) task, user_data);
     };
 
     rt->team_task_spawn((team_t *) team, wrapper);
@@ -356,8 +356,8 @@ xkrt_team_task_spawn_with_accesses(
         if (set_accesses) set_accesses((xkrt_task_t *) task, (xkrt_access_t *) access, user_data);
     };
 
-    auto func_wrapper = [func, user_data](task_t * task) {
-        func((xkrt_task_t *) task, user_data);
+    auto func_wrapper = [func, user_data](runtime_t * runtime, task_t * task) {
+        func((xkrt_runtime_t *) &runtime, (xkrt_task_t *) task, user_data);
     };
 
     rt->team_task_spawn<0, true, false>((team_t *) team, set_wrapper, nullptr, func_wrapper);

@@ -274,45 +274,31 @@ __task_detachable_incr(
     det->wc.fetch_add(N, std::memory_order_relaxed);
 }
 
-/* transition the task to the state 'executed' - and eventually to 'completed' or 'detached' */
+/* transition the task to the state 'executed' - and eventually to 'completed'
+ * or 'detached' */
 static inline void
 __task_executed(
     runtime_t * runtime,
     task_t * task
 ) {
     if (task->flags & TASK_FLAG_DETACHABLE)
-        __task_detachable_decr<0>(runtime, task);
+        __task_detachable_decr<1>(runtime, task);
     else
         __task_complete(runtime, task);
 }
 
-static void
-device_task_executed_callback(
-    void * args[XKRT_CALLBACK_ARGS_MAX]
-) {
-    runtime_t * runtime = (runtime_t *) args[0];
-    assert(runtime);
-
-    task_t * task = (task_t *) args[1];
-    assert(task);
-
-    __task_executed(runtime, task);
-}
-
 /**
- * Must be called once all task accesses were fetched, to queue the task kernel for execution
- *  - driver - the driver to use for executing the kernel
- *  - device - the device to use for executing the kernel
- *  - task   - the task
+ *  Execute a task.  * Must be called once all task accesses were fetched.
  */
 void
-device_task_execute(
-    runtime_t * runtime,
-    device_t * device,
-    task_t * task
-) {
+task_execute(runtime_t * runtime, device_t * device, task_t * task)
+{
     thread_t * thread = thread_t::get_tls();
     assert(thread);
+
+    // if detachable, increase counter to avoid early completion (before routine executed)
+    if (task->flags & TASK_FLAG_DETACHABLE)
+        __task_detachable_incr<1>(runtime, task);
 
     task_format_t * format;
 
@@ -330,50 +316,32 @@ device_task_execute(
        /* if there is a format */
         if (format)
         {
-            // convert device driver type to task format target
-            task_format_target_t targetfmt = driver_type_to_task_format_target(device->driver_type);
-
-            /* if there is a body to execute */
-            if (format->f[targetfmt] == NULL)
+            task_format_target_t targetfmt;
+            if (device)
+            {
+                targetfmt = driver_type_to_task_format_target(device->driver_type);
+                if (format->f[targetfmt] == NULL)
+                    targetfmt = TASK_FORMAT_TARGET_HOST;
+            }
+            else
                 targetfmt = TASK_FORMAT_TARGET_HOST;
 
             if (format->f[targetfmt])
             {
-                /* if its a host task */
-                if (targetfmt == TASK_FORMAT_TARGET_HOST)
-                {
-                    task_t * current = thread->current_task;
-                    thread->current_task = task;
-                    ((void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST])(task);
-                    thread->current_task = current;
+                task_t * current = thread->current_task;
+                thread->current_task = task;
+                ((void (*)(runtime_t *, task_t *)) format->f[TASK_FORMAT_TARGET_HOST])(runtime, task);
+                thread->current_task = current;
 
-                    /* if the task yielded, requeue it */
-                    if (task->flags & TASK_FLAG_REQUEUE)
-                    {
-                        task->flags = task->flags & ~(TASK_FLAG_REQUEUE);
-                        runtime->task_thread_enqueue(thread, task);
-                    }
-                    /* else, it executed entirely */
-                    else
-                        __task_executed(runtime, task);
+                /* if the task yielded, requeue it */
+                if (task->flags & TASK_FLAG_REQUEUE)
+                {
+                    task->flags = task->flags & ~(TASK_FLAG_REQUEUE);
+                    runtime->task_thread_enqueue(thread, task);
                 }
-                /* else, if its a device task */
+                /* else, it executed entirely */
                 else
-                {
-                    /* the task will complete in the callback called asynchronously on kernel completion */
-                    callback_t callback;
-                    callback.func    = device_task_executed_callback;
-                    callback.args[0] = runtime;
-                    callback.args[1] = task;
-                    assert(XKRT_CALLBACK_ARGS_MAX >= 2);
-
-                    /* submit kernel launch command */
-                    device->offloader_queue_command_submit_kernel(
-                        (kernel_launcher_t) format->f[targetfmt],
-                        task,
-                        callback
-                    );
-                }
+                    __task_executed(runtime, task);
             }
             else
                 LOGGER_FATAL("Task format for `%p` has no impl for device `%u`", task, device->global_id);
@@ -437,30 +405,6 @@ runtime_t::task_complete(task_t * task)
     assert(!(task->flags & TASK_FLAG_DETACHABLE));
 
     __task_complete(this, task);
-}
-
-void
-runtime_t::task_run(
-    team_t * team,
-    thread_t * thread,
-    task_t * task
-) {
-    assert(team);
-    assert(thread);
-    assert(task);
-
-    assert(thread == thread_t::get_tls());
-    if (task->fmtid != TASK_FORMAT_NULL)
-    {
-        task_format_t * format = this->formats.list.list + task->fmtid;
-        assert(format->f[TASK_FORMAT_TARGET_HOST]);
-        task_t * current = thread->current_task;
-        thread->current_task = task;
-        void (*f)(task_t *) = (void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST];
-        f(task);
-        thread->current_task = current;
-    }
-    __task_executed(this, task);
 }
 
 /** duplicate a moldable task */

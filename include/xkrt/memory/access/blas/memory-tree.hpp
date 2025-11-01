@@ -937,7 +937,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
 
             device_t * device = runtime->device_get(fetch->dst_device_global_id);
             assert(device);
-            __task_fetched(1, access->task, device_task_execute, runtime, device);
+            __task_fetched(1, access->task, task_execute, runtime, device);
         }
 
         static inline fetch_list_t *

@@ -81,7 +81,7 @@ main(void)
         },
 
         // routine
-        [] (task_t * task) {
+        [] (runtime_t * runtime, task_t * task) {
             access_t * accesses = TASK_ACCESSES(task);
             const access_t * access = accesses + 0;
             const uintptr_t a = access->region.interval.segment[0].a;

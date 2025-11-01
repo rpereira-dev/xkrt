@@ -117,7 +117,7 @@ typedef enum    task_flags_t
 {
     TASK_FLAG_ZERO          = 0,
     TASK_FLAG_DEPENDENT     = (1 << 0), // may have dependencies
-    TASK_FLAG_DETACHABLE    = (1 << 1), // completion is associated with the completion of user-defined external events
+    TASK_FLAG_DETACHABLE    = (1 << 1), // completion is associated with the completion of events
     TASK_FLAG_DEVICE        = (1 << 2), // may execute on a device
     TASK_FLAG_DOMAIN        = (1 << 3), // may have dependent children tasks - in such case, it will have a dependency and a memory domain
     TASK_FLAG_MOLDABLE      = (1 << 4), // the task may be split
