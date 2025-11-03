@@ -442,7 +442,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_create)(
         return NULL;
     assert(type == QUEUE_TYPE_FD_READ || type == QUEUE_TYPE_FD_WRITE);
 
-    uint8_t * mem = (uint8_t *) malloc(sizeof(queue_host_t));
+    uint8_t * mem = (uint8_t *) calloc(1, sizeof(queue_host_t));
     assert(mem);
 
     queue_host_t * queue = (queue_host_t *) mem;
