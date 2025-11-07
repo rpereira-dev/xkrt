@@ -211,7 +211,8 @@ runtime_t::memory_unregister(
             # if XKRT_MEMORY_REGISTER_ASSISTED
             std::vector<Interval> intervals;
             this->registered_pages.find(a, b, intervals);
-            assert(std::is_sorted(intervals.begin(), intervals.end()));
+            //assert(std::is_sorted(intervals.begin(), intervals.end()));
+            std::sort(intervals.begin(), intervals.end());
 
             for (Interval & interval : intervals)
             {
@@ -260,9 +261,9 @@ runtime_t::memory_register_async(void * ptr, size_t size)
 {
     // TODO : could be optimized using a custom format for register tasks
     this->task_spawn(
-        [=, this] (task_t * task) {
-            (void) task;
-            this->memory_register(ptr, size);
+        [=] (runtime_t * runtime, device_t * device, task_t * task) {
+            (void) device; (void) task;
+            runtime->memory_register(ptr, size);
         }
     );
     return 0;
@@ -273,9 +274,9 @@ runtime_t::memory_unregister_async(void * ptr, size_t size)
 {
     // TODO : could be optimized using a custom format for unregister tasks
     this->task_spawn(
-        [=, this] (task_t * task) {
-            (void) task;
-            this->memory_unregister(ptr, size);
+        [=] (runtime_t * runtime, device_t * device, task_t * task) {
+            (void) device; (void) task;
+            runtime->memory_unregister(ptr, size);
         }
     );
     return 0;
@@ -287,7 +288,6 @@ runtime_t::memory_unregister_async(void * ptr, size_t size)
 
 typedef struct  memory_op_async_args_t
 {
-    runtime_t * runtime;
     uintptr_t start;
     uintptr_t end;
 
@@ -305,21 +305,22 @@ constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT;
 
 template<memory_op_type_t T>
 static void
-body_memory_async(task_t * task)
+body_memory_async(runtime_t * runtime, device_t * device, task_t * task)
 {
+    (void) device;
+    assert(runtime);
     assert(task);
 
     constexpr task_access_counter_t AC = (T == TOUCH) ? 1 : 2;
     constexpr size_t task_size = task_compute_size(flags, AC);
 
     memory_op_async_args_t * args = (memory_op_async_args_t *) TASK_ARGS(task, task_size);
-    assert(args->runtime);
     assert(args->start < args->end);
 
     if constexpr (T == REGISTER)
-        args->runtime->memory_register((void *) args->start, (size_t) (args->end - args->start));
+        runtime->memory_register((void *) args->start, (size_t) (args->end - args->start));
     else if constexpr (T == UNREGISTER)
-        args->runtime->memory_unregister((void *) args->start, (size_t) (args->end - args->start));
+        runtime->memory_unregister((void *) args->start, (size_t) (args->end - args->start));
     else if constexpr (T == TOUCH)
     {
         // volatile to trick the compiler and avoid optimization of *p = *p
@@ -387,7 +388,6 @@ memory_op_async(
 
         // setup register args
         memory_op_async_args_t * args = (memory_op_async_args_t *) TASK_ARGS(task);
-        args->runtime = runtime;
 
         // ensure the same page is not registered twice by consecutive tasks
         args->start = a + (i+0) * pagesize * pages_per_task;
@@ -405,13 +405,12 @@ memory_op_async(
 
         // virtual write onto the memory segment
         access_t * accesses = TASK_ACCESSES(task, flags);
-        constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V);
-        new (accesses + 0) access_t(task, args->start, args->end, mode);
+        new (accesses + 0) access_t(task, args->start, args->end, ACCESS_MODE_VW);
 
         // if register/unregister, create a virtual write on NULL, to
         // serialize, and avoid blocking thread in cuda driver
         if constexpr(T == REGISTER || T == UNREGISTER)
-            new (accesses + 1) access_t(task, (const void *) NULL, mode, ACCESS_CONCURRENCY_COMMUTATIVE);
+            new (accesses + 1) access_t(task, (const void *) NULL, ACCESS_MODE_VW, ACCESS_CONCURRENCY_COMMUTATIVE);
 
         # if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label),
@@ -462,7 +461,7 @@ runtime_t::memory_touch_async(
 }
 
 void
-memory_async_register_format(runtime_t * runtime)
+memory_register_async_register_format(runtime_t * runtime)
 {
     {
         task_format_t format;

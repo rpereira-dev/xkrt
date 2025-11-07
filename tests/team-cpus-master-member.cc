@@ -50,7 +50,7 @@ static std::atomic<int> counter;
 static bool master_run;
 
 static void *
-main_team(team_t * team, thread_t * thread)
+main_team(runtime_t * runtime, team_t * team, thread_t * thread)
 {
     int cpu = sched_getcpu();
     LOGGER_INFO("Thread `%3d` running on `sched_getcpu() -> %3d`", thread->tid, cpu);
@@ -69,7 +69,7 @@ main(void)
     // team of 1 thread
     team_t team;
     team.desc.nthreads = 1;
-    team.desc.routine = main_team;
+    team.desc.routine = (team_routine_t) main_team;
     team.desc.master_is_member = true;
 
     // spawn the team threads

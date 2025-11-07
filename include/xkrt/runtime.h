@@ -76,6 +76,7 @@ struct  runtime_t
     struct {
         task_formats_t list;
         task_format_id_t host_capture;
+        task_format_id_t memory_copy_async;
         task_format_id_t memory_touch_async;
         task_format_id_t memory_register_async;
         task_format_id_t memory_unregister_async;
@@ -144,6 +145,26 @@ struct  runtime_t
         const callback_t            & callback
     );
 
+    /**
+     * Spawn 'n' tasks so that each task i in [0..n-1]
+     *      oi = i*size/n
+     *      ai = ptr + oi
+     *      bi = MIN(ai+size/n, size)
+     *      si = bi - ai
+     *
+     *      - access    - virtual read on Interval(src.ai, src.bi)
+     *      - routine   - submit a copy command
+     */
+    void memory_copy_async(
+        const device_global_id_t   device_global_id,
+        const size_t               size,
+        const device_global_id_t   dst_device_global_id,
+        const uintptr_t            dst_device_addr,
+        const device_global_id_t   src_device_global_id,
+        const uintptr_t            src_device_addr,
+        int                        n
+    );
+
     ///////////////////////
     // DATA DISTRIBUTION //
     ///////////////////////
@@ -180,42 +201,38 @@ struct  runtime_t
     /////////////////////
 
     /**
-     *  Create a task that reads 'n' bytes from the file descriptor 'fd' ,
-     *  and write to the 'buffer' memory.
+     * Spawn 'n' tasks so that each task i in [0..n-1]
+     *      oi = i*size/n
+     *      ai = ptr + oi
+     *      bi = MIN(ai+size/n, size)
+     *      si = bi - ai
      *
-     *  Task' access is `write: Interval(buffer, n)`
-     *
-     *  Dependencies may be released early if nchunks > 1
-     *  Example:
-     *      if nchunks == 1, then dependencies are released once 'n' bytes got read
-     *      if nchunks == 2, then dependencies are released twice, on
-     *          - Interval(buffer      , n/2) - once it has been read
-     *          - Interval(buffer + n/2, n/2) - once it has been read
+     *      - access    - write on Interval(ai, bi)
+     *      - routine   - submit a file IO read/write command that fseek 'fd' to 'oi' and reads 'si' bytes to [ai..bi]
      */
-    int file_read_async(int fd, void * buffer, size_t n, unsigned int nchunks);
-    int file_write_async(int fd, void * buffer, size_t n, unsigned int nchunks);
 
-    inline void file_foreach_chunk(
-        void * buffer,
-        const size_t total_size,
-        size_t nchunks,
-        const std::function<void(uintptr_t, uintptr_t)> & func)
+    int file_read_async (int fd, void * buffer, const size_t size, int n);
+    int file_write_async(int fd, void * buffer, const size_t size, int n);
+
+    /** Iterate for each task of the segment */
+    inline void foreach(
+        const uintptr_t p,
+        const size_t size,
+        int n,
+        const std::function<void(const int, const uintptr_t, const uintptr_t)> & func)
     {
         // compute number of commands to spawn
-        if (total_size < nchunks)
-            nchunks = (unsigned int) total_size;
+        if (size < (size_t) n)
+            n = (int) size;
 
         // compute chunk size
-        const size_t chunksize = total_size / nchunks;
+        const size_t chunksize = size / n;
         assert(chunksize > 0);
 
-        for (std::size_t i = 0; i < nchunks; ++i) {
-            const uintptr_t a = reinterpret_cast<uintptr_t>(static_cast<char*>(buffer) + i * chunksize);
-            const uintptr_t b = reinterpret_cast<uintptr_t>(
-                (i == nchunks - 1)
-                    ? static_cast<char*>(buffer) + total_size
-                    : static_cast<char*>(buffer) + (i + 1) * chunksize);
-            func(a, b);
+        for (int i = 0; i < n; ++i) {
+            const uintptr_t a = p + i * chunksize;
+            const uintptr_t b = (i == n - 1) ? p + size : p + (i + 1) * chunksize;
+            func(i, a, b);
         }
     }
 
@@ -258,7 +275,7 @@ struct  runtime_t
     void memory_noncoherent_alloc(device_global_id_t device_global_id, void * ptr, size_t size);
     void memory_noncoherent_alloc(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
-    /* spawn tasks to make the replica coherent on the passed device */
+    /* spawn empty tasks to make the replica coherent on the passed device */
     void memory_coherent_async(device_global_id_t device_global_id, void * ptr, size_t size);
     void memory_coherent_async(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
@@ -284,15 +301,44 @@ struct  runtime_t
     int memory_unregister_async(void * ptr, size_t size);
 
     /**
-     *  Create 'n' tasks so that each task i in [0..n-1]
-     *      - access - commutative write on ptr + i*size/n
-     *      - routine - register/unregister/touch [ptr + i*size/n,  MIN(ptr + (i+1)*size/n, ptr+size)]
+     *  TODO: is it 'legal' to have concurrently
+     *      - host thread A writing to memory [a..b]
+     *      - host thread B pinning memory [a..b]
+     * ? Can't find any doc on it, so for now, assuming it is not
      *
-     *  Note: each task may run several 'cuMemRegister' several time on a single chunk
+     *  Spawn 'n' tasks so that each task i in [0..n-1]
+     *      ai = ptr + i*size/n
+     *      bi = MIN(ai+size/n, size)
+     *
+     *      - access    - write on Interval(ai, bi)
+     *                  - virtual commutative write on NULL
+     *
+     *      - routine - register/unregister/touch [ai..bi]
      */
     int memory_register_async  (team_t * team, void * ptr, const size_t size, int n);
     int memory_unregister_async(team_t * team, void * ptr, const size_t size, int n);
     int memory_touch_async     (team_t * team, void * ptr, const size_t size, int n);
+
+    int memory_register_async(void * ptr, const size_t size, int n)
+    {
+        team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST);
+        assert(team);
+        return this->memory_register_async(team, ptr, size, n);
+    }
+
+    int memory_unregister_async(void * ptr, const size_t size, int n)
+    {
+        team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST);
+        assert(team);
+        return this->memory_register_async(team, ptr, size, n);
+    }
+
+    int memory_touch_async(void * ptr, const size_t size, int n)
+    {
+        team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST);
+        assert(team);
+        return this->memory_touch_async(team, ptr, size, n);
+    }
 
     /////////////////////
     // SYNCHRONIZATION //
@@ -354,7 +400,7 @@ struct  runtime_t
     task_instanciate(
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
-        const std::function<void(task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         static_assert(ac == 0 || has_set_accesses);     // must have both or none
         static_assert(!has_split_condition || ac > 0);  // cannot split if task has no accesses
@@ -366,17 +412,19 @@ struct  runtime_t
         thread_t * tls = thread_t::get_tls();
 
         // create the task
-        constexpr task_flag_bitfield_t flags = (ac == 0) ? TASK_FLAG_ZERO : (has_split_condition) ? (TASK_FLAG_DEPENDENT | TASK_FLAG_MOLDABLE) : TASK_FLAG_DEPENDENT;
+        constexpr task_flag_bitfield_t depflag = ac                  ? TASK_FLAG_DEPENDENT : TASK_FLAG_ZERO;
+        constexpr task_flag_bitfield_t molflag = has_split_condition ? TASK_FLAG_MOLDABLE  : TASK_FLAG_ZERO;
+        constexpr task_flag_bitfield_t   flags = depflag | molflag;
         constexpr size_t task_size = task_compute_size(flags, ac);
         constexpr size_t args_size = sizeof(f);
 
         task_t * task = tls->allocate_task(task_size + args_size);
         new (task) task_t(this->formats.host_capture, flags);
 
-        std::function<void(task_t *)> * fcpy = (std::function<void(task_t *)> *) TASK_ARGS(task, task_size);
-        new (fcpy) std::function<void(task_t *)>(f);
+        std::function<void(runtime_t *, device_t *, task_t *)> * fcpy = (std::function<void(runtime_t *, device_t *, task_t *)> *) TASK_ARGS(task, task_size);
+        new (fcpy) std::function<void(runtime_t *, device_t *, task_t *)>(f);
 
-        if (ac)
+        if (depflag)
         {
             task_dep_info_t * dep = TASK_DEP_INFO(task);
             new (dep) task_dep_info_t(ac);
@@ -386,7 +434,7 @@ struct  runtime_t
             tls->resolve(accesses, ac);
         }
 
-        if (split_condition)
+        if (molflag)
         {
             task_mol_info_t * mol = TASK_MOL_INFO(task);
             new (mol) task_mol_info_t(split_condition, args_size);
@@ -405,7 +453,7 @@ struct  runtime_t
     task_spawn(
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
-        const std::function<void(task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         // create the task
         task_t * task = this->task_instanciate<ac, has_set_accesses, has_split_condition>(set_accesses, split_condition, f);
@@ -421,7 +469,7 @@ struct  runtime_t
     task_spawn(
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
-        const std::function<void(task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         return this->task_spawn<ac, true, true>(set_accesses, split_condition, f);
     }
@@ -430,22 +478,17 @@ struct  runtime_t
     inline void
     task_spawn(
         const std::function<void(task_t *, access_t *)> & set_accesses,
-        const std::function<void(task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         this->task_spawn<ac, true, false>(set_accesses, nullptr, f);
     }
 
     inline void
     task_spawn(
-        const std::function<void(task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         this->task_spawn<0, false, false>(nullptr, nullptr, f);
     }
-
-    /* run a task on the given team, using its host routine
-     * (do not use unless you know what you are doing, you may want
-     * `task_spawn` instead) */
-    void task_run(team_t * team, thread_t * thread, task_t * task);
 
     /////////////////////////
     // THREADING - THREADS //
@@ -478,6 +521,7 @@ struct  runtime_t
     void team_critical_end(team_t * team);
 
     /* blocking parallel_for region */
+    typedef std::function<void(team_t * team, thread_t * thread)> team_parallel_for_func_t;
     void team_parallel_for(team_t * team, team_parallel_for_func_t func);
 
     /////////////////////////
@@ -490,7 +534,7 @@ struct  runtime_t
         team_t * team,
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
-        const std::function<void(task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         // create the task
         task_t * task = task_instanciate<ac, has_set_accesses, has_split_condition>(set_accesses, split_condition, f);
@@ -507,7 +551,7 @@ struct  runtime_t
         team_t * team,
         const std::function<void(task_t *, access_t *)> & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
-        const std::function<void(task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         return this->team_task_spawn<ac, true, true>(team, set_accesses, split_condition, f);
     }
@@ -517,7 +561,7 @@ struct  runtime_t
     team_task_spawn(
         team_t * team,
         const std::function<void(task_t *, access_t *)> & set_accesses,
-        const std::function<void(task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         this->team_task_spawn<ac, true, false>(team, set_accesses, nullptr, f);
     }
@@ -525,10 +569,15 @@ struct  runtime_t
     inline void
     team_task_spawn(
         team_t * team,
-        const std::function<void(task_t *)> & f
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         this->team_task_spawn<0, false, false>(team, nullptr, nullptr, f);
     }
+
+    /**
+     *  Schedule a task on the executing thread
+     */
+    task_t * worksteal(void);
 
     //////////////////
     // TEAM - UTILS //
@@ -615,14 +664,17 @@ void runtime_submit_task(runtime_t * runtime, task_t * task);
 /* host capture task format */
 void task_host_capture_register_format(runtime_t * runtime);
 
+/* copy async format */
+void memory_copy_async_register_format(runtime_t * runtime);
+
 /* register v2 format */
-void memory_async_register_format(runtime_t * runtime);
+void memory_register_async_register_format(runtime_t * runtime);
 
 /* file async format */
 void file_async_register_format(runtime_t * runtime);
 
-/* Main entry thread created per device */
-void * device_thread_main(team_t * team, thread_t * thread);
+/* Routine for threads in a device team */
+void * device_thread_main(runtime_t * runtime, team_t * team, thread_t * thread);
 
 /* initialize drivers */
 void drivers_init(runtime_t * runtime);
@@ -631,24 +683,19 @@ void drivers_init(runtime_t * runtime);
 void drivers_deinit(runtime_t * runtime);
 
 /* must be call once task accesses were all fetched */
-void device_task_execute(
+void task_execute(
     runtime_t * runtime,
     device_t * device,
     task_t * task
 );
 
 /* arguments passed to the device team */
-typedef struct  device_thread_args_t
-{
-    driver_type_t driver_type;
-    uint8_t device_driver_id;
-}               device_thread_args_t;
-
 typedef struct  device_team_args_t
 {
-    runtime_t * runtime;
-    device_thread_args_t devices[XKRT_DEVICES_MAX];
-    int ndevices;
+    driver_t * driver;
+    device_global_id_t device_global_id;
+    device_driver_id_t device_driver_id;
+    pthread_barrier_t barrier;
 }               device_team_args_t;
 
 MemoryCoherencyController * task_get_memory_controller(
@@ -656,6 +703,9 @@ MemoryCoherencyController * task_get_memory_controller(
     task_t * task,
     const access_t * access
 );
+
+void * team_parallel_for_main(runtime_t * runtime, team_t * team, thread_t * thread);
+# define XKRT_TEAM_ROUTINE_PARALLEL_FOR ((team_routine_t) team_parallel_for_main)
 
 XKRT_NAMESPACE_END
 

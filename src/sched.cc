@@ -168,6 +168,7 @@ __device_prepare_task(
     LOGGER_DEBUG("Preparing task `%s` of format `%d` on device `%d` - on a thread of device `%d`",
             task->label, task->fmtid, device_global_id, device->global_id);
 
+    /* if the task has accesses, ensure each of them are coherent before starting execution */
     if (task->flags & TASK_FLAG_DEPENDENT)
     {
         task_dep_info_t * dep = TASK_DEP_INFO(task);
@@ -233,13 +234,13 @@ __device_prepare_task(
             }
 
             /* decrease the task 'fetching' counter to detect early-fetch completion */
-            __task_fetched(1, task, device_task_execute, runtime, device);
+            __task_fetched(1, task, task_execute, runtime, device);
             /* else the task will be launched in a callback once all accesses got fetched */
         }
     }
     else
     {
-        device_task_execute(runtime, device, task);
+        task_execute(runtime, device, task);
     }
 }
 
@@ -248,8 +249,7 @@ static inline int
 device_thread_main_loop(
     runtime_t * runtime,
     device_t * device,
-    thread_t * thread,
-    uint8_t device_tid
+    thread_t * thread
 ) {
     assert(thread == thread_t::get_tls());
 
@@ -275,10 +275,10 @@ device_thread_main_loop(
 
         // find a new task
         if (task == NULL)
-            task = thread->deque.pop();
+            task = runtime->worksteal();
 
         /// find commands pending or ready
-        device->offloader_queues_are_empty(device_tid, QUEUE_TYPE_ALL, &ready, &pending);
+        device->offloader_queues_are_empty(thread->tid, QUEUE_TYPE_ALL, &ready, &pending);
 
         // is there is anything to progress, wake up
         if (task || ready || pending)
@@ -310,7 +310,7 @@ device_thread_main_loop(
         // if there are commands ready, launch them
         if (ready)
         {
-            device->offloader_launch(device_tid);
+            device->offloader_launch(thread->tid);
             pending = true;
         }
 
@@ -321,14 +321,14 @@ device_thread_main_loop(
             // pause the thread until some progress has been made
             if (task == NULL && runtime->conf.enable_progress_thread_pause)
             {
-                device->offloader_wait_random_command(device_tid);
+                device->offloader_wait_random_command(thread->tid);
             }
             // some task was ready, so maybe there is more.
             // Just poll events a bit (potentially unlocking more tasks)
             // and do another trip
             else
             {
-                device->offloader_progress(device_tid);
+                device->offloader_progress(thread->tid);
             }
         }
 
@@ -349,19 +349,10 @@ device_thread_main_loop(
 //  MAIN //
 ///////////
 
-static void
-bits_to_str(char * buffer, unsigned char * mem, size_t nbytes)
-{
-    buffer[8*nbytes] = 0;
-    size_t k = 8*nbytes - 1;
-    for (int i = (int)nbytes - 1 ; i >= 0 ; --i)
-        for (int j = 0 ; j < 8 ; ++j)
-            buffer[k--] = (mem[i] & (1 << j)) ? '1' : '0';
-}
-
 /* Main entry thread created per device */
 void *
 device_thread_main(
+    runtime_t * runtime,
     team_t * team,
     thread_t * thread
 ) {
@@ -369,79 +360,17 @@ device_thread_main(
     device_team_args_t * args = (device_team_args_t *) team->desc.args;
     assert(args);
 
-    // get the id of that thread in the args->devices list
-    // attach threads in a compact manner, similarly to how the team is
-    // created, so the thread hits a device topologically close
-    int id = thread->tid % args->ndevices;
-
     // unpack args runtime
-    runtime_t * runtime        = args->runtime;
-    driver_type_t driver_type  = args->devices[id].driver_type;
-    uint8_t device_driver_id        = args->devices[id].device_driver_id;
-
-    // get the driver
-    driver_t * driver = runtime->driver_get(driver_type);
-    int is_device_main_thread = thread->tid < args->ndevices;
-
-    // create device
-    if (is_device_main_thread)
-    {
-        assert(driver->f_device_create);
-
-        // create the device
-        device_t * device = driver->f_device_create(driver, device_driver_id);
-        if (device == NULL)
-            LOGGER_FATAL("Could not create a device");
-
-        runtime->drivers.devices.n.fetch_add(1, std::memory_order_relaxed);
-
-        // initialize device attributes
-        device->state       = XKRT_DEVICE_STATE_CREATE;
-        device->driver_type = driver_type;
-        device->driver_id   = device_driver_id;
-        device->conf        = &(runtime->conf.device);
-        device->global_id   = (driver_type == XKRT_DRIVER_TYPE_HOST) ? 0 : runtime->drivers.devices.next_id.fetch_add(1, std::memory_order_relaxed);
-
-        // register device to the global list
-        runtime->drivers.devices.list[device->global_id] = device;
-
-        // register device to the driver list
-        driver->devices[device_driver_id] = device;
-
-        // init device by the driver
-        driver->f_device_init(device->driver_id);
-
-        char buffer[512];
-        driver->f_device_info(device_driver_id, buffer, sizeof(buffer));
-        LOGGER_INFO("  global id = %2u | %s", device->global_id, buffer);
-
-        /* get total memory and allocate chunk0 */
-        if (driver->f_memory_device_info)
-        {
-            driver->f_memory_device_info(device->driver_id, device->memories, &device->nmemories);
-            assert(device->nmemories > 0);
-            for (int i = 0 ; i < device->nmemories ; ++i)
-            {
-                device_memory_info_t * info = device->memories + i;
-                LOGGER_INFO("Found memory `%s` of capacity %zuGB", info->name, info->capacity/(size_t)1e9);
-                info->allocated = 0;
-                XKRT_MUTEX_INIT(info->area.lock);
-            }
-        }
-
-        assert(device->state == XKRT_DEVICE_STATE_CREATE);
-        device->state = XKRT_DEVICE_STATE_INIT;
-    }
-
-    // wait for all devices to be in the 'init' state and for all threads to join
-    pthread_barrier_wait(&driver->barrier);
+    driver_t * driver                   = args->driver;
+    device_driver_id_t device_driver_id = args->device_driver_id;
+    device_global_id_t device_global_id = args->device_global_id;
 
     // register the device thread
-    device_t * device = driver->devices[device_driver_id];
+    thread->device_global_id = device_global_id;
+
+    // get device
+    device_t * device = runtime->device_get(device_global_id);
     assert(device);
-    uint8_t device_tid = device->nthreads.fetch_add(1, std::memory_order_relaxed);
-    device->threads[device_tid] = thread;
-    thread->device_global_id = device->global_id;
 
     // print thread
     unsigned int cpu, node;
@@ -449,87 +378,29 @@ device_thread_main(
     LOGGER_INFO("Starting thread for %s device (device_driver_id=%d, device_global_id=%d) on cpu %d of node %d",
             driver->f_get_name(), device_driver_id, device->global_id, cpu, node);
 
-    // 'commit' all devices
-    if (is_device_main_thread)
-    {
-        // commit
-        assert(driver->f_device_commit);
-        device_global_id_bitfield_t * affinity = &(runtime->router.affinity[device->global_id][0]);
-        memset(affinity, 0, sizeof(runtime->router.affinity[device->global_id]));
-        int err = driver->f_device_commit(device->driver_id, affinity);
-        if (err)
-            LOGGER_FATAL("Commit fail device %d of driver %s", device->driver_id, driver->f_get_name());
-        assert(device->state == XKRT_DEVICE_STATE_INIT);
-        device->state = XKRT_DEVICE_STATE_COMMIT;
-        ++driver->ndevices_commited;
-
-        // can only have 1 host device, that is the device 0
-        assert(driver_type != XKRT_DRIVER_TYPE_HOST || driver->ndevices_commited == 1);
-
-        // print affinity
-        for (int i = 0 ; i < XKRT_DEVICES_PERF_RANK_MAX ; ++i)
-        {
-            device_global_id_bitfield_t bf = affinity[i];
-            constexpr int nbytes = sizeof(device_global_id_bitfield_t);
-            char buffer[8*nbytes + 1];
-            bits_to_str(buffer, (unsigned char *) &bf, nbytes);
-            LOGGER_DEBUG("Device `%2u` affinity mask for perf `%2u` is `%s`", device->global_id, i, buffer);
-        }
-
-        // init offloader
-        device->offloader_init(driver->f_queue_suggest);
-    }
-
-    // wait for all devices to be in the 'commit' state with the offloader init
-    pthread_barrier_wait(&driver->barrier);
-
     // initialize offloader thread to initialize queues
-    device->offloader_init_thread(device_tid, driver->f_queue_create);
+    device->offloader_init_thread(thread->tid, driver->f_queue_create);
 
-    // wait for all threads to have queues initialized
-    pthread_barrier_wait(&driver->barrier);
-    // cannot use 'args->barrier' after this point
+    // wait for all threads of that device to be initialized
+    pthread_barrier_wait(&args->barrier);
+
+    // wait for all devices of that driver to be initialized
+    if (thread->tid == 0)
+        pthread_barrier_wait(&driver->barrier);
+
+    // wait for all drivers to be initialized
+    if (thread->tid == 0 && device_driver_id == 0)
+        pthread_barrier_wait(&runtime->drivers.barrier);
 
     /* infinite loop with the device context */
-    int err = device_thread_main_loop(runtime, device, thread, device_tid);
+    int err = device_thread_main_loop(runtime, device, thread);
     assert((err==0) || (err==EINTR));
 
     // delete queues
     if (driver->f_queue_delete)
         for (uint8_t j = 0 ; j < QUEUE_TYPE_ALL ; ++j)
             for (int k = 0 ; k < device->count[j] ; ++k)
-                driver->f_queue_delete(device->queues[device_tid][j][k]);
-
-    // wait for all thread to delete their queues
-    pthread_barrier_wait(&driver->barrier);
-
-    /* deinitialize driver */
-    if (is_device_main_thread)
-    {
-        // release memory
-        if (driver->f_memory_device_deallocate)
-        {
-            for (int j = 0 ; j < device->nmemories ; ++j)
-            {
-                if (device->memories[j].allocated)
-                {
-                    area_t * area = &(device->memories[j].area);
-                    driver->f_memory_device_deallocate(device->driver_id, (void *) area->chunk0.ptr, area->chunk0.size, j);
-                }
-            }
-        }
-        else
-            LOGGER_WARN("Driver `%u` is missing `f_device_memory_deallocate`", driver_type);
-
-        // delete device
-        if (driver->f_device_destroy)
-            driver->f_device_destroy(device->driver_id);
-        else
-            LOGGER_WARN("Driver `%u` is missing `f_device_destroy`", driver_type);
-    }
-
-    /* wait for all the main thread to deinit */
-    pthread_barrier_wait(&driver->barrier);
+                driver->f_queue_delete(device->queues[thread->tid][j][k]);
 
     return NULL;
 }
@@ -556,12 +427,15 @@ runtime_t::task_team_enqueue(
 ) {
     // start at a random thread
     thread_t * tls = thread_t::get_tls();
-    int start = tls->rng() % team->priv.nthreads;
+    assert(tls);
+
+    int nthreads = team->get_nthreads();
+    int start = tls->rng() % nthreads;
 
     // find one that is not already working
-    for (int i = 0 ; i < team->priv.nthreads ; ++i)
+    for (int i = 0 ; i < nthreads ; ++i)
     {
-        thread_t * thread = team->priv.threads + ((start + i) % team->priv.nthreads);
+        thread_t * thread = team->get_thread((start + i) % nthreads);
         bool busy = !thread->sleep.sleeping;
         if (busy)
             continue ;

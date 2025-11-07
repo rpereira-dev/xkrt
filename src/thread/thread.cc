@@ -199,9 +199,13 @@ team_create_get_place(
                 case (XKRT_TEAM_BINDING_PLACES_DEVICE):
                 {
                     *device_global_id = (team->desc.binding.flags == XKRT_TEAM_BINDING_FLAG_EXCLUDE_HOST) ? (device_global_id_t) (tid + 1) : (device_global_id_t) tid;
+
                     const device_t * device = runtime->device_get(*device_global_id);
                     assert(device);
-                    *place = device->threads[0]->place;
+
+                    assert(device->team->desc.binding.nplaces == 1);
+                    *place = device->team->desc.binding.places_list[0];
+
                     return ;
                 }
 
@@ -279,7 +283,7 @@ team_create_recursive(void * vargs)
             thread->warmup();
 
         // starts
-        void * r = args->team->desc.routine(team, thread);
+        void * r = args->team->desc.routine(args->runtime, team, thread);
 
         // if master thread
         if (team->desc.master_is_member && tid == 0)
@@ -458,12 +462,15 @@ get_ith_victim(int tid, int i, int n)
     return (i + tid) % n;
 }
 
-static inline int
-worksteal(
-    runtime_t * runtime,
-    team_t * team,
-    thread_t * thread
-) {
+task_t *
+runtime_t::worksteal(void)
+{
+    thread_t * thread = thread_t::get_tls();
+    assert(thread);
+
+    team_t * team = thread->team;
+    task_t * task = NULL;
+
     // if the thread is executing within a team, do hierarchical workstealing
     if (team)
     {
@@ -477,27 +484,18 @@ worksteal(
             if (victim->state != XKRT_THREAD_INITIALIZED)
                 continue ;
 
-            task_t * task = (victim_tid == tid) ? victim->deque.pop() : victim->deque.steal();
+            task = (victim_tid == tid) ? victim->deque.pop() : victim->deque.steal();
             if (task)
             {
-                runtime->task_run(team, thread, task);
-                return 1;
+                if (victim_tid != tid)
+                    LOGGER_DEBUG("Thread %u stole from %u", thread->tid, victim_tid);
+                return task;
             }
         }
     }
-    // else, schedule that thread tasks only
-    else
-    {
-        task_t * task = thread->deque.pop();
-        if (task)
-        {
-            runtime->task_run(NULL, thread, task);
-            return 1;
-        }
 
-    }
-
-    return 0;
+    // else, schedule that thread tasks
+    return thread->deque.pop();
 }
 
 void
@@ -542,8 +540,10 @@ runtime_t::task_wait(void)
     while (1)
     {
         // work steal
-        if (worksteal(this, thread->team, thread))
+        task_t * task = this->worksteal();
+        if (task)
         {
+            task_execute(this, NULL, task);
             backoff = initial_backoff;
             continue ;
         }
@@ -582,8 +582,15 @@ runtime_t::team_barrier(
     {
         while (old_version == team->priv.barrier.version)
         {
-            if (ws && worksteal(this, team, thread))
-                continue ;
+            if (ws)
+            {
+                task_t * task = this->worksteal();
+                if (task)
+                {
+                    task_execute(this, NULL, task);
+                    continue ;
+                }
+            }
 
             pthread_mutex_lock(&team->priv.barrier.mtx);
             {
@@ -602,10 +609,13 @@ template void runtime_t::team_barrier<false>(team_t * team, thread_t * thread);
 
 static inline void
 team_parallel_for_run_f(
+    runtime_t * runtime,
     team_t * team,
     thread_t * thread,
-    team_parallel_for_func_t f
+    runtime_t::team_parallel_for_func_t f
 ) {
+    (void) runtime;
+
     ++thread->parallel_for.index;
     f(team, thread);
 
@@ -671,7 +681,7 @@ runtime_t::team_parallel_for(
             thread_t::push_tls(tls);
 
             // run
-            team_parallel_for_run_f(team, tls, f);
+            team_parallel_for_run_f(this, team, tls, f);
 
             // pop the TLS
             thread_t::pop_tls();
@@ -705,6 +715,7 @@ runtime_t::team_parallel_for(
 
 void *
 team_parallel_for_main(
+    runtime_t * runtime,
     team_t * team,
     thread_t * thread
 ) {
@@ -717,10 +728,10 @@ team_parallel_for_main(
         while (thread->parallel_for.index < (volatile uint32_t) team->priv.parallel_for.index)
         {
 parallel_for_run:
-            team_parallel_for_func_t f = team->priv.parallel_for.f[thread->parallel_for.index % XKRT_TEAM_PARALLEL_FOR_MAX_FUNC];
+            runtime_t::team_parallel_for_func_t f = (runtime_t::team_parallel_for_func_t) team->priv.parallel_for.f[thread->parallel_for.index % XKRT_TEAM_PARALLEL_FOR_MAX_FUNC];
             if (f == nullptr)
                 return NULL;
-            team_parallel_for_run_f(team, thread, f);
+            team_parallel_for_run_f(runtime, team, thread, f);
         }
 
         // some polling before sleeping

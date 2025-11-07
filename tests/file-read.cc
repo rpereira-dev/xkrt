@@ -50,18 +50,16 @@
 
 XKRT_NAMESPACE_USE;
 
-constexpr const char * filename = "file.bin";             // filename
-constexpr size_t buffer_size = (1024 * 1024);             // 1MB
-//constexpr size_t total_size  = (1L * 1024 * 1024 * 1024); // 1GB
-constexpr size_t total_size  = (8L * 1024 * 1024);      // 8MB
-constexpr int    nchunks     = 16;                        // tasks that reads the file
+constexpr const char * filename = "/tmp/file.bin";              // filename
+constexpr size_t size           = (1L * 1024 * 1024 * 1024);    // 1GB
+constexpr int    nchunks        = 64;                           // tasks that reads the file
 
 static runtime_t runtime;
 
 static void
 createfile(void)
 {
-    LOGGER_INFO("Creating %.4lfGB file", total_size/1024/1024/1024.0);
+    LOGGER_INFO("Creating %.4lfGB file", size/1024/1024/1024.0);
     int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd < 0)
     {
@@ -69,8 +67,7 @@ createfile(void)
         exit(EXIT_FAILURE);
     }
 
-    char * buffer = (char *) malloc(buffer_size);
-    memset(buffer, 1, buffer_size);
+    unsigned char * buffer = (unsigned char *) malloc(size);
     if (!buffer)
     {
         perror("Failed to allocate buffer");
@@ -78,22 +75,20 @@ createfile(void)
         exit(EXIT_FAILURE);
     }
 
-    long long bytes_written = 0;
-    while (bytes_written < total_size)
+    for (uintptr_t i = 0 ; i < size ; ++i)
     {
-        size_t to_write = buffer_size;
-        if (total_size - bytes_written < buffer_size)
-            to_write = total_size - bytes_written;
-
-        ssize_t written = write(fd, buffer, to_write);
-        if (written < 0)
-        {
-            perror("Write error");
-            exit(EXIT_FAILURE);
-        }
-
-        bytes_written += written;
+        if (i == 123 || i == size - 123)
+            buffer[i] = 42;
+        else
+            buffer[i] = (unsigned char) (i % 256);
     }
+    ssize_t written = write(fd, buffer, size);
+    if (written < 0 || written != size)
+    {
+        perror("Write error");
+        exit(EXIT_FAILURE);
+    }
+
     LOGGER_INFO("Created");
 }
 
@@ -104,9 +99,9 @@ main(void)
 
     assert(runtime.init() == 0);
 
-    unsigned char * buffer = (unsigned char *) malloc(total_size);
+    unsigned char * buffer = (unsigned char *) malloc(size);
     assert(buffer);
-    memset(buffer, 0, total_size);
+    memset(buffer, 0, size);
 
     int fd = open(filename, O_RDONLY, 0644);
     if (fd < 0)
@@ -115,24 +110,46 @@ main(void)
         exit(EXIT_FAILURE);
     }
 
-    # if 0
+    # if 1
     uint64_t t0 = get_nanotime();
     # endif
 
     /* spawn tasks that read the file */
-    runtime.file_read_async(fd, buffer, total_size, nchunks);
+    runtime.file_read_async(fd, buffer, size, nchunks);
+
+    # if 1
+    /* spawn a successor task to detect read completion */
+    runtime.task_spawn<1>(
+        [buffer] (task_t * task, access_t * accesses) {
+            new (accesses + 0) access_t(task, (uintptr_t) buffer, (uintptr_t) buffer + size, ACCESS_MODE_R);
+        },
+
+        [buffer, t0] (runtime_t * runtime, device_t * device, task_t * task) {
+            LOGGER_INFO("File is ready");
+            uint64_t tf = get_nanotime();
+            double dt_ns = (double) (tf - t0);
+            LOGGER_INFO("Read with %.2lf GB/s", size/dt_ns);
+        }
+    );
+    # endif
 
     /* spawn a successor task for each chunk */
-    runtime.file_foreach_chunk(buffer, total_size, nchunks, [] (const uintptr_t a, const uintptr_t b) {
+    runtime.foreach((uintptr_t) buffer, size, nchunks, [buffer] (const int i, const uintptr_t a, const uintptr_t b) {
+            (void) i;
             runtime.task_spawn<1>(
                 [a, b] (task_t * task, access_t * accesses) {
                     new (accesses + 0) access_t(task, a, b, ACCESS_MODE_R);
                 },
 
-                [a, b] (task_t * task) {
+                [a, b, buffer] (runtime_t * runtime, device_t * device, task_t * task) {
                     LOGGER_INFO("File chunk [%lu, %lu] is ready", a, b);
-                    for (uintptr_t x = a ; x < b ; ++x)
-                        assert(*((unsigned char *) x) == 1);
+                    for (size_t i = a - ((uintptr_t) buffer) ; i < b - a ; ++i)
+                    {
+                        if (i == 123 || i == size - 123)
+                            assert(buffer[i] == 42);
+                        else
+                        assert(buffer[i] ==  (i % 256));
+                    }
                 }
             );
         }
@@ -141,13 +158,8 @@ main(void)
     /* wait for all tasks completion */
     runtime.task_wait();
 
-    # if 0
-    uint64_t tf = get_nanotime();
-    double dt_ns = (double) (tf - t0);
-    LOGGER_INFO("Read with %.2lf GB/s", total_size/dt_ns);
-    # endif
-
     close(fd);
+
     if (remove(filename) == 0)
         LOGGER_INFO("Deleted file: %s", filename);
     else

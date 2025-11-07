@@ -178,13 +178,13 @@ XKRT_DRIVER_ENTRYPOINT(device_commit)(device_driver_id_t device_driver_id, devic
 static inline void
 XKRT_DRIVER_ENTRYPOINT(io_uring_init)(queue_host_t * queue)
 {
-    // TODO: what is this ?
-    # define QUEUE_DEPTH 1
+    /* From iouring man:
+     * [...] you'll want to have a larger queue depth to
+     *  parallelize I/O request processing so as to gain the kind of performance
+     *  benefits io_uring provides with its asynchronous processing of requests. */
     struct io_uring_params p;
     memset(&p, 0, sizeof(p));
-    queue->io_uring.fd = (int) syscall(__NR_io_uring_setup, QUEUE_DEPTH, &p);
-    // queue->io_uring.fd = io_uring_setup(QUEUE_DEPTH, &p);
-    # undef QUEUE_DEPTH
+    queue->io_uring.fd = (int) syscall(__NR_io_uring_setup, XKRT_IO_URING_DEPTH, &p);
 
     /*
      * io_uring communication happens via 2 shared kernel-user space ring
@@ -210,7 +210,7 @@ XKRT_DRIVER_ENTRYPOINT(io_uring_init)(queue_host_t * queue)
     /* Map in the submission and completion queue ring buffers.
      *  Kernels < 5.4 only map in the submission queue, though. */
 
-    queue->io_uring.sq_ptr = (unsigned char *) mmap(0, sring_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, queue->io_uring.fd, IORING_OFF_SQ_RING);
+    queue->io_uring.sq_ptr =  mmap(0, sring_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, queue->io_uring.fd, IORING_OFF_SQ_RING);
     if (queue->io_uring.sq_ptr == MAP_FAILED)
         LOGGER_FATAL("Failed to mmap io_uring for asynchronous file i/o (1)");
 
@@ -218,15 +218,15 @@ XKRT_DRIVER_ENTRYPOINT(io_uring_init)(queue_host_t * queue)
         queue->io_uring.cq_ptr = queue->io_uring.sq_ptr;
     } else {
         /* Map in the completion queue ring buffer in older kernels separately */
-        queue->io_uring.cq_ptr = (unsigned char *) mmap(0, cring_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, queue->io_uring.fd, IORING_OFF_CQ_RING);
+        queue->io_uring.cq_ptr = mmap(0, cring_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, queue->io_uring.fd, IORING_OFF_CQ_RING);
         if (queue->io_uring.cq_ptr == MAP_FAILED)
             LOGGER_FATAL("Failed to mmap io_uring for asynchronous file i/o (2)");
     }
 
     /* Save useful fields for later easy reference */
-    queue->io_uring.sq_tail  = queue->io_uring.sq_ptr + p.sq_off.tail;
-    queue->io_uring.sq_mask  = queue->io_uring.sq_ptr + p.sq_off.ring_mask;
-    queue->io_uring.sq_array = queue->io_uring.sq_ptr + p.sq_off.array;
+    queue->io_uring.sq_tail  = (unsigned *) (((char *) queue->io_uring.sq_ptr) + p.sq_off.tail);
+    queue->io_uring.sq_mask  = (unsigned *) (((char *) queue->io_uring.sq_ptr) + p.sq_off.ring_mask);
+    queue->io_uring.sq_array = (unsigned *) (((char *) queue->io_uring.sq_ptr) + p.sq_off.array);
 
     /* Map in the submission queue entries array */
     queue->io_uring.sqes = (struct io_uring_sqe *) mmap(0, p.sq_entries * sizeof(struct io_uring_sqe), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, queue->io_uring.fd, IORING_OFF_SQES);
@@ -234,10 +234,11 @@ XKRT_DRIVER_ENTRYPOINT(io_uring_init)(queue_host_t * queue)
         LOGGER_FATAL("Failed to mmap io_uring for asynchronous file i/o (3)");
 
     /* Save useful fields for later easy reference */
-    queue->io_uring.cq_head = queue->io_uring.cq_ptr + p.cq_off.head;
-    queue->io_uring.cq_tail = queue->io_uring.cq_ptr + p.cq_off.tail;
-    queue->io_uring.cq_mask = queue->io_uring.cq_ptr + p.cq_off.ring_mask;
-    queue->io_uring.cqes    = (struct io_uring_cqe *) (queue->io_uring.cq_ptr + p.cq_off.cqes);
+    queue->io_uring.cq_head = (unsigned *) (((char *) queue->io_uring.cq_ptr) + p.cq_off.head);
+    queue->io_uring.cq_tail = (unsigned *) (((char *) queue->io_uring.cq_ptr) + p.cq_off.tail);
+    queue->io_uring.cq_mask = (unsigned *) (((char *) queue->io_uring.cq_ptr) + p.cq_off.ring_mask);
+
+    queue->io_uring.cqes    = (struct io_uring_cqe *) (((char *) queue->io_uring.cq_ptr) + p.cq_off.cqes);
 }
 
 static int
@@ -246,11 +247,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
     command_t * cmd,
     queue_command_list_counter_t idx
 ) {
-    (void) iqueue;
-    (void) idx;
-
-    assert(cmd->type == COMMAND_TYPE_FD_READ ||
-            cmd->type == COMMAND_TYPE_FD_WRITE);
+    assert(cmd->type == COMMAND_TYPE_FD_READ || cmd->type == COMMAND_TYPE_FD_WRITE);
 
     queue_host_t * queue = (queue_host_t *) iqueue;
 
@@ -272,7 +269,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
             sqe->opcode    = (cmd->type == COMMAND_TYPE_FD_READ) ? IORING_OP_READ : IORING_OP_WRITE;
             sqe->fd        = cmd->file.fd;
             sqe->addr      = (unsigned long) cmd->file.buffer;
-            sqe->len       = cmd->file.n;
+            sqe->len       = cmd->file.size;
             sqe->off       = cmd->file.offset;
             sqe->user_data = (__u64) idx;
 
@@ -412,7 +409,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
                 command_t * cmd = iqueue->pending.cmd + p;
                 assert(cmd);
                 assert(cmd->completed == false);
-                assert(cqe->res == cmd->file.n);
+                assert(cqe->res == cmd->file.size);
 
                 ++head;
 

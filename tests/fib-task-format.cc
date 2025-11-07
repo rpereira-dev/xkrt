@@ -122,7 +122,7 @@ body_host(task_t * task)
 }
 
 static void *
-main_team(team_t * team, thread_t * thread)
+main_team(runtime_t * rt, team_t * team, thread_t * thread)
 {
     // warmup
     if (thread->tid == 0)
@@ -172,7 +172,7 @@ main(int argc, char ** argv)
     fmtid = task_format_create(&(runtime.formats.list), &format);
 
     team_t team;
-    team.desc.routine = main_team;
+    team.desc.routine = (team_routine_t) main_team;
 
     runtime.team_create(&team);
     runtime.team_join(&team);

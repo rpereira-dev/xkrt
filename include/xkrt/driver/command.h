@@ -88,7 +88,7 @@ XKRT_NAMESPACE_BEGIN
     {
         int fd;
         void * buffer;
-        size_t n;
+        size_t size;
         size_t offset;
     }               queue_command_file_t;
 

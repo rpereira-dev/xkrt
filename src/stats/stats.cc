@@ -198,7 +198,8 @@ stats_device_gather(
     stats->memory.allocated.total = device->stats.memory.allocated.total.load();
     stats->memory.allocated.currently = device->stats.memory.allocated.currently.load();
 
-    for (uint8_t device_tid = 0 ; device_tid < device->nthreads ; ++device_tid)
+    int nthreads = device->team->get_nthreads();
+    for (int device_tid = 0 ; device_tid < nthreads ; ++device_tid)
     {
         for (int stype = 0 ; stype < QUEUE_TYPE_ALL ; ++stype)
         {

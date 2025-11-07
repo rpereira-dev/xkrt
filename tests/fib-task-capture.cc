@@ -70,13 +70,13 @@ fib(int n, int depth = 0)
     else
     {
         runtime.task_spawn(
-            [&n, &fn1, depth] (task_t * task) {
+            [&n, &fn1, depth] (runtime_t * runtime, device_t * device, task_t * task) {
                 fn1 = fib(n - 1, depth + 1);
             }
         );
 
         runtime.task_spawn(
-            [&n, &fn2, depth] (task_t * task) {
+            [&n, &fn2, depth] (runtime_t * runtime, device_t * device, task_t * task) {
                 fn2 = fib(n - 2, depth + 1);
             }
         );
@@ -87,7 +87,7 @@ fib(int n, int depth = 0)
 }
 
 static void *
-main_team(team_t * team, thread_t * thread)
+main_team(runtime_t * rt, team_t * team, thread_t * thread)
 {
     // warmup
     if (thread->tid == 0)
@@ -128,7 +128,7 @@ main(int argc, char ** argv)
     assert(runtime.init() == 0);
 
     team_t team;
-    team.desc.routine = main_team;
+    team.desc.routine = (team_routine_t) main_team;
 
     runtime.team_create(&team);
     runtime.team_join(&team);

@@ -121,6 +121,9 @@ typedef struct  device_t
      * with 'j' (the lowest affinity, the better perf) */
     device_global_id_bitfield_t * affinity;
 
+    /* the device team */
+    team_t * team;
+
     ///////////
     // STATS //
     ///////////
@@ -177,7 +180,7 @@ typedef struct  device_t
     int count[QUEUE_TYPE_ALL];
 
     /* next thread to use for offloading a command */
-    std::atomic<uint8_t> next_thread;
+    std::atomic<int> next_thread;
 
     /* next queue to use for the given thread and type */
     std::atomic<int> next_queue[XKRT_MAX_THREADS_PER_DEVICE][QUEUE_TYPE_ALL];
@@ -192,22 +195,22 @@ typedef struct  device_t
 
     /* initialize a thread of the offloader */
     void offloader_init_thread(
-        uint8_t device_tid,
+        int tid,
         queue_t * (*f_queue_create)(device_t * device, queue_type_t type, queue_command_list_counter_t capacity)
     );
 
     /* launch ready commands in every queues */
-    int offloader_launch(uint8_t device_tid);
+    int offloader_launch(int tid);
 
     /* progress pending commands in every queues */
-    int offloader_progress(uint8_t device_tid);
+    int offloader_progress(int tid);
 
     /* progress pending commands in every queues */
-    int offloader_wait_random_command(uint8_t device_tid);
+    int offloader_wait_random_command(int tid);
 
     /* set 'ready' and 'pending' to false whether there is ready/pending
      * commands in the queues of the given type */
-    void offloader_queues_are_empty(uint8_t device_id, const queue_type_t qtype, bool * ready, bool * pending) const;
+    void offloader_queues_are_empty(int tid, const queue_type_t qtype, bool * ready, bool * pending) const;
 
     /* get next queue to use for submitting a command for the given type */
     void offloader_queue_next(
@@ -217,14 +220,14 @@ typedef struct  device_t
     );
 
     /* launch ready commands dispatching them in queues of the given type */
-    int offloader_queue_commands_launch(uint8_t device_id, const queue_type_t qtype);
+    int offloader_queue_commands_launch(int tid, const queue_type_t qtype);
 
     /* progress pending commands in queues of the given type of the given thread.
      * If blocking is true, also waits for the completion of pending commands */
     template <bool blocking>
     int
     offloader_queue_commands_progress(
-        uint8_t device_tid,
+        int tid,
         const queue_type_t qtype
     ) {
         int err = 0;
@@ -234,7 +237,7 @@ typedef struct  device_t
         {
             for (int i = 0 ; i < this->count[s] ; ++i)
             {
-                queue_t * queue = this->queues[device_tid][s][i];
+                queue_t * queue = this->queues[tid][s][i];
                 assert(queue);
 
                 if (queue->pending.is_empty())
@@ -282,7 +285,7 @@ typedef struct  device_t
     command_t * offloader_queue_command_submit_file(
         int    fd,
         void * buffer,
-        size_t n,
+        size_t size,
         size_t offset,
         const callback_t & callback
     ) {
@@ -306,7 +309,7 @@ typedef struct  device_t
         /* create a new file i/o command */
         cmd->file.fd = fd;
         cmd->file.buffer = buffer;
-        cmd->file.n = n;
+        cmd->file.size = size;
         cmd->file.offset = offset;
 
         /* submit cmd */
@@ -440,19 +443,6 @@ typedef struct  device_t
 
         return cmd;
     }
-
-    //////////////////////
-    // TASKS SUBMISSION //
-    //////////////////////
-
-    /* worker threads for that device */
-    thread_t * threads[XKRT_MAX_THREADS_PER_DEVICE];
-
-    /* total number of threads */
-    std::atomic<uint8_t> nthreads;
-
-    /* the next thread to receive a task */
-    std::atomic<uint8_t> thread_next;
 
 }               device_t;
 

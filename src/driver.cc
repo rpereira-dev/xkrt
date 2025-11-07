@@ -63,5 +63,5 @@ runtime_t::devices_get(const driver_type_t type)
 {
     driver_t * driver = driver_get(type);
     assert(driver);
-    return driver->devices_bitfield;
+    return driver->devices.bitfield;
 }

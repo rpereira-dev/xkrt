@@ -45,6 +45,7 @@ typedef enum    access_mode_t : int
     ACCESS_MODE_RW      = ACCESS_MODE_R | ACCESS_MODE_W,
     ACCESS_MODE_V       = 0b00000100,   // incoherent access (= 'virtual' = dont really move the memory)
     ACCESS_MODE_VW      = ACCESS_MODE_W | ACCESS_MODE_V,
+    ACCESS_MODE_VR      = ACCESS_MODE_R | ACCESS_MODE_V,
     ACCESS_MODE_D       = 0b00001000,   // detached access = do not fulfill
                                         // dependencies on task completion: the
                                         // task is responsible of fulfillment
