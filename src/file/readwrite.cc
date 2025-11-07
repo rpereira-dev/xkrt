@@ -42,7 +42,6 @@ XKRT_NAMESPACE_BEGIN
 
 typedef struct  file_args_t
 {
-    runtime_t * runtime;
     int fd;
     size_t offset;
     void * buffer;
@@ -50,7 +49,7 @@ typedef struct  file_args_t
 }               file_args_t;
 
 /* the task completes once all segment completed */
-constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT | TASK_FLAG_DETACHABLE;
+constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT | TASK_FLAG_DEVICE | TASK_FLAG_DETACHABLE;
 constexpr unsigned int ac  = 1;
 constexpr size_t task_size = task_compute_size(flags, ac);
 constexpr size_t args_size = sizeof(file_args_t);
@@ -58,32 +57,34 @@ constexpr size_t args_size = sizeof(file_args_t);
 static void
 body_file_async_callback(void * vargs [XKRT_CALLBACK_ARGS_MAX])
 {
-    task_t * task = (task_t *) vargs[0];
+    runtime_t * runtime = (runtime_t *) vargs[0];
+    assert(runtime);
+
+    task_t * task = (task_t *) vargs[1];
     assert(task);
 
     /* retrieve task args */
-    file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
-    args->runtime->task_detachable_decr(task);
+    runtime->task_detachable_decr(task);
 }
 
 template<command_type_t T>
 static void
-body_file_async(task_t * task)
+body_file_async(runtime_t * runtime, device_t * device, task_t * task)
 {
+    assert(runtime);
+    assert(device);
     assert(task);
 
     callback_t callback;
     callback.func    = body_file_async_callback;
-    callback.args[0] = task;
+    callback.args[0] = runtime;
+    callback.args[1] = task;
 
     file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
 
-    device_t * device = args->runtime->device_get(HOST_DEVICE_GLOBAL_ID);
-    assert(device);
-
     /* task completion must wait for detachable event to reach 0, i.e., want
      * the `body_file_async_callback` was called, when the file had been read */
-    args->runtime->task_detachable_incr(task);
+    runtime->task_detachable_incr(task);
 
     /* submit a file i/o command */
     device->offloader_queue_command_submit_file<T>(
@@ -98,18 +99,21 @@ file_async(
     runtime_t * runtime,
     int fd,
     void * buffer,
-    size_t n,
-    unsigned int nchunks
+    const size_t size,
+    int n
 ) {
+    if (n > XKRT_IO_URING_DEPTH)
+        LOGGER_WARN("Spawning n=%d tasks, while io_uring queues were configured with a XKRT_IO_URING_DEPTH=%d", n, XKRT_IO_URING_DEPTH);
+
     static_assert(T == COMMAND_TYPE_FD_READ || T == COMMAND_TYPE_FD_WRITE);
-    assert(nchunks > 0);
+    assert(n > 0);
 
     // compute number of commands to spawn
-    if (n < nchunks)
-       nchunks = (unsigned int) n;
+    if (size < (size_t) n)
+       n = (int) size;
 
     // compute chunk size
-    const size_t chunksize = n / nchunks;
+    const size_t chunksize = size / n;
     assert(chunksize > 0);
 
     // create the task that submit the i/o command
@@ -121,23 +125,26 @@ file_async(
 
     const uintptr_t p = (const uintptr_t) buffer;
 
-    for (unsigned int i = 0 ; i < nchunks ; ++i)
+    runtime->foreach(p, size, n, [&] (const int i, const uintptr_t a, const uintptr_t b)
     {
+        (void) i;
+
+        assert(p <= a);
+        assert(p <  b);
+        assert(a <  b);
+
         task_t * task = thread->allocate_task(task_size + args_size);
         new (task) task_t(fmtid, flags);
 
         // copy arguments
         file_args_t * args = (file_args_t *) TASK_ARGS(task, task_size);
-        args->runtime = runtime;
         args->fd = fd;
-        args->offset = i * chunksize;
-        args->buffer = (void *) (p + args->offset);
-        args->size   = (i == nchunks - 1) ? (n - args->offset) : chunksize;
+        args->offset = a - p;
+        args->buffer = (void *) a;
+        args->size   = (size_t) (b - a);
 
-        # if 0 /* no need to init det info if initializing dep info */
-        task_det_info_t * det = TASK_DET_INFO(task);
-        new (det) task_det_info_t();
-        # endif
+        task_dev_info_t * dev = TASK_DEV_INFO(task);
+        new (dev) task_dev_info_t(HOST_DEVICE_GLOBAL_ID, UNSPECIFIED_TASK_ACCESS);
 
         task_dep_info_t * dep = TASK_DEP_INFO(task);
         new (dep) task_dep_info_t(ac);
@@ -145,9 +152,6 @@ file_async(
         # if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label), T == COMMAND_TYPE_FD_READ ? "fread" : "fwrite");
         # endif
-
-        const uintptr_t a = (const uintptr_t) args->buffer;
-        const uintptr_t b = a + args->size;
 
         // detached virtual write onto the memory segment
         access_t * accesses = TASK_ACCESSES(task, flags);
@@ -157,7 +161,7 @@ file_async(
 
         // commit
         runtime->task_commit(task);
-    }
+    });
 
     return 0;
 }
@@ -166,20 +170,20 @@ int
 runtime_t::file_read_async(
     int fd,
     void * buffer,
-    size_t n,
-    unsigned int nchunks
+    const size_t size,
+    int n
 ) {
-    return file_async<COMMAND_TYPE_FD_READ>(this, fd, buffer, n, nchunks);
+    return file_async<COMMAND_TYPE_FD_READ>(this, fd, buffer, size, n);
 }
 
 int
 runtime_t::file_write_async(
     int fd,
     void * buffer,
-    size_t n,
-    unsigned int nchunks
+    const size_t size,
+    int n
 ) {
-    return file_async<COMMAND_TYPE_FD_WRITE>(this, fd, buffer, n, nchunks);
+    return file_async<COMMAND_TYPE_FD_WRITE>(this, fd, buffer, size, n);
 }
 
 void
@@ -187,7 +191,7 @@ file_async_register_format(runtime_t * runtime)
 {
     {
         task_format_t format;
-        memset(format.f, 0, sizeof(format.f));
+        memset(&format, 0, sizeof(format));
         format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_file_async<COMMAND_TYPE_FD_READ>;
         snprintf(format.label, sizeof(format.label), "file_read_async");
         runtime->formats.file_read_async = task_format_create(&(runtime->formats.list), &format);
@@ -195,7 +199,7 @@ file_async_register_format(runtime_t * runtime)
 
     {
         task_format_t format;
-        memset(format.f, 0, sizeof(format.f));
+        memset(&format, 0, sizeof(format));
         format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_file_async<COMMAND_TYPE_FD_WRITE>;
         snprintf(format.label, sizeof(format.label), "file_write_async");
         runtime->formats.file_write_async = task_format_create(&(runtime->formats.list), &format);

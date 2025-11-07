@@ -72,10 +72,11 @@ typedef enum    task_state_t : uint8_t
     TASK_STATE_ALLOCATED        = 0,    // task_t is allocated
     TASK_STATE_READY            = 1,    // task_t data can be fetched
     TASK_STATE_DATA_FETCHING    = 2,    // task_t data is being fetched
-    TASK_STATE_DATA_FETCHED     = 3,    // task_t data is fetched, kernel can be executed
-    TASK_STATE_COMPLETED        = 4,    // task_t completed, dependences can be resolved (kernel executed)
-    TASK_STATE_DEALLOCATED      = 5,    // task_t is deallocated (virtual state, never set)
-    TASK_STATE_MAX              = 6,
+    TASK_STATE_DATA_FETCHED     = 3,    // task_t data is fetched, routine can execute
+    TASK_STATE_EXECUTING        = 4,    // task_t routine executes
+    TASK_STATE_COMPLETED        = 5,    // task_t completed, dependences can be resolved (kernel executed)
+    TASK_STATE_DEALLOCATED      = 6,    // task_t is deallocated (virtual state, never set)
+    TASK_STATE_MAX              = 7,
 }               task_state_t;
 
 static inline const char *
@@ -91,6 +92,8 @@ task_state_to_str(task_state_t state)
             return "fetching";
         case (TASK_STATE_DATA_FETCHED):
             return "fetched";
+        case (TASK_STATE_EXECUTING):
+            return "executing";
         case (TASK_STATE_COMPLETED):
             return "completed";
         case (TASK_STATE_DEALLOCATED):
@@ -103,7 +106,7 @@ task_state_to_str(task_state_t state)
 # if XKRT_SUPPORT_DEBUG
 #  define LOGGER_DEBUG_TASK_STATE(task)                                                                     \
     do {                                                                                                    \
-        LOGGER_DEBUG("task `%s` is now in state `%s`", task->label, task_state_to_str(task->state.value));  \
+        LOGGER_DEBUG("task `%s` of addr `%p` is now in state `%s`", task->label, task, task_state_to_str(task->state.value));  \
     } while (0)
 # else
 #  define LOGGER_DEBUG_TASK_STATE(task)
@@ -117,7 +120,7 @@ typedef enum    task_flags_t
 {
     TASK_FLAG_ZERO          = 0,
     TASK_FLAG_DEPENDENT     = (1 << 0), // may have dependencies
-    TASK_FLAG_DETACHABLE    = (1 << 1), // completion is associated with the completion of user-defined external events
+    TASK_FLAG_DETACHABLE    = (1 << 1), // completion is associated with the completion of events
     TASK_FLAG_DEVICE        = (1 << 2), // may execute on a device
     TASK_FLAG_DOMAIN        = (1 << 3), // may have dependent children tasks - in such case, it will have a dependency and a memory domain
     TASK_FLAG_MOLDABLE      = (1 << 4), // the task may be split

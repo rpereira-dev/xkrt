@@ -79,6 +79,9 @@
 #  define xkstatic_assert(X) _Static_assert(X, "")
 #endif
 
+/* depth of io uring queues */
+# define XKRT_IO_URING_DEPTH (1024)
+
 typedef uint8_t xkrt_device_driver_id_t;
 xkstatic_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(xkrt_device_driver_id_t)*8)));
 

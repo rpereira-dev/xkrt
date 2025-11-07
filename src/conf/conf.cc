@@ -89,6 +89,20 @@ __parse_d2d_per_queue(conf_t * conf, char const * value)
 }
 
 static void
+__parse_nqueues_fr(conf_t * conf, char const * value)
+{
+    if (value)
+        conf->device.offloader.queues[QUEUE_TYPE_FD_READ].n = (int8_t) MAX(atoi(value), 0);
+}
+
+static void
+__parse_nqueues_fw(conf_t * conf, char const * value)
+{
+    if (value)
+        conf->device.offloader.queues[QUEUE_TYPE_FD_WRITE].n = (int8_t) MAX(atoi(value), 0);
+}
+
+static void
 __parse_nqueues_h2d(conf_t * conf, char const * value)
 {
     if (value)
@@ -258,16 +272,18 @@ static conf_parse_t CONF_PARSE[] = {
     {"XKAAPI_PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,  "When progression threads have nothing else to do but poll pending commands, put it to sleep until the completion of a random command of a random steam."},
     {"XKAAPI_BUSY_POLLING",                     __parse_busy_polling,       "Whether progression threads should pause when there is no tasks and no ready/pending commands"},
     {"XKAAPI_TASK_PREFETCH",                    __parse_task_prefetch,      "If enabled, after completing a task, initiate data transfers for all its WaR successors that place of execution is already known (else, transfers only starts once the successor is ready)."},
-    {"XKAAPI_NQUEUES_D2D",                     __parse_nqueues_d2d,       "Number of D2D queues per GPU"},
-    {"XKAAPI_NQUEUES_D2H",                     __parse_nqueues_d2h,       "Number of D2H queues per GPU"},
-    {"XKAAPI_NQUEUES_H2D",                     __parse_nqueues_h2d,       "Number of H2D queues per GPU"},
-    {"XKAAPI_NQUEUES_KERN",                    __parse_nqueues_kern,      "Number of KERN queues per GPU"},
-    {"XKAAPI_OFFLOADER_CAPACITY",               __parse_offloader_capacity, "Maximum number of pending commands per queue"},
-    {"XKAAPI_PRECISION",                        NULL,                       NULL},
-    {"XKAAPI_STATS",                            __parse_stats,              "Boolean to dump stats on deinit"},
-    {"XKAAPI_USE_P2P",                          __parse_p2p,                "Boolean to enable/disable the use of p2p transfers"},
-    {"XKAAPI_WARMUP",                           __parse_warmup,             "Boolean to enable/disable threads/devices warmup on runtime initialization"},
-    {"XKAAPI_VERBOSE",                          __parse_verbose,            "Verbosity level (the higher the most)"},
+    {"XKAAPI_NQUEUES_D2D",                     __parse_nqueues_d2d,       "Number of D2D queues per device"},
+    {"XKAAPI_NQUEUES_D2H",                     __parse_nqueues_d2h,       "Number of D2H queues per device"},
+    {"XKAAPI_NQUEUES_H2D",                     __parse_nqueues_h2d,       "Number of H2D queues per device"},
+    {"XKAAPI_NQUEUES_KERN",                    __parse_nqueues_kern,      "Number of KERN queues per device"},
+    {"XKAAPI_NQUEUES_FR",                      __parse_nqueues_fr,        "Number of FR queues per device"},
+    {"XKAAPI_NQUEUES_FW",                      __parse_nqueues_fw,        "Number of FW queues per device"},
+    {"XKAAPI_OFFLOADER_CAPACITY",              __parse_offloader_capacity, "Maximum number of pending commands per queue"},
+    {"XKAAPI_PRECISION",                       NULL,                       NULL},
+    {"XKAAPI_STATS",                           __parse_stats,              "Boolean to dump stats on deinit"},
+    {"XKAAPI_USE_P2P",                         __parse_p2p,                "Boolean to enable/disable the use of p2p transfers"},
+    {"XKAAPI_WARMUP",                          __parse_warmup,             "Boolean to enable/disable threads/devices warmup on runtime initialization"},
+    {"XKAAPI_VERBOSE",                         __parse_verbose,            "Verbosity level (the higher the most)"},
     {NULL, NULL, NULL}
 };
 

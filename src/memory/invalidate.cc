@@ -55,11 +55,10 @@ memory_deallocate_all(
         device->memory_reset();
 
         // thread thread memory
-        uint8_t nthreads = device->nthreads.load(std::memory_order_acq_rel);
-        for (uint8_t i = 0 ; i < nthreads ; ++i)
+        int nthreads = device->team->get_nthreads();
+        for (int i = 0 ; i < nthreads ; ++i)
         {
-            thread_t * thread = device->threads[i];
-            assert(thread);
+            thread_t * thread = device->team->get_thread(i);
             thread->deallocate_all_tasks();
         }
     }
@@ -67,7 +66,7 @@ memory_deallocate_all(
 
 # pragma message(TODO "This interface definition is fucked: deallocating all device memory is not safe here if there is multiple threads submitting tasks to the device. It also releases both memory controllers and dependency trees: are we sure about this ?")
 static void
-coherency_reset(runtime_t * runtime)
+coherence_reset(runtime_t * runtime)
 {
     LOGGER_DEBUG("Invalidate XKBlas devices memory");
 
@@ -128,7 +127,7 @@ coherency_reset(runtime_t * runtime)
 void
 runtime_t::reset(void)
 {
-    coherency_reset(this);
+    coherence_reset(this);
 }
 
 XKRT_NAMESPACE_END

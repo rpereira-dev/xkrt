@@ -61,19 +61,18 @@ XKRT_NAMESPACE_BEGIN
             int fd;
 
             /* submission queue */
-            unsigned char * sq_ptr;
-            unsigned char * sq_tail;
-            unsigned char * sq_mask;
-            unsigned char * sq_array;
+            void * sq_ptr;
+            unsigned * sq_tail;
+            unsigned * sq_mask;
+            unsigned * sq_array;
 
             struct io_uring_sqe * sqes;
 
             /* completion queue */
-            unsigned char * cq_ptr;
-            unsigned char * cq_head;
-            unsigned char * cq_tail;
-            unsigned char * cq_mask;
-            unsigned char * cq_array;
+            void * cq_ptr;
+            unsigned * cq_head;
+            unsigned * cq_tail;
+            unsigned * cq_mask;
 
             struct io_uring_cqe * cqes;
 

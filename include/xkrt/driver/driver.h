@@ -78,14 +78,25 @@ XKRT_NAMESPACE_BEGIN
         /* a barrier to synchronize all threads of the team and the main thread */
         pthread_barrier_t barrier;
 
-        /* devices */
-        device_t * devices[XKRT_DEVICES_MAX];
+        /* devices list */
+        struct {
 
-        /* number of devices commited */
-        std::atomic<int> ndevices_commited;
+            /* devices of that driver */
+            device_t * list[XKRT_DEVICES_MAX];
 
-        /* bitfield of devices for that driver */
-        device_global_id_bitfield_t devices_bitfield;
+            /* bitfield of devices for that driver */
+            device_global_id_bitfield_t bitfield;
+
+            /* device global ids of that driver (used for init only, it is redundant with list[_].global_id after init) */
+            device_global_id_t global_ids[XKRT_DEVICES_MAX];
+
+            /* number of devices for that driver */
+            device_driver_id_t n;
+
+            /* devices team */
+            team_t teams[XKRT_DEVICES_MAX];
+
+        } devices;
 
         /////////////////////////////////////
         //  API TO IMPLEMENT BY THE DRIVER //
@@ -239,16 +250,16 @@ XKRT_NAMESPACE_BEGIN
         /* list of drivers */
         driver_t * list[XKRT_DRIVER_TYPE_MAX];
 
+        /* a barrier to synchronize enabled driver (of 'n' + 1 threads) */
+        pthread_barrier_t barrier;
+
         struct {
 
             /* list of devices */
             device_t * list[XKRT_DEVICES_MAX];
 
-            /* number of devices */
-            std::atomic<uint8_t> n;
-
-            /* next device id to use */
-            std::atomic<uint8_t> next_id;
+            /* number of devices in the list */
+            device_global_id_t n;
 
         } devices;
 

@@ -103,4 +103,123 @@ runtime_t::copy(
     );
 }
 
+////////////////////////////
+// task spawning routines //
+////////////////////////////
+
+typedef struct  memory_copy_async_args_t
+{
+    size_t               size;
+    device_global_id_t   dst_device_global_id;
+    uintptr_t            dst_device_addr;
+    device_global_id_t   src_device_global_id;
+    uintptr_t            src_device_addr;
+}               memory_copy_async_args_t;
+
+/* the task completes once all segment completed */
+constexpr task_flag_bitfield_t flags = TASK_FLAG_DEVICE | TASK_FLAG_DEPENDENT | TASK_FLAG_DETACHABLE;
+constexpr unsigned int ac  = 1;
+constexpr size_t task_size = task_compute_size(flags, ac);
+constexpr size_t args_size = sizeof(memory_copy_async_args_t);
+
+static void
+body_memory_copy_async_callback(void * vargs [XKRT_CALLBACK_ARGS_MAX])
+{
+    runtime_t * runtime = (runtime_t *) vargs[0];
+    assert(runtime);
+
+    task_t * task = (task_t *) vargs[1];
+    assert(task);
+
+    /* retrieve task args */
+    runtime->task_detachable_decr(task);
+}
+
+static void
+body_memory_copy_async(runtime_t * runtime, device_t * device, task_t * task)
+{
+    runtime->task_detachable_incr(task);
+
+    callback_t callback;
+    callback.func    = body_memory_copy_async_callback;
+    callback.args[0] = runtime;
+    callback.args[1] = task;
+
+    memory_copy_async_args_t * args = (memory_copy_async_args_t *) TASK_ARGS(task);
+    assert(args);
+
+    runtime->copy(device->global_id, args->size, args->dst_device_global_id, args->dst_device_addr, args->src_device_global_id, args->src_device_addr, callback);
+}
+
+void
+runtime_t::memory_copy_async(
+    const device_global_id_t   device_global_id,
+    const size_t               size,
+    const device_global_id_t   dst_device_global_id,
+    const uintptr_t            dst_device_addr,
+    const device_global_id_t   src_device_global_id,
+    const uintptr_t            src_device_addr,
+    int n
+) {
+    thread_t * thread = thread_t::get_tls();
+    assert(thread);
+
+    const task_format_id_t fmtid = this->formats.memory_copy_async;
+
+    this->foreach(src_device_addr, size, n, [&] (const int i, const uintptr_t a, const uintptr_t b)
+    {
+        (void) i;
+        assert(i < n);
+        assert(a < b);
+        assert(src_device_addr <= a);
+        assert(b <= src_device_addr + size);
+
+        task_t * task = thread->allocate_task(task_size + args_size);
+        new (task) task_t(fmtid, flags);
+
+        const size_t offset = a - src_device_addr;
+        const size_t size   = b - a;
+
+        // copy arguments
+        memory_copy_async_args_t * args = (memory_copy_async_args_t *) TASK_ARGS(task, task_size);
+        args->size                  = size;
+        args->dst_device_global_id  = dst_device_global_id;
+        args->dst_device_addr       = dst_device_addr + offset;
+        args->src_device_global_id  = src_device_global_id;
+        args->src_device_addr       = src_device_addr + offset;
+
+        task_dep_info_t * dep = TASK_DEP_INFO(task);
+        new (dep) task_dep_info_t(ac);
+
+        task_dev_info_t * dev = TASK_DEV_INFO(task);
+        new (dev) task_dev_info_t(device_global_id, UNSPECIFIED_TASK_ACCESS);
+
+        # if XKRT_SUPPORT_DEBUG
+        snprintf(task->label, sizeof(task->label), "memory_copy_async");
+        # endif
+
+        // detached virtual write onto the memory segment
+        access_t * accesses = TASK_ACCESSES(task, flags);
+        constexpr access_mode_t mode = (access_mode_t) (ACCESS_MODE_W | ACCESS_MODE_V);
+        new (accesses + 0) access_t(task, a, b, mode);
+        thread->resolve(accesses, 1);
+
+        // commit
+        this->task_commit(task);
+    });
+}
+
+void
+memory_copy_async_register_format(runtime_t * runtime)
+{
+    {
+        task_format_t format;
+        memset(format.f, 0, sizeof(format.f));
+        format.suggest = NULL;
+        format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_memory_copy_async;
+        snprintf(format.label, sizeof(format.label), "memory_copy_async");
+        runtime->formats.memory_copy_async = task_format_create(&(runtime->formats.list), &format);
+    }
+}
+
 XKRT_NAMESPACE_END

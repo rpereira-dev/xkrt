@@ -9,9 +9,9 @@ Please open any issue at https://github.com/rpereira-dev/xkaapi
 # Related Projects
 This repository hosts the XKRT runtime system.    
 Other repository hosts specialization layers built on top of the runtime:
-- [XKBlas](https://gitlab.inria.fr/xkblas/dev/-/tree/v2.0) is a multi-gpu BLAS implementation that allows the tiling and composition of kernels, with asynchronous overlap of computation/transfers. If you want a copy of XKBlas, please contact thierry.gautier@inrialpes.fr or rpereira@anl.gov (https://gitlab.inria.fr/xkblas/dev)
+- [XKBlas](https://gitlab.inria.fr/xkblas/dev/-/tree/v2.0) is a multi-gpu BLAS implementation that allows the tiling and composition of kernels, with asynchronous overlap of computation/transfers.
 - [XKBM](https://github.com/anlsys/xkbm) is a suite of benchmark for measuring multi-gpu architectures performances, to assist in the design of runtime systems.
-- [XKOMP](https://github.com/anlsys/xkomp) is an experimental OpenMP runtime built on top of XKRT
+- [XKOMP](https://github.com/anlsys/xkomp) is an experimental OpenMP runtime built on top of XKRT.
 
 # Getting started
 

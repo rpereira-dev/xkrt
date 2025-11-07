@@ -894,6 +894,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_create)(
     {
         CUBLAS_SAFE_CALL(cublasCreate(&queue->cu.blas.handle));
         CUBLAS_SAFE_CALL(cublasSetStream(queue->cu.blas.handle, queue->cu.handle.high));
+        CUBLAS_SAFE_CALL(cublasSetMathMode(queue->cu.blas.handle, CUBLAS_TENSOR_OP_MATH));
 
         CUSPARSE_SAFE_CALL(cusparseCreate(&queue->cu.sparse.handle));
         CUSPARSE_SAFE_CALL(cusparseSetStream(queue->cu.sparse.handle, queue->cu.handle.high));

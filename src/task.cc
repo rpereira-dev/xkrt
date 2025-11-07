@@ -161,10 +161,10 @@ __task_complete(
     runtime_t * runtime,
     task_t * task
 ) {
-
     // assertions
     assert(
-        task->state.value == TASK_STATE_DATA_FETCHED ||
+        task->state.value == TASK_STATE_DATA_FETCHED    ||
+        task->state.value == TASK_STATE_EXECUTING       ||
         task->state.value == TASK_STATE_READY
     );
     if (task->flags & (TASK_FLAG_DETACHABLE | TASK_FLAG_DEPENDENT))
@@ -274,45 +274,36 @@ __task_detachable_incr(
     det->wc.fetch_add(N, std::memory_order_relaxed);
 }
 
-/* transition the task to the state 'executed' - and eventually to 'completed' or 'detached' */
+/* transition the task to the state 'executed' - and eventually to 'completed'
+ * or 'detached' */
 static inline void
 __task_executed(
     runtime_t * runtime,
     task_t * task
 ) {
+    assert(task->state.value == TASK_STATE_EXECUTING);
+
     if (task->flags & TASK_FLAG_DETACHABLE)
-        __task_detachable_decr<0>(runtime, task);
+        __task_detachable_decr<1>(runtime, task);
     else
         __task_complete(runtime, task);
 }
 
-static void
-device_task_executed_callback(
-    void * args[XKRT_CALLBACK_ARGS_MAX]
-) {
-    runtime_t * runtime = (runtime_t *) args[0];
-    assert(runtime);
-
-    task_t * task = (task_t *) args[1];
-    assert(task);
-
-    __task_executed(runtime, task);
-}
-
 /**
- * Must be called once all task accesses were fetched, to queue the task kernel for execution
- *  - driver - the driver to use for executing the kernel
- *  - device - the device to use for executing the kernel
- *  - task   - the task
+ *  Execute a task.  * Must be called once all task accesses were fetched.
  */
 void
-device_task_execute(
-    runtime_t * runtime,
-    device_t * device,
-    task_t * task
-) {
+task_execute(runtime_t * runtime, device_t * device, task_t * task)
+{
     thread_t * thread = thread_t::get_tls();
     assert(thread);
+
+    task->state.value = TASK_STATE_EXECUTING;
+    LOGGER_DEBUG_TASK_STATE(task);
+
+    // if detachable, increase counter to avoid early completion (before routine executed)
+    if (task->flags & TASK_FLAG_DETACHABLE)
+        __task_detachable_incr<1>(runtime, task);
 
     task_format_t * format;
 
@@ -330,50 +321,32 @@ device_task_execute(
        /* if there is a format */
         if (format)
         {
-            // convert device driver type to task format target
-            task_format_target_t targetfmt = driver_type_to_task_format_target(device->driver_type);
-
-            /* if there is a body to execute */
-            if (format->f[targetfmt] == NULL)
+            task_format_target_t targetfmt;
+            if (device)
+            {
+                targetfmt = driver_type_to_task_format_target(device->driver_type);
+                if (format->f[targetfmt] == NULL)
+                    targetfmt = TASK_FORMAT_TARGET_HOST;
+            }
+            else
                 targetfmt = TASK_FORMAT_TARGET_HOST;
 
             if (format->f[targetfmt])
             {
-                /* if its a host task */
-                if (targetfmt == TASK_FORMAT_TARGET_HOST)
-                {
-                    task_t * current = thread->current_task;
-                    thread->current_task = task;
-                    ((void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST])(task);
-                    thread->current_task = current;
+                task_t * current = thread->current_task;
+                thread->current_task = task;
+                ((void (*)(runtime_t *, device_t *, task_t *)) format->f[targetfmt])(runtime, device, task);
+                thread->current_task = current;
 
-                    /* if the task yielded, requeue it */
-                    if (task->flags & TASK_FLAG_REQUEUE)
-                    {
-                        task->flags = task->flags & ~(TASK_FLAG_REQUEUE);
-                        runtime->task_thread_enqueue(thread, task);
-                    }
-                    /* else, it executed entirely */
-                    else
-                        __task_executed(runtime, task);
+                /* if the task yielded, requeue it */
+                if (task->flags & TASK_FLAG_REQUEUE)
+                {
+                    task->flags = task->flags & ~(TASK_FLAG_REQUEUE);
+                    runtime->task_thread_enqueue(thread, task);
                 }
-                /* else, if its a device task */
+                /* else, it executed entirely */
                 else
-                {
-                    /* the task will complete in the callback called asynchronously on kernel completion */
-                    callback_t callback;
-                    callback.func    = device_task_executed_callback;
-                    callback.args[0] = runtime;
-                    callback.args[1] = task;
-                    assert(XKRT_CALLBACK_ARGS_MAX >= 2);
-
-                    /* submit kernel launch command */
-                    device->offloader_queue_command_submit_kernel(
-                        (kernel_launcher_t) format->f[targetfmt],
-                        task,
-                        callback
-                    );
-                }
+                    __task_executed(runtime, task);
             }
             else
                 LOGGER_FATAL("Task format for `%p` has no impl for device `%u`", task, device->global_id);
@@ -384,12 +357,13 @@ device_task_execute(
 }
 
 static void
-body_host_capture(task_t * task)
+body_host_capture(runtime_t * runtime, device_t * device, task_t * task)
 {
     assert(task);
 
-    std::function<void(task_t *)> * f = (std::function<void(task_t *)> *) TASK_ARGS(task);
-    (*f)(task);
+    std::function<void(runtime_t *, device_t *, task_t *)> * f =
+        (std::function<void(runtime_t *, device_t *, task_t *)> *) TASK_ARGS(task);
+    (*f)(runtime, device, task);
 }
 
 void
@@ -439,30 +413,6 @@ runtime_t::task_complete(task_t * task)
     __task_complete(this, task);
 }
 
-void
-runtime_t::task_run(
-    team_t * team,
-    thread_t * thread,
-    task_t * task
-) {
-    assert(team);
-    assert(thread);
-    assert(task);
-
-    assert(thread == thread_t::get_tls());
-    if (task->fmtid != TASK_FORMAT_NULL)
-    {
-        task_format_t * format = this->formats.list.list + task->fmtid;
-        assert(format->f[TASK_FORMAT_TARGET_HOST]);
-        task_t * current = thread->current_task;
-        thread->current_task = task;
-        void (*f)(task_t *) = (void (*)(task_t *)) format->f[TASK_FORMAT_TARGET_HOST];
-        f(task);
-        thread->current_task = current;
-    }
-    __task_executed(this, task);
-}
-
 /** duplicate a moldable task */
 task_t *
 runtime_t::task_dup(
@@ -504,11 +454,10 @@ submit_task_host(
 
     // tls->team == NULL means it come from a user-thread, unknown to kaapi
     // tls->device_global_id != XKRT_DRIVER_TYPE_HOST means it is a kaapi thread, but not a host thread
-    if (tls->team == NULL || tls->device_global_id != XKRT_DRIVER_TYPE_HOST)
+    if (tls->team == NULL || tls->device_global_id != HOST_DEVICE_GLOBAL_ID)
     {
-        driver_t * driver = runtime->drivers.list[XKRT_DRIVER_TYPE_HOST];
-        assert(driver->ndevices_commited == 1);
-        runtime->task_team_enqueue(&driver->team, task);
+        device_t * device = runtime->device_get(HOST_DEVICE_GLOBAL_ID);
+        runtime->task_team_enqueue(device->team, task);
     }
     else
     {
@@ -611,17 +560,11 @@ submit_task_device(
 
     LOGGER_DEBUG("Enqueuing task `%s` to device %d", task->label, device_global_id);
 
-    // only coherent async are supported onto the host device yet
-    if (device_global_id == HOST_DEVICE_GLOBAL_ID)
-        return submit_task_host(runtime, task);
-
     device_t * device = runtime->drivers.devices.list[device_global_id];
     assert(device);
 
-   /* push a task to a thread of the device */
-    uint8_t tid = device->thread_next.fetch_add(1, std::memory_order_relaxed) % device->nthreads;
-    thread_t * thread = device->threads[tid];
-    runtime->task_thread_enqueue(thread, task);
+    /* push a task to a thread of the device */
+    runtime->task_team_enqueue(device->team, task);
 }
 
 void

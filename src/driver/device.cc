@@ -227,13 +227,13 @@ device_t::memory_allocate_on(const size_t user_size, int area_idx)
         {
             size_t curr_size = curr->size;
             area_chunk_t * remainder = (area_chunk_t *) malloc(sizeof(area_chunk_t));
-            remainder->ptr          = size + curr->ptr;
-            remainder->size         = (curr_size - size);
-            remainder->state        = XKRT_ALLOC_CHUNK_STATE_FREE;
-            remainder->use_counter  = 0;
-            remainder->prev         = curr;
-            remainder->next         = curr->next;
-            remainder->freelink     = curr->freelink;
+            remainder->ptr         = size + curr->ptr;
+            remainder->size        = (curr_size - size);
+            remainder->state       = XKRT_ALLOC_CHUNK_STATE_FREE;
+            remainder->use_counter = 0;
+            remainder->prev        = curr;
+            remainder->next        = curr->next;
+            remainder->freelink    = curr->freelink;
 
             /* link remainder segment after curr */
             if (curr->next)
@@ -297,15 +297,11 @@ device_t::offloader_init(
 
 void
 device_t::offloader_init_thread(
-    uint8_t device_tid,
+    int tid,
     queue_t * (*f_queue_create)(device_t * device, queue_type_t type, queue_command_list_counter_t capacity)
 ) {
     if (this->nqueues_per_thread == 0)
         return ;
-
-    /* retrieve the thread that is initializing its queues */
-    thread_t * thread = this->threads[device_tid];
-    assert(thread);
 
     /* allocate queues array */
     assert(this->nqueues_per_thread);
@@ -316,7 +312,7 @@ device_t::offloader_init_thread(
     uint16_t i = 0;
     for (int qtype = 0 ; qtype < QUEUE_TYPE_ALL ; ++qtype)
     {
-        this->queues[device_tid][qtype] = all_queues + i;
+        this->queues[tid][qtype] = all_queues + i;
         for (int j = 0 ; j < this->count[qtype] ; ++j, ++i)
         {
             // create a new queue
@@ -333,7 +329,7 @@ device_t::offloader_init_thread(
 
 void
 device_t::offloader_queues_are_empty(
-    uint8_t device_tid,
+    int tid,
     const queue_type_t qtype,
     bool * ready,
     bool * pending
@@ -349,7 +345,7 @@ device_t::offloader_queues_are_empty(
     {
         for (int i = 0 ; i < this->count[s] ; ++i)
         {
-            const queue_t * queue = this->queues[device_tid][s][i];
+            const queue_t * queue = this->queues[tid][s][i];
             if (*ready == false && !queue->ready.is_empty())
                 *ready = true;
             if (*pending == false && !queue->pending.is_empty())
@@ -362,7 +358,7 @@ device_t::offloader_queues_are_empty(
 
 int
 device_t::offloader_queue_commands_launch(
-    uint8_t device_tid,
+    int tid,
     const queue_type_t qtype
 ) {
     int err = 0;
@@ -373,7 +369,7 @@ device_t::offloader_queue_commands_launch(
     {
         for (int i = 0 ; i < this->count[s] ; ++i)
         {
-            queue_t * queue = this->queues[device_tid][s][i];
+            queue_t * queue = this->queues[tid][s][i];
             assert(queue);
 
             queue->lock();
@@ -416,7 +412,7 @@ device_t::offloader_queue_next(
     queue_t ** pqueue       /* OUT */
 ) {
     // round robin on the thread for this queue type
-    uint8_t next_thread = this->next_thread.fetch_add(1, std::memory_order_relaxed) % this->nthreads;
+    int next_thread = this->next_thread.fetch_add(1, std::memory_order_relaxed) % this->team->get_nthreads();
 
     // round robin on queues for the queues of the given type on the choosen thread
     int count = this->count[qtype];
@@ -424,30 +420,30 @@ device_t::offloader_queue_next(
     int snext = this->next_queue[next_thread][qtype].fetch_add(1, std::memory_order_relaxed) % count;
 
     // save thread/queue
-    *pthread = this->threads[next_thread];
+    *pthread = this->team->get_thread(next_thread);
     *pqueue  = this->queues[next_thread][qtype][snext];
 }
 
 int
-device_t::offloader_launch(uint8_t device_tid)
+device_t::offloader_launch(int tid)
 {
-    int err = this->offloader_queue_commands_launch(device_tid, QUEUE_TYPE_ALL);
+    int err = this->offloader_queue_commands_launch(tid, QUEUE_TYPE_ALL);
     assert((err == 0) || (err == EINPROGRESS));
 
     return err;
 }
 
 int
-device_t::offloader_progress(uint8_t device_tid)
+device_t::offloader_progress(int tid)
 {
-    int err = this->offloader_queue_commands_progress<false>(device_tid, QUEUE_TYPE_ALL);
+    int err = this->offloader_queue_commands_progress<false>(tid, QUEUE_TYPE_ALL);
     assert((err == 0) || (err == EINPROGRESS));
 
     return err;
 }
 
 int
-device_t::offloader_wait_random_command(uint8_t device_tid)
+device_t::offloader_wait_random_command(int tid)
 {
     static unsigned int seed = 0x42;
 
@@ -464,7 +460,7 @@ device_t::offloader_wait_random_command(uint8_t device_tid)
         {
             unsigned int i = (rqueue + iqueue) % this->count[s];
 
-            queue = this->queues[device_tid][s][i];
+            queue = this->queues[tid][s][i];
             assert(queue);
 
             // if the queue has pending commands
@@ -485,7 +481,7 @@ device_t::offloader_wait_random_command(uint8_t device_tid)
 
                 // calling this to complete events and move queues pointers
                 // but also detect out-of-order completions
-                this->offloader_progress(device_tid);
+                this->offloader_progress(tid);
 
                 return err;
             }
@@ -555,11 +551,11 @@ device_t::offloader_queue_command_submit_kernel(
     queue_t * queue;
     command_t * cmd;
     this->offloader_queue_command_new(
-        QUEUE_TYPE_KERN,               /* IN */
-       &thread,                         /* OUT */
-       &queue,                         /* OUT */
-        COMMAND_TYPE_KERN,    /* IN */
-       &cmd                           /* OUT */
+        QUEUE_TYPE_KERN,        /* IN */
+        &thread,                /* OUT */
+        &queue,                 /* OUT */
+        COMMAND_TYPE_KERN,      /* IN */
+        &cmd                    /* OUT */
     );
     assert(thread);
     assert(queue);

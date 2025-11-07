@@ -44,7 +44,7 @@ static runtime_t runtime;
 static volatile int run_for_device[XKRT_DEVICES_MAX];
 
 static void *
-run(team_t * team, thread_t * thread)
+run(runtime_t * rt, team_t * team, thread_t * thread)
 {
     assert(thread->tid >= 0);
     assert(thread->tid < runtime.drivers.devices.n);
@@ -58,12 +58,13 @@ main(void)
     assert(runtime.init() == 0);
 
     team_t team;
-    team.desc.routine           = run;
-    team.desc.args              = NULL;
-    team.desc.nthreads          = runtime.drivers.devices.n;
-    team.desc.binding.mode      = XKRT_TEAM_BINDING_MODE_COMPACT;
-    team.desc.binding.places    = XKRT_TEAM_BINDING_PLACES_DEVICE;
-    team.desc.binding.flags     = XKRT_TEAM_BINDING_FLAG_NONE;
+    team.desc.args             = NULL;
+    team.desc.binding.flags    = XKRT_TEAM_BINDING_FLAG_NONE;
+    team.desc.binding.mode     = XKRT_TEAM_BINDING_MODE_COMPACT;
+    team.desc.binding.places   = XKRT_TEAM_BINDING_PLACES_DEVICE;
+    team.desc.master_is_member = false;
+    team.desc.nthreads         = runtime.drivers.devices.n;
+    team.desc.routine          = (team_routine_t) run;
 
     runtime.team_create(&team);
     runtime.team_join(&team);

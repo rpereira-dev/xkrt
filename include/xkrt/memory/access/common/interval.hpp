@@ -47,6 +47,7 @@
 
 class Interval {
 
+    // represent the interval [a..b[
     public:
         INTERVAL_TYPE_T a, b;
 
@@ -97,7 +98,7 @@ class Interval {
         inline bool
         intersects(const Interval & other) const
         {
-            return this->a <= other.b && other.a <= this->b;
+            return this->a < other.b && other.a < this->b;
         }
 
         bool
