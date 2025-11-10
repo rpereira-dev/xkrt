@@ -56,6 +56,8 @@
 # include <xkrt/memory/area.h>          // this should gtfo
 # include <xkrt/task/task.hpp>          // this should gtfo
 
+# include <xkrt/memory/access/mode.h>
+
 # include <algorithm>  // std::sort
 # include <cstdint>
 # include <functional>
@@ -1182,7 +1184,7 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         fetch_list_to_host(
             access_t * access
         ) {
-            assert(access->type == ACCESS_TYPE_INTERVAL || access->type == ACCESS_TYPE_BLAS_MATRIX);
+            assert(access->type == ACCESS_TYPE_SEGMENT || access->type == ACCESS_TYPE_BLAS_MATRIX);
 
             Search search(HOST_DEVICE_GLOBAL_ID);
             this->lock();
@@ -1691,7 +1693,7 @@ next_view:
             device_global_id_t device_global_id = (fetch->dst_device_global_id != HOST_DEVICE_GLOBAL_ID) ? fetch->dst_device_global_id : fetch->src_device_global_id;
 
             /* launch asynchronous copy */
-            if (access->type == ACCESS_TYPE_INTERVAL)
+            if (access->type == ACCESS_TYPE_SEGMENT)
             {
                 assert(fetch->host_view.n == 1);
                 assert(fetch->host_view.sizeof_type == 1);
@@ -1734,7 +1736,7 @@ next_view:
             access_t * access,
             device_global_id_t device_global_id
         ) {
-            assert(access->type == ACCESS_TYPE_INTERVAL ||
+            assert(access->type == ACCESS_TYPE_SEGMENT ||
                     access->type == ACCESS_TYPE_BLAS_MATRIX);
 
             // run the coherency protocol
@@ -1753,7 +1755,7 @@ next_view:
                     access->host_view.m,
                     access->host_view.n,
                     access->host_view.sizeof_type,
-                    access_mode_to_str(access->mode)
+                    xkrt_access_mode_to_str(access->mode)
                 );
                 # endif
 

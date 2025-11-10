@@ -2,6 +2,7 @@
 ** Copyright 2024,2025 INRIA
 **
 ** Contributors :
+** Thierry Gautier, thierry.gautier@inrialpes.fr
 ** Romain PEREIRA, romain.pereira@inria.fr + rpereira@anl.gov
 **
 ** This software is a computer program whose purpose is to execute
@@ -34,56 +35,56 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __MEMORY_VIEW_HPP__
-# define __MEMORY_VIEW_HPP__
+# include <assert.h>
+# include <stdio.h>
+# include <xkrt/xkrt.h>
 
-# include <xkrt/namespace.h>
-# include <xkrt/memory/access/blas/matrix.h>
+static void
+task_func(
+    xkrt_runtime_t * runtime,
+    xkrt_device_t * device,
+    xkrt_task_t * task,
+    void * user_data
+) {
+    puts("in");
+}
 
-XKRT_NAMESPACE_BEGIN
-
-typedef struct  memory_replica_view_t
+int
+main(void)
 {
-    uintptr_t addr; // address of the allocation containing this block on that device
-    size_t ld;      // ld of this replicate view (may be different from
-                    // host'ld, as it is allocated compactly on the device)
+    xkrt_runtime_t runtime;
+    assert(xkrt_init(&runtime) == 0);
 
-    memory_replica_view_t(
-    ) :
-        addr(0),
-        ld(0)
-    {}
+    xkrt_team_t * team = xkrt_team_driver_device_get(&runtime, XKRT_DRIVER_TYPE_HOST, 0);
+    xkrt_task_func_t func = task_func;
+    void * user_data = NULL;
+    const xkrt_access_t accesses[] = {
+        {
+            .concurrency    = ACCESS_CONCURRENCY_SEQUENTIAL,
+            .mode           = ACCESS_MODE_VW,
+            .scope          = ACCESS_SCOPE_NONUNIFIED,
+            .type           = ACCESS_TYPE_SEGMENT,
+            .data           = {
+                .segment = {
+                    .a = (void *) 0,
+                    .b = (void *) 1
+                }
+            }
+        }
+    };
+    const int naccesses = sizeof(accesses) / sizeof(xkrt_access_t);
 
-    memory_replica_view_t(
-        uintptr_t addr,
-        size_t ld
-    ) :
-        addr(addr),
-        ld(ld)
-    {}
+    xkrt_team_task_spawn_with_accesses(
+        &runtime,
+        team,
+        func,
+        user_data,
+        accesses,
+        naccesses
+    );
+    xkrt_task_wait(&runtime);
 
-    memory_replica_view_t(
-        const memory_replica_view_t & src
-    ) :
-        addr(src.addr),
-        ld(src.ld)
-    {}
+    assert(xkrt_deinit(&runtime) == 0);
 
-    ~memory_replica_view_t() {}
-
-    // user-defined copy assignment (non copy-and-swap idiom)
-    // note: copy-and-swap would always reallocate resources
-    memory_replica_view_t & operator=(const memory_replica_view_t & other)
-    {
-        this->addr = other.addr;
-        this->ld   = other.ld;
-        return *this;
-    }
-
-}               memory_replica_view_t;
-
-using memory_view_t = matrix_tile_t;
-
-XKRT_NAMESPACE_END
-
-#endif /* __MEMORY_VIEW_HPP__ */
+    return 0;
+}

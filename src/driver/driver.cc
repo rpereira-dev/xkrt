@@ -338,7 +338,7 @@ drivers_init(runtime_t * runtime)
             ////////////////////////////////////////////////////////////////////
 
             // generate places and global ids
-            thread_place_t * places = (thread_place_t *) malloc(sizeof(thread_place_t) * driver->devices.n);
+            team_thread_place_t * places = (team_thread_place_t *) malloc(sizeof(team_thread_place_t) * driver->devices.n);
             assert(places);
 
             driver->devices.bitfield = 0;

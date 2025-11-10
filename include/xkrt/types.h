@@ -41,6 +41,11 @@
 # include <atomic>
 
 # include <xkrt/consts.h>
+# include <xkrt/memory/access/blas/matrix-storage.h>
+# include <xkrt/memory/access/concurrency.h>
+# include <xkrt/memory/access/mode.h>
+# include <xkrt/memory/access/scope.h>
+# include <xkrt/memory/access/type.h>
 # include <xkrt/namespace.h>
 
 XKRT_NAMESPACE_BEGIN
@@ -57,6 +62,12 @@ typedef xkrt_driver_type_t                      driver_type_t;
 typedef xkrt_driver_type_bitfield_t             driver_type_bitfield_t;
 
 typedef xkrt_command_callback_index_t           command_callback_index_t;
+
+typedef xkrt_access_concurrency_t               access_concurrency_t;
+typedef xkrt_access_mode_t                      access_mode_t;
+typedef xkrt_access_scope_t                     access_scope_t;
+typedef xkrt_access_type_t                      access_type_t;
+typedef xkrt_matrix_storage_t                   matrix_storage_t;
 
 XKRT_NAMESPACE_END
 

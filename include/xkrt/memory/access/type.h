@@ -2,6 +2,7 @@
 ** Copyright 2024,2025 INRIA
 **
 ** Contributors :
+** Thierry Gautier, thierry.gautier@inrialpes.fr
 ** Romain PEREIRA, romain.pereira@inria.fr + rpereira@anl.gov
 **
 ** This software is a computer program whose purpose is to execute
@@ -34,56 +35,17 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __MEMORY_VIEW_HPP__
-# define __MEMORY_VIEW_HPP__
+#ifndef __ACCESS_TYPE_H__
+# define __ACCESS_TYPE_H__
 
-# include <xkrt/namespace.h>
-# include <xkrt/memory/access/blas/matrix.h>
-
-XKRT_NAMESPACE_BEGIN
-
-typedef struct  memory_replica_view_t
+/* access types */
+typedef enum    xkrt_access_type_t
 {
-    uintptr_t addr; // address of the allocation containing this block on that device
-    size_t ld;      // ld of this replicate view (may be different from
-                    // host'ld, as it is allocated compactly on the device)
+    ACCESS_TYPE_HANDLE      = 0,
+    ACCESS_TYPE_SEGMENT     = 1,
+    ACCESS_TYPE_BLAS_MATRIX = 2,
+    ACCESS_TYPE_NULL        = 3,
+    ACCESS_TYPE_MAX         = 4,
+}               xkrt_access_type_t;
 
-    memory_replica_view_t(
-    ) :
-        addr(0),
-        ld(0)
-    {}
-
-    memory_replica_view_t(
-        uintptr_t addr,
-        size_t ld
-    ) :
-        addr(addr),
-        ld(ld)
-    {}
-
-    memory_replica_view_t(
-        const memory_replica_view_t & src
-    ) :
-        addr(src.addr),
-        ld(src.ld)
-    {}
-
-    ~memory_replica_view_t() {}
-
-    // user-defined copy assignment (non copy-and-swap idiom)
-    // note: copy-and-swap would always reallocate resources
-    memory_replica_view_t & operator=(const memory_replica_view_t & other)
-    {
-        this->addr = other.addr;
-        this->ld   = other.ld;
-        return *this;
-    }
-
-}               memory_replica_view_t;
-
-using memory_view_t = matrix_tile_t;
-
-XKRT_NAMESPACE_END
-
-#endif /* __MEMORY_VIEW_HPP__ */
+#endif /* __ACCESS_TYPE_H__ */

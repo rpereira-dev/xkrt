@@ -43,6 +43,7 @@
 # include <xkrt/conf/conf.h>
 # include <xkrt/distribution/distribution.h>
 # include <xkrt/driver/driver.h>
+# include <xkrt/thread/team.h>
 # include <xkrt/thread/thread.h>
 # include <xkrt/memory/access/coherency-controller.hpp>
 # include <xkrt/memory/access/common/interval-set.hpp>
@@ -321,21 +322,21 @@ struct  runtime_t
 
     int memory_register_async(void * ptr, const size_t size, int n)
     {
-        team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST);
+        team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST, 0);
         assert(team);
         return this->memory_register_async(team, ptr, size, n);
     }
 
     int memory_unregister_async(void * ptr, const size_t size, int n)
     {
-        team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST);
+        team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST, 0);
         assert(team);
         return this->memory_register_async(team, ptr, size, n);
     }
 
     int memory_touch_async(void * ptr, const size_t size, int n)
     {
-        team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST);
+        team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST, 0);
         assert(team);
         return this->memory_touch_async(team, ptr, size, n);
     }
@@ -395,6 +396,46 @@ struct  runtime_t
 
     /* instanciate a new task (do not use unless you know what you're doing,
      * you may want to use `task_spawn` instead) */
+    inline task_t *
+    task_instanciate(
+        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f,
+        const int naccesses
+    ) {
+        assert(naccesses > 0);
+        assert(set_accesses);
+
+        // retrieve tls
+        thread_t * tls = thread_t::get_tls();
+        assert(tls);
+
+        // create the task
+        constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT;
+        const     size_t task_size = task_compute_size(flags, naccesses);
+        constexpr size_t args_size = sizeof(f);
+
+        task_t * task = tls->allocate_task(task_size + args_size);
+        new (task) task_t(this->formats.host_capture, flags);
+
+        std::function<void(runtime_t *, device_t *, task_t *)> * fcpy = (std::function<void(runtime_t *, device_t *, task_t *)> *) TASK_ARGS(task, task_size);
+        new (fcpy) std::function<void(runtime_t *, device_t *, task_t *)>(f);
+
+        task_dep_info_t * dep = TASK_DEP_INFO(task);
+        new (dep) task_dep_info_t(naccesses);
+
+        access_t * accesses = TASK_ACCESSES(task, flags);
+        set_accesses(task, accesses);
+        tls->resolve(accesses, naccesses);
+
+        # if XKRT_SUPPORT_DEBUG
+        snprintf(task->label, sizeof(task->label), "capture-dynamic-access");
+        # endif
+
+        return task;
+    }
+
+    /* instanciate a new task (do not use unless you know what you're doing,
+     * you may want to use `task_spawn` instead) */
     template <task_access_counter_t ac, bool has_set_accesses, bool has_split_condition>
     inline task_t *
     task_instanciate(
@@ -410,6 +451,7 @@ struct  runtime_t
 
         // retrieve tls
         thread_t * tls = thread_t::get_tls();
+        assert(tls);
 
         // create the task
         constexpr task_flag_bitfield_t depflag = ac                  ? TASK_FLAG_DEPENDENT : TASK_FLAG_ZERO;
@@ -461,6 +503,8 @@ struct  runtime_t
 
         // commit the task
         thread_t * tls = thread_t::get_tls();
+        assert(tls);
+
         tls->commit(task, task_enqueue, this);
     }
 
@@ -528,6 +572,24 @@ struct  runtime_t
     // THREADING - TASKING //
     /////////////////////////
 
+    inline void
+    team_task_spawn(
+        team_t * team,
+        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const std::function<void(runtime_t *, device_t *, task_t *)> & f,
+        const int naccesses
+    ) {
+        assert(naccesses > 0);
+
+        // create the task
+        task_t * task = task_instanciate(set_accesses, f, naccesses);
+        assert(task);
+
+        // commit the task
+        thread_t * tls = thread_t::get_tls();
+        tls->commit(task, task_team_enqueue, this, team);
+    }
+
     template <task_access_counter_t ac, bool has_set_accesses, bool has_split_condition>
     inline void
     team_task_spawn(
@@ -582,6 +644,9 @@ struct  runtime_t
     //////////////////
     // TEAM - UTILS //
     //////////////////
+
+    /* retrieve the team of thread for the device of a specific driver */
+    team_t * team_get(const driver_type_t type, const device_driver_id_t device_driver_id);
 
     /* retrieve the team of thread of the specific driver */
     team_t * team_get(const driver_type_t type);

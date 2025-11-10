@@ -38,8 +38,11 @@
 #ifndef __ACCESS_HPP__
 # define __ACCESS_HPP__
 
-# include <xkrt/memory/access/mode.h>
 # include <xkrt/memory/access/common/hyperrect.hpp>
+# include <xkrt/memory/access/concurrency.h>
+# include <xkrt/memory/access/mode.h>
+# include <xkrt/memory/access/scope.h>
+# include <xkrt/memory/access/type.h>
 # include <xkrt/memory/view.hpp>
 
 # include <vector>
@@ -283,16 +286,6 @@ matrix_to_rects(
     }
 }
 
-/* access types */
-typedef enum    access_type_t : uint8_t
-{
-    ACCESS_TYPE_HANDLE       = 0,
-    ACCESS_TYPE_INTERVAL    = 1,
-    ACCESS_TYPE_BLAS_MATRIX = 2,
-    ACCESS_TYPE_NULL        = 3,
-    ACCESS_TYPE_MAX         = 4,
-}               access_type_t;
-
 /* access state */
 typedef enum    access_state_t : uint8_t
 {
@@ -386,7 +379,7 @@ class access_t
         {
             switch (this->type)
             {
-                case ACCESS_TYPE_INTERVAL:
+                case ACCESS_TYPE_SEGMENT:
                     return { this->region.interval.rects, 3 };
                 case ACCESS_TYPE_BLAS_MATRIX:
                     return { this->region.matrix.rects, 2 };
@@ -400,7 +393,7 @@ class access_t
         {
             switch (this->type)
             {
-                case ACCESS_TYPE_INTERVAL:
+                case ACCESS_TYPE_SEGMENT:
                     return { this->region.interval.rects, 3 };
                 case ACCESS_TYPE_BLAS_MATRIX:
                     return { this->region.matrix.rects, 2 };
@@ -495,7 +488,7 @@ class access_t
             mode(mode),
             concurrency(concurrency),
             scope(scope),
-            type(ACCESS_TYPE_INTERVAL),
+            type(ACCESS_TYPE_SEGMENT),
             successors(),
             task(task),
             //         storage        addr      ld    offset_m  offset_n          m         n  s

@@ -37,6 +37,7 @@
 **/
 
 # include <xkrt/driver/device.hpp>
+# include <xkrt/thread/team.h>
 
 XKRT_NAMESPACE_USE;
 

@@ -301,7 +301,18 @@ xkrt_task_wait(xkrt_runtime_t * runtime)
 // ---------------------------
 
 xkrt_team_t *
-xkrt_team_get(
+xkrt_team_driver_device_get(
+    xkrt_runtime_t * runtime,
+    xkrt_driver_type_t type,
+    xkrt_device_driver_id_t device_driver_id
+) {
+    assert(runtime && *runtime);
+    runtime_t * rt = (runtime_t *)(*runtime);
+    return (xkrt_team_t *) rt->team_get(type, device_driver_id);
+}
+
+xkrt_team_t *
+xkrt_team_driver_get(
     xkrt_runtime_t * runtime,
     xkrt_driver_type_t type
 ) {
@@ -311,7 +322,7 @@ xkrt_team_get(
 }
 
 xkrt_team_t *
-xkrt_team_get_any(
+xkrt_team_driver_get_any(
     xkrt_runtime_t * runtime,
     xkrt_driver_type_bitfield_t types
 ) {
@@ -345,22 +356,83 @@ void
 xkrt_team_task_spawn_with_accesses(
     xkrt_runtime_t * runtime,
     xkrt_team_t * team,
-    xkrt_task_set_accesses_func_t set_accesses,
     xkrt_task_func_t func,
-    void * user_data
+    void * user_data,
+    const xkrt_access_t * accesses_c,
+    const int naccesses
 ) {
     assert(runtime && *runtime);
+    assert(accesses_c);
+
     runtime_t * rt = (runtime_t *)(*runtime);
 
-    auto set_wrapper = [set_accesses, user_data](task_t * task, access_t * access) {
-        if (set_accesses) set_accesses((xkrt_task_t *) task, (xkrt_access_t *) access, user_data);
+    // convert C access to C++ access
+    auto set_accesses = [&](task_t * task, access_t * accesses)
+    {
+        for (int i = 0 ; i < naccesses ; ++i)
+        {
+            const xkrt_access_t * access_c = accesses_c + i;
+            access_t * access = accesses + i;
+
+            switch (access->type)
+            {
+                case (ACCESS_TYPE_HANDLE):
+                {
+                    new (access) access_t(
+                        task,
+                        access_c->data.handle.addr,
+                        access_c->mode,
+                        access_c->concurrency,
+                        access_c->scope
+                    );
+                    break ;
+                }
+
+                case (ACCESS_TYPE_SEGMENT):
+                {
+                    new (access) access_t(
+                        task,
+                        (const uintptr_t) access_c->data.segment.a,
+                        (const uintptr_t) access_c->data.segment.b,
+                        access_c->mode,
+                        access_c->concurrency,
+                        access_c->scope
+                    );
+                    break ;
+                }
+
+                case (ACCESS_TYPE_BLAS_MATRIX):
+                {
+                    new (access) access_t(
+                        task,
+                        access_c->data.matrix.storage,
+                        access_c->data.matrix.addr,
+                        access_c->data.matrix.ld,
+                        access_c->data.matrix.offset_m,
+                        access_c->data.matrix.offset_n,
+                        access_c->data.matrix.m,
+                        access_c->data.matrix.n,
+                        access_c->data.matrix.sizeof_type,
+                        access_c->mode,
+                        access_c->concurrency,
+                        access_c->scope
+                    );
+                    break ;
+                }
+
+                default:
+                    break ;
+            }
+        }
     };
 
+    // function launcher
     auto func_wrapper = [func, user_data](runtime_t * runtime, device_t * device, task_t * task) {
         func((xkrt_runtime_t *) &runtime, (xkrt_device_t *) &device, (xkrt_task_t *) task, user_data);
     };
 
-    rt->team_task_spawn<0, true, false>((team_t *) team, set_wrapper, nullptr, func_wrapper);
+    // spawn the task
+    rt->team_task_spawn((team_t *) team, set_accesses, func_wrapper, naccesses);
 }
 
 #ifdef __cplusplus

@@ -38,7 +38,20 @@
 #ifndef __ACCESS_MODE_H__
 # define __ACCESS_MODE_H__
 
-typedef enum    access_mode_t : int
+// To OpenMP dependencies
+//
+// omp modifier | (xkrt_access_mode_t, xkrt_access_concurrency_t)
+//
+//        in      = (ACCESS_MODE_R, _, )
+//  out|inout     = (ACCESS_MODE_W, ACCESS_CONCURRENCY_SEQUENTIAL)
+//  mutexinoutset = (ACCESS_MODE_W, ACCESS_CONCURRENCY_COMMUTATIVE)
+//       inoutset = (ACCESS_MODE_W, ACCESS_CONCURRENCY_CONCURRENT)
+//
+// scope is sort of always 'ACCESS_SCOPE_UNIFIED' as we cannot specify
+// dependency domains in 6.0
+
+/* access mode */
+typedef enum    xkrt_access_mode_t
 {
     ACCESS_MODE_R       = 0b00000001,   // read
     ACCESS_MODE_W       = 0b00000010,   // write
@@ -50,43 +63,10 @@ typedef enum    access_mode_t : int
                                         // dependencies on task completion: the
                                         // task is responsible of fulfillment
                                         // the access itself
-}               access_mode_t;
-
-inline access_mode_t &
-operator|=(access_mode_t & lhs, access_mode_t rhs) {
-    lhs = static_cast<access_mode_t>(
-        static_cast<int>(lhs) | static_cast<int>(rhs)
-    );
-    return lhs;
-}
-
-typedef enum    access_concurrency_t
-{
-    ACCESS_CONCURRENCY_SEQUENTIAL  = 0b00000001,
-    ACCESS_CONCURRENCY_COMMUTATIVE = 0b00000010,
-    ACCESS_CONCURRENCY_CONCURRENT  = 0b00000100,
-}               access_concurrency_t;
-
-typedef enum    access_scope_t
-{
-    ACCESS_SCOPE_NONUNIFIED = 0,
-    ACCESS_SCOPE_UNIFIED    = 1
-}               access_scope_t;
-
-// To OpenMP dependencies
-//
-// omp modifier | (access_mode_t, access_concurrency_t)
-//
-//        in      = (ACCESS_MODE_R, _, )
-//  out|inout     = (ACCESS_MODE_W, ACCESS_CONCURRENCY_SEQUENTIAL)
-//  mutexinoutset = (ACCESS_MODE_W, ACCESS_CONCURRENCY_COMMUTATIVE)
-//       inoutset = (ACCESS_MODE_W, ACCESS_CONCURRENCY_CONCURRENT)
-//
-// scope is sort of always 'ACCESS_SCOPE_UNIFIED' as we cannot specify
-// dependency domains in 6.0
+}               xkrt_access_mode_t;
 
 static inline const char *
-access_mode_to_str(access_mode_t mode)
+xkrt_access_mode_to_str(xkrt_access_mode_t mode)
 {
     switch (mode)
     {
@@ -98,26 +78,4 @@ access_mode_to_str(access_mode_t mode)
     }
 }
 
-static inline const char *
-access_concurrency_to_str(access_concurrency_t concurrency)
-{
-    switch (concurrency)
-    {
-        case (ACCESS_CONCURRENCY_SEQUENTIAL):   return "ACCESS_CONCURRENCY_SEQUENTIAL";
-        case (ACCESS_CONCURRENCY_COMMUTATIVE):  return "ACCESS_CONCURRENCY_COMMUTATIVE";
-        case (ACCESS_CONCURRENCY_CONCURRENT):   return "ACCESS_CONCURRENCY_CONCURRENT";
-        default:                                return "ACCESS_CONCURRENCY_UNKN";
-    }
-}
-
-static inline const char *
-access_scope_to_str(access_scope_t scope)
-{
-    switch (scope)
-    {
-        case (ACCESS_SCOPE_NONUNIFIED): return "ACCESS_SCOPE_NONUNIFIED";
-        case (ACCESS_SCOPE_UNIFIED):    return "ACCESS_SCOPE_UNIFIED";
-        default:                        return "ACCESS_SCOPE_UNKN";
-    }
-}
 #endif /* __ACCESS_MODE_H__ */

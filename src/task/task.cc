@@ -71,7 +71,7 @@ task_get_memory_controller(
             break ;
         }
 
-        case (ACCESS_TYPE_INTERVAL):
+        case (ACCESS_TYPE_SEGMENT):
         {
             // TODO: blas memory coherency tree of ;d SIZE_MAX
             assert(access->host_view.ld == SIZE_MAX);
@@ -93,7 +93,7 @@ task_get_memory_controller(
                         ((BLASMemoryTree *) mcc)->registered(ptr, size);
                 # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
-                LOGGER_DEBUG("Created new `ACCESS_TYPE_INTERVAL` memory coherency controller");
+                LOGGER_DEBUG("Created new `ACCESS_TYPE_SEGMENT` memory coherency controller");
             }
             else
                 mcc = dom->mccs.interval;
@@ -183,7 +183,7 @@ task_get_dependency_domain_blas_matrix(
         for (auto it = inttree->accesses.begin() ; it != inttree->accesses.end() ; )
         {
             access_t * access = *it;
-            assert(access->type == ACCESS_TYPE_INTERVAL);
+            assert(access->type == ACCESS_TYPE_SEGMENT);
 
             if (access->task && access->task->state.value == TASK_STATE_COMPLETED)
             {
@@ -237,7 +237,7 @@ task_dependency_resolve_do(
                 break ;
             }
 
-            case (ACCESS_TYPE_INTERVAL):
+            case (ACCESS_TYPE_SEGMENT):
             {
                 if (dom->deps.interval == NULL)
                     dom->deps.interval = new IntervalDependencyTree();

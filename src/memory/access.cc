@@ -48,7 +48,7 @@ access_t::intersects(
     switch (x->type)
     {
         # if 0
-        case (ACCESS_TYPE_INTERVAL):
+        case (ACCESS_TYPE_SEGMENT):
             return x->segment.intersects(y->segment);
         # endif
 
@@ -76,7 +76,7 @@ access_t::split(
 ) {
     switch (x->type)
     {
-        case (ACCESS_TYPE_INTERVAL):
+        case (ACCESS_TYPE_SEGMENT):
         {
             //        a                 b
             //  x = [ . . . . . . . . . [

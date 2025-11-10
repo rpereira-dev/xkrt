@@ -38,14 +38,14 @@
 # ifndef __XKRT_THREAD_H__
 #  define __XKRT_THREAD_H__
 
-#  include <xkrt/support.h>
 #  include <xkrt/consts.h>
+#  include <xkrt/memory/alignas.h>
+#  include <xkrt/support.h>
 #  include <xkrt/sync/spinlock.h>
 #  include <xkrt/task/task.hpp>
-
-#  include <xkrt/memory/alignas.h>
 #  include <xkrt/thread/deque.hpp>
 #  include <xkrt/thread/naive-queue.hpp>
+#  include <xkrt/thread/team-thread-place.h>
 
 #  include <pthread.h>
 #  include <atomic>
@@ -55,17 +55,11 @@
 #  include <sys/syscall.h>      /* Definition of SYS_* constants */
 #  include <unistd.h>
 
-/* pointer to the current team */
-# define XKRT_TEAM_CURRENT (thread_t::get_tls()->team)
-
 XKRT_NAMESPACE_BEGIN
 
 /////////////
 // THREADS //
 /////////////
-
-/* thread routine */
-typedef void * (*team_routine_t)(void * runtime, void * team, void * thread);
 
 /* thread states */
 typedef enum    thread_state_t
@@ -73,63 +67,6 @@ typedef enum    thread_state_t
     XKRT_THREAD_UNINITIALIZED   = 0,
     XKRT_THREAD_INITIALIZED     = 1
 }               thread_state_t;
-
-//  NOTES
-//
-//  A binary tree of height 'n' has
-//      'm' nodes  with 2^(n-1) + 1 <= m <= 2^n - 1
-//  and 'k' leaves with           1 <= k <= 2^(n-1)
-//
-//  <=>
-//
-//  Given a binary tree with 'k' leaves, its height 'n' must verify
-//     1 <=      k      <= 2^(n-1)
-// <=> 0 <= log2(k)     <= n-1
-// <=>      log2(k) + 1 <= n
-//                                     _            _
-//  So we need a tree of height 'n' = |  log2(k) + 1 | to represent the 'k' threads
-
-/* type of nodes in the tree */
-typedef enum    team_node_type_t
-{
-    XKRT_TEAM_NODE_TYPE_HYPERTHREAD = 0,    // hyperthread
-    XKRT_TEAM_NODE_TYPE_CORE        = 1,    // core
-    XKRT_TEAM_NODE_TYPE_CACHE_L1    = 2,    // shared cache, L2 or L3 typically
-    XKRT_TEAM_NODE_TYPE_CACHE_L2    = 3,    // shared cache, L2 or L3 typically
-    XKRT_TEAM_NODE_TYPE_CACHE_L3    = 4,    // shared cache, L2 or L3 typically
-    XKRT_TEAM_NODE_TYPE_NUMA        = 5,    // numa node
-    XKRT_TEAM_NODE_TYPE_SOCKET      = 6,    // full dram
-    XKRT_TEAM_NODE_TYPE_MACHINE     = 7     // multi socket system
-}               team_node_type_t;
-
-typedef enum    team_binding_mode_t
-{
-    XKRT_TEAM_BINDING_MODE_COMPACT,
-    XKRT_TEAM_BINDING_MODE_SPREAD,
-}               team_binding_mode_t;
-
-typedef enum    team_binding_places_t
-{
-    XKRT_TEAM_BINDING_PLACES_HYPERTHREAD,
-    XKRT_TEAM_BINDING_PLACES_CORE,
-    XKRT_TEAM_BINDING_PLACES_L1,
-    XKRT_TEAM_BINDING_PLACES_L2,
-    XKRT_TEAM_BINDING_PLACES_L3,
-    XKRT_TEAM_BINDING_PLACES_NUMA,
-    XKRT_TEAM_BINDING_PLACES_DEVICE,
-    XKRT_TEAM_BINDING_PLACES_SOCKET,
-    XKRT_TEAM_BINDING_PLACES_MACHINE,
-    XKRT_TEAM_BINDING_PLACES_EXPLICIT,
-}               team_binding_places_t;
-
-typedef enum    team_binding_flag_t
-{
-    XKRT_TEAM_BINDING_FLAG_NONE         = 0,
-    XKRT_TEAM_BINDING_FLAG_EXCLUDE_HOST = (1 << 0)
-}               team_binding_flag_t;
-
-/* a place */
-typedef cpu_set_t thread_place_t;
 
 struct team_t;
 
@@ -153,7 +90,7 @@ typedef struct  thread_t
         team_t * team;
 
         /* the place assigned to that thread */
-        thread_place_t place;
+        team_thread_place_t place;
 
         /* the thread implicit task */
         union {
@@ -224,7 +161,7 @@ typedef struct  thread_t
             int tid,
             pthread_t pthread,
             device_global_id_t device_global_id,
-            thread_place_t place
+            team_thread_place_t place
         ) :
             team(team),
             place(place),
@@ -395,149 +332,6 @@ typedef struct  thread_t
         # endif /* XKRT_SUPPORT_DEBUG */
 
 }               thread_t;
-
-//////////
-// TEAM //
-//////////
-
-/* a node in the topology graph */
-typedef struct  team_node_t
-{
-    /* the node type */
-    team_node_type_t type;
-
-    /* the thread owning that node */
-    thread_t * thread;
-
-}               team_node_t;
-
-/**
- *  The supported combinations are:
- *    (mode = COMPACT, places = DEVICE)
- *      -> that will compactly bind 1 thread per device
- *
- *    (mode = SPREAD, places = MACHINE) with any nthreads
- *      -> that will spread threads across all cores of the machine
- */
-struct team_binding_t
-{
-    team_binding_t() :
-        mode(XKRT_TEAM_BINDING_MODE_COMPACT),
-        places(XKRT_TEAM_BINDING_PLACES_CORE),
-        places_list(NULL),
-        nplaces(0),
-        flags(XKRT_TEAM_BINDING_FLAG_NONE)
-    {}
-
-    /* how to distribute threads among places */
-    team_binding_mode_t mode;
-
-    /* the places, if XKRT_TEAM_BINDING_PLACES_EXPLICIT - then `thread_place_t` must be not null */
-    team_binding_places_t places;
-    thread_place_t * places_list;
-    int nplaces;
-
-    /* additional flags */
-    team_binding_flag_t flags;
-
-};
-
-/* team description */
-struct  team_desc_t
-{
-    team_desc_t() :
-        routine(NULL),
-        args(NULL),
-        nthreads(0),
-        binding()
-    {}
-
-    // routine that will be executed by each thread
-    team_routine_t routine;
-
-    // user arguments
-    void * args;
-
-    // number of threads to spawn
-    int nthreads;
-
-    // type of the team
-    team_binding_t binding;
-
-    // whether the master thread should be a member of the team or not
-    bool master_is_member;
-};
-
-/* a team, currently is made of 1 thread max per device, bound onto its closest physical cpu */
-struct team_t
-{
-    // default constructor
-    team_t() : desc() {}
-
-    // team description, to be filled by the user before forking it
-    team_desc_t desc;
-
-    struct {
-
-        ////////////////////////////////////////////////////////
-
-        // threads
-        thread_t * threads;
-        int nthreads;
-
-        // custom barrier for workstealing
-        struct {
-            std::atomic<int> n;     /* for spawned threads to sync */
-            volatile int version;
-            pthread_cond_t cond;    /* to sleep threads when synchronizing */
-            pthread_mutex_t mtx;
-        } barrier;
-
-        // critical
-        struct {
-            pthread_mutex_t mtx;
-        } critical;
-
-        ////////////////////////////////////////////////////////////
-
-        // if the routine is parallel for, then this is the stack of lambdas to execute
-        # define XKRT_TEAM_PARALLEL_FOR_MAX_FUNC 1
-        alignas(hardware_destructive_interference_size)
-        struct {
-            uint32_t index;
-            std::function<void(team_t * team, thread_t * thread)> f[XKRT_TEAM_PARALLEL_FOR_MAX_FUNC];
-            uint32_t completed;
-            std::atomic<uint32_t> pending;
-        } parallel_for;
-
-    } priv;
-
-    /* get a thread */
-    inline thread_t *
-    get_thread(int tid)
-    {
-        assert(tid >= 0);
-        assert(tid < this->get_nthreads());
-        assert(this->priv.threads);
-        return this->priv.threads + tid;
-    }
-
-    /* get the number of thread of that team */
-    inline int
-    get_nthreads(void)
-    {
-        return this->priv.nthreads;
-    }
-
-    /* wakeup all threads of the team */
-    inline void
-    wakeup(void)
-    {
-        int nthreads = this->get_nthreads();
-        for (int i = 0 ; i < nthreads ; ++i)
-            this->get_thread(i)->wakeup();
-    }
-};
 
 XKRT_NAMESPACE_END
 

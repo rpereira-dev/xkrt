@@ -213,7 +213,7 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
         ) {
             // impl assumes this
             assert((access->mode & ACCESS_MODE_R) && !(access->mode & ACCESS_MODE_W));
-            assert(access->type == ACCESS_TYPE_INTERVAL || access->type == ACCESS_TYPE_BLAS_MATRIX);
+            assert(access->type == ACCESS_TYPE_SEGMENT || access->type == ACCESS_TYPE_BLAS_MATRIX);
 
             Search search;
             search.prepare_conflicting(conflicts, access);
@@ -231,7 +231,7 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
             Search & search
         ) {
             assert(search.type == Search::Type::SEARCH_TYPE_RESOLVE);
-            assert(search.access->type == ACCESS_TYPE_INTERVAL || search.access->type == ACCESS_TYPE_BLAS_MATRIX);
+            assert(search.access->type == ACCESS_TYPE_SEGMENT || search.access->type == ACCESS_TYPE_BLAS_MATRIX);
 
             Node * node = reinterpret_cast<Node *>(nodebase);
             assert(node);
@@ -366,7 +366,7 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
         inline void
         link(access_t * access, std::span<Rect> rects)
         {
-            assert(access->type == ACCESS_TYPE_INTERVAL || access->type == ACCESS_TYPE_BLAS_MATRIX);
+            assert(access->type == ACCESS_TYPE_SEGMENT || access->type == ACCESS_TYPE_BLAS_MATRIX);
 
             Search search;
             search.prepare_resolve(access);
@@ -385,7 +385,7 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
         void
         link_interval(access_t * access)
         {
-            assert(access->type == ACCESS_TYPE_INTERVAL);
+            assert(access->type == ACCESS_TYPE_SEGMENT);
 
             Rect rects[3];
             this->prepare_interval_access_rects(access, rects);
@@ -397,7 +397,7 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
         inline void
         put(access_t * access, std::span<Rect> rects)
         {
-            assert(access->type == ACCESS_TYPE_BLAS_MATRIX || access->type == ACCESS_TYPE_INTERVAL);
+            assert(access->type == ACCESS_TYPE_BLAS_MATRIX || access->type == ACCESS_TYPE_SEGMENT);
 
             Search search;
             search.prepare_resolve(access);
@@ -416,7 +416,7 @@ class KBLASDependencyTree : public KHPTree<K, KBLASDependencyTreeSearch<K>>, pub
         void
         put_interval(access_t * access)
         {
-            assert(access->type == ACCESS_TYPE_INTERVAL);
+            assert(access->type == ACCESS_TYPE_SEGMENT);
 
             Rect rects[3];
             this->prepare_interval_access_rects(access, rects);

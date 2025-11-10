@@ -52,6 +52,7 @@
 # include <xkrt/logger/metric.h>
 # include <xkrt/logger/todo.h>
 # include <xkrt/sync/mutex.h>
+# include <xkrt/thread/team.h>
 
 # include <hwloc.h>
 

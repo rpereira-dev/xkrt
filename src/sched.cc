@@ -84,7 +84,7 @@ __task_moldable_split(
 
     switch (type)
     {
-        case (ACCESS_TYPE_INTERVAL):
+        case (ACCESS_TYPE_SEGMENT):
         {
             // dupplicate the task
             task_t * dup_task = runtime->task_dup(task);

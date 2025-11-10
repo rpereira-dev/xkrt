@@ -36,9 +36,10 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-# include <xkrt/thread/thread.h>
-# include <xkrt/runtime.h>
 # include <xkrt/logger/logger-hwloc.h>
+# include <xkrt/runtime.h>
+# include <xkrt/thread/team.h>
+# include <xkrt/thread/thread.h>
 
 # include <cassert>
 # include <cstring>
@@ -77,7 +78,7 @@ thread_t::get_tls(void)
         team_t * team = NULL;
         int tid = 0;
         device_global_id_t device_global_id = HOST_DEVICE_GLOBAL_ID;
-        thread_place_t place;
+        team_thread_place_t place;
         runtime_t::thread_getaffinity(place);
         thread_t * thread = new thread_t(team, tid, pthread_self(), device_global_id, place);
         assert(thread);
@@ -125,6 +126,25 @@ thread_t::deallocate_all_tasks(void)
     this->memory_stack_ptr = this->memory_stack_bottom;
 }
 
+/* get a thread */
+thread_t *
+team_t::get_thread(int tid)
+{
+    assert(tid >= 0);
+    assert(tid < this->get_nthreads());
+    assert(this->priv.threads);
+    return this->priv.threads + tid;
+}
+
+/* wakeup all threads of the team */
+void
+team_t::wakeup(void)
+{
+    int nthreads = this->get_nthreads();
+    for (int i = 0 ; i < nthreads ; ++i)
+        this->get_thread(i)->wakeup();
+}
+
 /////////////////////////////////////////////////////
 
 void
@@ -164,7 +184,7 @@ typedef struct  team_recursive_args_t
     team_t * team;
     pthread_t pthread;
     device_global_id_t device_global_id;
-    thread_place_t place;
+    team_thread_place_t place;
     int from;
     int to;
 }               team_recursive_args_t;
@@ -188,7 +208,7 @@ team_create_get_place(
     team_t * team,
     int tid,
     device_global_id_t * device_global_id,
-    thread_place_t * place
+    team_thread_place_t * place
 ) {
     switch (team->desc.binding.mode)
     {
@@ -334,7 +354,7 @@ team_create_recursive_fork(
 
     // retrieve cpuset and the global device id
     device_global_id_t device_global_id;
-    thread_place_t place;
+    team_thread_place_t place;
     team_create_get_place(runtime, team, tid, &device_global_id, &place);
 
     // move thread before allocating future thread-private memory
@@ -409,7 +429,7 @@ runtime_t::team_create(team_t * team)
             // retrieve cpuset and the global device id
             constexpr int tid = 0;
             device_global_id_t device_global_id;
-            thread_place_t place;
+            team_thread_place_t place;
             team_create_get_place(this, team, tid, &device_global_id, &place);
             team_recursive_args_t args = {
                 .runtime = this,
@@ -793,6 +813,15 @@ void
 runtime_t::team_critical_end(team_t * team)
 {
     pthread_mutex_unlock(&team->priv.critical.mtx);
+}
+
+team_t *
+runtime_t::team_get(const driver_type_t type, const device_driver_id_t device_driver_id)
+{
+    driver_t * driver = this->driver_get(type);
+    assert(driver);
+
+    return driver->devices.teams + device_driver_id;
 }
 
 team_t *

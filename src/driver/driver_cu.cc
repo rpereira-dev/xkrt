@@ -906,6 +906,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_create)(
     {
         queue->cu.blas.handle   = 0;
         queue->cu.sparse.handle = 0;
+        queue->cu.solver.handle = 0;
     }
 
     return (queue_t *) queue;

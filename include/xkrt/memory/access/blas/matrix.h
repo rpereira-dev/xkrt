@@ -46,23 +46,11 @@
 # include <sys/types.h>
 # include <stdlib.h>
 
-typedef enum    matrix_storage_t
-{
-    /****************
-     *  0   1   2   *
-     *  3   4   5   *
-     *  6   7   8   *
-     ****************/
-    MATRIX_ROWMAJOR, /* C */
+# include <xkrt/memory/access/blas/matrix-storage.h>
+# include <xkrt/namespace.h>
+# include <xkrt/types.h>
 
-    /****************
-     *  0   3   6   *
-     *  1   4   7   *
-     *  2   5   8   *
-     ****************/
-    MATRIX_COLMAJOR, /* Fortran */
-
-}               matrix_storage_t;
+XKRT_NAMESPACE_BEGIN
 
 typedef struct  matrix_tile_t
 {
@@ -212,5 +200,7 @@ typedef struct  matrix_tile_t
     }
 
 }               matrix_tile_t;
+
+XKRT_NAMESPACE_END
 
 #endif /* __MATRIX_TILE_H__ */
