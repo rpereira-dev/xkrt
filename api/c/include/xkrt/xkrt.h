@@ -33,15 +33,15 @@ typedef struct  xkrt_access_t
     xkrt_access_mode_t        mode;
     xkrt_access_scope_t       scope;
     xkrt_access_type_t        type;
-    union {
-        struct {
+    union xkrt_region_t {
+        struct xkrt_handle_t {
             void * addr;
         } handle;
-        struct {
+        struct xkrt_segment_t {
             void * a;
             void * b;
         } segment;
-        struct {
+        struct xkrt_matrix_t {
             xkrt_matrix_storage_t storage;
             void * addr;
             unsigned long ld;
@@ -51,7 +51,7 @@ typedef struct  xkrt_access_t
             unsigned long n;
             unsigned long sizeof_type;
         } matrix;
-    } data;
+    } region;
 }               xkrt_access_t;
 
 /* Runtime init */

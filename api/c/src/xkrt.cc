@@ -380,7 +380,7 @@ xkrt_team_task_spawn_with_accesses(
                 {
                     new (access) access_t(
                         task,
-                        access_c->data.handle.addr,
+                        access_c->region.handle.addr,
                         access_c->mode,
                         access_c->concurrency,
                         access_c->scope
@@ -392,8 +392,8 @@ xkrt_team_task_spawn_with_accesses(
                 {
                     new (access) access_t(
                         task,
-                        (const uintptr_t) access_c->data.segment.a,
-                        (const uintptr_t) access_c->data.segment.b,
+                        (const uintptr_t) access_c->region.segment.a,
+                        (const uintptr_t) access_c->region.segment.b,
                         access_c->mode,
                         access_c->concurrency,
                         access_c->scope
@@ -405,14 +405,14 @@ xkrt_team_task_spawn_with_accesses(
                 {
                     new (access) access_t(
                         task,
-                        access_c->data.matrix.storage,
-                        access_c->data.matrix.addr,
-                        access_c->data.matrix.ld,
-                        access_c->data.matrix.offset_m,
-                        access_c->data.matrix.offset_n,
-                        access_c->data.matrix.m,
-                        access_c->data.matrix.n,
-                        access_c->data.matrix.sizeof_type,
+                        access_c->region.matrix.storage,
+                        access_c->region.matrix.addr,
+                        access_c->region.matrix.ld,
+                        access_c->region.matrix.offset_m,
+                        access_c->region.matrix.offset_n,
+                        access_c->region.matrix.m,
+                        access_c->region.matrix.n,
+                        access_c->region.matrix.sizeof_type,
                         access_c->mode,
                         access_c->concurrency,
                         access_c->scope

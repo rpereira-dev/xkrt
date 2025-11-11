@@ -64,7 +64,7 @@ main(void)
             .mode           = ACCESS_MODE_VW,
             .scope          = ACCESS_SCOPE_NONUNIFIED,
             .type           = ACCESS_TYPE_SEGMENT,
-            .data           = {
+            .region         = {
                 .segment = {
                     .a = (void *) 0,
                     .b = (void *) 1
