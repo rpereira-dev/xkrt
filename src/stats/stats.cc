@@ -223,7 +223,7 @@ stats_tasks_report(runtime_t * runtime)
 {
     for (size_t i = 0 ; i < XKRT_TASK_FORMAT_MAX ; ++i)
     {
-        task_format_t * format = xkrt_task_format_get(&runtime->formats.list, (task_format_id_t) i);
+        task_format_t * format = runtime->task_format_get((task_format_id_t) i);
         if (format == NULL)
             break ;
         if (runtime->stats.tasks[i].commited)

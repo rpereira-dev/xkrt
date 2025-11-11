@@ -49,10 +49,6 @@
 
 # include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
 /**
  * @enum xkrt_task_format_target_t
  * @brief Enumerates the possible execution targets for a task.
@@ -184,66 +180,5 @@ typedef struct  xkrt_task_formats_t
      */
     xkrt_task_format_id_t next_fmtid;
 }               xkrt_task_formats_t;
-
-/**
- * @brief Initializes the task formats repository.
- *
- * Sets up the ::xkrt_task_formats_t structure, likely by zeroing
- * memory and setting `next_fmtid` to a starting value (e.g., 1,
- * as ::XKRT_TASK_FORMAT_NULL is 0).
- *
- * @param formats Pointer to the ::xkrt_task_formats_t instance to initialize.
- */
-void xkrt_task_formats_init(xkrt_task_formats_t * formats);
-
-/**
- * @brief Creates and registers a new task format.
- *
- * Copies the provided `format` data into the `formats` list at the
- * next available ID.
- *
- * @param formats Pointer to the ::xkrt_task_formats_t repository.
- * @param format  Pointer to the ::xkrt_task_format_t to register.
- * @return The new ::xkrt_task_format_id_t assigned to this format.
- */
-xkrt_task_format_id_t xkrt_task_format_create(xkrt_task_formats_t * formats, const xkrt_task_format_t * format);
-
-/**
- * @brief Allocates a new task format ID without setting its data.
- *
- * This function likely reserves a new ID by incrementing `next_fmtid`
- * and returning its previous value. The caller is then responsible for
- * setting the format's data, perhaps using ::xkrt_task_format_set.
- *
- * @param formats Pointer to the ::xkrt_task_formats_t repository.
- * @param label   The label of the task format
- * @return The allocated ::xkrt_task_format_id_t.
- */
-xkrt_task_format_id_t xkrt_task_format_put(xkrt_task_formats_t * formats, const char * label);
-
-/**
- * @brief Sets the function for a specific target on the passed task format.
- *
- * @param formats Pointer to the ::xkrt_task_formats_t repository.
- * @param fmtid   The ::xkrt_task_format_id_t of the format to update.
- * @param target  The ::xkrt_task_format_target_t to set the function for.
- * @param func    The ::xkrt_task_format_func_t implementation for that target.
- * @return 0 on success, or an error code if failed.
- */
-int xkrt_task_format_set(xkrt_task_formats_t * formats, xkrt_task_format_id_t fmtid, xkrt_task_format_target_t target, xkrt_task_format_func_t func);
-
-/**
- * @brief Retrieves a task format by its ID.
- *
- * @param formats Pointer to the ::xkrt_task_formats_t repository.
- * @param fmtid      The ::xkrt_task_format_id_t of the format to retrieve.
- * @return A pointer to the corresponding ::xkrt_task_format_t, or NULL
- * if the ID is invalid (e.g., ::XKRT_TASK_FORMAT_NULL or out of bounds).
- */
-xkrt_task_format_t * xkrt_task_format_get(xkrt_task_formats_t * formats, xkrt_task_format_id_t fmtid);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* __XKRT_TASK_FORMAT_H__ */

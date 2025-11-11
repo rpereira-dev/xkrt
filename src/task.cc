@@ -113,7 +113,7 @@ __task_guess_device(
     {
         if (task->fmtid != XKRT_TASK_FORMAT_NULL)
         {
-            task_format_t * format = xkrt_task_format_get(&(runtime->formats.list), task->fmtid);
+            task_format_t * format = runtime->task_format_get(task->fmtid);
             if (format->suggest)
                 LOGGER_FATAL("Prefetch not supported if a suggested device is specified");
         }
@@ -316,7 +316,7 @@ task_execute(runtime_t * runtime, device_t * device, task_t * task)
     else
     {
         /* retrieve task format */
-        format = xkrt_task_format_get(&(runtime->formats.list), task->fmtid);
+        format = runtime->task_format_get(task->fmtid);
         assert(format);
 
        /* if there is a format */
@@ -374,7 +374,7 @@ task_host_capture_register_format(runtime_t * runtime)
     memset(format.f, 0, sizeof(format.f));
     format.f[XKRT_TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_host_capture;
     snprintf(format.label, sizeof(format.label), "host_capture");
-    runtime->formats.host_capture = xkrt_task_format_create(&(runtime->formats.list), &format);
+    runtime->formats.host_capture = runtime->task_format_create(&format);
 }
 
 void
@@ -483,7 +483,7 @@ submit_task_device(
     task_format_t * format;
     if (task->fmtid != XKRT_TASK_FORMAT_NULL)
     {
-        format = xkrt_task_format_get(&(runtime->formats.list), task->fmtid);
+        format = runtime->task_format_get(task->fmtid);
         assert(format);
         if (format->suggest)
         {

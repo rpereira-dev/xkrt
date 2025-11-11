@@ -124,11 +124,14 @@ void xkrt_team_task_spawn_with_accesses(
     const int naccesses
 );
 
+/* Task format */
+# include <xkrt/task/format.h>
+xkrt_task_format_id_t xkrt_task_format_put(xkrt_runtime_t * runtime, const char * label);
+int xkrt_task_format_set(xkrt_runtime_t * runtime, xkrt_task_format_id_t fmtid, xkrt_task_format_target_t target, xkrt_task_format_func_t func);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
-
-# include <xkrt/task/format.h>
 
 #endif /* __XKRT_C_H__ */
 

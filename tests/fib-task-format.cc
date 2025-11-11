@@ -171,7 +171,7 @@ main(int argc, char ** argv)
     memset(format.f, 0, sizeof(format.f));
     format.f[XKRT_TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_host;
     snprintf(format.label, sizeof(format.label), "fib");
-    fmtid = xkrt_task_format_create(&(runtime.formats.list), &format);
+    fmtid = runtime.task_format_create(&format);
 
     team_t team;
     team.desc.routine = (team_routine_t) main_team;

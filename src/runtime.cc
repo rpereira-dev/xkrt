@@ -60,7 +60,7 @@ XKRT_NAMESPACE_BEGIN
 static inline void
 task_format_register(runtime_t * runtime)
 {
-    xkrt_task_formats_init(&(runtime->formats.list));
+    runtime->task_formats_init();
     task_host_capture_register_format(runtime);
     memory_copy_async_register_format(runtime);
     memory_register_async_register_format(runtime);

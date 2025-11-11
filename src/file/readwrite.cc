@@ -194,7 +194,7 @@ file_async_register_format(runtime_t * runtime)
         memset(&format, 0, sizeof(format));
         format.f[XKRT_TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_file_async<COMMAND_TYPE_FD_READ>;
         snprintf(format.label, sizeof(format.label), "file_read_async");
-        runtime->formats.file_read_async = xkrt_task_format_create(&(runtime->formats.list), &format);
+        runtime->formats.file_read_async = runtime->task_format_create(&format);
     }
 
     {
@@ -202,7 +202,7 @@ file_async_register_format(runtime_t * runtime)
         memset(&format, 0, sizeof(format));
         format.f[XKRT_TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_file_async<COMMAND_TYPE_FD_WRITE>;
         snprintf(format.label, sizeof(format.label), "file_write_async");
-        runtime->formats.file_write_async = xkrt_task_format_create(&(runtime->formats.list), &format);
+        runtime->formats.file_write_async = runtime->task_format_create(&format);
     }
 }
 

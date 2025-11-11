@@ -54,7 +54,7 @@ main(void)
     {
         task_format_t format;
         memset(&format, 0, sizeof(task_format_t));
-        EMPTY = xkrt_task_format_create(&(runtime.formats.list), &format);
+        EMPTY = runtime.task_format_create(&format);
     }
     assert(EMPTY);
 

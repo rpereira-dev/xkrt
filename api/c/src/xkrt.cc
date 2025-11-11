@@ -435,6 +435,30 @@ xkrt_team_task_spawn_with_accesses(
     rt->team_task_spawn((team_t *) team, set_accesses, func_wrapper, naccesses);
 }
 
+// ---------------------------
+// TASK FORMATS
+// ---------------------------
+
+xkrt_task_format_id_t
+xkrt_task_format_put(
+    xkrt_runtime_t * runtime,
+    const char * label
+) {
+    runtime_t * rt = (runtime_t *)(*runtime);
+    return rt->task_format_put(label);
+}
+
+int
+xkrt_task_format_set(
+    xkrt_runtime_t * runtime,
+    xkrt_task_format_id_t fmtid,
+    xkrt_task_format_target_t target,
+    xkrt_task_format_func_t func
+) {
+    runtime_t * rt = (runtime_t *)(*runtime);
+    return rt->task_format_set(fmtid, target, func);
+}
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
