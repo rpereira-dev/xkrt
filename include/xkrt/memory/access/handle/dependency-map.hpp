@@ -103,7 +103,7 @@ class DependencyMap : public DependencyDomain
 
             task_t * extra = thread->allocate_task(task_size);
             assert(extra);
-            new (extra) task_t(TASK_FORMAT_NULL, flags);
+            new (extra) task_t(XKRT_TASK_FORMAT_NULL, flags);
 
             task_dep_info_t * dep = TASK_DEP_INFO(extra);
             assert(dep);

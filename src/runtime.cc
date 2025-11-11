@@ -37,6 +37,7 @@
 **/
 
 # include <xkrt/runtime.h>
+# include <xkrt/internals.h>
 # include <xkrt/conf/conf.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/driver/driver.h>
@@ -59,7 +60,7 @@ XKRT_NAMESPACE_BEGIN
 static inline void
 task_format_register(runtime_t * runtime)
 {
-    task_formats_init(&(runtime->formats.list));
+    xkrt_task_formats_init(&(runtime->formats.list));
     task_host_capture_register_format(runtime);
     memory_copy_async_register_format(runtime);
     memory_register_async_register_format(runtime);
@@ -105,7 +106,7 @@ runtime_t::init(void)
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
     // mark runtime as initialized
-    this->state = XKRT_RUNTIME_INITIALIZED;
+    this->state = runtime_t::state_t::INITIALIZED;
 
     return 0;
 }
@@ -114,14 +115,14 @@ int
 runtime_t::deinit(void)
 {
     LOGGER_INFO("Deinitializing XKRT");
-    assert(this->state == XKRT_RUNTIME_INITIALIZED);
+    assert(this->state == runtime_t::state_t::INITIALIZED);
 
     # if XKRT_SUPPORT_STATS
     if (this->conf.report_stats_on_deinit)
         this->stats_report();
     # endif /* XKRT_SUPPORT_STATS */
 
-    this->state = XKRT_RUNTIME_DEINITIALIZED;
+    this->state = runtime_t::state_t::DEINITIALIZED;
     drivers_deinit(this);
     hwloc_topology_destroy(this->topology);
 

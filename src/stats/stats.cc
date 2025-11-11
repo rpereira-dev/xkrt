@@ -39,12 +39,12 @@
 
 # include <string.h>
 
-# include <xkrt/runtime.h>
-# include <xkrt/task/task.hpp>
-# include <xkrt/task/task-format.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/logger/metric.h>
 # include <xkrt/namespace.h>
+# include <xkrt/runtime.h>
+# include <xkrt/task/format.h>
+# include <xkrt/task/task.hpp>
 
 XKRT_NAMESPACE_USE;
 
@@ -221,9 +221,9 @@ stats_device_gather(
 static void
 stats_tasks_report(runtime_t * runtime)
 {
-    for (size_t i = 0 ; i < TASK_FORMAT_MAX ; ++i)
+    for (size_t i = 0 ; i < XKRT_TASK_FORMAT_MAX ; ++i)
     {
-        task_format_t * format = task_format_get(&runtime->formats.list, (task_format_id_t) i);
+        task_format_t * format = xkrt_task_format_get(&runtime->formats.list, (task_format_id_t) i);
         if (format == NULL)
             break ;
         if (runtime->stats.tasks[i].commited)

@@ -110,7 +110,7 @@ runtime_t::memory_coherent_async(
     constexpr size_t task_size = task_compute_size(flags, AC);
 
     task_t * task = thread->allocate_task(task_size);
-    new (task) task_t(TASK_FORMAT_NULL, flags);
+    new (task) task_t(XKRT_TASK_FORMAT_NULL, flags);
 
     task_dep_info_t * dep = TASK_DEP_INFO(task);
     new (dep) task_dep_info_t(AC);
@@ -182,7 +182,7 @@ runtime_t::memory_coherent_async(
 
         /* allocate a task with 1 access */
         task_t * task = thread->allocate_task(task_size + args_size);
-        new (task) task_t(TASK_FORMAT_NULL, flags);
+        new (task) task_t(XKRT_TASK_FORMAT_NULL, flags);
 
         task_dev_info_t * dev = TASK_DEV_INFO(task);
         new (dev) task_dev_info_t(device_global_id, UNSPECIFIED_TASK_ACCESS);

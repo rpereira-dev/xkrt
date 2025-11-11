@@ -61,7 +61,7 @@ distribute1D_submit(
     constexpr size_t task_size = task_compute_size(flags, AC);
 
     task_t * task = thread->allocate_task(task_size);
-    new (task) task_t(TASK_FORMAT_NULL, flags);
+    new (task) task_t(XKRT_TASK_FORMAT_NULL, flags);
 
     task_dep_info_t * dep = TASK_DEP_INFO(task);
     new (dep) task_dep_info_t(AC);
@@ -102,7 +102,7 @@ distribute2D_submit(
     constexpr size_t task_size = task_compute_size(flags, AC);
 
     task_t * task = thread->allocate_task(task_size);
-    new(task) task_t(TASK_FORMAT_NULL, flags);
+    new(task) task_t(XKRT_TASK_FORMAT_NULL, flags);
 
     task_dep_info_t * dep = TASK_DEP_INFO(task);
     new (dep) task_dep_info_t(AC);

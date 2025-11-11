@@ -36,7 +36,7 @@
 **/
 
 # include <xkrt/runtime.h>
-# include <xkrt/task/task-format.h>
+# include <xkrt/task/format.h>
 # include <xkrt/task/task.hpp>
 
 # include <assert.h>
@@ -63,8 +63,8 @@ main(void)
     {
         task_format_t format;
         memset(&format, 0, sizeof(task_format_t));
-        format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) func;
-        FORMAT = task_format_create(&(runtime.formats.list), &format);
+        format.f[XKRT_TASK_FORMAT_TARGET_HOST] = (task_format_func_t) func;
+        FORMAT = xkrt_task_format_create(&(runtime.formats.list), &format);
     }
     assert(FORMAT);
 
