@@ -86,7 +86,8 @@ fib(int n, int depth = 0)
         // shared(fn1) firstprivate(n, depth)
         {
             task_t * task = thread->allocate_task(task_size + sizeof(task_args_t));
-            new(task) task_t(fmtid, flags);
+            assert(task);
+            new (task) task_t(fmtid, flags);
 
             task_args_t * args = (task_args_t *) TASK_ARGS(task, task_size);
             args->fibn  = &fn1;
@@ -99,7 +100,8 @@ fib(int n, int depth = 0)
         // shared(fn2) firstprivate(n, depth)
         {
             task_t * task = thread->allocate_task(task_size + sizeof(task_args_t));
-            new(task) task_t(fmtid, flags);
+            assert(task);
+            new (task) task_t(fmtid, flags);
 
             task_args_t * args = (task_args_t *) TASK_ARGS(task, task_size);
             args->fibn  = &fn2;
@@ -167,9 +169,9 @@ main(int argc, char ** argv)
     // register task format
     task_format_t format;
     memset(format.f, 0, sizeof(format.f));
-    format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_host;
+    format.f[XKRT_TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_host;
     snprintf(format.label, sizeof(format.label), "fib");
-    fmtid = task_format_create(&(runtime.formats.list), &format);
+    fmtid = xkrt_task_format_create(&(runtime.formats.list), &format);
 
     team_t team;
     team.desc.routine = (team_routine_t) main_team;

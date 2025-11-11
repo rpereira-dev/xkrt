@@ -636,6 +636,23 @@ struct  runtime_t
         return this->memory_unregister_async(team, ptr, size, n);
     }
 
+    /**
+     * @brief Asynchronously touch memory pages to ensure they're resident
+     *
+     * Convenience wrapper that uses the host driver's team
+     *
+     * @param ptr Memory pointer
+     * @param size Size in bytes
+     * @param n Number of parallel tasks
+     * @return 0 on success, non-zero on error
+     */
+    int memory_touch_async     (void * ptr, const size_t size, int n)
+    {
+        team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST, 0);
+        assert(team);
+        return this->memory_touch_async(team, ptr, size, n);
+    }
+
     /////////////
     // TASKING //
     /////////////
@@ -1117,7 +1134,7 @@ struct  runtime_t
             stats_int_t submitted;   ///< Number of tasks submitted
             stats_int_t commited;    ///< Number of tasks committed
             stats_int_t completed;   ///< Number of tasks completed
-        } tasks[TASK_FORMAT_MAX];
+        } tasks[XKRT_TASK_FORMAT_MAX];
 
         struct {
             stats_int_t registered;     ///< Memory regions registered

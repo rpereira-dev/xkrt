@@ -97,7 +97,7 @@ SET(SOURCE_FILES
     ${CMAKE_SOURCE_DIR}/src/sched.cc
     ${CMAKE_SOURCE_DIR}/src/stats/stats.cc
     ${CMAKE_SOURCE_DIR}/src/task.cc
-    ${CMAKE_SOURCE_DIR}/src/task/task-format.cc
+    ${CMAKE_SOURCE_DIR}/src/task/format.cc
     ${CMAKE_SOURCE_DIR}/src/task/task.cc
     ${CMAKE_SOURCE_DIR}/src/thread/deque.cc
     ${CMAKE_SOURCE_DIR}/src/thread/thread.cc

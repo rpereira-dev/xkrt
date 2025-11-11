@@ -40,39 +40,62 @@
 # include <cassert>
 # include <cstring>
 
-# include <xkrt/task/task-format.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/namespace.h>
+# include <xkrt/task/format.h>
 
-XKRT_NAMESPACE_BEGIN
-
+extern "C"
 void
-task_formats_init(task_formats_t * formats)
+xkrt_task_formats_init(xkrt_task_formats_t * formats)
 {
-    memset(formats, 0, sizeof(task_formats_t));
+    memset(formats, 0, sizeof(xkrt_task_formats_t));
 
-    task_format_t format;
+    xkrt_task_format_t format;
     memset(&format.f, 0, sizeof(format.f));
     snprintf(format.label, sizeof(format.label), "(null)");
 
-    task_format_id_t id = task_format_create(formats, &format);
-    assert(id == TASK_FORMAT_NULL);
+    xkrt_task_format_id_t id = xkrt_task_format_create(formats, &format);
+    assert(id == XKRT_TASK_FORMAT_NULL);
 }
 
-task_format_t *
-task_format_get(task_formats_t * formats, task_format_id_t id)
+extern "C"
+xkrt_task_format_t *
+xkrt_task_format_get(xkrt_task_formats_t * formats, xkrt_task_format_id_t fmtid)
 {
-    return formats->list + id;
+    return formats->list + fmtid;
 }
 
-task_format_id_t
-task_format_create(task_formats_t * formats, task_format_t * format)
+extern "C"
+xkrt_task_format_id_t
+xkrt_task_format_create(xkrt_task_formats_t * formats, const xkrt_task_format_t * format)
 {
-    task_format_id_t fmtid = (task_format_id_t) formats->next_fmtid.fetch_add(1, std::memory_order_relaxed);
-    memcpy(formats->list + fmtid, format, sizeof(task_format_t));
-    assert(fmtid < TASK_FORMAT_MAX);
-    LOGGER_INFO("Created new task format `%d` named `%s`", fmtid, format->label);
+    const xkrt_task_format_id_t fmtid = formats->next_fmtid++;
+    assert(fmtid < XKRT_TASK_FORMAT_MAX);
+    memcpy(formats->list + fmtid, format, sizeof(xkrt_task_format_t));
+    LOGGER_DEBUG("Created new task format `%d` named `%s`", fmtid, format->label);
     return fmtid;
 }
 
-XKRT_NAMESPACE_END
+extern "C"
+xkrt_task_format_id_t
+xkrt_task_format_put(xkrt_task_formats_t * formats, const char * label)
+{
+    const xkrt_task_format_id_t fmtid = formats->next_fmtid++;
+    assert(fmtid < XKRT_TASK_FORMAT_MAX);
+    snprintf(formats->list[fmtid].label, sizeof(formats->list[fmtid].label), "%s", label);
+    LOGGER_DEBUG("Created new task format `%d` named `%s`", fmtid, formats->list[fmtid].label);
+    return fmtid;
+}
+
+extern "C"
+int
+xkrt_task_format_set(
+    xkrt_task_formats_t * formats,
+    xkrt_task_format_id_t fmtid,
+    xkrt_task_format_target_t target,
+    xkrt_task_format_func_t func
+) {
+    xkrt_task_format_t * format = xkrt_task_format_get(formats, fmtid);
+    format->f[target] = func;
+    return 0;
+}

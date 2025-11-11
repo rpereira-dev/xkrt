@@ -36,7 +36,7 @@
 **/
 
 # include <xkrt/runtime.h>
-# include <xkrt/task/task-format.h>
+# include <xkrt/task/format.h>
 
 # include <assert.h>
 # include <string.h>
@@ -54,7 +54,7 @@ main(void)
     {
         task_format_t format;
         memset(&format, 0, sizeof(task_format_t));
-        EMPTY = task_format_create(&(runtime.formats.list), &format);
+        EMPTY = xkrt_task_format_create(&(runtime.formats.list), &format);
     }
     assert(EMPTY);
 

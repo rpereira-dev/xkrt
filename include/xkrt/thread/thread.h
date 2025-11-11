@@ -165,7 +165,7 @@ typedef struct  thread_t
         ) :
             team(team),
             place(place),
-            implicit_task(TASK_FORMAT_NULL, TASK_FLAG_DOMAIN),
+            implicit_task(XKRT_TASK_FORMAT_NULL, TASK_FLAG_DOMAIN),
             state(XKRT_THREAD_INITIALIZED),
             pthread(pthread),
             gtid(gettid()),

@@ -244,7 +244,7 @@ XKRT_NAMESPACE_BEGIN
     device_t * driver_device_get(driver_t * driver, device_global_id_t driver_device_id);
 
     /* one function per task per driver */
-    static_assert((uint8_t)XKRT_DRIVER_TYPE_MAX <= (uint8_t)TASK_FORMAT_TARGET_MAX);
+    static_assert((uint8_t)XKRT_DRIVER_TYPE_MAX <= (uint8_t) XKRT_TASK_FORMAT_TARGET_MAX);
 
     typedef struct  drivers_t
     {

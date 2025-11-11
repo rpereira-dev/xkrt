@@ -60,7 +60,7 @@ XKRT_NAMESPACE_BEGIN
 static inline void
 task_format_register(runtime_t * runtime)
 {
-    task_formats_init(&(runtime->formats.list));
+    xkrt_task_formats_init(&(runtime->formats.list));
     task_host_capture_register_format(runtime);
     memory_copy_async_register_format(runtime);
     memory_register_async_register_format(runtime);
@@ -115,7 +115,7 @@ int
 runtime_t::deinit(void)
 {
     LOGGER_INFO("Deinitializing XKRT");
-    assert(this->state == runtime_t::state_t::DEINITIALIZED);
+    assert(this->state == runtime_t::state_t::INITIALIZED);
 
     # if XKRT_SUPPORT_STATS
     if (this->conf.report_stats_on_deinit)

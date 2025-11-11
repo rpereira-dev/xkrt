@@ -128,5 +128,7 @@ void xkrt_team_task_spawn_with_accesses(
 } /* extern "C" */
 #endif /* __cplusplus */
 
+# include <xkrt/task/format.h>
+
 #endif /* __XKRT_C_H__ */
 

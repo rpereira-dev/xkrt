@@ -61,7 +61,7 @@ driver_type_to_task_format_target(driver_type_t driver_type)
     {
         # define CASE(X)                        \
             case (XKRT_DRIVER_TYPE_##X):        \
-                return TASK_FORMAT_TARGET_##X;  \
+                return XKRT_TASK_FORMAT_TARGET_##X;  \
                 break ;
 
         CASE(HOST)
@@ -84,7 +84,7 @@ task_format_target_to_driver_type(task_format_target_t fmt)
     switch (fmt)
     {
         # define CASE(X)                        \
-            case (TASK_FORMAT_TARGET_##X):      \
+            case (XKRT_TASK_FORMAT_TARGET_##X):      \
                 return XKRT_DRIVER_TYPE_##X;    \
                 break ;
 
@@ -111,9 +111,9 @@ __task_guess_device(
     // if that task must execute on a device
     if (task->flags & TASK_FLAG_DEVICE)
     {
-        if (task->fmtid != TASK_FORMAT_NULL)
+        if (task->fmtid != XKRT_TASK_FORMAT_NULL)
         {
-            task_format_t * format = task_format_get(&(runtime->formats.list), task->fmtid);
+            task_format_t * format = xkrt_task_format_get(&(runtime->formats.list), task->fmtid);
             if (format->suggest)
                 LOGGER_FATAL("Prefetch not supported if a suggested device is specified");
         }
@@ -309,14 +309,14 @@ task_execute(runtime_t * runtime, device_t * device, task_t * task)
     task_format_t * format;
 
     /* running an empty task */
-    if (task->fmtid == TASK_FORMAT_NULL)
+    if (task->fmtid == XKRT_TASK_FORMAT_NULL)
     {
         __task_executed(runtime, task);
     }
     else
     {
         /* retrieve task format */
-        format = task_format_get(&(runtime->formats.list), task->fmtid);
+        format = xkrt_task_format_get(&(runtime->formats.list), task->fmtid);
         assert(format);
 
        /* if there is a format */
@@ -327,10 +327,10 @@ task_execute(runtime_t * runtime, device_t * device, task_t * task)
             {
                 targetfmt = driver_type_to_task_format_target(device->driver_type);
                 if (format->f[targetfmt] == NULL)
-                    targetfmt = TASK_FORMAT_TARGET_HOST;
+                    targetfmt = XKRT_TASK_FORMAT_TARGET_HOST;
             }
             else
-                targetfmt = TASK_FORMAT_TARGET_HOST;
+                targetfmt = XKRT_TASK_FORMAT_TARGET_HOST;
 
             if (format->f[targetfmt])
             {
@@ -372,9 +372,9 @@ task_host_capture_register_format(runtime_t * runtime)
 {
     task_format_t format;
     memset(format.f, 0, sizeof(format.f));
-    format.f[TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_host_capture;
+    format.f[XKRT_TASK_FORMAT_TARGET_HOST] = (task_format_func_t) body_host_capture;
     snprintf(format.label, sizeof(format.label), "host_capture");
-    runtime->formats.host_capture = task_format_create(&(runtime->formats.list), &format);
+    runtime->formats.host_capture = xkrt_task_format_create(&(runtime->formats.list), &format);
 }
 
 void
@@ -481,14 +481,14 @@ submit_task_device(
 
     // if the task format suggests a format type, filter for the devices that supports this format
     task_format_t * format;
-    if (task->fmtid != TASK_FORMAT_NULL)
+    if (task->fmtid != XKRT_TASK_FORMAT_NULL)
     {
-        format = task_format_get(&(runtime->formats.list), task->fmtid);
+        format = xkrt_task_format_get(&(runtime->formats.list), task->fmtid);
         assert(format);
         if (format->suggest)
         {
             task_format_target_t fmt_target = format->suggest(task);
-            if (fmt_target != TASK_FORMAT_TARGET_NO_SUGGEST)
+            if (fmt_target != XKRT_TASK_FORMAT_TARGET_NO_SUGGEST)
             {
                 driver_type_t driver_type = task_format_target_to_driver_type(fmt_target);
                 device_global_id_bitfield_t suggested_devices = runtime->devices_get(driver_type);

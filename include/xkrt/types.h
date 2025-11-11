@@ -47,6 +47,7 @@
 # include <xkrt/memory/access/scope.h>
 # include <xkrt/memory/access/type.h>
 # include <xkrt/namespace.h>
+# include <xkrt/task/format.h>
 
 XKRT_NAMESPACE_BEGIN
 
@@ -68,6 +69,12 @@ typedef xkrt_access_mode_t                      access_mode_t;
 typedef xkrt_access_scope_t                     access_scope_t;
 typedef xkrt_access_type_t                      access_type_t;
 typedef xkrt_matrix_storage_t                   matrix_storage_t;
+
+typedef xkrt_task_formats_t                     task_formats_t;
+typedef xkrt_task_format_t                      task_format_t;
+typedef xkrt_task_format_id_t                   task_format_id_t;
+typedef xkrt_task_format_func_t                 task_format_func_t;
+typedef xkrt_task_format_target_t               task_format_target_t;
 
 XKRT_NAMESPACE_END
 
