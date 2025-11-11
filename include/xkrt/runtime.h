@@ -59,49 +59,53 @@
 
 XKRT_NAMESPACE_BEGIN
 
-typedef enum    runtime_state_t : uint8_t
-{
-    XKRT_RUNTIME_DEINITIALIZED = 0,
-    XKRT_RUNTIME_INITIALIZED,
-}               runtime_state_t;
-
+/**
+ * @brief Main runtime system structure
+ *
+ * This structure contains all the state and configuration for the XKRT runtime system,
+ * including device drivers, task formats, memory management, and threading.
+ */
 struct  runtime_t
 {
-    /* runtime state */
-    std::atomic<runtime_state_t> state;
+    /**
+     * @brief Runtime system state enumeration
+     */
+    enum state_t : uint8_t
+    {
+        DEINITIALIZED = 0,  ///< Runtime is not initialized
+        INITIALIZED   = 1   ///< Runtime is initialized and ready
+    };
+    std::atomic<state_t> state;  ///< Current runtime state (atomic)
 
-    /* driver list */
-    drivers_t drivers;
+    drivers_t drivers;  ///< List of registered device drivers
 
-    /* task formats */
+    /**
+     * @brief Task format registry
+     */
     struct {
-        task_formats_t list;
-        task_format_id_t host_capture;
-        task_format_id_t memory_copy_async;
-        task_format_id_t memory_touch_async;
-        task_format_id_t memory_register_async;
-        task_format_id_t memory_unregister_async;
-        task_format_id_t file_read_async;
-        task_format_id_t file_write_async;
+        task_formats_t list;                       ///< Complete list of task formats
+        task_format_id_t host_capture;             ///< Host capture task format ID
+        task_format_id_t memory_copy_async;        ///< Async memory copy task format ID
+        task_format_id_t memory_touch_async;       ///< Async memory touch task format ID
+        task_format_id_t memory_register_async;    ///< Async memory registration format ID
+        task_format_id_t memory_unregister_async;  ///< Async memory unregistration format ID
+        task_format_id_t file_read_async;          ///< Async file read task format ID
+        task_format_id_t file_write_async;         ///< Async file write task format ID
     } formats;
 
-    /* user conf */
-    conf_t conf;
+    conf_t conf;  ///< User configuration
 
-    /* memory router */
-    RouterAffinity router;
+    RouterAffinity router;  ///< Memory router used by the MCC
 
     # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
-    /* registered memory segments, map: addr -> size */
-    std::map<uintptr_t, size_t> registered_memory;
+    std::map<uintptr_t, size_t> registered_memory;  ///< Map of registered memory segments (addr -> size)
     # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
     # if XKRT_MEMORY_REGISTER_ASSISTED
-    IntervalSet<uintptr_t> registered_pages;
+    IntervalSet<uintptr_t> registered_pages;  ///< Set of registered memory page intervals
     # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
-    /* hwloc topology, read only, initialized at init */
-    hwloc_topology_t topology;
+    hwloc_topology_t topology;  ///< Hardware locality topology (read-only, initialized at startup)
 
     //////////////////////////////////////////////////////////////////////////////////////////////
     // PUBLIC INTERFACES //
@@ -111,20 +115,46 @@ struct  runtime_t
     // Management //
     ////////////////
 
-    /* initialize the runtime: load drivers and create task formats */
+    /**
+     * @brief Initialize the runtime system
+     *
+     * Loads devices, drivers and creates task formats
+     *
+     * @return 0 on success, non-zero on error
+     */
     int init(void);
 
-    /* deinitialize the runtime */
+    /**
+     * @brief Deinitialize the runtime system
+     *
+     * Cleans up all resources, destroys drivers and task formats
+     *
+     * @return 0 on success, non-zero on error
+     */
     int deinit(void);
 
-    /* deallocate all memory replicas and tasks */
+    /**
+     * @brief Reset the runtime
+     *
+     * Deallocates all memory replicas and tasks
+     */
     void reset(void);
 
     ////////////////////
     // DATA MOVEMENTS //
     ////////////////////
 
-    /* Submit a copy command to a queue of the device */
+    /**
+     * @brief Submit a 1D copy command to a device queue
+     *
+     * @param device_global_id Global ID of the device executing the copy
+     * @param size Number of bytes to copy
+     * @param dst_device_global_id Destination device global ID
+     * @param dst_device_addr Destination device address
+     * @param src_device_global_id Source device global ID
+     * @param src_device_addr Source device address
+     * @param callback Callback function to invoke upon command completion
+     */
     void copy(
         const device_global_id_t   device_global_id,
         const size_t               size,
@@ -135,7 +165,17 @@ struct  runtime_t
         const callback_t         & callback
     );
 
-    /* Submit a copy command to a queue of the device */
+    /**
+     * @brief Submit a 2D copy command to a device queue
+     *
+     * @param device_global_id Global ID of the device executing the copy
+     * @param host_view Host memory view
+     * @param dst_device_global_id Destination device global ID
+     * @param dst_device_view Destination device memory replica view
+     * @param src_device_global_id Source device global ID
+     * @param src_device_view Source device memory replica view
+     * @param callback Callback function to invoke upon completion
+     */
     void copy(
         const device_global_id_t      device_global_id,
         const memory_view_t         & host_view,
@@ -147,14 +187,23 @@ struct  runtime_t
     );
 
     /**
-     * Spawn 'n' tasks so that each task i in [0..n-1]
-     *      oi = i*size/n
-     *      ai = ptr + oi
-     *      bi = MIN(ai+size/n, size)
-     *      si = bi - ai
+     * @brief Asynchronously copy memory by spawning n parallel tasks
      *
-     *      - access    - virtual read on Interval(src.ai, src.bi)
-     *      - routine   - submit a copy command
+     * Spawns 'n' tasks where each task i in [0..n-1]:
+     *   - oi = i*size/n (offset)
+     *   - ai = ptr + oi (start address)
+     *   - bi = MIN(ai+size/n, size) (end address)
+     *   - si = bi - ai (chunk size)
+     *   - Accesses: virtual read on Interval(src.ai, src.bi)
+     *   - Routine: submit a copy command for this chunk
+     *
+     * @param device_global_id Global ID of the device executing the copy
+     * @param size Total number of bytes to copy
+     * @param dst_device_global_id Destination device global ID
+     * @param dst_device_addr Destination device base address
+     * @param src_device_global_id Source device global ID
+     * @param src_device_addr Source device base address
+     * @param n Number of parallel tasks to spawn
      */
     void memory_copy_async(
         const device_global_id_t   device_global_id,
@@ -170,7 +219,16 @@ struct  runtime_t
     // DATA DISTRIBUTION //
     ///////////////////////
 
-    /* distribute the passed memory segment uniformly and continuously across all devices */
+    /**
+     * @brief Asynchronously distribute memory uniformly across all devices, by
+     * spawning empty tasks that reads a sub segment
+     *
+     * @param type Distribution type (e.g., block, cyclic)
+     * @param ptr Pointer to the memory segment
+     * @param size Size of the memory segment
+     * @param nb Block size for distribution
+     * @param h Halo/overlap size
+     */
     void distribute_async(
         distribution_type_t type,
         void * ptr, size_t size,
@@ -178,7 +236,14 @@ struct  runtime_t
         size_t h
     );
 
-    /* distribute array of segment across all devices */
+    /**
+     * @brief Asynchronously distribute array of segments across all devices, by spawning 'n' empty tasks that read each segment
+     *
+     * @param type Distribution type
+     * @param ptr Array of pointers to memory segments
+     * @param chunk_size Size of each chunk
+     * @param n Number of chunks
+     */
     void distribute_async(
         distribution_type_t type,
         void ** ptr,
@@ -186,7 +251,21 @@ struct  runtime_t
         unsigned int n
     );
 
-    /* distribute matrix across all devices */
+    /**
+     * @brief Asynchronously distribute a matrix across all devices
+     *
+     * @param type Distribution type (e.g., 2D block-cyclic)
+     * @param storage Matrix storage layout (row-major, column-major)
+     * @param ptr Pointer to matrix data
+     * @param ld Leading dimension of the matrix
+     * @param m Number of rows
+     * @param n Number of columns
+     * @param mb Row block size
+     * @param nb Column block size
+     * @param sizeof_type Size of each matrix element in bytes
+     * @param hx Horizontal halo/overlap size
+     * @param hy Vertical halo/overlap size
+     */
     void distribute_async(
         distribution_type_t type,
         matrix_storage_t storage,
@@ -202,20 +281,55 @@ struct  runtime_t
     /////////////////////
 
     /**
-     * Spawn 'n' tasks so that each task i in [0..n-1]
-     *      oi = i*size/n
-     *      ai = ptr + oi
-     *      bi = MIN(ai+size/n, size)
-     *      si = bi - ai
+     * @brief Asynchronously read from file using parallel tasks
      *
-     *      - access    - write on Interval(ai, bi)
-     *      - routine   - submit a file IO read/write command that fseek 'fd' to 'oi' and reads 'si' bytes to [ai..bi]
+     * Spawns 'n' tasks where each task i in [0..n-1]:
+     *   - oi = i*size/n (file offset)
+     *   - ai = ptr + oi (buffer address)
+     *   - bi = MIN(ai+size/n, size)
+     *   - si = bi - ai (bytes to read)
+     *   - Access: write on Interval(ai, bi)
+     *   - Routine: fseek to 'oi' and read 'si' bytes to [ai..bi]
+     *
+     * @param fd File descriptor
+     * @param buffer Destination buffer
+     * @param size Total bytes to read
+     * @param n Number of parallel read tasks
+     * @return 0 on success, non-zero on error
      */
-
     int file_read_async (int fd, void * buffer, const size_t size, int n);
+
+    /**
+     * @brief Asynchronously write to file using parallel tasks
+     *
+     * Spawns 'n' tasks where each task i in [0..n-1]:
+     *   - oi = i*size/n (file offset)
+     *   - ai = ptr + oi (buffer address)
+     *   - bi = MIN(ai+size/n, size)
+     *   - si = bi - ai (bytes to write)
+     *   - Access: read on Interval(ai, bi)
+     *   - Routine: fseek to 'oi' and write 'si' bytes from [ai..bi]
+     *
+     * @param fd File descriptor
+     * @param buffer Source buffer
+     * @param size Total bytes to write
+     * @param n Number of parallel write tasks
+     * @return 0 on success, non-zero on error
+     */
     int file_write_async(int fd, void * buffer, const size_t size, int n);
 
-    /** Iterate for each task of the segment */
+    /**
+     * @brief Iterate over memory segment chunks and apply a function
+     *
+     * Divides the memory segment [p, p+size) into n chunks and calls
+     * func(i, a, b) for each chunk where i is the chunk index and
+     * [a, b) is the address range.
+     *
+     * @param p Base address of memory segment
+     * @param size Total size in bytes
+     * @param n Number of chunks
+     * @param func Function to call for each chunk: func(index, start_addr, end_addr)
+     */
     inline void foreach(
         const uintptr_t p,
         const size_t size,
@@ -241,65 +355,157 @@ struct  runtime_t
     // MEMORY ALLOCATION //
     ///////////////////////
 
-    /* allocate the chunk0 on the device if not allocated already */
+    /**
+     * @brief Ensure chunk0 is preallocated on the device
+     *
+     * @param device_global_id Global device identifier
+     * @param memory_id Device memory index
+     */
     void memory_device_preallocate_ensure(const device_global_id_t device_global_id, const int memory_id);
 
-    /* allocate memory onto chunk0 of the given device memory index */
+    /**
+     * @brief Allocate memory on a specific device memory bank
+     *
+     * @param device_global_id Global device identifier
+     * @param size Size in bytes to allocate
+     * @param memory_id Device memory index (bank)
+     * @return Pointer to allocated chunk, or nullptr on failure
+     */
     area_chunk_t * memory_device_allocate_on(const device_global_id_t device_global_id, const size_t size, const int memory_id);
 
-    /* allocate memory onto chunk0 of the given device */
+    /**
+     * @brief Allocate memory on device's default memory bank
+     *
+     * @param device_global_id Global device identifier
+     * @param size Size in bytes to allocate
+     * @return Pointer to allocated chunk, or nullptr on failure
+     */
     area_chunk_t * memory_device_allocate(const device_global_id_t device_global_id, const size_t size);
 
-    /* deallocate the given chunk */
+    /**
+     * @brief Deallocate a device memory chunk
+     *
+     * @param device_global_id Global device identifier
+     * @param chunk Pointer to chunk to deallocate
+     */
     void memory_device_deallocate(const device_global_id_t device_global_id, area_chunk_t * chunk);
 
-    /* dealloacte all memory previously allocated on the device */
+    /**
+     * @brief Deallocate all memory previously allocated on the device
+     *
+     * @param device_global_id Global device identifier
+     */
     void memory_device_deallocate_all(const device_global_id_t device_global_id);
 
-    /* allocate memory onto the host using the driver given device */
+    /**
+     * @brief Allocate host memory using a device driver
+     *
+     * @param device_global_id Global device identifier (determines which driver to use)
+     * @param size Size in bytes to allocate
+     * @return Pointer to allocated memory, or nullptr on failure
+     */
     void * memory_host_allocate(const device_global_id_t device_global_id, const size_t size);
 
-    /* deallocate memory onto the host using the driver of the given device */
+    /**
+     * @brief Deallocate host memory using a device driver
+     *
+     * @param device_global_id Global device identifier (determines which driver to use)
+     * @param mem Pointer to memory to deallocate
+     * @param size Size in bytes
+     */
     void memory_host_deallocate(const device_global_id_t device_global_id, void * mem, const size_t size);
 
-    /* allocate unified memory using the driver of the given device */
+    /**
+     * @brief Allocate unified memory accessible by both host and device
+     *
+     * @param device_global_id Global device identifier (determines which driver to use)
+     * @param size Size in bytes to allocate
+     * @return Pointer to allocated unified memory, or nullptr on failure
+     */
     void * memory_unified_allocate(const device_global_id_t device_global_id, const size_t size);
 
-    /* deallocate unified memory using the driver of the given device */
+    /**
+     * @brief Deallocate unified memory
+     *
+     * @param device_global_id Global device identifier (determines which driver to use)
+     * @param mem Pointer to unified memory to deallocate
+     * @param size Size in bytes
+     */
     void memory_unified_deallocate(const device_global_id_t device_global_id, void * mem, const size_t size);
 
     /////////////////////
     // MEMORY MOVEMENT //
     /////////////////////
 
-    /* synchronous allocation of a device noncoherent replica */
+    /**
+     * @brief Synchronously allocate a non-coherent device replica
+     *
+     * @param device_global_id Global device identifier
+     * @param ptr Host memory pointer
+     * @param size Size in bytes
+     */
     void memory_noncoherent_alloc(device_global_id_t device_global_id, void * ptr, size_t size);
+
+    /**
+     * @brief Synchronously allocate a non-coherent device replica for a matrix
+     *
+     * @param device_global_id Global device identifier
+     * @param storage Matrix storage layout
+     * @param ptr Host matrix pointer
+     * @param ld Leading dimension
+     * @param m Number of rows
+     * @param n Number of columns
+     * @param sizeof_type Size of each element in bytes
+     */
     void memory_noncoherent_alloc(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
-    /* spawn empty tasks to make the replica coherent on the passed device */
+    /**
+     * @brief Asynchronously make memory replica coherent on a device
+     *
+     * Spawns empty tasks to trigger coherency protocol
+     *
+     * @param device_global_id Global device identifier
+     * @param ptr Host memory pointer
+     * @param size Size in bytes
+     */
     void memory_coherent_async(device_global_id_t device_global_id, void * ptr, size_t size);
+
+    /**
+     * @brief Asynchronously make matrix replica coherent on a device
+     *
+     * @param device_global_id Global device identifier
+     * @param storage Matrix storage layout
+     * @param ptr Host matrix pointer
+     * @param ld Leading dimension
+     * @param m Number of rows
+     * @param n Number of columns
+     * @param sizeof_type Size of each element in bytes
+     */
     void memory_coherent_async(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
-    /* hint the unified memory system that the given memory will be used by the device */
+    /**
+     * @brief Hint to unified memory system about future device access
+     *
+     * @param device_global_id Global device identifier
+     * @param addr Memory address
+     * @param size Size in bytes
+     * @return 0 on success, non-zero on error
+     */
     int memory_unified_advise  (const device_global_id_t device_global_id, const void * addr, const size_t size);
-    /* tell the unified memory system to move the memory so it is coherent on the given device */
+
+    /**
+     * @brief Prefetch unified memory to make it coherent on device
+     *
+     * @param device_global_id Global device identifier
+     * @param addr Memory address
+     * @param size Size in bytes
+     * @return 0 on success, non-zero on error
+     */
     int memory_unified_prefetch(const device_global_id_t device_global_id, const void * addr, const size_t size);
 
     /////////////////////////
     // MEMORY REGISTRATION //
     /////////////////////////
-
-    /**
-     *  Memory registration
-     */
-    int memory_register  (void * ptr, size_t size);
-    int memory_unregister(void * ptr, size_t size);
-
-    /**
-     * Spawn an independent task to register the passed memory
-     */
-    int memory_register_async  (void * ptr, size_t size);
-    int memory_unregister_async(void * ptr, size_t size);
 
     /**
      *  TODO: is it 'legal' to have concurrently
@@ -316,10 +522,96 @@ struct  runtime_t
      *
      *      - routine - register/unregister/touch [ai..bi]
      */
+
+
+
+    /**
+     * @brief Synchronously register memory for device access (pinning)
+     *
+     * @param ptr Memory pointer
+     * @param size Size in bytes
+     * @return 0 on success, non-zero on error
+     */
+    int memory_register  (void * ptr, size_t size);
+
+    /**
+     * @brief Synchronously unregister memory
+     *
+     * @param ptr Memory pointer
+     * @param size Size in bytes
+     * @return 0 on success, non-zero on error
+     */
+    int memory_unregister(void * ptr, size_t size);
+
+    /**
+     * @brief Asynchronously register memory using a single task
+     *
+     * @param ptr Memory pointer
+     * @param size Size in bytes
+     * @return 0 on success, non-zero on error
+     */
+    int memory_register_async  (void * ptr, size_t size);
+
+    /**
+     * @brief Asynchronously unregister memory using a single task
+     *
+     * @param ptr Memory pointer
+     * @param size Size in bytes
+     * @return 0 on success, non-zero on error
+     */
+    int memory_unregister_async(void * ptr, size_t size);
+
+    /**
+     * @brief Asynchronously register memory using parallel tasks
+     *
+     * Spawns 'n' tasks where each task i in [0..n-1]:
+     *   - ai = ptr + i*size/n
+     *   - bi = MIN(ai+size/n, size)
+     *   - Access: write on Interval(ai, bi), virtual commutative write on NULL
+     *   - Routine: register [ai..bi]
+     *
+     * @note Assumes it is NOT safe to have concurrent host writes during registration
+     *
+     * @param team Thread team to use for task execution
+     * @param ptr Memory pointer
+     * @param size Size in bytes
+     * @param n Number of parallel tasks
+     * @return 0 on success, non-zero on error
+     */
     int memory_register_async  (team_t * team, void * ptr, const size_t size, int n);
+
+    /**
+     * @brief Asynchronously unregister memory using parallel tasks
+     *
+     * @param team Thread team to use for task execution
+     * @param ptr Memory pointer
+     * @param size Size in bytes
+     * @param n Number of parallel tasks
+     * @return 0 on success, non-zero on error
+     */
     int memory_unregister_async(team_t * team, void * ptr, const size_t size, int n);
+
+    /**
+     * @brief Asynchronously touch memory pages to ensure they're resident
+     *
+     * @param team Thread team to use for task execution
+     * @param ptr Memory pointer
+     * @param size Size in bytes
+     * @param n Number of parallel tasks
+     * @return 0 on success, non-zero on error
+     */
     int memory_touch_async     (team_t * team, void * ptr, const size_t size, int n);
 
+    /**
+     * @brief Asynchronously register memory using default host team
+     *
+     * Convenience wrapper that uses the host driver's team
+     *
+     * @param ptr Memory pointer
+     * @param size Size in bytes
+     * @param n Number of parallel tasks
+     * @return 0 on success, non-zero on error
+     */
     int memory_register_async(void * ptr, const size_t size, int n)
     {
         team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST, 0);
@@ -327,23 +619,22 @@ struct  runtime_t
         return this->memory_register_async(team, ptr, size, n);
     }
 
+    /**
+     * @brief Asynchronously unregister memory using default host team
+     *
+     * Convenience wrapper that uses the host driver's team
+     *
+     * @param ptr Memory pointer
+     * @param size Size in bytes
+     * @param n Number of parallel tasks
+     * @return 0 on success, non-zero on error
+     */
     int memory_unregister_async(void * ptr, const size_t size, int n)
     {
         team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST, 0);
         assert(team);
-        return this->memory_register_async(team, ptr, size, n);
+        return this->memory_unregister_async(team, ptr, size, n);
     }
-
-    int memory_touch_async(void * ptr, const size_t size, int n)
-    {
-        team_t * team = this->team_get(XKRT_DRIVER_TYPE_HOST, 0);
-        assert(team);
-        return this->memory_touch_async(team, ptr, size, n);
-    }
-
-    /////////////////////
-    // SYNCHRONIZATION //
-    /////////////////////
 
     /////////////
     // TASKING //
@@ -489,7 +780,15 @@ struct  runtime_t
         return task;
     }
 
-    /* spawn a task in the currently executing thread team */
+    /**
+     * @brief Spawn a task in the currently executing thread team
+     * @tparam ac Task access counter specifying the number of data accesses
+     * @tparam has_set_accesses Flag indicating if access setter is provided
+     * @tparam has_split_condition Flag indicating if split condition is provided
+     * @param set_accesses Function to set task data accesses
+     * @param split_condition Function to determine if task should be split (for moldable tasks)
+     * @param f Task execution function
+     */
     template <task_access_counter_t ac, bool has_set_accesses, bool has_split_condition>
     inline void
     task_spawn(
@@ -508,6 +807,13 @@ struct  runtime_t
         tls->commit(task, task_enqueue, this);
     }
 
+    /**
+     * @brief Spawn a task with data accesses and split condition
+     * @tparam ac Task access counter specifying the number of data accesses
+     * @param set_accesses Function to set task data accesses
+     * @param split_condition Function to determine if task should be split
+     * @param f Task execution function
+     */
     template <task_access_counter_t ac>
     inline void
     task_spawn(
@@ -518,6 +824,12 @@ struct  runtime_t
         return this->task_spawn<ac, true, true>(set_accesses, split_condition, f);
     }
 
+    /**
+     * @brief Spawn a task with data accesses but no split condition
+     * @tparam ac Task access counter specifying the number of data accesses
+     * @param set_accesses Function to set task data accesses
+     * @param f Task execution function
+     */
     template <task_access_counter_t ac>
     inline void
     task_spawn(
@@ -527,6 +839,10 @@ struct  runtime_t
         this->task_spawn<ac, true, false>(set_accesses, nullptr, f);
     }
 
+    /**
+     * @brief Spawn a simple task with no data accesses
+     * @param f Task execution function
+     */
     inline void
     task_spawn(
         const std::function<void(runtime_t *, device_t *, task_t *)> & f
@@ -538,40 +854,74 @@ struct  runtime_t
     // THREADING - THREADS //
     /////////////////////////
 
-    /* Retrieve the cpuset of the calling thread */
+    /**
+     * @brief Retrieve the CPU affinity mask of the calling thread
+     * @param[out] cpuset CPU set to be filled with the current thread's affinity
+     */
     static void thread_getaffinity(cpu_set_t & cpuset);
 
-    /* Bind the calling thread to the given cpu set */
+    /**
+     * @brief Bind the calling thread to the specified CPU set
+     * @param cpuset CPU set defining which CPUs the thread can run on
+     */
     static void thread_setaffinity(cpu_set_t & cpuset);
 
     ///////////////////////
     // THREADING - TEAMS //
     ///////////////////////
 
-    /* create a new thread team */
+    /**
+     * @brief Create a new thread team
+     * @param team Pointer to the team structure to initialize
+     */
     void team_create(team_t * team);
 
-    /* wait until all threads called the barrier */
+    /**
+     * @brief Synchronization barrier - wait until all threads reach this point
+     * @tparam worksteal Enable work stealing during barrier wait
+     * @param team Pointer to the team
+     * @param thread Pointer to the calling thread (optional)
+     */
     template<bool worksteal = false>
     void team_barrier(team_t * team, thread_t * thread = NULL);
 
-    /* wait until all threads finished and destroy the team */
+    /**
+     * @brief Wait until all threads have finished and destroy the team
+     * @param team Pointer to the team to join and destroy
+     */
     void team_join(team_t * team);
 
-    /* start a critical section */
+    /**
+     * @brief Enter a critical section (mutual exclusion)
+     * @param team Pointer to the team
+     */
     void team_critical_begin(team_t * team);
 
-    /* end a critical section */
+    /**
+     * @brief Exit a critical section
+     * @param team Pointer to the team
+     */
     void team_critical_end(team_t * team);
 
-    /* blocking parallel_for region */
-    typedef std::function<void(team_t * team, thread_t * thread)> team_parallel_for_func_t;
+    /**
+     * @brief Execute a parallel for loop across team threads (blocking)
+     * @param team Pointer to the team
+     * @param func Function to execute in parallel by each thread
+     */
+    typedef std::function<void(thread_t * thread)> team_parallel_for_func_t;
     void team_parallel_for(team_t * team, team_parallel_for_func_t func);
 
     /////////////////////////
     // THREADING - TASKING //
     /////////////////////////
 
+    /**
+     * @brief Spawn a task within a specific team with runtime-determined access count
+     * @param team Target team for task execution
+     * @param set_accesses Function to set task data accesses
+     * @param f Task execution function
+     * @param naccesses Number of data accesses (must be > 0)
+     */
     inline void
     team_task_spawn(
         team_t * team,
@@ -590,6 +940,16 @@ struct  runtime_t
         tls->commit(task, task_team_enqueue, this, team);
     }
 
+    /**
+     * @brief Spawn a task within a specific team
+     * @tparam ac Task access counter specifying the number of data accesses
+     * @tparam has_set_accesses Flag indicating if access setter is provided
+     * @tparam has_split_condition Flag indicating if split condition is provided
+     * @param team Target team for task execution
+     * @param set_accesses Function to set task data accesses
+     * @param split_condition Function to determine if task should be split
+     * @param f Task execution function
+     */
     template <task_access_counter_t ac, bool has_set_accesses, bool has_split_condition>
     inline void
     team_task_spawn(
@@ -607,6 +967,14 @@ struct  runtime_t
         tls->commit(task, task_team_enqueue, this, team);
     }
 
+    /**
+     * @brief Spawn a team task with data accesses and split condition
+     * @tparam ac Task access counter specifying the number of data accesses
+     * @param team Target team for task execution
+     * @param set_accesses Function to set task data accesses
+     * @param split_condition Function to determine if task should be split
+     * @param f Task execution function
+     */
     template <task_access_counter_t ac>
     inline void
     team_task_spawn(
@@ -618,6 +986,13 @@ struct  runtime_t
         return this->team_task_spawn<ac, true, true>(team, set_accesses, split_condition, f);
     }
 
+    /**
+     * @brief Spawn a team task with data accesses but no split condition
+     * @tparam ac Task access counter specifying the number of data accesses
+     * @param team Target team for task execution
+     * @param set_accesses Function to set task data accesses
+     * @param f Task execution function
+     */
     template <task_access_counter_t ac>
     inline void
     team_task_spawn(
@@ -628,6 +1003,11 @@ struct  runtime_t
         this->team_task_spawn<ac, true, false>(team, set_accesses, nullptr, f);
     }
 
+    /**
+     * @brief Spawn a simple team task with no data accesses
+     * @param team Target team for task execution
+     * @param f Task execution function
+     */
     inline void
     team_task_spawn(
         team_t * team,
@@ -637,7 +1017,8 @@ struct  runtime_t
     }
 
     /**
-     *  Schedule a task on the executing thread
+     * @brief Attempt to steal and execute a task from another thread's queue
+     * @return Pointer to the stolen task, or nullptr if no task available
      */
     task_t * worksteal(void);
 
@@ -645,42 +1026,81 @@ struct  runtime_t
     // TEAM - UTILS //
     //////////////////
 
-    /* retrieve the team of thread for the device of a specific driver */
+    /**
+     * @brief Retrieve the thread team for a specific device
+     * @param type Driver type (e.g., CPU, GPU)
+     * @param device_driver_id Device identifier within the driver
+     * @return Pointer to the team, or nullptr if not found
+     */
     team_t * team_get(const driver_type_t type, const device_driver_id_t device_driver_id);
 
-    /* retrieve the team of thread of the specific driver */
+    /**
+     * @brief Retrieve the thread team for a specific driver type
+     * @param type Driver type (e.g., CPU, GPU)
+     * @return Pointer to the team, or nullptr if not found
+     */
     team_t * team_get(const driver_type_t type);
 
-    /* retrieve the first non-null driver' team from the passed bitfield */
+    /**
+     * @brief Retrieve the first available team from multiple driver types
+     * @param types Bitfield of driver types to search
+     * @return Pointer to the first non-null team found, or nullptr
+     */
     team_t * team_get_any(const driver_type_bitfield_t types);
 
     ////////////
     // ENERGY //
     ////////////
 
-    /* start recording energy usage */
+    /**
+     * @brief Start recording energy consumption for a device
+     * @param device_global_id Global identifier of the device
+     * @param[out] pwr Power measurement structure to initialize
+     */
     void power_start(const device_global_id_t device_global_id, power_t * pwr);
 
-    /* stop recording and return energy usage */
+    /**
+     * @brief Stop recording and retrieve energy consumption
+     * @param device_global_id Global identifier of the device
+     * @param[in,out] pwr Power measurement structure to finalize
+     */
     void power_stop(const device_global_id_t device_global_id, power_t * pwr);
 
     ///////////////
     // UTILITIES //
     ///////////////
 
-    /* get driver */
+    /**
+     * @brief Get a driver by type
+     * @param type Driver type to retrieve
+     * @return Pointer to the driver, or nullptr if not found
+     */
     driver_t * driver_get(const driver_type_t type);
 
-    /* get device */
+    /**
+     * @brief Get a device by its global identifier
+     * @param device_global_id Global device identifier
+     * @return Pointer to the device, or nullptr if not found
+     */
     device_t * device_get(const device_global_id_t device_global_id);
 
-    /* get bitfield of devices for the given driver type */
+    /**
+     * @brief Get bitfield of all devices for a given driver type
+     * @param type Driver type
+     * @return Bitfield with bits set for each available device
+     */
     device_global_id_bitfield_t devices_get(const driver_type_t type);
 
-    /* get number of commited devices */
+    /**
+     * @brief Get the number of committed (active) devices
+     * @return Number of devices currently in use
+     */
     unsigned int get_ndevices(void);
 
-    /* get maximum number of devices available */
+    /**
+     * @brief Get the maximum number of devices available
+     * @return Maximum device count
+     */
     unsigned int get_ndevices_max(void);
 
     # if XKRT_SUPPORT_STATS
@@ -689,88 +1109,53 @@ struct  runtime_t
     // STATS //
     ///////////
 
+    /**
+     * @brief Runtime statistics collection
+     */
     struct {
         struct {
-            stats_int_t submitted;
-            stats_int_t commited;
-            stats_int_t completed;
+            stats_int_t submitted;   ///< Number of tasks submitted
+            stats_int_t commited;    ///< Number of tasks committed
+            stats_int_t completed;   ///< Number of tasks completed
         } tasks[TASK_FORMAT_MAX];
 
         struct {
-            stats_int_t registered;
-            stats_int_t unregistered;
+            stats_int_t registered;     ///< Memory regions registered
+            stats_int_t unregistered;   ///< Memory regions unregistered
             struct {
                 struct {
-                    stats_int_t device;
-                    stats_int_t host;
+                    stats_int_t device;  ///< Device-side advised allocations
+                    stats_int_t host;    ///< Host-side advised allocations
                 } advised;
                 struct {
-                    stats_int_t device;
-                    stats_int_t host;
+                    stats_int_t device;  ///< Device-side prefetched data
+                    stats_int_t host;    ///< Host-side prefetched data
                 } prefetched;
             } unified;
         } memory;
     } stats;
 
-    /* report some stats about the runtime */
+    /**
+     * @brief Report collected runtime statistics
+     */
     void stats_report(void);
 
     # endif /* XKRT_SUPPORT_STATS */
 
 }; /* runtime_t */
 
-///////////////
-// Utilities //
-///////////////
-
-/* submit a ready task */
-void runtime_submit_task(runtime_t * runtime, task_t * task);
-
-/* host capture task format */
-void task_host_capture_register_format(runtime_t * runtime);
-
-/* copy async format */
-void memory_copy_async_register_format(runtime_t * runtime);
-
-/* register v2 format */
-void memory_register_async_register_format(runtime_t * runtime);
-
-/* file async format */
-void file_async_register_format(runtime_t * runtime);
-
-/* Routine for threads in a device team */
-void * device_thread_main(runtime_t * runtime, team_t * team, thread_t * thread);
-
-/* initialize drivers */
-void drivers_init(runtime_t * runtime);
-
-/* deinitialize drivers */
-void drivers_deinit(runtime_t * runtime);
-
-/* must be call once task accesses were all fetched */
-void task_execute(
-    runtime_t * runtime,
-    device_t * device,
-    task_t * task
-);
-
-/* arguments passed to the device team */
-typedef struct  device_team_args_t
-{
-    driver_t * driver;
-    device_global_id_t device_global_id;
-    device_driver_id_t device_driver_id;
-    pthread_barrier_t barrier;
-}               device_team_args_t;
-
-MemoryCoherencyController * task_get_memory_controller(
-    runtime_t * runtime,
-    task_t * task,
-    const access_t * access
-);
-
+/**
+ * @brief Main routine for parallel for execution
+ * @param runtime Pointer to the runtime system
+ * @param team Pointer to the team
+ * @param thread Pointer to the thread
+ * @return Thread return value
+ */
 void * team_parallel_for_main(runtime_t * runtime, team_t * team, thread_t * thread);
+
+/// Macro defining the parallel for team routine function pointer
 # define XKRT_TEAM_ROUTINE_PARALLEL_FOR ((team_routine_t) team_parallel_for_main)
+
 
 XKRT_NAMESPACE_END
 

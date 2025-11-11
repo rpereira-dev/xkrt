@@ -36,6 +36,7 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
+# include <xkrt/internals.h>
 # include <xkrt/logger/logger-hwloc.h>
 # include <xkrt/runtime.h>
 # include <xkrt/thread/team.h>
@@ -637,7 +638,7 @@ team_parallel_for_run_f(
     (void) runtime;
 
     ++thread->parallel_for.index;
-    f(team, thread);
+    f(thread);
 
     // last thread to complete wakes up the master
     if (team->priv.parallel_for.pending.fetch_sub(1, std::memory_order_seq_cst) - 1 == 0)

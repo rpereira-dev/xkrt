@@ -38,6 +38,7 @@
 
 # include <xkrt/memory/access/blas/memory-tree.hpp>
 # include <xkrt/runtime.h>
+# include <xkrt/internals.h>
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
 # include <xkrt/driver/queue.h>

@@ -38,6 +38,7 @@
 
 # include <xkrt/support.h>
 # include <xkrt/runtime.h>
+# include <xkrt/internals.h>
 # include <xkrt/driver/driver.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/utils/min-max.h>

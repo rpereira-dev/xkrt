@@ -38,6 +38,7 @@
 # define __MEMORY_TREE_HPP__
 
 # include <xkrt/support.h>
+# include <xkrt/internals.h>
 # include <xkrt/memory/access/common/khp-tree.hpp>
 
 //  TODO : the design of this is terrible with a cyclic ownership with

@@ -231,7 +231,7 @@ struct team_t
         alignas(hardware_destructive_interference_size)
         struct {
             uint32_t index;
-            std::function<void(team_t * team, thread_t * thread)> f[XKRT_TEAM_PARALLEL_FOR_MAX_FUNC];
+            std::function<void(thread_t * thread)> f[XKRT_TEAM_PARALLEL_FOR_MAX_FUNC];
             uint32_t completed;
             std::atomic<uint32_t> pending;
         } parallel_for;

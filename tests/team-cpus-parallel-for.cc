@@ -76,7 +76,7 @@ main(void)
     {
         std::atomic<int> counter(0);
         runtime.team_create(&team);
-        runtime.team_parallel_for(&team, [&counter] (team_t * team, thread_t * thread) {
+        runtime.team_parallel_for(&team, [&counter] (thread_t * thread) {
                 LOGGER_INFO("Thread `%3d` running on `sched_getcpu() -> %3d`", thread->tid, sched_getcpu());
                 ++counter;
             }
@@ -94,7 +94,7 @@ main(void)
 
         uint64_t t0 = get_nanotime();
         for (int i = 0 ; i < n ; ++i)
-            runtime.team_parallel_for(&team, [] (team_t * team, thread_t * thread) { });
+            runtime.team_parallel_for(&team, [] (thread_t * thread) { });
         uint64_t tf = get_nanotime();
         LOGGER_INFO("`%d` empty parallel on `%d` threads for took %lf s - that is %luns/task\n", n, team.priv.nthreads, (tf-t0)/1e9, (tf-t0)/(n*team.priv.nthreads));
 
