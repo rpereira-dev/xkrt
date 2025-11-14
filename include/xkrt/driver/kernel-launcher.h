@@ -36,20 +36,18 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __XKRT_QUEUE_TYPE_HPP__
-# define __XKRT_QUEUE_TYPE_HPP__
+#ifndef __XKRT_KERNEL_LAUNCHER_HPP__
+# define __XKRT_KERNEL_LAUNCHER_HPP__
 
-/* DONT CHANGE ORDER HERE !! Can have side effects (in the Offloader class for instance) */
-typedef enum    xkrt_queue_type_t
-{
-    XKRT_QUEUE_TYPE_H2D        = 0,    /* from CPU to GPU */
-    XKRT_QUEUE_TYPE_D2H        = 1,    /* from GPU to CPU */
-    XKRT_QUEUE_TYPE_D2D        = 2,    /* from GPU to GPU */
-    XKRT_QUEUE_TYPE_KERN       = 3,
-    XKRT_QUEUE_TYPE_FD_READ    = 4,
-    XKRT_QUEUE_TYPE_FD_WRITE   = 5,
-    XKRT_QUEUE_TYPE_ALL                /* internal purpose */
+# include <xkrt/driver/queue-command-list-counter.h>
 
-}               xkrt_queue_type_t;
+typedef void (*xkrt_kernel_launcher_t)(
+    void * runtime,
+    void * device,
+    void * task,
+    void * queue,
+    void * cmd,
+    xkrt_queue_command_list_counter_t idx
+);
 
-# endif /* __XKRT_QUEUE_TYPE_HPP__ */
+# endif /* __XKRT_KERNEL_LAUNCHER_HPP__ */

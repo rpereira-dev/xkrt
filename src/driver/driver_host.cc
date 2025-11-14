@@ -305,8 +305,8 @@ XKRT_DRIVER_ENTRYPOINT(queue_suggest)(
     assert(device_driver_id == 0);
     switch (qtype)
     {
-        case (QUEUE_TYPE_FD_READ):
-        case (QUEUE_TYPE_FD_WRITE):
+        case (XKRT_QUEUE_TYPE_FD_READ):
+        case (XKRT_QUEUE_TYPE_FD_WRITE):
             return 1;
 
         default:
@@ -324,8 +324,8 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_wait)(
 
     switch (queue->super.type)
     {
-        case (QUEUE_TYPE_FD_READ):
-        case (QUEUE_TYPE_FD_WRITE):
+        case (XKRT_QUEUE_TYPE_FD_READ):
+        case (XKRT_QUEUE_TYPE_FD_WRITE):
         {
             int min_completion = queue->super.pending.size();
             if (min_completion)
@@ -359,8 +359,8 @@ XKRT_DRIVER_ENTRYPOINT(queue_command_wait)(
     # if 0
     switch (cmd->type)
     {
-        case (QUEUE_TYPE_FD_READ):
-        case (QUEUE_TYPE_FD_WRITE):
+        case (XKRT_QUEUE_TYPE_FD_READ):
+        case (XKRT_QUEUE_TYPE_FD_WRITE):
         {
         }
 
@@ -435,9 +435,9 @@ XKRT_DRIVER_ENTRYPOINT(queue_create)(
     (void)type;
     (void)capacity;
 
-    if (type != QUEUE_TYPE_FD_READ && type != QUEUE_TYPE_FD_WRITE)
+    if (type != XKRT_QUEUE_TYPE_FD_READ && type != XKRT_QUEUE_TYPE_FD_WRITE)
         return NULL;
-    assert(type == QUEUE_TYPE_FD_READ || type == QUEUE_TYPE_FD_WRITE);
+    assert(type == XKRT_QUEUE_TYPE_FD_READ || type == XKRT_QUEUE_TYPE_FD_WRITE);
 
     uint8_t * mem = (uint8_t *) calloc(1, sizeof(queue_host_t));
     assert(mem);

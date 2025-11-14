@@ -279,7 +279,7 @@ device_thread_main_loop(
             task = runtime->worksteal();
 
         /// find commands pending or ready
-        device->offloader_queues_are_empty(thread->tid, QUEUE_TYPE_ALL, &ready, &pending);
+        device->offloader_queues_are_empty(thread->tid, XKRT_QUEUE_TYPE_ALL, &ready, &pending);
 
         // is there is anything to progress, wake up
         if (task || ready || pending)
@@ -399,7 +399,7 @@ device_thread_main(
 
     // delete queues
     if (driver->f_queue_delete)
-        for (uint8_t j = 0 ; j < QUEUE_TYPE_ALL ; ++j)
+        for (uint8_t j = 0 ; j < XKRT_QUEUE_TYPE_ALL ; ++j)
             for (int k = 0 ; k < device->count[j] ; ++k)
                 driver->f_queue_delete(device->queues[thread->tid][j][k]);
 
@@ -448,6 +448,39 @@ runtime_t::task_team_enqueue(
     // all threads are working, assigning on the first random one
     thread_t * thread = team->priv.threads + start;
     return this->task_thread_enqueue(thread, task);
+}
+
+static inline void
+task_detachable_kernel_launch_decr(void * args[XKRT_CALLBACK_ARGS_MAX])
+{
+    runtime_t * runtime = (runtime_t *) args[0];
+    assert(runtime);
+
+    task_t * task = (task_t *) args[1];
+    assert(task);
+
+    runtime->task_detachable_decr(task);
+}
+
+void
+runtime_t::task_detachable_kernel_launch(
+    device_t * device,
+    task_t * task,
+    kernel_launcher_t launcher
+) {
+    /* increase event counter */
+    assert(task->flags & TASK_FLAG_DETACHABLE);
+    this->task_detachable_incr(task);
+
+    /* the task may complete in the callback on kernel completion */
+    callback_t callback;
+    callback.func    = task_detachable_kernel_launch_decr;
+    callback.args[0] = this;
+    callback.args[1] = task;
+    assert(XKRT_CALLBACK_ARGS_MAX >= 2);
+
+    /* submit kernel launch command */
+    device->offloader_queue_command_submit_kernel(this, device, task, (kernel_launcher_t) launcher, callback);
 }
 
 XKRT_NAMESPACE_END

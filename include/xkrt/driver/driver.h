@@ -46,6 +46,7 @@
 # include <stdint.h>    /* uint64_t */
 
 # include <xkrt/consts.h>
+# include <xkrt/types.h>
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver-type.h>
 # include <xkrt/driver/queue.h>
@@ -57,16 +58,6 @@
 # include <hwloc.h>
 
 XKRT_NAMESPACE_BEGIN
-
-    typedef enum    driver_module_format_t
-    {
-        XKRT_DRIVER_MODULE_FORMAT_SPIRV,
-        XKRT_DRIVER_MODULE_FORMAT_NATIVE,
-        XKRT_DRIVER_MODULE_FORMAT_UNKWN
-    }               driver_module_format_t;
-
-    typedef void * driver_module_t;
-    typedef void * driver_module_fn_t;
 
     typedef struct  driver_t
     {

@@ -177,16 +177,16 @@ typedef struct  device_t
     int nqueues_per_thread;
 
     /* number of queue per type */
-    int count[QUEUE_TYPE_ALL];
+    int count[XKRT_QUEUE_TYPE_ALL];
 
     /* next thread to use for offloading a command */
     std::atomic<int> next_thread;
 
     /* next queue to use for the given thread and type */
-    std::atomic<int> next_queue[XKRT_MAX_THREADS_PER_DEVICE][QUEUE_TYPE_ALL];
+    std::atomic<int> next_queue[XKRT_MAX_THREADS_PER_DEVICE][XKRT_QUEUE_TYPE_ALL];
 
     /* basic queue */
-    queue_t ** queues[XKRT_MAX_THREADS_PER_DEVICE][QUEUE_TYPE_ALL];
+    queue_t ** queues[XKRT_MAX_THREADS_PER_DEVICE][XKRT_QUEUE_TYPE_ALL];
 
     /* initialize the offloader (must be called once before any thread called the 'thread' version) */
     void offloader_init(
@@ -231,8 +231,8 @@ typedef struct  device_t
         const queue_type_t qtype
     ) {
         int err = 0;
-        unsigned int bgn = (qtype == QUEUE_TYPE_ALL) ?               0 : qtype;
-        unsigned int end = (qtype == QUEUE_TYPE_ALL) ? QUEUE_TYPE_ALL : qtype + 1;
+        unsigned int bgn = (qtype == XKRT_QUEUE_TYPE_ALL) ?               0 : qtype;
+        unsigned int end = (qtype == XKRT_QUEUE_TYPE_ALL) ? XKRT_QUEUE_TYPE_ALL : qtype + 1;
         for (unsigned int s = bgn ; s < end ; ++s)
         {
             for (int i = 0 ; i < this->count[s] ; ++i)
@@ -295,7 +295,7 @@ typedef struct  device_t
         );
 
         /* create a new command and retrieve its offload queue */
-        constexpr queue_type_t   qtype = (T == COMMAND_TYPE_FD_READ) ? QUEUE_TYPE_FD_READ : QUEUE_TYPE_FD_WRITE;
+        constexpr queue_type_t   qtype = (T == COMMAND_TYPE_FD_READ) ? XKRT_QUEUE_TYPE_FD_READ : XKRT_QUEUE_TYPE_FD_WRITE;
         constexpr command_type_t ctype = T;
 
         thread_t * thread;
@@ -321,8 +321,10 @@ typedef struct  device_t
 
     /* submit a kernel execution command */
     command_t * offloader_queue_command_submit_kernel(
+        void * runtime,
+        void * device,
+        task_t * task,
         kernel_launcher_t launcher,
-        void * vargs,
         const callback_t & callback
     );
 
@@ -386,21 +388,21 @@ typedef struct  device_t
             case (COMMAND_TYPE_COPY_H2H_2D):
             case (COMMAND_TYPE_COPY_H2D_2D):
             {
-               qtype = QUEUE_TYPE_H2D;
+               qtype = XKRT_QUEUE_TYPE_H2D;
                break ;
             }
 
             case (COMMAND_TYPE_COPY_D2H_1D):
             case (COMMAND_TYPE_COPY_D2H_2D):
             {
-                qtype = QUEUE_TYPE_D2H;
+                qtype = XKRT_QUEUE_TYPE_D2H;
                 break ;
             }
 
             case (COMMAND_TYPE_COPY_D2D_1D):
             case (COMMAND_TYPE_COPY_D2D_2D):
             {
-                qtype = QUEUE_TYPE_D2D;
+                qtype = XKRT_QUEUE_TYPE_D2D;
                 break ;
             }
 

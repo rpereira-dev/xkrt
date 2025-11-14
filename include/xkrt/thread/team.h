@@ -82,18 +82,17 @@ typedef void * (*team_routine_t)(void * runtime, void * team, void * thread);
 //                                     _            _
 //  So we need a tree of height 'n' = |  log2(k) + 1 | to represent the 'k' threads
 
-/* type of nodes in the tree */
-typedef enum    team_node_type_t
+struct thread_t;
+
+/* a node in the topology graph */
+typedef struct  team_node_t
 {
-    XKRT_TEAM_NODE_TYPE_HYPERTHREAD = 0,    // hyperthread
-    XKRT_TEAM_NODE_TYPE_CORE        = 1,    // core
-    XKRT_TEAM_NODE_TYPE_CACHE_L1    = 2,    // shared cache, L2 or L3 typically
-    XKRT_TEAM_NODE_TYPE_CACHE_L2    = 3,    // shared cache, L2 or L3 typically
-    XKRT_TEAM_NODE_TYPE_CACHE_L3    = 4,    // shared cache, L2 or L3 typically
-    XKRT_TEAM_NODE_TYPE_NUMA        = 5,    // numa node
-    XKRT_TEAM_NODE_TYPE_SOCKET      = 6,    // full dram
-    XKRT_TEAM_NODE_TYPE_MACHINE     = 7     // multi socket system
-}               team_node_type_t;
+    /* the thread owning that node */
+    thread_t * thread;
+
+}               team_node_t;
+
+// THREAD BINDINGS
 
 typedef enum    team_binding_mode_t
 {
@@ -123,19 +122,6 @@ typedef enum    team_binding_flag_t
 
 /* a place */
 typedef cpu_set_t team_thread_place_t;
-
-struct thread_t;
-
-/* a node in the topology graph */
-typedef struct  team_node_t
-{
-    /* the node type */
-    team_node_type_t type;
-
-    /* the thread owning that node */
-    thread_t * thread;
-
-}               team_node_t;
 
 /**
  *  The supported combinations are:

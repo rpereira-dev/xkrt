@@ -591,8 +591,6 @@ runtime_t::team_barrier(
     team_t * team,
     thread_t * thread
 ) {
-    this->task_wait();  // TODO: i think we should remove this
-
     if (team->priv.nthreads == 1)
         return ;
 

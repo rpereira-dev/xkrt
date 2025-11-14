@@ -63,7 +63,7 @@ typedef struct  conf_queue_t
 
 typedef struct  conf_offloader_t
 {
-    conf_queue_t queues[QUEUE_TYPE_ALL];
+    conf_queue_t queues[XKRT_QUEUE_TYPE_ALL];
     uint16_t capacity;
 
 }               conf_offloader_t;

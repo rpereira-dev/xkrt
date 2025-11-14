@@ -56,7 +56,7 @@
 # define XKRT_DEVICES_PERF_RANK_MAX (4)
 
 /* an ID representing the host device */
-# define HOST_DEVICE_GLOBAL_ID (0)
+# define HOST_DEVICE_GLOBAL_ID ((xkrt_device_global_id_t)0)
 
 /* an ID representing an unspecified device */
 # define UNSPECIFIED_DEVICE_GLOBAL_ID (XKRT_DEVICES_MAX)

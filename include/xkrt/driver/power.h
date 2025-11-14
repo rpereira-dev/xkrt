@@ -2,8 +2,6 @@
 ** Copyright 2024,2025 INRIA
 **
 ** Contributors :
-** Thierry Gautier, thierry.gautier@inrialpes.fr
-** Joao Lima joao.lima@inf.ufsm.br
 ** Romain PEREIRA, romain.pereira@inria.fr + rpereira@anl.gov
 **
 ** This software is a computer program whose purpose is to execute
@@ -36,20 +34,32 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __XKRT_QUEUE_TYPE_HPP__
-# define __XKRT_QUEUE_TYPE_HPP__
+# ifndef __XKRT_POWER_H__
+#  define __XKRT_POWER_H__
 
-/* DONT CHANGE ORDER HERE !! Can have side effects (in the Offloader class for instance) */
-typedef enum    xkrt_queue_type_t
+#  include <stdint.h>
+
+typedef struct  xkrt_power_counter_t
 {
-    XKRT_QUEUE_TYPE_H2D        = 0,    /* from CPU to GPU */
-    XKRT_QUEUE_TYPE_D2H        = 1,    /* from GPU to CPU */
-    XKRT_QUEUE_TYPE_D2D        = 2,    /* from GPU to GPU */
-    XKRT_QUEUE_TYPE_KERN       = 3,
-    XKRT_QUEUE_TYPE_FD_READ    = 4,
-    XKRT_QUEUE_TYPE_FD_WRITE   = 5,
-    XKRT_QUEUE_TYPE_ALL                /* internal purpose */
+    uint64_t b1, b2, b3 ,b4;
+}               xkrt_power_counter_t;
 
-}               xkrt_queue_type_t;
+typedef struct  xkrt_power_t
+{
+    struct priv_t {
+        /* start/stop times */
+        uint64_t t1, t2;
 
-# endif /* __XKRT_QUEUE_TYPE_HPP__ */
+        /* power values */
+        xkrt_power_counter_t c1, c2;
+    } priv;
+
+    /* delta time between a start/stop */
+    double dt;
+
+    /* power (J/s <=> Watt) between a start/stop */
+    double P;
+
+}               xkrt_power_t;
+
+# endif /* __XKRT_POWER_H__ */

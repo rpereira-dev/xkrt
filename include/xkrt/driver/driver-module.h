@@ -36,20 +36,17 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __XKRT_QUEUE_TYPE_HPP__
-# define __XKRT_QUEUE_TYPE_HPP__
+#ifndef __DRIVER_MODULE_H__
+# define __DRIVER_MODULE_H__
 
-/* DONT CHANGE ORDER HERE !! Can have side effects (in the Offloader class for instance) */
-typedef enum    xkrt_queue_type_t
+typedef enum    xkrt_driver_module_format_t
 {
-    XKRT_QUEUE_TYPE_H2D        = 0,    /* from CPU to GPU */
-    XKRT_QUEUE_TYPE_D2H        = 1,    /* from GPU to CPU */
-    XKRT_QUEUE_TYPE_D2D        = 2,    /* from GPU to GPU */
-    XKRT_QUEUE_TYPE_KERN       = 3,
-    XKRT_QUEUE_TYPE_FD_READ    = 4,
-    XKRT_QUEUE_TYPE_FD_WRITE   = 5,
-    XKRT_QUEUE_TYPE_ALL                /* internal purpose */
+    XKRT_DRIVER_MODULE_FORMAT_SPIRV,
+    XKRT_DRIVER_MODULE_FORMAT_NATIVE,
+    XKRT_DRIVER_MODULE_FORMAT_UNKWN
+}               xkrt_driver_module_format_t;
 
-}               xkrt_queue_type_t;
+typedef void * xkrt_driver_module_t;
+typedef void * xkrt_driver_module_fn_t;
 
-# endif /* __XKRT_QUEUE_TYPE_HPP__ */
+#endif /* __DRIVER_MODULE_H__ */

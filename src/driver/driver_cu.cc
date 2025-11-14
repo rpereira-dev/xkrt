@@ -606,7 +606,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_suggest)(
 
     switch (qtype)
     {
-        case (QUEUE_TYPE_KERN):
+        case (XKRT_QUEUE_TYPE_KERN):
             return 8;
         default:
             return 4;
@@ -890,7 +890,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_create)(
     CU_SAFE_CALL(cuStreamCreateWithPriority(&queue->cu.handle.high, CU_STREAM_NON_BLOCKING, greatestPriority));
     CU_SAFE_CALL(cuStreamCreateWithPriority(&queue->cu.handle.low, CU_STREAM_NON_BLOCKING, leastPriority));
 
-    if (type == QUEUE_TYPE_KERN)
+    if (type == XKRT_QUEUE_TYPE_KERN)
     {
         CUBLAS_SAFE_CALL(cublasCreate(&queue->cu.blas.handle));
         CUBLAS_SAFE_CALL(cublasSetStream(queue->cu.blas.handle, queue->cu.handle.high));
@@ -1152,7 +1152,7 @@ XKRT_DRIVER_ENTRYPOINT(memory_unified_prefetch_device)(
 
     thread_t * thread;
     queue_t * iqueue;
-    device->offloader_queue_next(QUEUE_TYPE_H2D, &thread, &iqueue);
+    device->offloader_queue_next(XKRT_QUEUE_TYPE_H2D, &thread, &iqueue);
     assert(thread);
     assert(iqueue);
 

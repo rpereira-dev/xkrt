@@ -56,29 +56,6 @@ typedef enum    metric_t
     METRIC_MAX
 }               metric_t;
 
-typedef struct  power_counter_t
-{
-    uint64_t b1, b2, b3 ,b4;
-}               power_counter_t;
-
-typedef struct  power_t
-{
-    struct {
-        /* start/stop times */
-        uint64_t t1, t2;
-
-        /* power values */
-        power_counter_t c1, c2;
-    } priv;
-
-    /* delta time between a start/stop */
-    double dt;
-
-    /* power (J/s <=> Watt) between a start/stop */
-    double P;
-
-}               power_t;
-
 XKRT_NAMESPACE_END
 
 # endif /* __METRICS_H__ */
