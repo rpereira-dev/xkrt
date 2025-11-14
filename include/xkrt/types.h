@@ -41,6 +41,11 @@
 # include <atomic>
 
 # include <xkrt/consts.h>
+# include <xkrt/driver/driver-module.h>
+# include <xkrt/driver/kernel-launcher.h>
+# include <xkrt/driver/power.h>
+# include <xkrt/driver/queue-command-list-counter.h>
+# include <xkrt/driver/queue-type.h>
 # include <xkrt/memory/access/blas/matrix-storage.h>
 # include <xkrt/memory/access/concurrency.h>
 # include <xkrt/memory/access/mode.h>
@@ -75,6 +80,18 @@ typedef xkrt_task_format_t                      task_format_t;
 typedef xkrt_task_format_id_t                   task_format_id_t;
 typedef xkrt_task_format_func_t                 task_format_func_t;
 typedef xkrt_task_format_target_t               task_format_target_t;
+
+typedef xkrt_queue_type_t                       queue_type_t;
+typedef xkrt_queue_command_list_counter_t       queue_command_list_counter_t;
+
+typedef xkrt_driver_module_fn_t                 driver_module_fn_t;
+typedef xkrt_driver_module_format_t             driver_module_format_t;
+typedef xkrt_driver_module_t                    driver_module_t;
+
+typedef xkrt_power_counter_t                    power_counter_t;
+typedef xkrt_power_t                            power_t;
+
+typedef xkrt_kernel_launcher_t                  kernel_launcher_t;
 
 XKRT_NAMESPACE_END
 

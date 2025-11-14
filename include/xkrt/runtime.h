@@ -702,12 +702,23 @@ struct  runtime_t
     /* duplicate a moldable task (do not use unless you know what you're doing) */
     task_t * task_dup(const task_t * task);
 
-    /* instanciate a new task (do not use unless you know what you're doing,
-     * you may want to use `task_spawn` instead) */
+    /* prototype of a task routine */
+    typedef std::function<void(runtime_t *, device_t *, task_t *)> task_routine_t;
+
+    /* prototype of a routine to set task accesses */
+    typedef std::function<void(task_t *, access_t *)> task_accesses_setter_t;
+
+    ////////////////////////////////
+    // TASK INSTANCIATION HELPERS //
+    ////////////////////////////////
+
+    template <task_flag_bitfield_t flags>
     inline task_t *
     task_instanciate(
-        const std::function<void(task_t *, access_t *)> & set_accesses,
-        const std::function<void(runtime_t *, device_t *, task_t *)> & f,
+        const task_format_id_t fmtid,
+        const void * args,
+        const size_t args_size,
+        const task_accesses_setter_t & set_accesses,
         const int naccesses
     ) {
         assert(naccesses > 0);
@@ -718,18 +729,16 @@ struct  runtime_t
         assert(tls);
 
         // create the task
-        constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT;
-        const     size_t task_size = task_compute_size(flags, naccesses);
-        constexpr size_t args_size = sizeof(f);
-
+        const size_t task_size = task_compute_size(flags, naccesses);
         task_t * task = tls->allocate_task(task_size + args_size);
-        new (task) task_t(this->formats.host_capture, flags);
-
-        std::function<void(runtime_t *, device_t *, task_t *)> * fcpy = (std::function<void(runtime_t *, device_t *, task_t *)> *) TASK_ARGS(task, task_size);
-        new (fcpy) std::function<void(runtime_t *, device_t *, task_t *)>(f);
+        new (task) task_t(fmtid, flags);
 
         task_dep_info_t * dep = TASK_DEP_INFO(task);
         new (dep) task_dep_info_t(naccesses);
+
+        void * task_args = TASK_ARGS(task, task_size);
+        assert(task_args);
+        memcpy(task_args, args, args_size);
 
         access_t * accesses = TASK_ACCESSES(task, flags);
         set_accesses(task, accesses);
@@ -742,14 +751,22 @@ struct  runtime_t
         return task;
     }
 
-    /* instanciate a new task (do not use unless you know what you're doing,
-     * you may want to use `task_spawn` instead) */
+    template <task_flag_bitfield_t flags, size_t args_size>
+    inline task_t *
+    task_instanciate(
+        const task_format_id_t fmtid,
+        const task_accesses_setter_t & set_accesses,
+        const int naccesses
+    ) {
+        return this->task_instanciate<flags>(fmtid, NULL, args_size, set_accesses, naccesses);
+    }
+
     template <task_access_counter_t ac, bool has_set_accesses, bool has_split_condition>
     inline task_t *
     task_instanciate(
-        const std::function<void(task_t *, access_t *)> & set_accesses,
-        const std::function<bool(task_t *, access_t *)> & split_condition,
-        const std::function<void(runtime_t *, device_t *, task_t *)> & f
+        const task_routine_t & f,
+        const task_accesses_setter_t & set_accesses,
+        const std::function<bool(task_t *, access_t *)> & split_condition
     ) {
         static_assert(ac == 0 || has_set_accesses);     // must have both or none
         static_assert(!has_split_condition || ac > 0);  // cannot split if task has no accesses
@@ -764,7 +781,7 @@ struct  runtime_t
         // create the task
         constexpr task_flag_bitfield_t depflag = ac                  ? TASK_FLAG_DEPENDENT : TASK_FLAG_ZERO;
         constexpr task_flag_bitfield_t molflag = has_split_condition ? TASK_FLAG_MOLDABLE  : TASK_FLAG_ZERO;
-        constexpr task_flag_bitfield_t   flags = depflag | molflag;
+        constexpr task_flag_bitfield_t flags = depflag | molflag;
         constexpr size_t task_size = task_compute_size(flags, ac);
         constexpr size_t args_size = sizeof(f);
 
@@ -809,12 +826,12 @@ struct  runtime_t
     template <task_access_counter_t ac, bool has_set_accesses, bool has_split_condition>
     inline void
     task_spawn(
-        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const task_accesses_setter_t & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
         const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         // create the task
-        task_t * task = this->task_instanciate<ac, has_set_accesses, has_split_condition>(set_accesses, split_condition, f);
+        task_t * task = this->task_instanciate<ac, has_set_accesses, has_split_condition>(f, set_accesses, split_condition);
         assert(task);
 
         // commit the task
@@ -834,7 +851,7 @@ struct  runtime_t
     template <task_access_counter_t ac>
     inline void
     task_spawn(
-        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const task_accesses_setter_t & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
         const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
@@ -850,7 +867,7 @@ struct  runtime_t
     template <task_access_counter_t ac>
     inline void
     task_spawn(
-        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const task_accesses_setter_t & set_accesses,
         const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         this->task_spawn<ac, true, false>(set_accesses, nullptr, f);
@@ -933,7 +950,7 @@ struct  runtime_t
     /////////////////////////
 
     /**
-     * @brief Spawn a task within a specific team with runtime-determined access count
+     * @brief Spawn a task within a specific team with given accesses
      * @param team Target team for task execution
      * @param set_accesses Function to set task data accesses
      * @param f Task execution function
@@ -942,14 +959,48 @@ struct  runtime_t
     inline void
     team_task_spawn(
         team_t * team,
-        const std::function<void(task_t *, access_t *)> & set_accesses,
-        const std::function<void(runtime_t *, device_t *, task_t *)> & f,
+        const task_routine_t & f,
+        const task_accesses_setter_t & set_accesses,
         const int naccesses
     ) {
         assert(naccesses > 0);
 
         // create the task
-        task_t * task = task_instanciate(set_accesses, f, naccesses);
+        constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT;
+        constexpr size_t args_size = sizeof(task_routine_t);
+        const size_t task_size = task_compute_size(flags, naccesses);
+        task_t * task = task_instanciate<flags, args_size>(this->formats.host_capture, set_accesses, naccesses);
+        assert(task);
+
+        task_routine_t * routine = (task_routine_t *) TASK_ARGS(task, task_size);
+        new (routine) task_routine_t(f);
+
+        // commit the task
+        thread_t * tls = thread_t::get_tls();
+        tls->commit(task, task_team_enqueue, this, team);
+    }
+
+    /**
+     * @brief Spawn a task within a specific team with given accesses
+     * @param team Target team for task execution
+     * @param set_accesses Function to set task data accesses
+     * @param f Task execution function
+     * @param naccesses Number of data accesses (must be > 0)
+     */
+    inline void
+    team_task_spawn(
+        team_t * team,
+        const task_format_id_t fmtid,
+        const void * args,
+        const size_t args_size,
+        const task_accesses_setter_t & set_accesses,
+        const int naccesses
+    ) {
+        assert(naccesses > 0);
+
+        // create the task
+        constexpr task_flag_bitfield_t flags = TASK_FLAG_DEPENDENT | TASK_FLAG_DETACHABLE;
+        task_t * task = task_instanciate<flags>(fmtid, args, args_size, set_accesses, naccesses);
         assert(task);
 
         // commit the task
@@ -971,12 +1022,12 @@ struct  runtime_t
     inline void
     team_task_spawn(
         team_t * team,
-        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const task_accesses_setter_t & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
         const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         // create the task
-        task_t * task = task_instanciate<ac, has_set_accesses, has_split_condition>(set_accesses, split_condition, f);
+        task_t * task = task_instanciate<ac, has_set_accesses, has_split_condition>(f, set_accesses, split_condition);
         assert(task);
 
         // commit the task
@@ -996,7 +1047,7 @@ struct  runtime_t
     inline void
     team_task_spawn(
         team_t * team,
-        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const task_accesses_setter_t & set_accesses,
         const std::function<bool(task_t *, access_t *)> & split_condition,
         const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
@@ -1014,7 +1065,7 @@ struct  runtime_t
     inline void
     team_task_spawn(
         team_t * team,
-        const std::function<void(task_t *, access_t *)> & set_accesses,
+        const task_accesses_setter_t & set_accesses,
         const std::function<void(runtime_t *, device_t *, task_t *)> & f
     ) {
         this->team_task_spawn<ac, true, false>(team, set_accesses, nullptr, f);
@@ -1181,6 +1232,20 @@ struct  runtime_t
      */
     task_format_t * task_format_get(task_format_id_t fmtid);
 
+    /**
+     *  Single kernel launcher.
+     *  Submit a kernel launch command to the device, then return.
+     *  'device' is the targeted device
+     *  'task' is the currently executing task
+     *  'launcher' is the kernel launcher
+     *  'args' is the argument passed to the kernel command argument
+     */
+    void task_detachable_kernel_launch(
+        device_t * device,
+        task_t * task,
+        kernel_launcher_t launcher
+    );
+
     # if XKRT_SUPPORT_STATS
 
     ///////////
@@ -1233,7 +1298,6 @@ void * team_parallel_for_main(runtime_t * runtime, team_t * team, thread_t * thr
 
 /// Macro defining the parallel for team routine function pointer
 # define XKRT_TEAM_ROUTINE_PARALLEL_FOR ((team_routine_t) team_parallel_for_main)
-
 
 XKRT_NAMESPACE_END
 

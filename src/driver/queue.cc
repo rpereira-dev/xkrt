@@ -46,18 +46,18 @@
 XKRT_NAMESPACE_BEGIN;
 
 const char *
-queue_type_to_str(queue_type_t type)
+queue_type_to_str(xkrt_queue_type_t type)
 {
     switch (type)
     {
-        case (QUEUE_TYPE_H2D):        return "H2D";
-        case (QUEUE_TYPE_D2H):        return "D2H";
-        case (QUEUE_TYPE_D2D):        return "D2D";
-        case (QUEUE_TYPE_KERN):       return "KERN";
-        case (QUEUE_TYPE_FD_READ):    return "FD_READ";
-        case (QUEUE_TYPE_FD_WRITE):   return "FD_WRITE";
-        case (QUEUE_TYPE_ALL):        return "ALL";
-        default:                            return  NULL;
+        case (XKRT_QUEUE_TYPE_H2D):        return "H2D";
+        case (XKRT_QUEUE_TYPE_D2H):        return "D2H";
+        case (XKRT_QUEUE_TYPE_D2D):        return "D2D";
+        case (XKRT_QUEUE_TYPE_KERN):       return "KERN";
+        case (XKRT_QUEUE_TYPE_FD_READ):    return "FD_READ";
+        case (XKRT_QUEUE_TYPE_FD_WRITE):   return "FD_WRITE";
+        case (XKRT_QUEUE_TYPE_ALL):        return "ALL";
+        default:                           return  NULL;
     }
 }
 
@@ -214,7 +214,7 @@ queue_t::launch_ready_commands(void)
             case (COMMAND_TYPE_KERN):
             {
                 err = EINPROGRESS;
-                ((kernel_launcher_t) cmd->kern.launch)(this, cmd, p);
+                ((kernel_launcher_t) cmd->kern.launch)(cmd->kern.runtime, cmd->kern.device, cmd->kern.task, this, cmd, p);
                 break ;
             }
 

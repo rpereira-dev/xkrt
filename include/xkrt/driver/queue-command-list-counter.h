@@ -3,7 +3,6 @@
 **
 ** Contributors :
 ** Thierry Gautier, thierry.gautier@inrialpes.fr
-** Joao Lima joao.lima@inf.ufsm.br
 ** Romain PEREIRA, romain.pereira@inria.fr + rpereira@anl.gov
 **
 ** This software is a computer program whose purpose is to execute
@@ -36,20 +35,10 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __XKRT_QUEUE_TYPE_HPP__
-# define __XKRT_QUEUE_TYPE_HPP__
+#ifndef __XKRT_QUEUE_COMMAND_LIST_COUNTER_H__
+# define __XKRT_QUEUE_COMMAND_LIST_COUNTER_H__
 
-/* DONT CHANGE ORDER HERE !! Can have side effects (in the Offloader class for instance) */
-typedef enum    xkrt_queue_type_t
-{
-    XKRT_QUEUE_TYPE_H2D        = 0,    /* from CPU to GPU */
-    XKRT_QUEUE_TYPE_D2H        = 1,    /* from GPU to CPU */
-    XKRT_QUEUE_TYPE_D2D        = 2,    /* from GPU to GPU */
-    XKRT_QUEUE_TYPE_KERN       = 3,
-    XKRT_QUEUE_TYPE_FD_READ    = 4,
-    XKRT_QUEUE_TYPE_FD_WRITE   = 5,
-    XKRT_QUEUE_TYPE_ALL                /* internal purpose */
+/* counter for the queue queues */
+typedef unsigned int xkrt_queue_command_list_counter_t;
 
-}               xkrt_queue_type_t;
-
-# endif /* __XKRT_QUEUE_TYPE_HPP__ */
+#endif /* __XKRT_QUEUE_COMMAND_LIST_COUNTER_H__ */

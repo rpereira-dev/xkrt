@@ -596,7 +596,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_suggest)(
 
     switch (qtype)
     {
-        case (QUEUE_TYPE_KERN):
+        case (XKRT_QUEUE_TYPE_KERN):
             return 8;
         default:
             return 4;
@@ -884,7 +884,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_create)(
     HIP_SAFE_CALL(hipStreamCreateWithPriority(&queue->hip.handle.high, hipStreamNonBlocking, greatestPriority));
     HIP_SAFE_CALL(hipStreamCreateWithPriority(&queue->hip.handle.low, hipStreamNonBlocking, leastPriority));
 
-    if (type == QUEUE_TYPE_KERN)
+    if (type == XKRT_QUEUE_TYPE_KERN)
     {
         HIPBLAS_SAFE_CALL(hipblasCreate(&queue->hip.blas.handle));
         HIPBLAS_SAFE_CALL(hipblasSetStream(queue->hip.blas.handle, queue->hip.handle.high));

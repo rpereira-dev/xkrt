@@ -52,10 +52,10 @@ task_func(
 int
 main(void)
 {
-    xkrt_runtime_t runtime;
+    xkrt_runtime_t * runtime;
     assert(xkrt_init(&runtime) == 0);
 
-    xkrt_team_t * team = xkrt_team_driver_device_get(&runtime, XKRT_DRIVER_TYPE_HOST, 0);
+    xkrt_team_t * team = xkrt_team_driver_device_get(runtime, XKRT_DRIVER_TYPE_HOST, 0);
     xkrt_task_func_t func = task_func;
     void * user_data = NULL;
     const xkrt_access_t accesses[] = {
@@ -75,16 +75,16 @@ main(void)
     const int naccesses = sizeof(accesses) / sizeof(xkrt_access_t);
 
     xkrt_team_task_spawn_with_accesses(
-        &runtime,
+        runtime,
         team,
         func,
         user_data,
         accesses,
         naccesses
     );
-    xkrt_task_wait(&runtime);
+    xkrt_task_wait(runtime);
 
-    assert(xkrt_deinit(&runtime) == 0);
+    assert(xkrt_deinit(runtime) == 0);
 
     return 0;
 }

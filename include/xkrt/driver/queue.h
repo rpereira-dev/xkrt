@@ -51,155 +51,150 @@
 
 XKRT_NAMESPACE_BEGIN
 
-    class queue_command_list_t
-    {
-        public:
+const char * queue_type_to_str(xkrt_queue_type_t type);
 
-            command_t * cmd;                /* commands buffer */
-            queue_command_list_counter_t capacity;       /* buffer capacity */
+class queue_command_list_t
+{
+    public:
+
+        command_t * cmd;                /* commands buffer */
+        queue_command_list_counter_t capacity;       /* buffer capacity */
+        struct {
+            volatile queue_command_list_counter_t r; /* first command to process */
+            volatile queue_command_list_counter_t w; /* next position for inserting commands */
+        } pos;
+
+    public:
+
+        /* methods */
+        int
+        is_full(void) const
+        {
+            return (this->pos.w  == this->pos.r - 1);
+        }
+
+        int
+        is_empty(void) const
+        {
+            return (this->pos.r == this->pos.w);
+        }
+
+        queue_command_list_counter_t
+        size(void) const
+        {
+            if (this->pos.r <= this->pos.w)
+                return (this->pos.w - this->pos.r);
+            else
+                return this->capacity - this->pos.r + this->pos.w;
+        }
+
+        template<typename Func>
+        queue_command_list_counter_t
+        iterate(Func && process)
+        {
+            const queue_command_list_counter_t a = this->pos.r;
+            const queue_command_list_counter_t b = this->pos.w;
+
+            assert(a < this->capacity);
+            assert(b < this->capacity);
+
+            if (a <= b) {
+                for (queue_command_list_counter_t i = a; i < b; ++i)
+                    if (!process(i)) return i;
+            } else {
+                for (queue_command_list_counter_t i = a; i < capacity; ++i)
+                    if (!process(i)) return i;
+                for (queue_command_list_counter_t i = 0; i < b; ++i)
+                    if (!process(i)) return i;
+            }
+            return b;
+        }
+};
+
+# pragma message(TODO "make this a C++ class and use inheritance/pure virtual - currently hybrid of C struct C++ class :(")
+
+/* this is a 'io_queue' equivalent */
+class queue_t : public Lockable
+{
+    public:
+
+        /* the type of that queue */
+        queue_type_t type;
+
+        /* queue for ready command */
+        queue_command_list_t ready;
+
+        /* queue for pending commands to progress */
+        queue_command_list_t pending;
+
+        # if XKRT_SUPPORT_STATS
+        struct {
             struct {
-                volatile queue_command_list_counter_t r; /* first command to process */
-                volatile queue_command_list_counter_t w; /* next position for inserting commands */
-            } pos;
+                stats_int_t commited;
+                stats_int_t completed;
+            } commands[COMMAND_TYPE_MAX];
+            stats_int_t transfered;
+        } stats;
+        # endif /* XKRT_SUPPORT_STATS */
 
-        public:
+        /* launch a queue command */
+        int (*f_command_launch)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx);
 
-            /* methods */
-            int
-            is_full(void) const
-            {
-                return (this->pos.w  == this->pos.r - 1);
-            }
+        /* progrtream command */
+        int (*f_commands_progress)(queue_t * queue);
 
-            int
-            is_empty(void) const
-            {
-                return (this->pos.r == this->pos.w);
-            }
+        /* wait commands completion on a queue */
+        int (*f_commands_wait)(queue_t * queue);
 
-            queue_command_list_counter_t
-            size(void) const
-            {
-                if (this->pos.r <= this->pos.w)
-                    return (this->pos.w - this->pos.r);
-                else
-                    return this->capacity - this->pos.r + this->pos.w;
-            }
+        /* wait commands completion on a queue */
+        int (*f_command_wait)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx);
 
-            template<typename Func>
-            queue_command_list_counter_t
-            iterate(Func && process)
-            {
-                const queue_command_list_counter_t a = this->pos.r;
-                const queue_command_list_counter_t b = this->pos.w;
+    public:
 
-                assert(a < this->capacity);
-                assert(b < this->capacity);
+        /* allocate a new command to the queue (must then be commited via 'commit') */
+        command_t * command_new(const command_type_t itype);
 
-                if (a <= b) {
-                    for (queue_command_list_counter_t i = a; i < b; ++i)
-                        if (!process(i)) return i;
-                } else {
-                    for (queue_command_list_counter_t i = a; i < capacity; ++i)
-                        if (!process(i)) return i;
-                    for (queue_command_list_counter_t i = 0; i < b; ++i)
-                        if (!process(i)) return i;
-                }
-                return b;
-            }
-    };
+        /* complete the command at the i-th position in the pending queue (invoke callbacks) */
+        void complete_command(const queue_command_list_counter_t p);
 
-    # pragma message(TODO "make this a C++ class and use inheritance/pure virtual - currently hybrid of C struct C++ class :(")
+        /* complete the command that must be in the pending queue */
+        void complete_command(command_t * cmd);
 
-    /* this is a 'io_queue' equivalent */
-    class queue_t : public Lockable
-    {
-        public:
+        /* commit the command to the queue (must be allocated via 'command_new') */
+        int commit(command_t * command);
 
-            /* the type of that queue */
-            queue_type_t type;
+        /* launch commands, and may generate pending commands */
+        int launch_ready_commands(void);
 
-            /* queue for ready command */
-            queue_command_list_t ready;
+        /* progress pending commands */
+        int progress_pending_commands(void);
 
-            /* queue for pending commands to progress */
-            queue_command_list_t pending;
+        /* (internal) complete all commands to 'ok_p' */
+        void complete_commands(const queue_command_list_counter_t ok_p);
 
-            # if XKRT_SUPPORT_STATS
-            struct {
-                struct {
-                    stats_int_t commited;
-                    stats_int_t completed;
-                } commands[COMMAND_TYPE_MAX];
-                stats_int_t transfered;
-            } stats;
-            # endif /* XKRT_SUPPORT_STATS */
+        /* wait for completion of all pending commands */
+        void wait_pending_commands(void);
 
-            /* launch a queue command */
-            int (*f_command_launch)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx);
+        /* return true if the queue is full of commands, false otherwise */
+        int is_full(void) const;
 
-            /* progrtream command */
-            int (*f_commands_progress)(queue_t * queue);
-
-            /* wait commands completion on a queue */
-            int (*f_commands_wait)(queue_t * queue);
-
-            /* wait commands completion on a queue */
-            int (*f_command_wait)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx);
-
-        public:
-
-            /* allocate a new command to the queue (must then be commited via 'commit') */
-            command_t * command_new(const command_type_t itype);
-
-            /* complete the command at the i-th position in the pending queue (invoke callbacks) */
-            void complete_command(const queue_command_list_counter_t p);
-
-            /* complete the command that must be in the pending queue */
-            void complete_command(command_t * cmd);
-
-            /* commit the command to the queue (must be allocated via 'command_new') */
-            int commit(command_t * command);
-
-            /* launch commands, and may generate pending commands */
-            int launch_ready_commands(void);
-
-            /* progress pending commands */
-            int progress_pending_commands(void);
-
-            /* (internal) complete all commands to 'ok_p' */
-            void complete_commands(const queue_command_list_counter_t ok_p);
-
-            /* wait for completion of all pending commands */
-            void wait_pending_commands(void);
-
-            /* return true if the queue is full of commands, false otherwise */
-            int is_full(void) const;
-
-            /* return true if the queue is empty, false otherwise */
-            int is_empty(void) const;
+        /* return true if the queue is empty, false otherwise */
+        int is_empty(void) const;
 
 
-    };  /* queue_t */
+};  /* queue_t */
 
-    void queue_init(
-        queue_t * queue,
-        queue_type_t qtype,
-        queue_command_list_counter_t capacity,
-        int (*f_command_launch)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx),
-        int (*f_commands_progress)(queue_t * queue),
-        int (*f_commands_wait)(queue_t * queue),
-        int (*f_command_wait)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx)
-    );
+void queue_init(
+    queue_t * queue,
+    queue_type_t qtype,
+    queue_command_list_counter_t capacity,
+    int (*f_command_launch)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx),
+    int (*f_commands_progress)(queue_t * queue),
+    int (*f_commands_wait)(queue_t * queue),
+    int (*f_command_wait)(queue_t * queue, command_t * cmd, queue_command_list_counter_t idx)
+);
 
-    void queue_deinit(queue_t * queue);
-
-    /* routine to launch a kernel from a thread */
-    typedef void (*kernel_launcher_t)(
-        queue_t * iqueue,
-        command_t * cmd,
-        queue_command_list_counter_t idx
-    );
+void queue_deinit(queue_t * queue);
 
 XKRT_NAMESPACE_END
 

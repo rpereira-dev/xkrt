@@ -64,70 +64,70 @@ static void
 __parse_kern_per_queue(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.queues[QUEUE_TYPE_KERN].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.queues[XKRT_QUEUE_TYPE_KERN].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
 __parse_h2d_per_queue(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.queues[QUEUE_TYPE_H2D].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.queues[XKRT_QUEUE_TYPE_H2D].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
 __parse_d2h_per_queue(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.queues[QUEUE_TYPE_D2H].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.queues[XKRT_QUEUE_TYPE_D2H].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
 __parse_d2d_per_queue(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.queues[QUEUE_TYPE_D2D].concurrency = (uint32_t) MAX(atoi(value), 1);
+        conf->device.offloader.queues[XKRT_QUEUE_TYPE_D2D].concurrency = (uint32_t) MAX(atoi(value), 1);
 }
 
 static void
 __parse_nqueues_fr(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.queues[QUEUE_TYPE_FD_READ].n = (int8_t) MAX(atoi(value), 0);
+        conf->device.offloader.queues[XKRT_QUEUE_TYPE_FD_READ].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
 __parse_nqueues_fw(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.queues[QUEUE_TYPE_FD_WRITE].n = (int8_t) MAX(atoi(value), 0);
+        conf->device.offloader.queues[XKRT_QUEUE_TYPE_FD_WRITE].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
 __parse_nqueues_h2d(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.queues[QUEUE_TYPE_H2D].n = (int8_t) MAX(atoi(value), 0);
+        conf->device.offloader.queues[XKRT_QUEUE_TYPE_H2D].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
 __parse_nqueues_d2h(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.queues[QUEUE_TYPE_D2H].n = (int8_t) MAX(atoi(value), 0);
+        conf->device.offloader.queues[XKRT_QUEUE_TYPE_D2H].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
 __parse_nqueues_d2d(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.queues[QUEUE_TYPE_D2D].n = (int8_t) MAX(atoi(value), 0);
+        conf->device.offloader.queues[XKRT_QUEUE_TYPE_D2D].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
 __parse_nqueues_kern(conf_t * conf, char const * value)
 {
     if (value)
-        conf->device.offloader.queues[QUEUE_TYPE_KERN].n = (int8_t) MAX(atoi(value), 0);
+        conf->device.offloader.queues[XKRT_QUEUE_TYPE_KERN].n = (int8_t) MAX(atoi(value), 0);
 }
 
 static void
@@ -370,7 +370,7 @@ conf_t::init(void)
 
     // set to -1 so the driver's queue-suggest API fills these values if not
     // set by an env variable
-    for (int stype = 0 ; stype < QUEUE_TYPE_ALL ; ++stype)
+    for (int stype = 0 ; stype < XKRT_QUEUE_TYPE_ALL ; ++stype)
     {
         this->device.offloader.queues[stype].n = -1;
         this->device.offloader.queues[stype].concurrency = 64;

@@ -593,16 +593,16 @@ XKRT_DRIVER_ENTRYPOINT(queue_suggest)(
 
     switch (qtype)
     {
-        case (QUEUE_TYPE_KERN):
+        case (XKRT_QUEUE_TYPE_KERN):
             return 8;
 
-        case (QUEUE_TYPE_H2D):
-        case (QUEUE_TYPE_D2H):
-        case (QUEUE_TYPE_D2D):
+        case (XKRT_QUEUE_TYPE_H2D):
+        case (XKRT_QUEUE_TYPE_D2H):
+        case (XKRT_QUEUE_TYPE_D2D):
             return 4;
 
-        case (QUEUE_TYPE_FD_READ):
-        case (QUEUE_TYPE_FD_WRITE):
+        case (XKRT_QUEUE_TYPE_FD_READ):
+        case (XKRT_QUEUE_TYPE_FD_WRITE):
             return 0;
 
         default:
@@ -736,15 +736,15 @@ XKRT_DRIVER_ENTRYPOINT(queue_create)(
     ze_command_queue_group_property_flag_t flag;
     switch (type)
     {
-        case (QUEUE_TYPE_H2D):
-        case (QUEUE_TYPE_D2H):
-        case (QUEUE_TYPE_D2D):
+        case (XKRT_QUEUE_TYPE_H2D):
+        case (XKRT_QUEUE_TYPE_D2H):
+        case (XKRT_QUEUE_TYPE_D2D):
         {
             flag = ZE_COMMAND_QUEUE_GROUP_PROPERTY_FLAG_COPY;
             break ;
         }
 
-        case (QUEUE_TYPE_KERN):
+        case (XKRT_QUEUE_TYPE_KERN):
         {
             flag = ZE_COMMAND_QUEUE_GROUP_PROPERTY_FLAG_COMPUTE;
             break ;
@@ -766,15 +766,15 @@ XKRT_DRIVER_ENTRYPOINT(queue_create)(
     uint32_t ordinal;
     switch (type)
     {
-        case (QUEUE_TYPE_KERN):
+        case (XKRT_QUEUE_TYPE_KERN):
         {
             ordinal = 0;
             break ;
         }
 
-        case (QUEUE_TYPE_H2D):
-        case (QUEUE_TYPE_D2H):
-        case (QUEUE_TYPE_D2D):
+        case (XKRT_QUEUE_TYPE_H2D):
+        case (XKRT_QUEUE_TYPE_D2H):
+        case (XKRT_QUEUE_TYPE_D2D):
         {
             ordinal = 1;
             break ;

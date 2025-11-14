@@ -348,7 +348,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_suggest)(
 
     switch (qtype)
     {
-        case (QUEUE_TYPE_KERN):
+        case (XKRT_QUEUE_TYPE_KERN):
             return 8;
         default:
             return 4;

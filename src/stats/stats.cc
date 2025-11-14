@@ -73,7 +73,7 @@ typedef struct  device_stats_t
     struct {
         stats_int_t n;
         stats_int_t transfered;
-    } queues[QUEUE_TYPE_ALL];
+    } queues[XKRT_QUEUE_TYPE_ALL];
 
     struct {
         stats_int_t commited;
@@ -102,7 +102,7 @@ stats_device_agg(device_stats_t * src, device_stats_t * agg)
     agg->memory.allocated.total += src->memory.allocated.total;
     agg->memory.allocated.currently += src->memory.allocated.currently;
 
-    for (int stype = 0 ; stype < QUEUE_TYPE_ALL ; ++stype)
+    for (int stype = 0 ; stype < XKRT_QUEUE_TYPE_ALL ; ++stype)
     {
         agg->queues[stype].n += src->queues[stype].n;
         agg->queues[stype].transfered += src->queues[stype].transfered;
@@ -165,7 +165,7 @@ stats_device_report(device_stats_t * stats)
     }
 
     LOGGER_WARN("  Streams");
-    for (int stype = 0 ; stype < QUEUE_TYPE_ALL ; ++stype)
+    for (int stype = 0 ; stype < XKRT_QUEUE_TYPE_ALL ; ++stype)
     {
         # if 0
         metric_byte(buffer, sizeof(buffer), stats->queues[stype].transfered.load());
@@ -201,7 +201,7 @@ stats_device_gather(
     int nthreads = device->team->get_nthreads();
     for (int device_tid = 0 ; device_tid < nthreads ; ++device_tid)
     {
-        for (int stype = 0 ; stype < QUEUE_TYPE_ALL ; ++stype)
+        for (int stype = 0 ; stype < XKRT_QUEUE_TYPE_ALL ; ++stype)
         {
             for (int queue_id = 0 ; queue_id < device->count[stype] ; ++queue_id)
             {
