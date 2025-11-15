@@ -945,6 +945,23 @@ struct  runtime_t
     typedef std::function<void(thread_t * thread)> team_parallel_for_func_t;
     void team_parallel_for(team_t * team, team_parallel_for_func_t func);
 
+    typedef std::function<void(thread_t * thread, const int i)> team_parallel_for_i_func_t;
+    template <int UP, int LOW = 0, int INCR = 1>
+    inline void
+    team_parallel_for(team_t * team, team_parallel_for_i_func_t func)
+    {
+        this->team_parallel_for(team, [&func] (thread_t * thread) {
+                int  low = LOW;
+                int   up = UP;
+                int last_iter;
+                team_t::parallel_for_thread_bounds(&last_iter, &low, &up, INCR);
+                for (int i = low ; i != up ; i += INCR)
+                    func(thread, i);
+                func(thread, up);
+            }
+        );
+    }
+
     /////////////////////////
     // THREADING - TASKING //
     /////////////////////////

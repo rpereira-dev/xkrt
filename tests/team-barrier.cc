@@ -2,6 +2,7 @@
 ** Copyright 2024,2025 INRIA
 **
 ** Contributors :
+** Thierry Gautier, thierry.gautier@inrialpes.fr
 ** Romain PEREIRA, romain.pereira@inria.fr + rpereira@anl.gov
 **
 ** This software is a computer program whose purpose is to execute
@@ -34,18 +35,44 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __ALIGNAS_H__
-# define __ALIGNAS_H__
+# ifndef _GNU_SOURCE
+#  define _GNU_SOURCE
+# endif
+# include <sched.h>
 
-#ifdef __cpp_lib_hardware_interference_size
-using std::hardware_constructive_interference_size;
-using std::hardware_destructive_interference_size;
-#else
-// 64 bytes on x86-64 │ L1_CACHE_BYTES │ L1_CACHE_SHIFT │ __cacheline_aligned │ ...
-constexpr std::size_t hardware_constructive_interference_size = 64;
-constexpr std::size_t hardware_destructive_interference_size = 64;
-#endif
+# include <xkrt/runtime.h>
+# include <xkrt/logger/logger.h>
+# include <xkrt/logger/metric.h>
 
-constexpr size_t xkrt_pagesize = 4096;
+XKRT_NAMESPACE_USE;
 
-#endif /* __ALIGNAS_H__ */
+static void *
+main_team(runtime_t * runtime, team_t * team, thread_t * thread)
+{
+    int cpu = sched_getcpu();
+    LOGGER_INFO("Thread `%3d` running on `sched_getcpu() -> %3d`", thread->tid, cpu);
+    runtime->team_barrier(team);
+    return NULL;
+}
+
+int
+main(void)
+{
+    runtime_t runtime;
+    assert(runtime.init() == 0);
+
+    LOGGER_INFO("Size = %zu", sizeof(thread_t));
+
+    // team of 1 thread
+    team_t team;
+    team.desc.nthreads = 31;
+    team.desc.routine = (team_routine_t) main_team;
+    team.desc.master_is_member = true;
+
+    runtime.team_create(&team);
+    runtime.team_join(&team);
+
+    assert(runtime.deinit() == 0);
+
+    return 0;
+}

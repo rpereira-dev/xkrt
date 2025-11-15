@@ -50,6 +50,7 @@
 # include <hwloc.h>
 # include <sched.h>
 # include <hwloc/glibc-sched.h>
+# include <sys/mman.h>
 
 XKRT_NAMESPACE_BEGIN
 
@@ -254,7 +255,7 @@ team_create_get_place(
                     *device_global_id = HOST_DEVICE_GLOBAL_ID;
 
                     // get linux cpuset
-                    int logical_index = tid;
+                    int logical_index = tid % hwloc_get_nbobjs_by_type(runtime->topology, type);
                     hwloc_obj_t obj = hwloc_get_obj_by_type(runtime->topology, type, logical_index);
                     HWLOC_SAFE_CALL(hwloc_cpuset_to_glibc_sched_affinity(runtime->topology, obj->cpuset, place, sizeof(cpu_set_t)));
 
@@ -377,6 +378,63 @@ team_create_recursive_fork(
     runtime_t::thread_setaffinity(save_set);
 }
 
+static void
+team_create_hierarchy(team_t * team)
+{
+    /* No hierarchy needed for single thread */
+    if (team->priv.nthreads <= 1)
+        return ;
+
+    /* Build the hierarchical group structure */
+    const     int & nthreads   = team->priv.nthreads;
+    constexpr int   group_size = XKRT_TEAM_HIERARCHY_GROUP_SIZE;
+
+    /* Calculate number of levels needed */
+    team->priv.hierarchy.nlevels = 0;
+    team->priv.hierarchy.nnodes  = 0;
+    int temp = nthreads;
+    while (temp > 1)
+    {
+        temp = (temp + group_size - 1) / group_size;
+        team->priv.hierarchy.nnodes += temp;
+        ++team->priv.hierarchy.nlevels;
+    }
+
+    /* allocate nodes */
+    assert(team->priv.hierarchy.nnodes);
+    team->priv.hierarchy.nodes = (team_hierarchy_node_t *) malloc(sizeof(team_hierarchy_node_t) * team->priv.hierarchy.nnodes);
+    assert(team->priv.hierarchy.nodes);
+
+    /* iterate on each level to init nodes */
+    int node_id = 0;
+    int nnode_for_level = nthreads;
+    int group_size_pow   = 1;
+    int group_size_pow_2 = 1;
+    for (int level = team->priv.hierarchy.nlevels - 1 ; level >= 0 ; --level)
+    {
+        group_size_pow  = group_size_pow * group_size;
+        nnode_for_level = (nnode_for_level + group_size - 1) / group_size;
+
+        /* create each node of that level */
+        int node_threads = 0;
+        for (int node_level_id = 0 ; node_level_id < nnode_for_level ; ++node_level_id)
+        {
+            team_hierarchy_node_t * node = team->priv.hierarchy.nodes + node_id;
+
+            /* create each thread of that node */
+            int tid_start = node_level_id * group_size_pow;
+            int tid_end   = MIN(tid_start + group_size_pow, nthreads);
+            node->ntids = 0;
+            for (int tid = tid_start ; tid < tid_end ; tid += group_size_pow_2)
+            {
+                node->tids[node->ntids++] = tid;
+            }
+            ++node_id;
+        }
+        group_size_pow_2 = group_size_pow_2 * group_size;
+    }
+}
+
 void
 runtime_t::team_create(team_t * team)
 {
@@ -400,8 +458,14 @@ runtime_t::team_create(team_t * team)
 
     // init priv data
     team->priv.nthreads = nthreads;
-    team->priv.threads = (thread_t *) calloc(team->priv.nthreads, sizeof(thread_t));
+    team->priv.threads = (thread_t *) mmap(nullptr, sizeof(thread_t) * nthreads, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
     assert(team->priv.threads);
+    assert(xkrt_pagesize == getpagesize()); // if this fails, update 'xkrt_pagesize'
+    assert(sizeof(thread_t) % xkrt_pagesize == 0);
+    assert(((uintptr_t) team->priv.threads) % xkrt_pagesize == 0);
+
+    // init hierarchy
+    team_create_hierarchy(team);
 
     // init barrier
     pthread_mutex_init(&team->priv.barrier.mtx, NULL);
@@ -799,7 +863,7 @@ runtime_t::team_join(team_t * team)
         assert(r == 0);
         team->priv.threads[i].state = XKRT_THREAD_UNINITIALIZED;
     }
-    free(team->priv.threads);
+    munmap(team->priv.threads, sizeof(thread_t) * team->priv.nthreads);
 }
 
 void

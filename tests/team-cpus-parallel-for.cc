@@ -100,6 +100,17 @@ main(void)
 
         runtime.team_join(&team);
     }
+
+    // TEST 4
+    {
+        runtime.team_create(&team);
+        runtime.team_parallel_for<64>(&team, [] (thread_t * thread, const int i) {
+                LOGGER_INFO("Thread `%3d` running iter %d", thread->tid, i);
+            }
+        );
+        runtime.team_join(&team);
+    }
+
     XKRT_ASSERT(runtime.deinit() == 0);
 
     return 0;

@@ -67,30 +67,27 @@ XKRT_NAMESPACE_BEGIN
 /* thread routine */
 typedef void * (*team_routine_t)(void * runtime, void * team, void * thread);
 
-//  NOTES
-//
-//  A binary tree of height 'n' has
-//      'm' nodes  with 2^(n-1) + 1 <= m <= 2^n - 1
-//  and 'k' leaves with           1 <= k <= 2^(n-1)
-//
-//  <=>
-//
-//  Given a binary tree with 'k' leaves, its height 'n' must verify
-//     1 <=      k      <= 2^(n-1)
-// <=> 0 <= log2(k)     <= n-1
-// <=>      log2(k) + 1 <= n
-//                                     _            _
-//  So we need a tree of height 'n' = |  log2(k) + 1 | to represent the 'k' threads
-
 struct thread_t;
 
-/* a node in the topology graph */
-typedef struct  team_node_t
+/* A node in the hierarchical barrier tree */
+typedef struct  team_hierarchy_node_t
 {
-    /* the thread owning that node */
-    thread_t * thread;
+    /* Thread IDs in this group at this level (static array) */
+    int tids[XKRT_TEAM_HIERARCHY_GROUP_SIZE];
+    int ntids;
 
-}               team_node_t;
+}               team_hierarchy_node_t;
+
+/* Hierarchical group structure for the entire team */
+typedef struct  team_hierarchy_t
+{
+    /* Number of levels in the hierarchy */
+    int nlevels;
+
+    /* All nodes in the hierarchy */
+    team_hierarchy_node_t * nodes;
+    int nnodes;
+}               team_hierarchy_t;
 
 // THREAD BINDINGS
 
@@ -210,6 +207,9 @@ struct team_t
             pthread_mutex_t mtx;
         } critical;
 
+        // groups
+        team_hierarchy_t hierarchy;
+
         ////////////////////////////////////////////////////////////
 
         // if the routine is parallel for, then this is the stack of lambdas to execute
@@ -236,6 +236,70 @@ struct team_t
 
     /* wakeup all threads of the team */
     void wakeup(void);
+
+    /* get iterations */
+    static inline void
+    parallel_for_thread_bounds(
+        int * p_last_iter,
+        int * p_lower,
+        int * p_upper,
+        int incr
+    ) {
+        thread_t * thread = thread_t::get_tls();
+        assert(thread);
+
+        int p_upper_old = *p_upper;
+        int trip_count = (incr > 0) ? ((*p_upper - *p_lower) / incr) + 1 : ((*p_lower - *p_upper) / (-incr)) + 1;
+
+        int nthreads = thread->team->priv.nthreads;
+        int tid      = thread->tid;
+
+        if (trip_count <= nthreads)
+        {
+            if (tid < trip_count)
+            {
+                *p_upper = *p_lower = *p_lower + tid * incr;
+                if (p_last_iter)
+                    *p_last_iter = (tid == trip_count - 1);
+            }
+            else
+            {
+                *p_lower = *p_upper + incr;
+                return;
+            }
+            return ;
+        }
+        else
+        {
+            int chunk_size = trip_count / nthreads;
+            int extras = trip_count % nthreads;
+
+            if (tid < extras)
+            {
+                /* The first part is homogeneous with a chunk size a little bit larger */
+                *p_upper = *p_lower + (tid + 1) * (chunk_size + 1) * incr - incr;
+                *p_lower = *p_lower + tid * (chunk_size + 1) * incr;
+            }
+            else
+            {
+                *p_upper = *p_lower + extras * (chunk_size + 1) * incr +
+                    (tid + 1 - extras) * chunk_size * incr - incr;
+                *p_lower = *p_lower + extras * (chunk_size + 1) * incr +
+                    (tid - extras) * chunk_size * incr;
+            }
+
+            if (p_last_iter)
+            {
+                if (incr > 0)
+                    *p_last_iter = *p_lower <= p_upper_old && *p_upper > p_upper_old - incr;
+                else
+                    *p_last_iter = *p_lower >= p_upper_old && *p_upper < p_upper_old - incr;
+            }
+        }
+    }
+
+
+
 };
 
 XKRT_NAMESPACE_END

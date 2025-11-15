@@ -34,6 +34,7 @@ set(TEST_SOURCES
     task-format-host.cc
     task-format.cc
     task-gpu-empty.cc
+    team-barrier.cc
     team-cpus-master-member.cc
     team-cpus-parallel-for.cc
     team-cpus.cc

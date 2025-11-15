@@ -73,6 +73,10 @@
 # define TASK_MAX_ACCESSES (1024)
 # define UNSPECIFIED_TASK_ACCESS ((xkrt_task_access_counter_type_t) TASK_MAX_ACCESSES)
 
+/* Maximum number of thread per team */
+# define XKRT_TEAM_MAX_THREADS          (2048)
+# define XKRT_TEAM_HIERARCHY_GROUP_SIZE (8)
+
 # ifdef __cplusplus
 #  define xkstatic_assert(X) static_assert(X)
 # else

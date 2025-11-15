@@ -71,7 +71,7 @@ typedef enum    thread_state_t
 struct team_t;
 
 /* a thread */
-typedef struct  thread_t
+struct alignas(xkrt_pagesize) thread_t
 {
     public:
 
@@ -331,7 +331,7 @@ typedef struct  thread_t
 
         # endif /* XKRT_SUPPORT_DEBUG */
 
-}               thread_t;
+};
 
 XKRT_NAMESPACE_END
 
