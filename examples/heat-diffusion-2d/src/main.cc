@@ -36,16 +36,16 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-# include <xkrt/xkrt.h>
-# include <xkrt/logger/metric.h>
-
+# include <xkrt/runtime.h>
 # include <stdio.h>
 # include <stdlib.h>
 
 # include <heat/consts.h>
 
+XKRT_NAMESPACE_USE;
+
 /* Making a global xkrt context of simplicity purposes */
-static xkrt_runtime_t runtime;
+static runtime_t runtime;
 static int TSX = 0;
 static int TSY = 0;
 
@@ -103,7 +103,7 @@ typedef struct  args_export_t
 }               args_export_t;
 
 static void
-body_export_vtk(task_t * task)
+export_vtk(runtime_t * runtime, device_t * device, task_t * task)
 {
     args_export_t * args = (args_export_t *) TASK_ARGS(task);
     LOGGER_INFO("Exporting frame %d/%d", args->frame+1, N_VTK);
@@ -122,7 +122,7 @@ maybe_export(int step, TYPE * grid)
             int frame = step / (N_STEP / N_VTK);
 
             # if 1
-            xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+            thread_t * thread = thread_t::get_tls();
             assert(thread);
 
             # define AC 1
@@ -145,8 +145,8 @@ maybe_export(int step, TYPE * grid)
 
             static_assert(AC <= TASK_MAX_ACCESSES);
             access_t * accesses = TASK_ACCESSES(task, flags);
-            new(accesses + 0) access_t(task, MATRIX_COLMAJOR, grid, LD, 0, 0, NX, NY, sizeof(TYPE), ACCESS_MODE_R);
-            thread->resolve<AC>(task, accesses);
+            new (accesses + 0) access_t(task, MATRIX_COLMAJOR, grid, LD, 0, 0, NX, NY, sizeof(TYPE), ACCESS_MODE_R);
+            thread->resolve(accesses, AC);
             # undef AC
 
             runtime.task_commit(task);
@@ -192,12 +192,14 @@ void diffusion_cuda(
 );
 
 static void
-body_cuda(
-    xkrt_stream_cu_t * stream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+cuda(
+    runtime_t * runtime,
+    device_t * device,
+    task_t * task,
+    queue_cu_t * queue,
+    command_t * cmd,
+    queue_command_list_counter_t idx
 ) {
-    task_t * task = (task_t *) instr->kern.vargs;
     args_t * args = (args_t *) TASK_ARGS(task);
 
     const access_t * accesses = TASK_ACCESSES(task);
@@ -217,7 +219,7 @@ body_cuda(
     else                    src = src + ld_src;
 
     // submit kernel
-    cudaStream_t custream = stream->cu.handle.high;
+    cudaStream_t custream = queue->cu.handle.high;
     diffusion_cuda(
         custream,
         src, ld_src,
@@ -225,7 +227,7 @@ body_cuda(
         args->tile_x, args->tile_y,
         TSX, TSY
     );
-    CU_SAFE_CALL(cuEventRecord(stream->cu.events.buffer[idx], custream));
+    CU_SAFE_CALL(cuEventRecord(queue->cu.events.buffer[idx], custream));
 }
 # endif /* XKRT_SUPPORT_CUDA */
 
@@ -265,12 +267,14 @@ static xkrt_driver_module_t ZE_MODULES[XKRT_DEVICES_MAX];
 static xkrt_driver_module_t ZE_KERNELS[XKRT_DEVICES_MAX];
 
 static void
-body_ze(
-    xkrt_stream_ze_t * stream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+ze(
+    runtime_t * runtime,
+    device_t * device,
+    task_t * task,
+    queue_cu_t * queue,
+    command_t * cmd,
+    queue_command_list_counter_t idx
 ) {
-    task_t * task = (task_t *) instr->kern.vargs;
     args_t * args = (args_t *) TASK_ARGS(task);
 
     const access_t * accesses = TASK_ACCESSES(task);
@@ -293,7 +297,7 @@ body_ze(
     assert(driver);
 
     // retrieve module, or compile it
-    const int device_id = stream->ze.device->inherited.driver_id;
+    const int device_id = queue->ze.device->inherited.driver_id;
     xkrt_driver_module_t module = ZE_MODULES[device_id];
     if (module == NULL)
     {
@@ -347,7 +351,7 @@ body_ze(
     dispatch.groupCountY = TSY / gsY;
     dispatch.groupCountZ = 1;
 
-    ZE_SAFE_CALL(zeCommandListAppendLaunchKernel(stream->ze.command.list, fn, &dispatch, stream->ze.events.list[idx], 0, NULL));
+    ZE_SAFE_CALL(zeCommandListAppendLaunchKernel(queue->ze.command.list, fn, &dispatch, queue->ze.events.list[idx], 0, NULL));
 }
 # endif /* XKRT_SUPPORT_ZE */
 
@@ -365,14 +369,15 @@ void diffusion_hip(
     int tsx, int tsy
 );
 
-
 static void
-body_hip(
-    xkrt_stream_hip_t * stream,
-    xkrt_stream_instruction_t * instr,
-    xkrt_stream_instruction_counter_t idx
+hip(
+    runtime_t * runtime,
+    device_t * device,
+    task_t * task,
+    queue_cu_t * queue,
+    command_t * cmd,
+    queue_command_list_counter_t idx
 ) {
-    task_t * task = (task_t *) instr->kern.vargs;
     args_t * args = (args_t *) TASK_ARGS(task);
 
     const access_t * accesses = TASK_ACCESSES(task);
@@ -392,7 +397,7 @@ body_hip(
     else                    src = src + ld_src;
 
     // submit kernel
-    hipStream_t hipstream = stream->hip.handle.high;
+    hipStream_t hipstream = queue->hip.handle.high;
     diffusion_hip(
         hipstream,
         src, ld_src,
@@ -400,7 +405,7 @@ body_hip(
         args->tile_x, args->tile_y,
         TSX, TSY
     );
-    HIP_SAFE_CALL(hipEventRecord(stream->hip.events.buffer[idx], hipstream));
+    HIP_SAFE_CALL(hipEventRecord(queue->hip.events.buffer[idx], hipstream));
 }
 # endif /* XKRT_SUPPORT_HIP */
 
@@ -423,6 +428,16 @@ update_cpu(TYPE * src, TYPE * dst)
 // XKRT TASKS //
 ////////////////
 
+template<auto F>
+static inline void
+routine_task(
+    runtime_t * runtime,
+    device_t * device,
+    task_t * task
+) {
+    return runtime->task_detachable_kernel_launch(device, task, (kernel_launcher_t) F);
+}
+
 static void
 setup_tasks(void)
 {
@@ -432,19 +447,19 @@ setup_tasks(void)
         memset(&format, 0, sizeof(task_format_t));
 
         # if XKRT_SUPPORT_CUDA
-        format.f[XKRT_DRIVER_TYPE_CUDA] = (task_format_func_t) body_cuda;
+        format.f[XKRT_DRIVER_TYPE_CUDA] = (task_format_func_t) routine_task<cuda>;
         # endif /* XKRT_SUPPORT_CUDA */
 
         # if XKRT_SUPPORT_ZE
-        format.f[XKRT_DRIVER_TYPE_ZE] = (task_format_func_t) body_ze;
+        format.f[XKRT_DRIVER_TYPE_ZE] = (task_format_func_t) routine_task<ze>;
         # endif /* XKRT_SUPPORT_ZE */
 
         # if XKRT_SUPPORT_HIP
-        format.f[XKRT_DRIVER_TYPE_HIP] = (task_format_func_t) body_hip;
+        format.f[XKRT_DRIVER_TYPE_HIP] = (task_format_func_t) routine_task<hip>;
         # endif /* XKRT_SUPPORT_HIP */
 
         snprintf(format.label, sizeof(format.label), "heat-diffusion");
-        diffusion_format_id = task_format_create(&(runtime.formats.list), &format);
+        diffusion_format_id = runtime.task_format_create(&format);
     }
 
     // export vtk
@@ -452,9 +467,9 @@ setup_tasks(void)
         task_format_t format;
         memset(&format, 0, sizeof(task_format_t));
 
-        format.f[XKRT_DRIVER_TYPE_HOST] = (task_format_func_t) body_export_vtk;
+        format.f[XKRT_DRIVER_TYPE_HOST] = (task_format_func_t) export_vtk;
         snprintf(format.label, sizeof(format.label), "export-vtk");
-        export_vtk_format_id = task_format_create(&(runtime.formats.list), &format);
+        export_vtk_format_id = runtime.task_format_create(&format);
     }
 }
 
@@ -498,10 +513,10 @@ initialize(TYPE * grid1, TYPE * grid2)
 //  # pragma omp task-format(diffusion_format_id) create
 //
 //  # pragma omp task-format(diffusion_format_id) target(LEVEL_ZERO)
-//      body_level_zero();  // task context is implicit, can retrieve accesses
+//      level_zero();  // task context is implicit, can retrieve accesses
 //
 //  # pragna omp task-format(diffusion_format_id) target(CUDA)
-//      body_cuda();
+//      cuda();
 //
 //  [...]
 
@@ -509,11 +524,11 @@ initialize(TYPE * grid1, TYPE * grid2)
 static void
 update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step, unsigned int ngpus)
 {
-    xkrt_thread_t * thread = xkrt_thread_t::get_tls();
+    thread_t * thread = thread_t::get_tls();
     assert(thread);
 
     # define AC 2
-    constexpr task_flag_bitfield_t flags = TASK_FLAG_DEVICE | TASK_FLAG_DEPENDENT;
+    constexpr task_flag_bitfield_t flags = TASK_FLAG_DEVICE | TASK_FLAG_DEPENDENT | TASK_FLAG_DETACHABLE;
     constexpr size_t task_size = task_compute_size(flags, AC);
     constexpr size_t args_size = sizeof(args_t);
 
@@ -560,7 +575,7 @@ update_tile(TYPE * src, TYPE * dst, int tile_x, int tile_y, int step, unsigned i
         const  size_t sy = y1 - y0;
         new (accesses + 1) access_t(task, MATRIX_COLMAJOR, dst, LD, x0, y0, sx, sy, sizeof(TYPE), ACCESS_MODE_W);
     }
-    thread->resolve<AC>(task, accesses);
+    thread->resolve(accesses, AC);
     # undef AC
 
     runtime.task_commit(task);
@@ -589,7 +604,7 @@ int
 main(void)
 {
     // Initialize xkrt runtime
-    xkrt_init(&runtime);
+    runtime.init();
 
     const int ngpus = runtime.drivers.devices.n - 1;
     if (ngpus == 0)
@@ -629,7 +644,7 @@ main(void)
     runtime.task_wait();
 
     // run simulation
-    uint64_t t0 = xkrt_get_nanotime();
+    uint64_t t0 = get_nanotime();
 
     // Time stepping
     for (int step = 0; step < N_STEP; ++step)
@@ -647,17 +662,17 @@ main(void)
         maybe_export(step, dst);
     }
 
-    uint64_t tf = xkrt_get_nanotime();
+    uint64_t tf = get_nanotime();
     LOGGER_WARN("Graph Creation Took %.2lf s", (tf-t0)/1e9);
 
     // Finish remaining tasks
     runtime.task_wait();
 
-    tf = xkrt_get_nanotime();
+    tf = get_nanotime();
     LOGGER_WARN("Graph Execution Took %.2lf s", (tf-t0)/1e9);
 
     // Deinitialize xkrt runtime
-    xkrt_deinit(&runtime);
+    runtime.deinit();
 
     return 0;
 }
