@@ -63,8 +63,9 @@ main(int argc, char ** argv)
             new (accesses + 0) access_t(task, x, N, sizeof(TYPE), ACCESS_MODE_R);
         },
 
-        // task routine, may launch kernels to the device
+        // task routine, executes once all accesses are coherent on the scheduled device
         [] (runtime_t * runtime, device_t * device, task_t * task) {
+
             access_t * accesses = TASK_ACCESSES(task);
             uintptr_t x_dev = (accesses + 0)->device_view.addr;
 
@@ -90,11 +91,12 @@ main(int argc, char ** argv)
                     size_t args_size = 0;
                     driver->f_kernel_launch(queue, event, fn, gx, gy, gz, bx, by, bz, shared_memory_bytes, args, args_size);
                 }
-            ); /* kernel submission */
+            ); /* kernel launcher */
 
             // The task returns, but only complete once the events associated
             // to the command is fulfilled - that is, on kernel completion
-        }
+
+        } /* task routine */
     );
 
     runtime.deinit();
