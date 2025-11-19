@@ -1187,6 +1187,10 @@ class KBLASMemoryTree : public KHPTree<K, KBLASMemoryTreeNodeSearch<K>>, public 
         ) {
             assert(access->type == ACCESS_TYPE_SEGMENT || access->type == ACCESS_TYPE_BLAS_MATRIX);
 
+            /* optim: if there had been no devices accesses previously, nothing to do */
+            if (this->root == NULL)
+                return NULL;
+
             Search search(HOST_DEVICE_GLOBAL_ID);
             this->lock();
             {

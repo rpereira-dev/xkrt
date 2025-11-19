@@ -46,28 +46,39 @@ main(int argc, char ** argv)
     runtime.init();
 
     // create a vector 'x' on the host memory
-    using TYPE = double;
-    constexpr int N         = 16384;
-    constexpr int GRAINSIZE = 4;
-    static_assert(N % GRAINSIZE == 0);
-    constexpr int NTASKS    = N / GRAINSIZE;
-
-    TYPE * x = (TYPE *) calloc(1, sizeof(TYPE) * N);
-    TYPE * y = (TYPE *) calloc(1, sizeof(TYPE) * N);
-    TYPE * z = (TYPE *) calloc(1, sizeof(TYPE) * N);
+    int N = 32768;
+    uintptr_t x = (uintptr_t) calloc(1, N);
+    uintptr_t y = (uintptr_t) calloc(1, N);
+    uintptr_t z = (uintptr_t) calloc(1, N);
 
     // spawn a task that reads 'x' on device 0
     uint64_t t0 = get_nanotime();
-    for (int i = 0 ; i < NTASKS ; ++i)
+
+    # if !USE_RECURSIVE_TASKS
+    for (int i = 0 ; i < N ; ++i)
+    # endif /* USE_RECURSIVE_TASKS */
     {
         runtime.task_spawn<3>(
 
             // set task accesses
-            [&x, &y, &z] (task_t * task, access_t * accesses) {
-                new (accesses + 0) access_t(task, x, N, sizeof(TYPE), ACCESS_MODE_R);
-                new (accesses + 1) access_t(task, y, N, sizeof(TYPE), ACCESS_MODE_R);
-                new (accesses + 2) access_t(task, z, N, sizeof(TYPE), ACCESS_MODE_W);
+            # if !USE_RECURSIVE_TASKS
+            [&x, &y, &z, &i] (task_t * task, access_t * accesses) {
+                new (accesses + 0) access_t(task, x+i, x+(i+1), ACCESS_MODE_R);
+                new (accesses + 1) access_t(task, y+i, y+(i+1), ACCESS_MODE_R);
+                new (accesses + 2) access_t(task, z+i, z+(i+1), ACCESS_MODE_W);
             },
+            # else
+            [&x, &y, &z, &N] (task_t * task, access_t * accesses) {
+                new (accesses + 0) access_t(task, x, x + N, ACCESS_MODE_R);
+                new (accesses + 1) access_t(task, y, y + N, ACCESS_MODE_R);
+                new (accesses + 2) access_t(task, z, z + N, ACCESS_MODE_W);
+            },
+
+            // split
+            [] (task_t * task, access_t * accesses) {
+                return (accesses + 0)->host_view.m > 1;
+            },
+            # endif /* USE_RECURSIVE_TASKS */
 
             // task routine, executes once all accesses are coherent on the scheduled device
             [] (runtime_t * runtime, device_t * device, task_t * task) {

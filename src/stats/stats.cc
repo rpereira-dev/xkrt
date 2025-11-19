@@ -221,21 +221,32 @@ stats_device_gather(
 static void
 stats_tasks_report(runtime_t * runtime)
 {
+    bool dumped = false;
     for (size_t i = 0 ; i < XKRT_TASK_FORMAT_MAX ; ++i)
     {
         task_format_t * format = runtime->task_format_get((task_format_id_t) i);
         if (format == NULL)
             break ;
-        if (runtime->stats.tasks[i].commited)
+
+        uint64_t c1 = runtime->stats.tasks[i].commited.load();
+        uint64_t c2 = runtime->stats.tasks[i].submitted.load();
+        uint64_t c3 = runtime->stats.tasks[i].completed.load();
+
+        if (c1 || c2 || c3)
+        {
+            if (!dumped)
+            {
+                dumped = true;
+                LOGGER_WARN("  Per format");
+            }
             LOGGER_WARN("  `%16s` - %6zu commited - %6zu submitted - %6zu completed",
-                format->label,
-                runtime->stats.tasks[i].commited.load(),
-                runtime->stats.tasks[i].submitted.load(),
-                runtime->stats.tasks[i].completed.load()
+                format->label, c1, c2, c3
             );
+        }
     }
 
     # if XKRT_SUPPORT_DEBUG
+    LOGGER_WARN("  On the main thread");
     thread_t * thread = thread_t::get_tls();
     int counter[TASK_STATE_MAX];
     memset(counter, 0, sizeof(counter));
