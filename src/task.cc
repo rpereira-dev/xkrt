@@ -462,6 +462,7 @@ submit_task_host(
     }
     else
     {
+        assert(tls->team == runtime->device_get(HOST_DEVICE_GLOBAL_ID)->team);
         runtime->task_thread_enqueue(tls, task);
     }
 }
