@@ -54,20 +54,11 @@ main(int argc, char ** argv)
     // spawn a task that reads 'x' on device 0
     uint64_t t0 = get_nanotime();
 
-    # if !USE_RECURSIVE_TASKS
-    for (int i = 0 ; i < N ; ++i)
-    # endif /* USE_RECURSIVE_TASKS */
+    # if USE_RECURSIVE_TASKS
     {
         runtime.task_spawn<3>(
 
             // set task accesses
-            # if !USE_RECURSIVE_TASKS
-            [&x, &y, &z, &i] (task_t * task, access_t * accesses) {
-                new (accesses + 0) access_t(task, x+i, x+(i+1), ACCESS_MODE_R);
-                new (accesses + 1) access_t(task, y+i, y+(i+1), ACCESS_MODE_R);
-                new (accesses + 2) access_t(task, z+i, z+(i+1), ACCESS_MODE_W);
-            },
-            # else
             [&x, &y, &z, &N] (task_t * task, access_t * accesses) {
                 new (accesses + 0) access_t(task, x, x + N, ACCESS_MODE_R);
                 new (accesses + 1) access_t(task, y, y + N, ACCESS_MODE_R);
@@ -78,7 +69,6 @@ main(int argc, char ** argv)
             [] (task_t * task, access_t * accesses) {
                 return (accesses + 0)->host_view.m > 1;
             },
-            # endif /* USE_RECURSIVE_TASKS */
 
             // task routine, executes once all accesses are coherent on the scheduled device
             [] (runtime_t * runtime, device_t * device, task_t * task) {
@@ -86,6 +76,25 @@ main(int argc, char ** argv)
             }
         );
     }
+    # else
+    for (int i = 0 ; i < N ; ++i)
+    {
+        runtime.task_spawn<3>(
+
+            // set task accesses
+            [&x, &y, &z, &i] (task_t * task, access_t * accesses) {
+                new (accesses + 0) access_t(task, x+i, x+(i+1), ACCESS_MODE_R);
+                new (accesses + 1) access_t(task, y+i, y+(i+1), ACCESS_MODE_R);
+                new (accesses + 2) access_t(task, z+i, z+(i+1), ACCESS_MODE_W);
+            },
+
+            // task routine, executes once all accesses are coherent on the scheduled device
+            [] (runtime_t * runtime, device_t * device, task_t * task) {
+                // TODO: run task
+            }
+        );
+    }
+    # endif /* USE_RECURSIVE_TASKS */
     runtime.task_wait();
     uint64_t tf = get_nanotime();
     printf("Took %lf s\n", (tf - t0) / 1.e9);
