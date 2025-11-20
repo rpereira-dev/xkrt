@@ -38,6 +38,25 @@
 
 XKRT_NAMESPACE_USE;
 
+# define BYTE unsigned char
+
+static void
+func(task_t * task)
+{
+    access_t * accesses = TASK_ACCESSES(task);
+    assert(accesses);
+    BYTE * x = (BYTE *) (accesses + 0)->host_view.addr;
+    BYTE * y = (BYTE *) (accesses + 1)->host_view.addr;
+    BYTE * z = (BYTE *) (accesses + 2)->host_view.addr;
+    *z = *x + *y;
+}
+
+static void
+check(BYTE * x, BYTE * y, BYTE * z, int i)
+{
+    assert(z[i] == (BYTE) (x[i] + y[i]));
+}
+
 int
 main(int argc, char ** argv)
 {
@@ -50,6 +69,13 @@ main(int argc, char ** argv)
     uintptr_t x = (uintptr_t) calloc(1, N);
     uintptr_t y = (uintptr_t) calloc(1, N);
     uintptr_t z = (uintptr_t) calloc(1, N);
+    srand(time(NULL));
+    for (size_t i = 0; i < N ; ++i)
+    {
+        ((BYTE *) x)[i] = rand() % 256;
+        ((BYTE *) y)[i] = rand() % 256;
+        ((BYTE *) z)[i] = rand() % 256;
+    }
 
     // spawn a task that reads 'x' on device 0
     uint64_t t0 = get_nanotime();
@@ -72,7 +98,7 @@ main(int argc, char ** argv)
 
             // task routine, executes once all accesses are coherent on the scheduled device
             [] (runtime_t * runtime, device_t * device, task_t * task) {
-                // TODO: run task
+                func(task);
             }
         );
     }
@@ -90,7 +116,7 @@ main(int argc, char ** argv)
 
             // task routine, executes once all accesses are coherent on the scheduled device
             [] (runtime_t * runtime, device_t * device, task_t * task) {
-                // TODO: run task
+                func(task);
             }
         );
     }
@@ -98,6 +124,10 @@ main(int argc, char ** argv)
     runtime.task_wait();
     uint64_t tf = get_nanotime();
     printf("Took %lf s\n", (tf - t0) / 1.e9);
+
+    for (int i = 0 ; i < N ; ++i)
+        check((BYTE *) x, (BYTE *) y, (BYTE *) z, i);
+    printf("Correct\n");
 
     runtime.deinit();
 
