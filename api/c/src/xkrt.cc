@@ -467,7 +467,7 @@ xkrt_task_spawn_with_format_with_accesses(
         auto set_accesses = [&](task_t * task, access_t * accesses) {
             __xkrt_set_accesses(task, accesses_c, naccesses, accesses);
         };
-        rt->team_task_spawn(team, fmtid, args, args_size, set_accesses, naccesses);
+        rt->team_task_spawn(team, fmtid, args, args_size, set_accesses, (task_access_counter_t) naccesses);
     }
 }
 
@@ -524,7 +524,7 @@ xkrt_team_task_spawn_with_accesses(
     };
 
     // spawn the task
-    rt->team_task_spawn((team_t *) team, func_wrapper, set_accesses, naccesses);
+    rt->team_task_spawn((team_t *) team, func_wrapper, set_accesses, (task_access_counter_t) naccesses);
 }
 
 //-----------------
@@ -925,6 +925,7 @@ xkrt_task_detachable_kernel_launch(
 
 // THREADING
 
+# if 0
 int
 xkrt_driver_device_cpuset(
     xkrt_driver_t * driver,
@@ -936,6 +937,7 @@ xkrt_driver_device_cpuset(
     driver_t * drv = (driver_t *) driver;
     return drv->f_device_cpuset(topology, cpuset, device_driver_id);
 }
+# endif
 
 // QUEUE MANAGEMENT
 

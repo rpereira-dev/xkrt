@@ -719,7 +719,7 @@ struct  runtime_t
         const void * args,
         const size_t args_size,
         const task_accesses_setter_t & set_accesses,
-        const int naccesses
+        const task_access_counter_t naccesses
     ) {
         assert(naccesses > 0);
         assert(set_accesses);
@@ -756,7 +756,7 @@ struct  runtime_t
     task_instanciate(
         const task_format_id_t fmtid,
         const task_accesses_setter_t & set_accesses,
-        const int naccesses
+        const task_access_counter_t naccesses
     ) {
         return this->task_instanciate<flags>(fmtid, NULL, args_size, set_accesses, naccesses);
     }
@@ -978,7 +978,7 @@ struct  runtime_t
         team_t * team,
         const task_routine_t & f,
         const task_accesses_setter_t & set_accesses,
-        const int naccesses
+        const task_access_counter_t naccesses
     ) {
         assert(naccesses > 0);
 
@@ -1011,7 +1011,7 @@ struct  runtime_t
         const void * args,
         const size_t args_size,
         const task_accesses_setter_t & set_accesses,
-        const int naccesses
+        const task_access_counter_t naccesses
     ) {
         assert(naccesses > 0);
 

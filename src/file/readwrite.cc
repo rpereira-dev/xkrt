@@ -37,6 +37,7 @@
 **/
 
 # include <xkrt/runtime.h>
+# include <xkrt/internals.h>
 
 XKRT_NAMESPACE_BEGIN
 

@@ -416,7 +416,6 @@ team_create_hierarchy(team_t * team)
         nnode_for_level = (nnode_for_level + group_size - 1) / group_size;
 
         /* create each node of that level */
-        int node_threads = 0;
         for (int node_level_id = 0 ; node_level_id < nnode_for_level ; ++node_level_id)
         {
             team_hierarchy_node_t * node = team->priv.hierarchy.nodes + node_id;
