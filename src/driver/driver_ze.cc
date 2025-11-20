@@ -38,7 +38,6 @@
 
 # define XKRT_DRIVER_ENTRYPOINT(N) XKRT_DRIVER_TYPE_ZE_ ## N
 
-# include <xkrt/runtime.h>
 # include <xkrt/conf/conf.h>
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver-ze.h>
@@ -47,9 +46,10 @@
 # include <xkrt/logger/logger-hwloc.h>
 # include <xkrt/logger/logger-ze.h>
 # include <xkrt/logger/metric.h>
+# include <xkrt/runtime.h>
+# include <xkrt/support.h>
 # include <xkrt/sync/bits.h>
 # include <xkrt/sync/mutex.h>
-# include <xkrt/support.h>
 
 # include <ze_api.h>
 # include <hwloc/levelzero.h>
@@ -71,6 +71,7 @@ XKRT_NAMESPACE_BEGIN
 // xkrt
 static device_ze_t * DEVICES;
 static uint32_t n_devices = 0;
+static bool RUNNING_ON_AURORA = 0;  // dirty fix for 2d copy segv
 
 static device_ze_t *
 device_ze_get(device_driver_id_t device_driver_id)
@@ -273,6 +274,14 @@ XKRT_DRIVER_ENTRYPOINT(init)(
             device->ze.properties.stype = ZE_STRUCTURE_TYPE_DEVICE_PROPERTIES;
             ZE_SAFE_CALL(zeDeviceGetProperties(device->ze.handle, &device->ze.properties));
 
+            // save device type
+            device->type = DEVICE_ZE_TYPE_UNKNOWN;
+            if (strstr(device->ze.properties.name, "GPU Max 1550"))
+            {
+                device->type = DEVICE_ZE_TYPE_AURORA25;
+                RUNNING_ON_AURORA = true;
+            }
+
             // get memory properties
             ZE_SAFE_CALL(zeDeviceGetMemoryProperties(device->ze.handle, &device->ze.memory.count, nullptr));
             assert(device->ze.memory.count <= XKRT_DEVICE_MEMORIES_MAX);    // if this fails, increase `XKRT_DEVICE_MEMORIES_MAX`
@@ -443,9 +452,53 @@ XKRT_DRIVER_ENTRYPOINT(device_commit)(
     return 0;
 }
 
+static inline int
+XKRT_DRIVER_ENTRYPOINT(transfer_async)(
+    void * dst,
+    void * src,
+    const size_t size,
+    queue_t * iqueue,
+    ze_event_handle_t ze_event_handle = nullptr
+) {
+    queue_ze_t * queue = (queue_ze_t *) iqueue;
+    assert(queue);
+
+    const uint32_t num_wait_events = 0;
+    ze_event_handle_t * wait_events = NULL;
+
+    ZE_SAFE_CALL(
+        zeCommandListAppendMemoryCopy(
+            queue->ze.command.list,
+            dst,
+            src,
+            size,
+            ze_event_handle,
+            num_wait_events,
+            wait_events
+        )
+    );
+    return 0;
+}
+
 ////////////
 // QUEUE //
 ////////////
+
+static int
+XKRT_DRIVER_ENTRYPOINT(queue_commands_wait)(
+    queue_t * iqueue
+) {
+    queue_ze_t * queue = (queue_ze_t *) iqueue;
+    assert(queue);
+
+    const uint64_t timeout = UINT64_MAX;
+# if 1
+    ZE_SAFE_CALL(zeCommandListHostSynchronize(queue->ze.command.list, timeout));
+# else
+    LOGGER_FATAL("Not supported");
+# endif
+    return 0;
+}
 
 static int
 XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
@@ -522,25 +575,41 @@ XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
                 .depth   = 1
             };
 
-            if (src_region.width != src_pitch || dst_region.width != dst_pitch)
-                LOGGER_FATAL("memcpy2D not working on intel max gpu series zzzzzzzzzz....");
-
-            ZE_SAFE_CALL(
-                zeCommandListAppendMemoryCopyRegion(
-                    queue->ze.command.list,
-                    dst,
-                   &dst_region,
-                    dst_pitch,
-                    dst_slice_pitch,
-                    src,
-                   &src_region,
-                    src_pitch,
-                    src_slice_pitch,
-                    ze_event_handle,
-                    num_wait_events,
-                    wait_events
-                )
-            );
+            // aurora dirty fix
+            if (RUNNING_ON_AURORA &&
+                   (src_region.width != src_pitch || dst_region.width != dst_pitch))
+            {
+                LOGGER_ERROR("memcpy2D not working on intel max gpu series zzzzzzzzzz.... serializing synchronously line by line using calling host thread");
+                assert(src_region.height == dst_region.height);
+                for (int i = 0 ; i < src_region.height ; ++i)
+                {
+                    void * l_dst = (void *) (cmd->copy_2D.dst_device_view.addr + i*dst_pitch);
+                    void * l_src = (void *) (cmd->copy_2D.src_device_view.addr + i*src_pitch);
+                    const size_t l_size = width;
+                    const ze_event_handle_t l_ze_event_handle = (i == src_region.height - 1) ? ze_event_handle : nullptr;
+                    XKRT_DRIVER_ENTRYPOINT(transfer_async)(l_dst, l_src, l_size, iqueue, l_ze_event_handle);
+                }
+                XKRT_DRIVER_ENTRYPOINT(queue_commands_wait)(iqueue);
+            }
+            else
+            {
+                ZE_SAFE_CALL(
+                    zeCommandListAppendMemoryCopyRegion(
+                        queue->ze.command.list,
+                        dst,
+                       &dst_region,
+                        dst_pitch,
+                        dst_slice_pitch,
+                        src,
+                       &src_region,
+                        src_pitch,
+                        src_slice_pitch,
+                        ze_event_handle,
+                        num_wait_events,
+                        wait_events
+                    )
+                );
+            }
             break ;
         }
 
@@ -549,22 +618,6 @@ XKRT_DRIVER_ENTRYPOINT(queue_command_launch)(
     }
 
     return err;
-}
-
-static int
-XKRT_DRIVER_ENTRYPOINT(queue_commands_wait)(
-    queue_t * iqueue
-) {
-    queue_ze_t * queue = (queue_ze_t *) iqueue;
-    assert(queue);
-
-    const uint64_t timeout = UINT64_MAX;
-# if 1
-    ZE_SAFE_CALL(zeCommandListHostSynchronize(queue->ze.command.list, timeout));
-# else
-    LOGGER_FATAL("Not supported");
-# endif
-    return 0;
 }
 
 static inline int
@@ -799,7 +852,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_create)(
         .mode       = ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS,
         .priority   = ZE_COMMAND_QUEUE_PRIORITY_NORMAL // ZE_COMMAND_QUEUE_PRIORITY_PRIORITY_LOW
     };
-    LOGGER_DEBUG("Creating queue of type `%4s` with (ordinal, index) = (%d, %d)", command_type_to_str(type), ordinal, index);
+    LOGGER_DEBUG("Creating queue of type `%4s` with (ordinal, index) = (%d, %d)", command_type_to_str((command_type_t)type), ordinal, index);
 
     # if 0 /* use a command list and command queue */
     ZE_SAFE_CALL(
@@ -1195,30 +1248,6 @@ XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
     ZE_SAFE_CALL(zeKernelCreate((ze_module_handle_t) module, &desc, (ze_kernel_handle_t *) &fn));
     assert(fn);
     return fn;
-}
-
-static inline int
-XKRT_DRIVER_ENTRYPOINT(transfer_async)(void * dst, void * src, const size_t size, queue_t * iqueue)
-{
-    queue_ze_t * queue = (queue_ze_t *) iqueue;
-    assert(queue);
-
-    ze_event_handle_t ze_event_handle = nullptr;
-    const uint32_t num_wait_events = 0;
-    ze_event_handle_t * wait_events = NULL;
-
-    ZE_SAFE_CALL(
-        zeCommandListAppendMemoryCopy(
-            queue->ze.command.list,
-            dst,
-            src,
-            size,
-            ze_event_handle,
-            num_wait_events,
-            wait_events
-        )
-    );
-    return 0;
 }
 
 int

@@ -255,10 +255,6 @@ read_from_binary(unsigned char **output, size_t * size, const char *name)
     return 0;
 }
 
-# endif /* XKRT_SUPPORT_ZE */
-
-# if XKRT_SUPPORT_ZE
-
 # include <xkrt/driver/driver-ze.h>
 # include <xkrt/logger/logger-ze.h>
 # include <ze_api.h>
@@ -271,7 +267,7 @@ ze(
     runtime_t * runtime,
     device_t * device,
     task_t * task,
-    queue_cu_t * queue,
+    queue_ze_t * queue,
     command_t * cmd,
     queue_command_list_counter_t idx
 ) {
@@ -293,7 +289,7 @@ ze(
     if (args->tile_y == 0)  dst = dst - ld_dst;
     else                    src = src + ld_src;
 
-    xkrt_driver_t * driver = runtime.driver_get(XKRT_DRIVER_TYPE_ZE);
+    driver_t * driver = runtime->driver_get(XKRT_DRIVER_TYPE_ZE);
     assert(driver);
 
     // retrieve module, or compile it
@@ -301,7 +297,7 @@ ze(
     xkrt_driver_module_t module = ZE_MODULES[device_id];
     if (module == NULL)
     {
-        xkrt_driver_t * driver = runtime.driver_get(XKRT_DRIVER_TYPE_ZE);
+        driver_t * driver = runtime->driver_get(XKRT_DRIVER_TYPE_ZE);
         assert(driver);
 
         unsigned char * file;
@@ -609,6 +605,7 @@ main(void)
     const int ngpus = runtime.drivers.devices.n - 1;
     if (ngpus == 0)
         LOGGER_FATAL("No devices found");
+    LOGGER_INFO("Running on %d gpus", ngpus);
 
     // compute data partitioning
     TSX = NX / 1;
