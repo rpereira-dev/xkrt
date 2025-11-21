@@ -937,29 +937,49 @@ struct  runtime_t
      */
     void team_critical_end(team_t * team);
 
+    /* functor for parallel for */
+    typedef std::function<void(thread_t * thread)> team_parallel_for_func_t;
+    typedef std::function<void(thread_t * thread, const int i)> team_parallel_for_i_func_t;
+
     /**
      * @brief Execute a parallel for loop across team threads (blocking)
      * @param team Pointer to the team
      * @param func Function to execute in parallel by each thread
      */
-    typedef std::function<void(thread_t * thread)> team_parallel_for_func_t;
     void team_parallel_for(team_t * team, team_parallel_for_func_t func);
 
-    typedef std::function<void(thread_t * thread, const int i)> team_parallel_for_i_func_t;
+    inline void
+    team_parallel_for(
+        team_t * team,
+        team_parallel_for_i_func_t func,
+        const int up,
+        const int low = 0,
+        const int incr = 1
+    ) {
+        this->team_parallel_for(team, [=] (thread_t * thread) {
+                int up_v = up;
+                int low_v = low;
+                int last_iter;
+                team_t::parallel_for_thread_bounds(&last_iter, &low_v, &up_v, incr);
+                if (incr > 0)
+                {
+                    for (int i = low_v ; i <= up_v ; i += incr)
+                        func(thread, i);
+                }
+                else
+                {
+                    LOGGER_FATAL("Not supported");
+                }
+
+            }
+        );
+    }
+
     template <int UP, int LOW = 0, int INCR = 1>
     inline void
     team_parallel_for(team_t * team, team_parallel_for_i_func_t func)
     {
-        this->team_parallel_for(team, [&func] (thread_t * thread) {
-                int  low = LOW;
-                int   up = UP;
-                int last_iter;
-                team_t::parallel_for_thread_bounds(&last_iter, &low, &up, INCR);
-                for (int i = low ; i != up ; i += INCR)
-                    func(thread, i);
-                func(thread, up);
-            }
-        );
+        return team_parallel_for(team, func, UP, LOW, INCR);
     }
 
     /////////////////////////

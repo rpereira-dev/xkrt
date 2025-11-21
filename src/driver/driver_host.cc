@@ -477,25 +477,29 @@ XKRT_DRIVER_ENTRYPOINT(queue_delete)(
 // MEMORY //
 ////////////
 
-# if 0
 static void *
-XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(device_driver_id_t device_driver_id, const size_t size, int area_idx)
-{
-    (void)device_driver_id;
-    (void)size;
-    (void)area_idx;
-    return NULL;
+XKRT_DRIVER_ENTRYPOINT(memory_device_allocate)(
+    device_driver_id_t device_driver_id,
+    const size_t size,
+    int area_idx
+) {
+    assert(device_driver_id == 0);
+    assert(area_idx == 0);
+    return malloc(size);
 }
 
 static void
-XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(device_driver_id_t device_driver_id, void * ptr, const size_t size, int area_idx)
-{
-    (void)device_driver_id;
-    (void)ptr;
+XKRT_DRIVER_ENTRYPOINT(memory_device_deallocate)(
+    device_driver_id_t device_driver_id,
+    void * ptr,
+    const size_t size,
+    int area_idx
+) {
+    assert(device_driver_id == 0);
+    assert(area_idx == 0);
     (void)size;
-    (void)area_idx;
+    free(ptr);
 }
-# endif
 
 static void
 XKRT_DRIVER_ENTRYPOINT(memory_device_info)(
@@ -601,8 +605,8 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(device_info);
 
     REGISTER(memory_device_info);
- // REGISTER(memory_device_allocate);
- // REGISTER(memory_device_deallocate);
+    REGISTER(memory_device_allocate);
+    REGISTER(memory_device_deallocate);
  // REGISTER(memory_host_allocate);
  // REGISTER(memory_host_deallocate);
  // REGISTER(memory_host_register);
