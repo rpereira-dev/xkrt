@@ -67,6 +67,7 @@ extern char * LOGGER_PRINT_COLORS[6];
 extern char * LOGGER_PRINT_HEADERS[6];
 
 extern int LOGGER_VERBOSE;
+extern int LOGGER_INITIALIZED;
 
 extern volatile double   LOGGER_TIME_ELAPSED;
 extern volatile uint64_t LOGGER_LAST_TIME;
@@ -82,6 +83,13 @@ extern volatile uint64_t LOGGER_LAST_TIME;
 
 # define LOGGER_PRINT(LVL, ...)                                                 \
     do {                                                                        \
+        if (!LOGGER_INITIALIZED)                                                \
+        {                                                                       \
+            LOGGER_INITIALIZED = 1;                                             \
+            char * s = getenv("LOGGER_VERBOSE");                                \
+            if (s)                                                              \
+                LOGGER_VERBOSE = atoi(s);                                       \
+        }                                                                       \
         if (LVL <= LOGGER_VERBOSE)                                              \
         {                                                                       \
             SPINLOCK_LOCK(LOGGER_PRINT_MTX);                                    \
