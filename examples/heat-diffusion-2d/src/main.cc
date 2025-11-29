@@ -499,20 +499,8 @@ initialize(TYPE * grid1, TYPE * grid2)
 
 // omp interfaces would look like
 //
-//  # pragma omp task   format(diffusion_format_id)                                     \
-//                      access(read:  matrix(colmajor, src, ld, x0, y0, sx, sy))        \
-//                      access(write: matrix(colmajor, dst, LD, x0, y0, sx, sy))
-//
-// with some
-//
-//  omp_task_format_id_t diffusion_format_id;
-//  # pragma omp task-format(diffusion_format_id) create
-//
-//  # pragma omp task-format(diffusion_format_id) target(LEVEL_ZERO)
-//      level_zero();  // task context is implicit, can retrieve accesses
-//
-//  # pragna omp task-format(diffusion_format_id) target(CUDA)
-//      cuda();
+//  # pragma omp task access(read:  matrix(colmajor, src, ld, x0, y0, sx, sy))        \
+//                    access(write: matrix(colmajor, dst, LD, x0, y0, sx, sy))
 //
 //  [...]
 

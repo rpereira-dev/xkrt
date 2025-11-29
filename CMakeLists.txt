@@ -50,6 +50,7 @@ xkoption(USE_ZES      "Use Intel's ZES management library." OFF)
 xkoption(USE_ZE_SYCL_INTEROP "Enable the compilation of SYCL interop with Level Zero driver" OFF)
 xkoption(USE_JULIA    "Link with Julia to attach threads (needed for running host tasks from Julia)" OFF)
 xkoption(USE_CAIRO    "Use Cairo to generate images (memory-tree debugging purposes mostly)." OFF)
+xkoption(USE_PROTHEUS "Use Protheus for JIT." OFF)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(DEBUG_BUILD ON)
@@ -291,6 +292,11 @@ if (USE_JULIA)
     find_package(Julia REQUIRED)
     include_directories(${Julia_INCLUDE_DIRS})
     target_link_libraries(${XKRT} PRIVATE ${Julia_LIBRARIES})
+endif()
+
+if (USE_PROTHEUS)
+    find_package(proteus CONFIG REQUIRED)
+    add_proteus(${XKRT})
 endif()
 
 ################
