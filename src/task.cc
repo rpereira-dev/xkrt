@@ -472,7 +472,7 @@ submit_task_device(
     runtime_t * runtime,
     task_t * task
 ) {
-    // task must be a device task
+    // task must be flagged
     assert(task->flags & TASK_FLAG_DEVICE);
     task_dev_info_t * dev = TASK_DEV_INFO(task);
 
@@ -499,7 +499,8 @@ submit_task_device(
         }
     }
 
-    // if an ocr parameter is set, filter to keep only devices with most coherent bytes
+    // if an owner-computes rules (ocr) parameter is set, filter to keep only
+    // devices that owns the larger volume of coherent bytes
     if (dev->ocr_access_index != UNSPECIFIED_TASK_ACCESS)
     {
         // if an ocr is set, task must be a dependent task (i.e. with some accesses)
@@ -524,6 +525,7 @@ submit_task_device(
         }
         else
         {
+            // keep only owners
             devices_bitfield &= owners;
         }
 
@@ -569,6 +571,10 @@ submit_task_device(
     runtime->task_team_enqueue(device->team, task);
 }
 
+/**
+ *  Entry point when a task is ready to be fetched.
+ *  It elects a thread and a device for fetching accesses and executing the task
+ */
 void
 runtime_submit_task(
     runtime_t * runtime,
@@ -576,8 +582,10 @@ runtime_submit_task(
 ) {
     assert(task->state.value == TASK_STATE_READY);
 
+    /* if the task is flagged, then schedule it onto an implicit team of threads */
     if (task->flags & TASK_FLAG_DEVICE)
         submit_task_device(runtime, task);
+    /* else, submit it whether to the host implicit team, or to the currently executing team */
     else
         submit_task_host(runtime, task);
 }

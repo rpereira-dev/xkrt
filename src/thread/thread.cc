@@ -293,12 +293,11 @@ team_create_recursive(void * vargs)
         int tid = args->from;
         thread_t * thread = team->priv.threads + tid;
         new (thread) thread_t(team, tid, args->pthread, args->device_global_id, args->place);
+        mem_barrier();
+        team->priv.threads_state[tid] = XKRT_THREAD_INITIALIZED;
 
         // save tls
         thread_t::push_tls(thread);
-
-        // launch routine
-        thread->state = XKRT_THREAD_INITIALIZED;
 
         // warmup thread if conf says so
         if (args->runtime->conf.warmup)
@@ -456,28 +455,33 @@ runtime_t::team_create(team_t * team)
     assert(nthreads >= 0);
 
     // init priv data
-    team->priv.nthreads = nthreads;
-    team->priv.threads = (thread_t *) mmap(nullptr, sizeof(thread_t) * nthreads, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
-    assert(team->priv.threads);
+    thread_t * threads = (thread_t *) mmap(nullptr, (sizeof(thread_t) + sizeof(thread_state_t)) * nthreads, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+    assert(threads);
+    team->priv.threads       = threads;
+    team->priv.threads_state = (thread_state_t *) (threads + nthreads);
+    team->priv.nthreads      = nthreads;
     assert(xkrt_pagesize == getpagesize()); // if this fails, update 'xkrt_pagesize'
     assert(sizeof(thread_t) % xkrt_pagesize == 0);
     assert(((uintptr_t) team->priv.threads) % xkrt_pagesize == 0);
 
+    static_assert(XKRT_THREAD_UNINITIALIZED == 0);
+    memset(team->priv.threads_state, 0, sizeof(thread_state_t) * nthreads);
+
     // init hierarchy
-    team_create_hierarchy(team);
+    // team_create_hierarchy(team);
 
     // init barrier
     pthread_mutex_init(&team->priv.barrier.mtx, NULL);
     pthread_cond_init(&team->priv.barrier.cond, NULL);
-    if (!team->desc.master_is_member)
+    if (team->desc.master_is_member)
+    {
+        team->priv.barrier.n.store(team->priv.nthreads + 0, std::memory_order_seq_cst);
+    }
+    else
     {
         // if master thread is not member of the team,
         // init with nthreads + 1 to avoid early barrier release
         team->priv.barrier.n.store(team->priv.nthreads + 1, std::memory_order_seq_cst);
-    }
-    else
-    {
-        team->priv.barrier.n.store(team->priv.nthreads + 0, std::memory_order_seq_cst);
     }
 
     // fork threads
@@ -855,12 +859,12 @@ runtime_t::team_join(team_t * team)
     for (int i = begin ; i < team->priv.nthreads ; ++i)
     {
         // waiting for the thread to spawn before joining
-        while ((volatile thread_state_t) team->priv.threads[i].state != XKRT_THREAD_INITIALIZED)
-            ;
-        assert(team->priv.threads[i].state == XKRT_THREAD_INITIALIZED);
+        while ((volatile thread_state_t) team->priv.threads_state[i] != XKRT_THREAD_INITIALIZED)
+            mem_pause();
+
+        assert(team->priv.threads_state[i] == XKRT_THREAD_INITIALIZED);
         int r = pthread_join(team->priv.threads[i].pthread, NULL);
         assert(r == 0);
-        team->priv.threads[i].state = XKRT_THREAD_UNINITIALIZED;
     }
     munmap(team->priv.threads, sizeof(thread_t) * team->priv.nthreads);
 }

@@ -52,6 +52,8 @@
 # include <xkrt/sync/mutex.h>
 # include <xkrt/task/task.hpp>
 
+# include <optional>
+
 XKRT_NAMESPACE_BEGIN
 
 typedef enum    device_state_t : uint8_t
@@ -287,7 +289,7 @@ typedef struct  device_t
         void * buffer,
         size_t size,
         size_t offset,
-        const callback_t & callback
+        const std::optional<callback_t> & callback = std::nullopt
     ) {
         static_assert(
             T == COMMAND_TYPE_FD_READ ||
@@ -313,7 +315,8 @@ typedef struct  device_t
         cmd->file.offset = offset;
 
         /* submit cmd */
-        cmd->push_callback(callback);
+        if (callback)
+            cmd->push_callback(*callback);
         this->offloader_queue_command_commit(thread, queue, cmd);
 
         return cmd;
@@ -332,12 +335,12 @@ typedef struct  device_t
     template <typename HOST_VIEW_T, typename DEVICE_VIEW_T>
     command_t *
     offloader_queue_command_submit_copy(
-        const HOST_VIEW_T        & host_view,
-        const device_global_id_t   dst_device_global_id,
-        const DEVICE_VIEW_T      & dst_device_view,
-        const device_global_id_t   src_device_global_id,
-        const DEVICE_VIEW_T      & src_device_view,
-        const callback_t         & callback
+        const HOST_VIEW_T               & host_view,
+        const device_global_id_t          dst_device_global_id,
+        const DEVICE_VIEW_T             & dst_device_view,
+        const device_global_id_t          src_device_global_id,
+        const DEVICE_VIEW_T             & src_device_view,
+        const std::optional<callback_t> & callback = std::nullopt
     ) {
         assert(this->global_id == dst_device_global_id || this->global_id == src_device_global_id);
 
@@ -437,7 +440,8 @@ typedef struct  device_t
             XKRT_STATS_INCR(queue->stats.transfered, host_view.m * host_view.n * host_view.sizeof_type);
         }
 
-        cmd->push_callback(callback);
+        if (callback)
+            cmd->push_callback(*callback);
         this->offloader_queue_command_commit(thread, queue, cmd);
 
         # undef IS_1D

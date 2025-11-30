@@ -190,8 +190,13 @@ struct team_t
 
         ////////////////////////////////////////////////////////
 
-        // threads
+        /* threads */
         thread_t * threads;
+
+        /* thread states, use for synchronizing */
+        thread_state_t * threads_state;
+
+        /* number of threads */
         int nthreads;
 
         // custom barrier for workstealing
