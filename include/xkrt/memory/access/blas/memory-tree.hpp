@@ -1764,18 +1764,18 @@ next_view:
                 );
                 # endif
 
-                /* step (1) ensure the access is represented in the tree as blocks */
+                /* step (1) ensure the access is represented in the tree as a partition of rects */
                 search.prepare_insert(access);
                 for (Rect & rect : access->rects())
                     this->insert(search, rect);
 
-                /* step (2) find all blocks representing the access */
+                /* step (2) find all rects representing the access */
                 search.prepare_search_partition();
                 for (const Rect & rect : access->rects())
                     this->intersect(search, rect);
                 assert(search.partition.partites.size() >= 1);
 
-                /* step (3) find or allocate continuous memory for that access on that device */
+                /* step (3) find or allocate a contiguous memory view for that access on that device */
                 this->fetch_access_find_allocation(access, device_global_id, search.partition);
 
                 /* step (4) set the access view on the device (that will be used by the kernel) */
