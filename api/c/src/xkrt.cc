@@ -316,6 +316,14 @@ xkrt_task_args(xkrt_task_t * task)
     return TASK_ARGS((task_t *) task);
 }
 
+xkrt_task_t *
+xkrt_task_current(xkrt_runtime_t * runtime)
+{
+    thread_t * tls = thread_t::get_tls();
+    assert(tls);
+    return (xkrt_task_t *) tls->current_task;
+}
+
 // ---------------------------
 // TEAM UTILITIES
 // ---------------------------
@@ -419,8 +427,6 @@ __xkrt_set_accesses(
         }
     }
 }
-
-
 
 void
 xkrt_task_spawn(

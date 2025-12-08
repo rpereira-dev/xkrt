@@ -141,6 +141,8 @@ void xkrt_task_wait(xkrt_runtime_t * runtime);
 
 void * xkrt_task_args(xkrt_task_t * task);
 
+xkrt_task_t * xkrt_task_current(xkrt_runtime_t * runtime);
+
 /* TASK SPAWN */
 
 void xkrt_task_spawn_with_format(

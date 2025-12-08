@@ -779,9 +779,10 @@ struct  runtime_t
         assert(tls);
 
         // create the task
+        constexpr task_flag_bitfield_t detflag = TASK_FLAG_DETACHABLE;
         constexpr task_flag_bitfield_t depflag = ac                  ? TASK_FLAG_DEPENDENT : TASK_FLAG_ZERO;
         constexpr task_flag_bitfield_t molflag = has_split_condition ? TASK_FLAG_MOLDABLE  : TASK_FLAG_ZERO;
-        constexpr task_flag_bitfield_t flags = depflag | molflag;
+        constexpr task_flag_bitfield_t flags = detflag | depflag | molflag;
         constexpr size_t task_size = task_compute_size(flags, ac);
         constexpr size_t args_size = sizeof(f);
 
