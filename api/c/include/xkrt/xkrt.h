@@ -44,6 +44,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 # include <xkrt/driver/driver-module.h>
+# include <xkrt/driver/driver-type.h>
 # include <xkrt/driver/kernel-launcher.h>
 # include <xkrt/driver/power.h>
 # include <xkrt/driver/queue-command-list-counter.h>
@@ -53,7 +54,9 @@ extern "C" {
 # include <xkrt/memory/access/mode.h>
 # include <xkrt/memory/access/scope.h>
 # include <xkrt/memory/access/type.h>
+# include <xkrt/task/flag.h>
 # include <xkrt/task/format.h>
+# include <xkrt/task/state.h>
 
 /* Types */
 typedef void * xkrt_runtime_t;
@@ -125,6 +128,9 @@ void   xkrt_memory_unified_deallocate(xkrt_runtime_t * runtime, xkrt_device_glob
 xkrt_driver_t * xkrt_driver_get(xkrt_runtime_t * runtime, xkrt_driver_type_t type);
 xkrt_device_t * xkrt_device_get(xkrt_runtime_t * runtime, xkrt_device_global_id_t device);
 
+xkrt_driver_t * xkrt_device_driver_get(xkrt_runtime_t * runtime, xkrt_device_t * device);
+xkrt_device_driver_id_t xkrt_device_driver_id_get(xkrt_runtime_t * runtime, xkrt_device_t * device);
+
 unsigned int xkrt_get_ndevices    (xkrt_runtime_t * runtime);
 unsigned int xkrt_get_ndevices_max(xkrt_runtime_t * runtime);
 
@@ -139,11 +145,30 @@ void xkrt_task_enqueue(xkrt_runtime_t * runtime, xkrt_task_t * task);
 
 void xkrt_task_wait(xkrt_runtime_t * runtime);
 
-void * xkrt_task_args(xkrt_task_t * task);
+/* utilities to retrieve task properties */
+void          * xkrt_task_args(xkrt_task_t * task);
+xkrt_access_t * xkrt_task_accesses(xkrt_task_t * task);
+
+/* task accesses utilities */
+xkrt_access_t * xkrt_task_access(xkrt_task_t * task, xkrt_task_access_counter_type_t access_id);
+void          * xkrt_task_access_replica(xkrt_task_t * task, xkrt_task_access_counter_type_t access_id);
 
 xkrt_task_t * xkrt_task_current(xkrt_runtime_t * runtime);
 
 /* TASK SPAWN */
+
+void xkrt_task_spawn_generic(
+    xkrt_runtime_t * runtime,
+    const xkrt_device_global_id_t device_global_id,
+    const xkrt_task_flag_bitfield_t flags,
+    const xkrt_task_format_id_t fmtid,
+    const void * args,
+    const size_t args_size,
+    const xkrt_access_t * accesses,
+    const xkrt_task_access_counter_type_t naccesses,
+    const xkrt_task_access_counter_type_t ocr_access,
+    const xkrt_task_wait_counter_type_t detachable_counter_initial
+);
 
 void xkrt_task_spawn_with_format(
     xkrt_runtime_t * runtime,
@@ -169,10 +194,11 @@ void xkrt_task_spawn(
     void * user_data
 );
 
-void xkrt_task_detachable_kernel_launch(
+void xkrt_task_kernel_launch(
     xkrt_runtime_t * runtime,
     xkrt_device_t * device,
     xkrt_task_t * task,
+    int synchronous,
     xkrt_kernel_launcher_t launcher
 );
 

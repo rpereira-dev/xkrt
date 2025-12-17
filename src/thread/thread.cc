@@ -727,6 +727,17 @@ runtime_t::team_parallel_for(
     team_t * team,
     team_parallel_for_func_t f
 ) {
+    // TODO: this should be removed, so any team can run parallel for
+    // but its rough to implement efficiently and coherently with the rest.
+    // We want team capabilities to do fast:
+    //  1 - wake up all threads (parallel for)
+    //  2 - wake up 1 thread randomly
+    //  3 - wake up 1 specific thread (after pushing to its queue)
+    //
+    // Futex can do (1) and (2) fast, but not (3)
+    // To do (3), currently each thread from implicit device teams sleeps on their own condition
+    assert(team->desc.routine == XKRT_TEAM_ROUTINE_PARALLEL_FOR);
+
     // register the function to run on each thread
     uint32_t index = team->priv.parallel_for.index;
     team->priv.parallel_for.f[index % XKRT_TEAM_PARALLEL_FOR_MAX_FUNC] = f;

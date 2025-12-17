@@ -192,6 +192,9 @@ runtime_t::memory_copy_async(
         task_dep_info_t * dep = TASK_DEP_INFO(task);
         new (dep) task_dep_info_t(ac);
 
+        task_det_info_t * det = TASK_DET_INFO(task);
+        new (det) task_det_info_t(ac);
+
         task_dev_info_t * dev = TASK_DEV_INFO(task);
         new (dev) task_dev_info_t(device_global_id, UNSPECIFIED_TASK_ACCESS);
 

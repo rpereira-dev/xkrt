@@ -144,11 +144,14 @@ file_async(
         args->buffer = (void *) a;
         args->size   = (size_t) (b - a);
 
-        task_dev_info_t * dev = TASK_DEV_INFO(task);
-        new (dev) task_dev_info_t(HOST_DEVICE_GLOBAL_ID, UNSPECIFIED_TASK_ACCESS);
-
         task_dep_info_t * dep = TASK_DEP_INFO(task);
         new (dep) task_dep_info_t(ac);
+
+        task_det_info_t * det = TASK_DET_INFO(task);
+        new (det) task_det_info_t(0);
+
+        task_dev_info_t * dev = TASK_DEV_INFO(task);
+        new (dev) task_dev_info_t(HOST_DEVICE_GLOBAL_ID, UNSPECIFIED_TASK_ACCESS);
 
         # if XKRT_SUPPORT_DEBUG
         snprintf(task->label, sizeof(task->label), T == COMMAND_TYPE_FD_READ ? "fread" : "fwrite");

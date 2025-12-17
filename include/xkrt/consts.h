@@ -86,6 +86,8 @@
 /* depth of io uring queues */
 # define XKRT_IO_URING_DEPTH (1024)
 
+// TODO: using smaller type here can improve perf
+
 typedef uint8_t xkrt_device_driver_id_t;
 xkstatic_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(xkrt_device_driver_id_t)*8)));
 
@@ -95,24 +97,14 @@ xkstatic_assert(XKRT_DEVICES_MAX <= (1UL << (sizeof(xkrt_device_global_id_t)*8))
 typedef uint16_t xkrt_device_global_id_bitfield_t;
 xkstatic_assert(XKRT_DEVICES_MAX <= sizeof(xkrt_device_global_id_bitfield_t)*8);
 
-// TODO: using smaller type here can improve perf
 typedef uint16_t xkrt_task_wait_counter_type_t;
 typedef uint16_t xkrt_task_access_counter_type_t;
 xkstatic_assert(TASK_MAX_ACCESSES < (1 << 8*sizeof(xkrt_task_access_counter_type_t)));
 
-typedef enum    xkrt_driver_type_t
-{
-    XKRT_DRIVER_TYPE_HOST   = 0,  // cpu driver
-    XKRT_DRIVER_TYPE_CUDA   = 1,  // cuda devices driver
-    XKRT_DRIVER_TYPE_ZE     = 2,  // level zero devices driver
-    XKRT_DRIVER_TYPE_CL     = 3,  // opencl driver
-    XKRT_DRIVER_TYPE_HIP    = 4,  // hip driver
-    XKRT_DRIVER_TYPE_SYCL   = 5,  // sycl driver
-    XKRT_DRIVER_TYPE_MAX    = 6
-}               xkrt_driver_type_t;
+typedef uint16_t task_wait_counter_type_t;
 
-typedef uint8_t xkrt_driver_type_bitfield_t;
-xkstatic_assert(XKRT_DRIVER_TYPE_MAX <= sizeof(xkrt_driver_type_bitfield_t)*8);
+typedef uint16_t task_access_counter_t;
+xkstatic_assert(TASK_MAX_ACCESSES < (1 << 8*sizeof(task_access_counter_t)));
 
 typedef uint8_t xkrt_command_callback_index_t;
 xkstatic_assert(XKRT_COMMAND_CALLBACKS_MAX < (1 << 8*sizeof(xkrt_command_callback_index_t)));

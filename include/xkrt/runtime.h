@@ -460,9 +460,7 @@ struct  runtime_t
     void memory_noncoherent_alloc(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
     /**
-     * @brief Asynchronously make memory replica coherent on a device
-     *
-     * Spawns empty tasks to trigger coherency protocol
+     * @brief Spawn an empty task with a read access on the passed segment
      *
      * @param device_global_id Global device identifier
      * @param ptr Host memory pointer
@@ -471,7 +469,7 @@ struct  runtime_t
     void memory_coherent_async(device_global_id_t device_global_id, void * ptr, size_t size);
 
     /**
-     * @brief Asynchronously make matrix replica coherent on a device
+     * @brief Spawn an empty task with a read access on the passed matrix
      *
      * @param device_global_id Global device identifier
      * @param storage Matrix storage layout
@@ -482,6 +480,28 @@ struct  runtime_t
      * @param sizeof_type Size of each element in bytes
      */
     void memory_coherent_async(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
+
+    /**
+     * @brief Spawn an empty undeferred task with a read access on the passed segment
+     *
+     * @param device_global_id Global device identifier
+     * @param ptr Host memory pointer
+     * @param size Size in bytes
+     */
+    void memory_coherent_sync(device_global_id_t device_global_id, void * ptr, size_t size);
+
+    /**
+     * @brief Spawn an empty undeferred task with a read access on the passed matrix
+     *
+     * @param device_global_id Global device identifier
+     * @param storage Matrix storage layout
+     * @param ptr Host matrix pointer
+     * @param ld Leading dimension
+     * @param m Number of rows
+     * @param n Number of columns
+     * @param sizeof_type Size of each element in bytes
+     */
+    void memory_coherent_sync(device_global_id_t device_global_id, matrix_storage_t storage, void * ptr, size_t ld, size_t m, size_t n, size_t sizeof_type);
 
     /**
      * @brief Hint to unified memory system about future device access
@@ -779,10 +799,9 @@ struct  runtime_t
         assert(tls);
 
         // create the task
-        constexpr task_flag_bitfield_t detflag = TASK_FLAG_DETACHABLE;
         constexpr task_flag_bitfield_t depflag = ac                  ? TASK_FLAG_DEPENDENT : TASK_FLAG_ZERO;
         constexpr task_flag_bitfield_t molflag = has_split_condition ? TASK_FLAG_MOLDABLE  : TASK_FLAG_ZERO;
-        constexpr task_flag_bitfield_t flags = detflag | depflag | molflag;
+        constexpr task_flag_bitfield_t flags = depflag | molflag;
         constexpr size_t task_size = task_compute_size(flags, ac);
         constexpr size_t args_size = sizeof(f);
 
@@ -1272,13 +1291,20 @@ struct  runtime_t
 
     /**
      *  Single kernel launcher.
+     *
      *  Submit a kernel launch command to the device, then return.
+     *  The 'launch' is executed by a thread of the device implicit team.
+     *  If 'synchronous' is set to true, the runtime the kernel to be executed after returning from the launcher (i.e., synchronous execution).
+     *  Else, it expect the launcher to associate an event to the kernel completion. (i.e., executed asynchronously)
+     *  The task must be detachable, and completion is associated with the command completion.
+     *
      *  'device' is the targeted device
      *  'task' is the currently executing task
+     *  'attach_event' if the launcher will attach an event to the command
      *  'launcher' is the kernel launcher
-     *  'args' is the argument passed to the kernel command argument
      */
-    void task_detachable_kernel_launch(
+    template <bool synchronous>
+    void task_kernel_launch(
         device_t * device,
         task_t * task,
         kernel_launcher_t launcher

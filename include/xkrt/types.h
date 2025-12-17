@@ -46,19 +46,25 @@
 # include <xkrt/driver/power.h>
 # include <xkrt/driver/queue-command-list-counter.h>
 # include <xkrt/driver/queue-type.h>
+# include <xkrt/driver/driver-type.h>
 # include <xkrt/memory/access/blas/matrix-storage.h>
 # include <xkrt/memory/access/concurrency.h>
 # include <xkrt/memory/access/mode.h>
 # include <xkrt/memory/access/scope.h>
 # include <xkrt/memory/access/type.h>
 # include <xkrt/namespace.h>
+# include <xkrt/task/flag.h>
 # include <xkrt/task/format.h>
+# include <xkrt/task/state.h>
 
 XKRT_NAMESPACE_BEGIN
 
 typedef xkrt_task_wait_counter_type_t           task_wait_counter_type_t;
 typedef std::atomic<task_wait_counter_type_t>   task_wait_counter_t;
 typedef xkrt_task_access_counter_type_t         task_access_counter_t;
+typedef xkrt_task_flags_t                       task_flags_t;
+typedef xkrt_task_state_t                       task_state_t;
+typedef xkrt_task_flag_bitfield_t               task_flag_bitfield_t;
 
 typedef xkrt_device_driver_id_t                 device_driver_id_t;
 typedef xkrt_device_global_id_t                 device_global_id_t;

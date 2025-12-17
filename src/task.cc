@@ -168,13 +168,10 @@ __task_complete(
         task->state.value == TASK_STATE_EXECUTING       ||
         task->state.value == TASK_STATE_READY
     );
-    if (task->flags & (TASK_FLAG_DETACHABLE | TASK_FLAG_DEPENDENT))
-    {
-        assert(
-            ((task->flags & TASK_FLAG_DEPENDENT)  && (TASK_DEP_INFO(task)->wc.load() == 0)) ||
-            ((task->flags & TASK_FLAG_DETACHABLE) && (TASK_DET_INFO(task)->wc.load() == 0))
-        );
-    }
+    if (task->flags & TASK_FLAG_DEPENDENT)
+        assert(TASK_DEP_INFO(task)->wc.load() == 0);
+    if (task->flags & TASK_FLAG_DETACHABLE)
+        assert(TASK_DET_INFO(task)->wc.load() == 0);
 
     // transition the task
     SPINLOCK_LOCK(task->state.lock);

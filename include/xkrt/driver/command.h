@@ -82,8 +82,8 @@ XKRT_NAMESPACE_BEGIN
         //   command+t * cmd
         //   queue_command_list_counter_t idx
         void (*launch)();
-        void * runtime; // TODO: this should be known implicitly, currently dupplicating on all kernel instr :/
-        void * device;  // TODO: this should be known implicitly, currently dupplicating on all kernel instr :/
+        void * runtime;     // TODO: this should be known implicitly, currently dupplicating on all kernel instr :/
+        void * device;      // TODO: this should be known implicitly, currently dupplicating on all kernel instr :/
         void * task;
     }               queue_command_kernel_t;
 
@@ -100,6 +100,7 @@ XKRT_NAMESPACE_BEGIN
     typedef struct  command_t
     {
         command_type_t type;
+        bool synchronous;
         union
         {
             queue_command_copy_1D_t   copy_1D;

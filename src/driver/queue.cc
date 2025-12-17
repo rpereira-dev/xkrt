@@ -141,22 +141,6 @@ queue_deinit(queue_t * queue)
     free(queue->ready.cmd);
 }
 
-command_t *
-queue_t::command_new(
-    const command_type_t itype
-) {
-    if (this->ready.is_full())
-        return NULL;
-
-    assert(this->ready.pos.w >= 0 && this->ready.pos.w < this->ready.capacity);
-    command_t * cmd = this->ready.cmd + this->ready.pos.w;
-    cmd->type = itype;
-    cmd->completed = false;
-    cmd->callbacks.n = 0;
-
-    return cmd;
-}
-
 int
 queue_t::commit(command_t * cmd)
 {
@@ -185,10 +169,10 @@ queue_t::launch_ready_commands(void)
     if (this->ready.is_empty())
         return 0;
 
-    int err = 0;
+    int r = 0;
 
     /* for each ready command */
-    const queue_command_list_counter_t p = this->ready.iterate([this, &err] (queue_command_list_counter_t p) {
+    const queue_command_list_counter_t p = this->ready.iterate([this, &r] (queue_command_list_counter_t p) {
 
         /* if the pending queue is full, we cannot start more commands */
         if (this->pending.is_full())
@@ -208,12 +192,12 @@ queue_t::launch_ready_commands(void)
             this->ready.pos.w
         );
 
+        /* launch command */
         switch (cmd->type)
         {
             /* kernel commands are launched by the command itself, not the driver */
             case (COMMAND_TYPE_KERN):
             {
-                err = EINPROGRESS;
                 ((kernel_launcher_t) cmd->kern.launch)(cmd->kern.runtime, cmd->kern.device, cmd->kern.task, this, cmd, p);
                 break ;
             }
@@ -236,48 +220,50 @@ queue_t::launch_ready_commands(void)
             case (COMMAND_TYPE_FD_WRITE):
             default:
             {
-                err = this->f_command_launch(this, cmd, p);
-                break ;
+                int err = this->f_command_launch(this, cmd, p);
+                switch (err)
+                {
+                    case (0):
+                    case (EINPROGRESS):
+                    {
+                        break ;
+                    }
+
+                    case (ENOSYS):
+                    {
+                        LOGGER_FATAL("Command `%s` not implemented", command_type_to_str(cmd->type));
+                        break ;
+                    }
+
+                    default:
+                    {
+                        LOGGER_FATAL("Unknown error after decoding command");
+                        break ;
+                    }
+                }
             }
         }
 
-        /* retrieve error code */
-        switch (err)
+        /* if the command is synchronous, it is completed now */
+        if (cmd->synchronous)
         {
-            case (0):
-            {
-                LOGGER_FATAL("Instructions completing early not supported");
-                break ;
-            }
+            this->complete_command(p);
+        }
+        /* else, save to pending list */
+        else
+        {
+            /* the pending queue must not be full at that point */
+            assert(!this->pending.is_full());
+            const queue_command_list_counter_t wp = this->pending.pos.w;
+            this->pending.pos.w = (this->pending.pos.w + 1) % this->pending.capacity;
 
-            /* if in progress, move from the ready to the pending queue */
-            case (EINPROGRESS):
-            {
-                /* the pending queue must not be full at that point */
-                assert(!this->pending.is_full());
-                const queue_command_list_counter_t wp = this->pending.pos.w;
-                this->pending.pos.w = (this->pending.pos.w + 1) % this->pending.capacity;
+            memcpy(
+                (void *) (this->pending.cmd + wp),
+                (void *) (this->ready.cmd   + p),
+                sizeof(command_t)
+            );
 
-                memcpy(
-                    (void *) (this->pending.cmd + wp),
-                    (void *) (this->ready.cmd   + p),
-                    sizeof(command_t)
-                );
-
-                break ;
-            }
-
-            case (ENOSYS):
-            {
-                LOGGER_FATAL("Instruction `%s` not implemented",
-                        command_type_to_str(cmd->type));
-                break ;
-            }
-
-            default:
-            {
-                LOGGER_FATAL("Unknown error after decoding command");
-            }
+            ++r;
         }
 
         /* continue */
@@ -294,7 +280,7 @@ queue_t::launch_ready_commands(void)
 
     LOGGER_DEBUG("ready.is_empty() = %d, pending.is_empty() = %d", this->ready.is_empty(), this->pending.is_empty());
 
-    return err;
+    return r;
 }
 
 // TODO : allow out of order completion
