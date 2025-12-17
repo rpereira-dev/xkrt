@@ -55,88 +55,20 @@
 # include <xkrt/memory/access/dependency-domain.hpp>
 # include <xkrt/memory/cache-line-size.hpp>
 # include <xkrt/sync/spinlock.h>
+# include <xkrt/task/flag.h>
 # include <xkrt/task/format.h>
+# include <xkrt/task/state.h>
 
 XKRT_NAMESPACE_BEGIN
-
-// TODO: using smaller type here can improve perf
-typedef uint16_t task_wait_counter_type_t;
-typedef std::atomic<task_wait_counter_type_t> task_wait_counter_t;
-
-typedef uint16_t task_access_counter_t;
-static_assert(TASK_MAX_ACCESSES < (1 << 8*sizeof(task_access_counter_t)));
-
-/* task states */
-typedef enum    task_state_t : uint8_t
-{
-    TASK_STATE_ALLOCATED        = 0,    // task_t is allocated
-    TASK_STATE_READY            = 1,    // task_t data can be fetched
-    TASK_STATE_DATA_FETCHING    = 2,    // task_t data is being fetched
-    TASK_STATE_DATA_FETCHED     = 3,    // task_t data is fetched, routine can execute
-    TASK_STATE_EXECUTING        = 4,    // task_t routine executes
-    TASK_STATE_COMPLETED        = 5,    // task_t completed, dependences can be resolved (kernel executed)
-    TASK_STATE_DEALLOCATED      = 6,    // task_t is deallocated (virtual state, never set)
-    TASK_STATE_MAX              = 7,
-}               task_state_t;
-
-static inline const char *
-task_state_to_str(task_state_t state)
-{
-    switch (state)
-    {
-        case (TASK_STATE_ALLOCATED):
-            return "allocated";
-        case (TASK_STATE_READY):
-            return "ready";
-        case (TASK_STATE_DATA_FETCHING):
-            return "fetching";
-        case (TASK_STATE_DATA_FETCHED):
-            return "fetched";
-        case (TASK_STATE_EXECUTING):
-            return "executing";
-        case (TASK_STATE_COMPLETED):
-            return "completed";
-        case (TASK_STATE_DEALLOCATED):
-            return "deallocated";
-        default:
-            return "unk";
-    }
-}
 
 # if XKRT_SUPPORT_DEBUG
 #  define LOGGER_DEBUG_TASK_STATE(task)                                                                     \
     do {                                                                                                    \
-        LOGGER_DEBUG("task `%s` of addr `%p` is now in state `%s`", task->label, task, task_state_to_str(task->state.value));  \
+        LOGGER_DEBUG("task `%s` of addr `%p` is now in state `%s`", task->label, task, xkrt_task_state_to_str(task->state.value));  \
     } while (0)
 # else
 #  define LOGGER_DEBUG_TASK_STATE(task)
 # endif
-
-/**
- *  Task flags. Constraints:
- *      - cannot have both TASK_FLAG_DOMAIN and TASK_FLAG_DEVICE
- */
-typedef enum    task_flags_t
-{
-    TASK_FLAG_ZERO          = 0,
-    TASK_FLAG_DEPENDENT     = (1 << 0), // may have dependencies
-    TASK_FLAG_DETACHABLE    = (1 << 1), // completion is associated with the completion of events
-    TASK_FLAG_DEVICE        = (1 << 2), // may execute on a device
-    TASK_FLAG_DOMAIN        = (1 << 3), // may have dependent children tasks - in such case, it will have a dependency and a memory domain
-    TASK_FLAG_MOLDABLE      = (1 << 4), // the task may be split
-
-    // support me in the future
-  // TASK_FLAG_CANCEL        = (1 << 5), // cancelled
-  // TASK_FLAG_UNDEFERED     = (1 << X), // suspend the current task execution until that task completed
-  // TASK_FLAG_PERSISTENT    = (1 << Y), // persistence
-
-    TASK_FLAG_REQUEUE       = (1 << 7), // will be re-queued after returning from its body
-    TASK_FLAG_MAX           = (1 << 8)
-}               task_flags_t;
-
-// if test fails increase size of 'task_flag_bitfield_t'
-typedef uint8_t task_flag_bitfield_t;
-static_assert(TASK_FLAG_MAX <= (1 << 8*sizeof(task_flag_bitfield_t)));
 
 typedef struct  task_t
 {
@@ -202,7 +134,8 @@ typedef struct  task_dep_info_t
 typedef struct  task_det_info_t
 {
     task_wait_counter_t wc;
-    task_det_info_t() : wc(0) {}
+    task_det_info_t()                               : task_det_info_t(0) {}
+    task_det_info_t(task_wait_counter_type_t value) : wc(value)          {}
 }               task_det_info_t;
 
 typedef struct  task_dev_info_t
@@ -306,7 +239,7 @@ task_get_extra_size(const task_flag_bitfield_t flags)
             return                                                   0 +                            0 +      sizeof(task_det_info_t) +                            0;  // 1.0.0.1.0
 
         case (               TASK_FLAG_ZERO |           TASK_FLAG_ZERO |               TASK_FLAG_ZERO |         TASK_FLAG_DETACHABLE |         TASK_FLAG_DEPENDENT):
-            return                                                   0 +                            0 +                          0x0 +      sizeof(task_dep_info_t);  // 1.0.0.1.1 - dep and det share 'wc'
+            return                                                   0 +                            0 +      sizeof(task_det_info_t) +      sizeof(task_dep_info_t);  // 1.0.0.1.1
 
         case (               TASK_FLAG_ZERO |           TASK_FLAG_ZERO |             TASK_FLAG_DEVICE |               TASK_FLAG_ZERO |              TASK_FLAG_ZERO):
             return                                                   0 +      sizeof(task_dev_info_t) +                            0 +                            0;  // 1.0.1.0.0
@@ -318,7 +251,7 @@ task_get_extra_size(const task_flag_bitfield_t flags)
             return                                                   0 +      sizeof(task_dev_info_t) +      sizeof(task_det_info_t) +                            0;  // 1.0.1.1.0
 
         case (               TASK_FLAG_ZERO |           TASK_FLAG_ZERO |             TASK_FLAG_DEVICE |         TASK_FLAG_DETACHABLE |         TASK_FLAG_DEPENDENT):
-            return                                                   0 +      sizeof(task_dev_info_t) +                          0x0 +      sizeof(task_dep_info_t);  // 1.0.1.1.1 - dep and det share 'wc'
+            return                                                   0 +      sizeof(task_dev_info_t) +      sizeof(task_det_info_t) +      sizeof(task_dep_info_t);  // 1.0.1.1.1
 
         case (               TASK_FLAG_ZERO |         TASK_FLAG_DOMAIN |               TASK_FLAG_ZERO |               TASK_FLAG_ZERO |              TASK_FLAG_ZERO):
             return                             sizeof(task_dom_info_t) +                            0 +                            0 +                            0;  // 1.1.0.0.0
@@ -330,7 +263,7 @@ task_get_extra_size(const task_flag_bitfield_t flags)
             return                             sizeof(task_dom_info_t) +                            0 +      sizeof(task_det_info_t) +                            0;  // 1.1.0.1.0
 
         case (               TASK_FLAG_ZERO |         TASK_FLAG_DOMAIN |               TASK_FLAG_ZERO |         TASK_FLAG_DETACHABLE |         TASK_FLAG_DEPENDENT):
-            return                             sizeof(task_dom_info_t) +                            0 +                          0x0 +      sizeof(task_dep_info_t);  // 1.1.0.1.1 - dep and det share 'wc'
+            return                             sizeof(task_dom_info_t) +                            0 +      sizeof(task_det_info_t) +      sizeof(task_dep_info_t);  // 1.1.0.1.1
 
         // wtih moldability
         case (          TASK_FLAG_MOLDABLE |            TASK_FLAG_ZERO |               TASK_FLAG_ZERO |               TASK_FLAG_ZERO |              TASK_FLAG_ZERO):
@@ -343,7 +276,7 @@ task_get_extra_size(const task_flag_bitfield_t flags)
             return  sizeof(task_mol_info_t) +                        0 +                            0 +      sizeof(task_det_info_t) +                            0;  // 1.0.0.1.0
 
         case (           TASK_FLAG_MOLDABLE |           TASK_FLAG_ZERO |               TASK_FLAG_ZERO |         TASK_FLAG_DETACHABLE |         TASK_FLAG_DEPENDENT):
-            return  sizeof(task_mol_info_t) +                        0 +                            0 +                          0x0 +      sizeof(task_dep_info_t);  // 1.0.0.1.1 - dep and det share 'wc'
+            return  sizeof(task_mol_info_t) +                        0 +                            0 +      sizeof(task_det_info_t) +      sizeof(task_dep_info_t);  // 1.0.0.1.1
 
         case (           TASK_FLAG_MOLDABLE |           TASK_FLAG_ZERO |             TASK_FLAG_DEVICE |               TASK_FLAG_ZERO |              TASK_FLAG_ZERO):
             return  sizeof(task_mol_info_t) +                        0 +      sizeof(task_dev_info_t) +                            0 +                            0;  // 1.0.1.0.0
@@ -355,7 +288,7 @@ task_get_extra_size(const task_flag_bitfield_t flags)
             return  sizeof(task_mol_info_t) +                        0 +      sizeof(task_dev_info_t) +      sizeof(task_det_info_t) +                            0;  // 1.0.1.1.0
 
         case (           TASK_FLAG_MOLDABLE |           TASK_FLAG_ZERO |             TASK_FLAG_DEVICE |         TASK_FLAG_DETACHABLE |         TASK_FLAG_DEPENDENT):
-            return  sizeof(task_mol_info_t) +                        0 +      sizeof(task_dev_info_t) +                          0x0 +      sizeof(task_dep_info_t);  // 1.0.1.1.1 - dep and det share 'wc'
+            return  sizeof(task_mol_info_t) +                        0 +      sizeof(task_dev_info_t) +      sizeof(task_det_info_t) +      sizeof(task_dep_info_t);  // 1.0.1.1.1
 
         case (           TASK_FLAG_MOLDABLE |         TASK_FLAG_DOMAIN |               TASK_FLAG_ZERO |               TASK_FLAG_ZERO |              TASK_FLAG_ZERO):
             return  sizeof(task_mol_info_t) +  sizeof(task_dom_info_t) +                            0 +                            0 +                            0;  // 1.1.0.0.0
@@ -367,7 +300,7 @@ task_get_extra_size(const task_flag_bitfield_t flags)
             return  sizeof(task_mol_info_t) +  sizeof(task_dom_info_t) +                            0 +      sizeof(task_det_info_t) +                            0;  // 1.1.0.1.0
 
         case (           TASK_FLAG_MOLDABLE |         TASK_FLAG_DOMAIN |               TASK_FLAG_ZERO |         TASK_FLAG_DETACHABLE |         TASK_FLAG_DEPENDENT):
-            return  sizeof(task_mol_info_t) +  sizeof(task_dom_info_t) +                            0 +                          0x0 +      sizeof(task_dep_info_t);  // 1.1.0.1.1 - dep and det share 'wc'
+            return  sizeof(task_mol_info_t) +  sizeof(task_dom_info_t) +                            0 +      sizeof(task_det_info_t) +      sizeof(task_dep_info_t);  // 1.1.0.1.1
 
 
 
@@ -393,10 +326,10 @@ task_compute_size(const task_flag_bitfield_t flags, const task_access_counter_t 
 
 /**
  *  In case of a task with all flags, its memory is
- *   ________________________________________________________________________________
- *  |                                                                                |
- *  | task_t | task_dep_info_t | task_dev_info_t | task_dom_info_t | accesses | args |
- *  |________________________________________________________________________________|
+ *   ___________________________________________________________________________________________________________________
+ *  |                                                                                                                  |
+ *  | task_t | task_dep_info_t | task_det_info | task_dev_info_t | task_dom_info_t | task_mol_info_t | accesses | args |
+ *  |__________________________________________________________________________________________________________________|
  *
  * if some flags are removed, builing blocks are removed
  */
@@ -415,6 +348,8 @@ static inline task_det_info_t *
 TASK_DET_INFO(const task_t * task)
 {
     assert(task->flags & TASK_FLAG_DETACHABLE);
+    if (task->flags & TASK_FLAG_DEPENDENT)
+        return (task_det_info_t *) (TASK_DEP_INFO(task) + 1);
     return (task_det_info_t *) (task + 1);
 }
 
@@ -423,10 +358,10 @@ TASK_DEV_INFO(const task_t * task)
 {
     assert(  task->flags & TASK_FLAG_DEVICE);
     assert(!(task->flags & TASK_FLAG_DOMAIN));  // device tasks cannot have dependency domains
-    if (task->flags & TASK_FLAG_DEPENDENT)
-        return (task_dev_info_t *) (TASK_DEP_INFO(task) + 1);
-    else if (task->flags & TASK_FLAG_DETACHABLE)
+    if (task->flags & TASK_FLAG_DETACHABLE)
         return (task_dev_info_t *) (TASK_DET_INFO(task) + 1);
+    else if (task->flags & TASK_FLAG_DEPENDENT)
+        return (task_dev_info_t *) (TASK_DEP_INFO(task) + 1);
     else
         return (task_dev_info_t *) (task + 1);
 }
@@ -436,10 +371,10 @@ TASK_DOM_INFO(const task_t * task)
 {
     assert(  task->flags & TASK_FLAG_DOMAIN);
     assert(!(task->flags & TASK_FLAG_DEVICE));  // device tasks cannot have dependency domains
-    if (task->flags & TASK_FLAG_DEPENDENT)
-        return (task_dom_info_t *) (TASK_DEP_INFO(task) + 1);
-    else if (task->flags & TASK_FLAG_DETACHABLE)
+    if (task->flags & TASK_FLAG_DETACHABLE)
         return (task_dom_info_t *) (TASK_DET_INFO(task) + 1);
+    else if (task->flags & TASK_FLAG_DEPENDENT)
+        return (task_dom_info_t *) (TASK_DEP_INFO(task) + 1);
     else
         return (task_dom_info_t *) (task + 1);
 }
@@ -447,14 +382,16 @@ TASK_DOM_INFO(const task_t * task)
 static inline task_mol_info_t *
 TASK_MOL_INFO(const task_t * task)
 {
-    assert(  task->flags & TASK_FLAG_MOLDABLE);
-    assert(  task->flags & TASK_FLAG_DEPENDENT);    // moldable tasks must have accesses
+    assert(task->flags & TASK_FLAG_MOLDABLE);
+    assert(task->flags & TASK_FLAG_DEPENDENT);    // moldable tasks must have accesses
     if (task->flags & TASK_FLAG_DOMAIN)
         return (task_mol_info_t *) (TASK_DOM_INFO(task) + 1);
-    else if (task->flags & TASK_FLAG_DEPENDENT)
-        return (task_mol_info_t *) (TASK_DEP_INFO(task) + 1);
+    else if (task->flags & TASK_FLAG_DEVICE)
+        return (task_mol_info_t *) (TASK_DEV_INFO(task) + 1);
     else if (task->flags & TASK_FLAG_DETACHABLE)
         return (task_mol_info_t *) (TASK_DET_INFO(task) + 1);
+    else if (task->flags & TASK_FLAG_DEPENDENT)
+        return (task_mol_info_t *) (TASK_DEP_INFO(task) + 1);
     else
         return (task_mol_info_t *) (task + 1);
 }

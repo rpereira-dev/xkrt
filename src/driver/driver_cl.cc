@@ -592,16 +592,10 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
 ) {
     assert(iqueue);
 
+    queue_cl_t * queue = (queue_cl_t *) iqueue;
     int r = 0;
 
-    iqueue->pending.iterate([&iqueue, &r] (queue_command_list_counter_t p) {
-
-        command_t * cmd = iqueue->pending.cmd + p;
-        if (cmd->completed)
-            return true;
-
-        queue_cl_t * queue = (queue_cl_t *) iqueue;
-        cl_event event = queue->cl.events[p];
+    iqueue->pending.progress([&iqueue, &r] (command_t * cmd, queue_command_list_counter_t p) {
 
         switch (cmd->type)
         {
@@ -616,6 +610,8 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
             case (COMMAND_TYPE_COPY_D2D_2D):
             {
                 /* poll event */
+                cl_event event = queue->cl.events[p];
+
                 cl_int event_status;
                 CL_SAFE_CALL(clGetEventInfo(event, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &event_status, NULL));
                 if (event_status == CL_COMPLETE)

@@ -362,7 +362,7 @@ device_t::offloader_queue_commands_launch(
     int tid,
     const queue_type_t qtype
 ) {
-    int err = 0;
+    int r = 0;
 
     unsigned int bgn = (qtype == XKRT_QUEUE_TYPE_ALL) ?                    0 : qtype;
     unsigned int end = (qtype == XKRT_QUEUE_TYPE_ALL) ? XKRT_QUEUE_TYPE_ALL : qtype + 1;
@@ -374,36 +374,12 @@ device_t::offloader_queue_commands_launch(
             assert(queue);
 
             queue->lock();
-            int r = queue->launch_ready_commands();
+            r += queue->launch_ready_commands();
             queue->unlock();
-
-            switch (r)
-            {
-                case (0):
-                    break ;
-
-                case (EINPROGRESS):
-                {
-                    err = EINPROGRESS;
-                    break ;
-                }
-
-                case (ENOSYS):
-                {
-                    LOGGER_FATAL("Not implemented");
-                    break ;
-                }
-
-                default:
-                {
-                    LOGGER_FATAL("Driver implementation of `queue_command_launch` returned an unknown error code");
-                    break ;
-                }
-            }
         }
     }
 
-    return err;
+    return r;
 }
 
 void
@@ -428,10 +404,7 @@ device_t::offloader_queue_next(
 int
 device_t::offloader_launch(int tid)
 {
-    int err = this->offloader_queue_commands_launch(tid, XKRT_QUEUE_TYPE_ALL);
-    assert((err == 0) || (err == EINPROGRESS));
-
-    return err;
+    return this->offloader_queue_commands_launch(tid, XKRT_QUEUE_TYPE_ALL);
 }
 
 int
@@ -450,11 +423,11 @@ device_t::offloader_wait_random_command(int tid)
 
     // randomly pick a type and a queue
     static_assert(XKRT_QUEUE_TYPE_ALL > 0);
-    unsigned int rtype   = rand_r(&seed);
+    unsigned int rtype  = rand_r(&seed);
     unsigned int rqueue = rand_r(&seed);
-    for (unsigned int itype = 0 ; itype < XKRT_QUEUE_TYPE_ALL ; ++itype)
+    for (unsigned int ctype = 0 ; ctype < XKRT_QUEUE_TYPE_ALL ; ++ctype)
     {
-        unsigned int s = (rtype + itype) % XKRT_QUEUE_TYPE_ALL;
+        unsigned int s = (rtype + ctype) % XKRT_QUEUE_TYPE_ALL;
 
         queue_t * queue = NULL;
         for (int iqueue = 0 ; iqueue < this->count[s] ; ++iqueue)
@@ -507,72 +480,4 @@ device_t::offloader_queue_command_commit(
 
     /* wakeup device worker thread */
     thread->wakeup();
-}
-
-void
-device_t::offloader_queue_command_new(
-    const queue_type_t qtype,       /* IN  */
-          thread_t ** pthread,      /* OUT */
-          queue_t ** pqueue,        /* OUT */
-    const command_type_t itype,     /* IN  */
-          command_t ** pcmd         /* OUT */
-) {
-    assert(pqueue);
-    assert(pcmd);
-
-    /* retrieve native queue */
-    this->offloader_queue_next(qtype, pthread, pqueue);
-    assert(*pthread);
-    assert(*pqueue);
-    assert((*pqueue)->type == qtype);
-
-    /* allocate the command */
-    do {
-        (*pqueue)->lock();
-        (*pcmd) = (*pqueue)->command_new(itype);
-        if (*pcmd)
-            break ;
-        (*pqueue)->unlock();
-
-        LOGGER_FATAL("Stream is full, increase 'XKRT_OFFLOADER_CAPACITY' or implement support for full-queue management yourself :-) (sorry)");
-
-    } while (1);
-
-    /* queue is locked, will be unlocked in the commit */
-}
-
-command_t *
-device_t::offloader_queue_command_submit_kernel(
-    void * runtime,
-    void * device,
-    task_t * task,
-    kernel_launcher_t launch,
-    const callback_t & callback
-) {
-    /* create a new command and retrieve its offload queue */
-    thread_t * thread;
-    queue_t * queue;
-    command_t * cmd;
-    this->offloader_queue_command_new(
-        XKRT_QUEUE_TYPE_KERN,   /* IN */
-        &thread,                /* OUT */
-        &queue,                 /* OUT */
-        COMMAND_TYPE_KERN,      /* IN */
-        &cmd                    /* OUT */
-    );
-    assert(thread);
-    assert(queue);
-    assert(cmd);
-    assert(queue->is_locked());
-
-    /* create a new kernel command */
-    cmd->kern.launch  = (void (*)()) launch;
-    cmd->kern.runtime = runtime;
-    cmd->kern.device  = device;
-    cmd->kern.task    = task;
-    cmd->push_callback(callback);
-
-    this->offloader_queue_command_commit(thread, queue, cmd);
-
-    return cmd;
 }

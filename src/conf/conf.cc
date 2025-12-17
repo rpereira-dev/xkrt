@@ -204,7 +204,7 @@ __parse_drivers(conf_t * conf, char const * value)
             if (nthreads > XKRT_MAX_THREADS_PER_DEVICE)
                 LOGGER_FATAL("Requested too many threads for driver `%s`. Reduce the number of thread, or increase `XKRT_MAX_THREADS_PER_DEVICE` and recompile", driver_name);
 
-            driver_type_t driver_type = driver_type_from_name(driver_name);
+            xkrt_driver_type_t driver_type = xkrt_driver_type_from_name(driver_name);
             if (driver_type == XKRT_DRIVER_TYPE_MAX)
                 LOGGER_FATAL("Invalid `XKAAPI_DRIVERS`");
             conf->drivers.list[driver_type].nthreads_per_device = nthreads;

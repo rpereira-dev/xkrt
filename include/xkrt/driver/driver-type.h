@@ -35,25 +35,68 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
-#ifndef __DRIVER_TYPE_H__
-# define __DRIVER_TYPE_H__
+#ifndef __XKRT_DRIVER_TYPE_H__
+# define __XKRT_DRIVER_TYPE_H__
 
 # include <stdint.h>
-# include <xkrt/namespace.h>
-# include <xkrt/types.h>
+# include <string.h>
 
-XKRT_NAMESPACE_BEGIN
+# include <xkrt/support.h>
 
-    /* get driver name by type */
-    const char * driver_name(driver_type_t driver_type);
+typedef enum    xkrt_driver_type_t
+{
+    XKRT_DRIVER_TYPE_HOST   = 0,  // cpu driver
+    XKRT_DRIVER_TYPE_CUDA   = 1,  // cuda devices driver
+    XKRT_DRIVER_TYPE_ZE     = 2,  // level zero devices driver
+    XKRT_DRIVER_TYPE_CL     = 3,  // opencl driver
+    XKRT_DRIVER_TYPE_HIP    = 4,  // hip driver
+    XKRT_DRIVER_TYPE_SYCL   = 5,  // sycl driver
+    XKRT_DRIVER_TYPE_MAX    = 6
+}               xkrt_driver_type_t;
 
-    /* get driver type by name */
-    driver_type_t driver_type_from_name(const char * name);
+typedef uint8_t xkrt_driver_type_bitfield_t;
+_Static_assert(XKRT_DRIVER_TYPE_MAX <= sizeof(xkrt_driver_type_bitfield_t)*8, "");
 
-    /* return true if the driver is supported by the XKRT build */
-    int support_driver(driver_type_t driver_type);
+/* get driver name by type */
+inline const char *
+xkrt_driver_name(xkrt_driver_type_t driver_type)
+{
+    switch (driver_type)
+    {
+        case (XKRT_DRIVER_TYPE_HOST):   return "host";
+        case (XKRT_DRIVER_TYPE_CUDA):   return "cuda";
+        case (XKRT_DRIVER_TYPE_HIP):    return "hip";
+        case (XKRT_DRIVER_TYPE_ZE):     return "ze";
+        case (XKRT_DRIVER_TYPE_CL):     return "cl";
+        case (XKRT_DRIVER_TYPE_SYCL):   return "sycl";
+        default:                        return "(null)";
+    }
+}
 
+/* get driver type by name */
+inline xkrt_driver_type_t
+xkrt_driver_type_from_name(const char * name)
+{
+    for (int i = 0 ; i < XKRT_DRIVER_TYPE_MAX ; ++i)
+        if (strcmp(name, xkrt_driver_name((xkrt_driver_type_t) i)) == 0)
+            return (xkrt_driver_type_t) i;
+    return XKRT_DRIVER_TYPE_MAX;
+}
 
-XKRT_NAMESPACE_END
+/* return true if the driver is supported by the XKRT build */
+inline int
+xkrt_driver_supported(xkrt_driver_type_t driver_type)
+{
+    switch (driver_type)
+    {
+        case (XKRT_DRIVER_TYPE_HOST):   return 1;
+        case (XKRT_DRIVER_TYPE_CUDA):   return XKRT_SUPPORT_CUDA;
+        case (XKRT_DRIVER_TYPE_HIP):    return XKRT_SUPPORT_HIP;
+        case (XKRT_DRIVER_TYPE_ZE):     return XKRT_SUPPORT_ZE;
+        case (XKRT_DRIVER_TYPE_CL):     return XKRT_SUPPORT_CL;
+        case (XKRT_DRIVER_TYPE_SYCL):   return XKRT_SUPPORT_SYCL;
+        default:                        return 0;
+    }
+}
 
 #endif /* __DRIVER_TYPE_H__ */

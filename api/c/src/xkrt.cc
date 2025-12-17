@@ -230,6 +230,28 @@ xkrt_device_get(
     return (xkrt_device_t *) rt->device_get(device);
 }
 
+xkrt_driver_t *
+xkrt_device_driver_get(
+    xkrt_runtime_t * runtime,
+    xkrt_device_t * device
+) {
+    assert(runtime);
+    assert(device);
+    device_t * dev = (device_t *) device;
+    return xkrt_driver_get(runtime, dev->driver_type);
+}
+
+xkrt_device_driver_id_t
+xkrt_device_driver_id_get(
+    xkrt_runtime_t * runtime,
+    xkrt_device_t * device
+) {
+    assert(runtime);
+    assert(device);
+    device_t * dev = (device_t *) device;
+    return dev->driver_id;
+}
+
 unsigned int
 xkrt_get_ndevices(
     xkrt_runtime_t * runtime
@@ -314,6 +336,31 @@ void *
 xkrt_task_args(xkrt_task_t * task)
 {
     return TASK_ARGS((task_t *) task);
+}
+
+xkrt_access_t *
+xkrt_task_accesses(xkrt_task_t * task)
+{
+    return (xkrt_access_t *) TASK_ACCESSES((const task_t *) task);
+}
+
+xkrt_access_t *
+xkrt_task_access(
+    xkrt_task_t * task,
+    xkrt_task_access_counter_type_t access_id
+) {
+    access_t * accesses = TASK_ACCESSES((const task_t *) task);
+    return (xkrt_access_t *) (accesses + access_id);
+}
+
+void *
+xkrt_task_access_replica(
+    xkrt_task_t * task,
+    xkrt_task_access_counter_type_t access_id
+) {
+    access_t * accesses = TASK_ACCESSES((const task_t *) task);
+    access_t * access   = accesses + access_id;
+    return (void *) (access->device_view.addr);
 }
 
 xkrt_task_t *
@@ -426,6 +473,67 @@ __xkrt_set_accesses(
                 break ;
         }
     }
+}
+
+void xkrt_task_spawn_generic(
+    xkrt_runtime_t * runtime,
+    const xkrt_device_global_id_t device_global_id,
+    const xkrt_task_flag_bitfield_t flags,
+    const xkrt_task_format_id_t fmtid,
+    const void * args,
+    const size_t args_size,
+    const xkrt_access_t * accesses_c,
+    const xkrt_task_access_counter_type_t naccesses,
+    const xkrt_task_access_counter_type_t ocr_access,
+    const xkrt_task_wait_counter_type_t   detachable_counter_initial
+) {
+    assert((flags & TASK_FLAG_DEVICE) || (device_global_id == HOST_DEVICE_GLOBAL_ID));
+
+    // retrieve tls
+    thread_t * tls = thread_t::get_tls();
+    assert(tls);
+
+    // create the task
+    const size_t task_size = task_compute_size(flags, naccesses);
+    task_t * task = tls->allocate_task(task_size + args_size);
+    new (task) task_t(fmtid, flags);
+
+    if (flags & TASK_FLAG_DEPENDENT)
+    {
+        task_dep_info_t * dep = TASK_DEP_INFO(task);
+        new (dep) task_dep_info_t(naccesses);
+    }
+
+    if (flags & TASK_FLAG_DETACHABLE)
+    {
+        task_det_info_t * det = TASK_DET_INFO(task);
+        new (det) task_det_info_t(detachable_counter_initial);
+    }
+
+    if (flags & TASK_FLAG_DEVICE)
+    {
+        task_dev_info_t * dev = TASK_DEV_INFO(task);
+        new (dev) task_dev_info_t(device_global_id, ocr_access);
+    }
+
+    void * task_args = TASK_ARGS(task, task_size);
+    assert(task_args);
+    memcpy(task_args, args, args_size);
+
+    access_t * accesses = TASK_ACCESSES(task, flags);
+    __xkrt_set_accesses(task, accesses_c, naccesses, accesses);
+    tls->resolve(accesses, naccesses);
+
+    # if XKRT_SUPPORT_DEBUG
+    snprintf(task->label, sizeof(task->label), "c-task-generic");
+    # endif
+
+    runtime_t * rt = (runtime_t *) runtime;
+
+    device_t * device = rt->device_get(device_global_id);
+    assert(device);
+
+    tls->commit(task, runtime_t::task_team_enqueue, rt, device->team);
 }
 
 void
@@ -916,17 +1024,21 @@ xkrt_device_kernel_launch(
 }
 
 void
-xkrt_task_detachable_kernel_launch(
+xkrt_task_kernel_launch(
     xkrt_runtime_t * runtime,
     xkrt_device_t * device,
     xkrt_task_t * task,
+    int synchronous,
     xkrt_kernel_launcher_t launcher
 ) {
     assert(runtime);
     runtime_t * rt = (runtime_t *) runtime;
     task_t * t = (task_t *) task;
     device_t * dev = (device_t *) device;
-    return rt->task_detachable_kernel_launch(dev, t, (kernel_launcher_t) launcher);
+    if (synchronous)
+        return rt->task_kernel_launch<true>(dev, t, (kernel_launcher_t) launcher);
+    else
+        return rt->task_kernel_launch<false>(dev, t, (kernel_launcher_t) launcher);
 }
 
 // THREADING

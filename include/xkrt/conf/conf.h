@@ -41,9 +41,11 @@
 
 # include <stdint.h>
 
-# include <xkrt/logger/todo.h>
 # include <xkrt/driver/driver-type.h>
 # include <xkrt/driver/queue-type.h>
+# include <xkrt/logger/todo.h>
+# include <xkrt/namespace.h>
+# include <xkrt/types.h>
 
 XKRT_NAMESPACE_BEGIN
 

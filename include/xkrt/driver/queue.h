@@ -53,11 +53,13 @@ XKRT_NAMESPACE_BEGIN
 
 const char * queue_type_to_str(xkrt_queue_type_t type);
 
+// TODO: memory layout
+// I think we want compacity on 'cmd->completed' to fastly test for progress
 class queue_command_list_t
 {
     public:
 
-        command_t * cmd;                /* commands buffer */
+        command_t * cmd;                             /* commands buffer */
         queue_command_list_counter_t capacity;       /* buffer capacity */
         struct {
             volatile queue_command_list_counter_t r; /* first command to process */
@@ -88,9 +90,12 @@ class queue_command_list_t
                 return this->capacity - this->pos.r + this->pos.w;
         }
 
-        template<typename Func>
-        queue_command_list_counter_t
-        iterate(Func && process)
+        /**
+         *  Iterate on each command at index p of the list,
+         *  and stop early if process(p) returns false
+         */
+        inline queue_command_list_counter_t
+        iterate(const std::function<bool(queue_command_list_counter_t p)> & process)
         {
             const queue_command_list_counter_t a = this->pos.r;
             const queue_command_list_counter_t b = this->pos.w;
@@ -108,6 +113,21 @@ class queue_command_list_t
                     if (!process(i)) return i;
             }
             return b;
+        }
+
+        /**
+         *  Iterate on each command at index p of the list, if it is not completed already.
+         *  Stop early if process(cmd, p) returned false
+         */
+        inline queue_command_list_counter_t
+        progress(const std::function<bool(command_t * cmd, queue_command_list_counter_t p)> & process)
+        {
+            return this->iterate([&] (queue_command_list_counter_t p) {
+                command_t * cmd = this->cmd + p;
+                if (cmd->completed)
+                    return true;
+                return process(cmd, p);
+            });
         }
 };
 
@@ -152,7 +172,21 @@ class queue_t : public Lockable
     public:
 
         /* allocate a new command to the queue (must then be commited via 'commit') */
-        command_t * command_new(const command_type_t itype);
+        template <bool synchronous>
+        command_t * command_new(const command_type_t ctype)
+        {
+            if (this->ready.is_full())
+                return NULL;
+
+            assert(this->ready.pos.w >= 0 && this->ready.pos.w < this->ready.capacity);
+            command_t * cmd = this->ready.cmd + this->ready.pos.w;
+            cmd->type = ctype;
+            cmd->synchronous = synchronous;
+            cmd->completed = false;
+            cmd->callbacks.n = 0;
+
+            return cmd;
+        }
 
         /* complete the command at the i-th position in the pending queue (invoke callbacks) */
         void complete_command(const queue_command_list_counter_t p);

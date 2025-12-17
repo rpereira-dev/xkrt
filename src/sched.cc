@@ -308,11 +308,15 @@ device_thread_main_loop(
         if (task)
             __device_prepare_task(runtime, device, task);
 
-        // if there are commands ready, launch them
+        // if there are commands ready
         if (ready)
         {
-            device->offloader_launch(thread->tid);
-            pending = true;
+            // launch them, and retrieve the number of newly pending commands
+            int newly_pending = device->offloader_launch(thread->tid);
+
+            // if there is newly pending commands. ensure the pending flag is set
+            if (newly_pending > 0)
+                pending = true;
         }
 
         // if there are pending commands, progress them
@@ -451,7 +455,7 @@ runtime_t::task_team_enqueue(
 }
 
 static inline void
-task_detachable_kernel_launch_decr(void * args[XKRT_CALLBACK_ARGS_MAX])
+__task_detachable_decr(void * args[XKRT_CALLBACK_ARGS_MAX])
 {
     runtime_t * runtime = (runtime_t *) args[0];
     assert(runtime);
@@ -462,25 +466,42 @@ task_detachable_kernel_launch_decr(void * args[XKRT_CALLBACK_ARGS_MAX])
     runtime->task_detachable_decr(task);
 }
 
+template <bool synchronous>
 void
-runtime_t::task_detachable_kernel_launch(
+runtime_t::task_kernel_launch(
     device_t * device,
     task_t * task,
     kernel_launcher_t launcher
 ) {
-    /* increase event counter */
-    assert(task->flags & TASK_FLAG_DETACHABLE);
-    this->task_detachable_incr(task);
+    /* increase detach counter if asynchronous */
+    if constexpr (synchronous == false)
+    {
+        assert(task->flags & TASK_FLAG_DETACHABLE);
+        this->task_detachable_incr(task);
 
-    /* the task may complete in the callback on kernel completion */
-    callback_t callback;
-    callback.func    = task_detachable_kernel_launch_decr;
-    callback.args[0] = this;
-    callback.args[1] = task;
-    assert(XKRT_CALLBACK_ARGS_MAX >= 2);
+        /* the task may complete in the callback on kernel completion */
+        callback_t callback;
+        callback.func    = __task_detachable_decr;
+        callback.args[0] = this;
+        callback.args[1] = task;
+        assert(XKRT_CALLBACK_ARGS_MAX >= 2);
 
-    /* submit kernel launch command */
-    device->offloader_queue_command_submit_kernel(this, device, task, (kernel_launcher_t) launcher, callback);
+        /* submit kernel launch command */
+        device->offloader_queue_command_submit_kernel<synchronous>(
+            this,
+            task,
+            launcher,
+            callback
+        );
+    }
+    /* else if synchronous, no callback or detach counter */
+    else
+    {
+        static_assert(synchronous == true);
+        device->offloader_queue_command_submit_kernel<synchronous>(this, task, launcher);
+    }
 }
+template void runtime_t::task_kernel_launch<true>(device_t * device, task_t * task, kernel_launcher_t launcher);
+template void runtime_t::task_kernel_launch<false>(device_t * device, task_t * task, kernel_launcher_t launcher);
 
 XKRT_NAMESPACE_END

@@ -512,16 +512,10 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
 ) {
     assert(iqueue);
 
+    queue_sycl_t * queue = (queue_sycl_t *) iqueue;
     int r = 0;
 
-    iqueue->pending.iterate([&iqueue, &r] (queue_command_list_counter_t p) {
-
-        command_t * cmd = iqueue->pending.cmd + p;
-        if (cmd->completed)
-            return true;
-
-        queue_sycl_t * queue = (queue_sycl_t *) iqueue;
-        sycl::event * e = queue->sycl.events.buffer + p;
+    iqueue->pending.progress([&iqueue, &r] (command_t * cmd, queue_command_list_counter_t p) {
 
         switch (cmd->type)
         {
@@ -535,6 +529,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
             case (COMMAND_TYPE_COPY_D2H_2D):
             case (COMMAND_TYPE_COPY_D2D_2D):
             {
+                sycl::event * e = queue->sycl.events.buffer + p;
                 auto status = e->get_info<sycl::info::event::command_execution_status>();
                 if (status == sycl::info::event_command_status::complete)
                 {

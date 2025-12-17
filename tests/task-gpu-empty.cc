@@ -113,7 +113,6 @@ main(void)
 
     // submit it to the runtime
     runtime.task_commit(task);
-    runtime.task_wait();
 
     // wait
     runtime.task_wait();

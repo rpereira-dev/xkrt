@@ -448,45 +448,6 @@ drivers_deinit(runtime_t * runtime)
     }
 }
 
-const char *
-driver_name(driver_type_t driver_type)
-{
-    switch (driver_type)
-    {
-        case (XKRT_DRIVER_TYPE_HOST):   return "host";
-        case (XKRT_DRIVER_TYPE_CUDA):   return "cuda";
-        case (XKRT_DRIVER_TYPE_HIP):    return "hip";
-        case (XKRT_DRIVER_TYPE_ZE):     return "ze";
-        case (XKRT_DRIVER_TYPE_CL):     return "cl";
-        case (XKRT_DRIVER_TYPE_SYCL):   return "sycl";
-        default:                        return "(null)";
-    }
-}
-
-driver_type_t
-driver_type_from_name(const char * name)
-{
-    for (int i = 0 ; i < XKRT_DRIVER_TYPE_MAX ; ++i)
-        if (strcmp(name, driver_name((driver_type_t) i)) == 0)
-            return (driver_type_t) i;
-    return XKRT_DRIVER_TYPE_MAX;
-}
-
-int
-support_driver(driver_type_t driver_type)
-{
-    switch (driver_type)
-    {
-        case (XKRT_DRIVER_TYPE_HOST):   return 1;
-        case (XKRT_DRIVER_TYPE_CUDA):   return XKRT_SUPPORT_CUDA;
-        case (XKRT_DRIVER_TYPE_HIP):    return XKRT_SUPPORT_HIP;
-        case (XKRT_DRIVER_TYPE_ZE):     return XKRT_SUPPORT_ZE;
-        case (XKRT_DRIVER_TYPE_CL):     return XKRT_SUPPORT_CL;
-        case (XKRT_DRIVER_TYPE_SYCL):   return XKRT_SUPPORT_SYCL;
-        default:                        return 0;
-    }
-}
-
 device_t *
 driver_device_get(driver_t * driver, device_driver_id_t device_driver_id)
 {

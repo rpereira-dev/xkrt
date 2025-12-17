@@ -804,16 +804,10 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
 ) {
     assert(iqueue);
 
+    queue_cu_t * queue = (queue_cu_t *) iqueue;
     int r = 0;
 
-    iqueue->pending.iterate([&] (queue_command_list_counter_t p) {
-
-        command_t * cmd = iqueue->pending.cmd + p;
-        if (cmd->completed)
-            return true;
-
-        queue_cu_t * queue = (queue_cu_t *) iqueue;
-        CUevent event = queue->cu.events.buffer[p];
+    iqueue->pending.progress([&] (command_t * cmd, queue_command_list_counter_t p) {
 
         switch (cmd->type)
         {
@@ -827,6 +821,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
             case (COMMAND_TYPE_COPY_D2H_2D):
             case (COMMAND_TYPE_COPY_D2D_2D):
             {
+                CUevent event = queue->cu.events.buffer[p];
                 CUresult res = cuEventQuery(event);
                 if (res == CUDA_ERROR_NOT_READY)
                     r = EINPROGRESS;
@@ -840,6 +835,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
             default:
                 LOGGER_FATAL("Wrong command");
         }
+
         return true;
     });
 
@@ -966,6 +962,40 @@ XKRT_DRIVER_ENTRYPOINT(module_load)(
     driver_module_t mod = NULL;
     CU_SAFE_CALL(cuModuleLoadData((CUmodule *) &mod, bin));
     assert(mod);
+
+    # if 0 && XKRT_SUPPORT_DEBUG
+    LOGGER_DEBUG("%s", (char *) bin);
+
+    unsigned int count = 0;
+    CU_SAFE_CALL(cuModuleGetFunctionCount(&count, (CUmodule) mod));
+    LOGGER_DEBUG("Module has %u functions", count);
+
+    if (count > 0)
+    {
+        CUfunction * functions = (CUfunction *) malloc(sizeof(CUfunction) * count);
+        assert(functions);
+        CU_SAFE_CALL(cuModuleEnumerateFunctions(functions, count, (CUmodule) mod));
+        for (unsigned int i = 0 ; i < count ; ++i)
+        {
+            CUfunction function = functions[i];
+
+            int maxThreads = 0;
+            int sharedMemBytes = 0;
+            int constSizeBytes = 0;
+
+            CU_SAFE_CALL(cuFuncGetAttribute(&maxThreads,     CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, function));
+            CU_SAFE_CALL(cuFuncGetAttribute(&sharedMemBytes, CU_FUNC_ATTRIBUTE_SHARED_SIZE_BYTES,     function));
+            CU_SAFE_CALL(cuFuncGetAttribute(&constSizeBytes, CU_FUNC_ATTRIBUTE_CONST_SIZE_BYTES,      function));
+
+            LOGGER_DEBUG("  MaxThreadsPerBlock: %d", maxThreads);
+            LOGGER_DEBUG("  SharedMemBytes: %d", sharedMemBytes);
+            LOGGER_DEBUG("  ConstSizeBytes: %d", constSizeBytes);
+        }
+        free(functions);
+    }
+
+    # endif
+
     return mod;
 }
 

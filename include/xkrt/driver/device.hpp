@@ -266,13 +266,37 @@ typedef struct  device_t
     }
 
     /* create a new command and lock the queue */
+    template<bool synchronous>
     void offloader_queue_command_new(
         const queue_type_t qtype,       /* IN  */
               thread_t ** pthread,      /* OUT */
               queue_t ** pqueue,        /* OUT */
         const command_type_t ctype,     /* IN  */
               command_t ** pcmd         /* OUT */
-    );
+    ) {
+        assert(pqueue);
+        assert(pcmd);
+
+        /* retrieve native queue */
+        this->offloader_queue_next(qtype, pthread, pqueue);
+        assert(*pthread);
+        assert(*pqueue);
+        assert((*pqueue)->type == qtype);
+
+        /* allocate the command */
+        do {
+            (*pqueue)->lock();
+            (*pcmd) = (*pqueue)->command_new<synchronous>(ctype);
+            if (*pcmd)
+                break ;
+            (*pqueue)->unlock();
+
+            LOGGER_FATAL("Stream is full, increase 'XKRT_OFFLOADER_CAPACITY' or implement support for full-queue management yourself :-) (sorry)");
+
+        } while (1);
+
+        /* queue is locked, will be unlocked in the commit */
+    }
 
     /* commit a command previously returned with
      * "offloader_queue_command_new" and unlock the queue */
@@ -303,7 +327,8 @@ typedef struct  device_t
         thread_t * thread;
         queue_t * queue;
         command_t * cmd;
-        this->offloader_queue_command_new(qtype, &thread, &queue, ctype, &cmd);
+        constexpr bool synchronous = false;
+        this->offloader_queue_command_new<synchronous>(qtype, &thread, &queue, ctype, &cmd);
         assert(thread);
         assert(queue);
         assert(cmd);
@@ -322,14 +347,41 @@ typedef struct  device_t
         return cmd;
     }
 
-    /* submit a kernel execution command */
+    template <bool synchronous>
     command_t * offloader_queue_command_submit_kernel(
         void * runtime,
-        void * device,
         task_t * task,
-        kernel_launcher_t launcher,
-        const callback_t & callback
-    );
+        kernel_launcher_t launch,
+        const std::optional<callback_t> & callback = std::nullopt
+    ) {
+        /* create a new command and retrieve its offload queue */
+        thread_t * thread;
+        queue_t * queue;
+        command_t * cmd;
+        this->offloader_queue_command_new<synchronous>(
+            XKRT_QUEUE_TYPE_KERN,   /* IN */
+            &thread,                /* OUT */
+            &queue,                 /* OUT */
+            COMMAND_TYPE_KERN,      /* IN */
+            &cmd                    /* OUT */
+        );
+        assert(thread);
+        assert(queue);
+        assert(cmd);
+        assert(queue->is_locked());
+
+        /* create a new kernel command */
+        cmd->kern.launch  = (void (*)()) launch;
+        cmd->kern.runtime = runtime;
+        cmd->kern.device  = this;
+        cmd->kern.task    = task;
+        if (callback)
+            cmd->push_callback(*callback);
+
+        this->offloader_queue_command_commit(thread, queue, cmd);
+
+        return cmd;
+    };
 
     /* copy */
     template <typename HOST_VIEW_T, typename DEVICE_VIEW_T>
@@ -420,7 +472,8 @@ typedef struct  device_t
         thread_t * thread;
         queue_t * queue;
         command_t * cmd;
-        this->offloader_queue_command_new(qtype, &thread, &queue, ctype, &cmd);
+        constexpr bool synchronous = false;
+        this->offloader_queue_command_new<synchronous>(qtype, &thread, &queue, ctype, &cmd);
         assert(thread);
         assert(queue);
         assert(cmd);
