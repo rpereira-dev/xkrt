@@ -206,7 +206,7 @@ __parse_drivers(conf_t * conf, char const * value)
 
             xkrt_driver_type_t driver_type = xkrt_driver_type_from_name(driver_name);
             if (driver_type == XKRT_DRIVER_TYPE_MAX)
-                LOGGER_FATAL("Invalid `XKAAPI_DRIVERS`");
+                LOGGER_FATAL("Invalid `XKRT_DRIVERS`");
             conf->drivers.list[driver_type].nthreads_per_device = nthreads;
             conf->drivers.list[driver_type].used                = nthreads > 0;
 
@@ -257,33 +257,33 @@ typedef struct  conf_parse_t
 
 // variables are parsed in-order
 static conf_parse_t CONF_PARSE[] = {
-    {"XKAAPI_CACHE_LIMIT",                      NULL,                       NULL},
-    {"XKAAPI_D2D_PER_QUEUE",                   __parse_d2d_per_queue,     "Number of concurrent copies per D2D queue before throttling device-thread"},
-    {"XKAAPI_D2H_PER_QUEUE",                   __parse_d2h_per_queue,     "Number of concurrent copies per D2H queue before throttling device-thread"},
-    {"XKAAPI_DEFAULT_MATH",                     NULL,                       NULL},
-    {"XKAAPI_DRIVERS",                          __parse_drivers,            "Exemple: 'cuda,4;hip,2;host,3' - will enable drivers cuda, hip and host respectively with 4, 2, and 3 threads per device."},
-    {"XKAAPI_GPU_MEM_PERCENT",                  __parse_gpu_mem_percent,    "%% of total memory to allocate initially per GPU (in ]0..100["},
-    {"XKAAPI_H2D_PER_QUEUE",                   __parse_h2d_per_queue,     "Number of concurrent copies per H2D queue before throttling device-thread"},
-    {"XKAAPI_HELP",                             __parse_help,               "Show this helper"},
-    {"XKAAPI_KERN_PER_QUEUE",                  __parse_kern_per_queue,    "Number of concurrent kernels per KERN queue before throttling device-thread"},
-    {"XKAAPI_MERGE_TRANSFERS",                  __parse_merge_transfers,    "Merge memory transfers over continuous virtual memory"},
-    {"XKAAPI_NGPUS",                            __parse_ngpus,              "Number of gpus to use"},
-    {"XKAAPI_MEMORY_REGISTER_PROTECT_OVERFLOW", __parse_register_overflow,  "Split memory transfers to avoid overflow over registered/unregistered memory that causes cuda to crash"},
-    {"XKAAPI_PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,  "When progression threads have nothing else to do but poll pending commands, put it to sleep until the completion of a random command of a random steam."},
-    {"XKAAPI_BUSY_POLLING",                     __parse_busy_polling,       "Whether progression threads should pause when there is no tasks and no ready/pending commands"},
-    {"XKAAPI_TASK_PREFETCH",                    __parse_task_prefetch,      "If enabled, after completing a task, initiate data transfers for all its WaR successors that place of execution is already known (else, transfers only starts once the successor is ready)."},
-    {"XKAAPI_NQUEUES_D2D",                     __parse_nqueues_d2d,       "Number of D2D queues per device"},
-    {"XKAAPI_NQUEUES_D2H",                     __parse_nqueues_d2h,       "Number of D2H queues per device"},
-    {"XKAAPI_NQUEUES_H2D",                     __parse_nqueues_h2d,       "Number of H2D queues per device"},
-    {"XKAAPI_NQUEUES_KERN",                    __parse_nqueues_kern,      "Number of KERN queues per device"},
-    {"XKAAPI_NQUEUES_FR",                      __parse_nqueues_fr,        "Number of FR queues per device"},
-    {"XKAAPI_NQUEUES_FW",                      __parse_nqueues_fw,        "Number of FW queues per device"},
-    {"XKAAPI_OFFLOADER_CAPACITY",              __parse_offloader_capacity, "Maximum number of pending commands per queue"},
-    {"XKAAPI_PRECISION",                       NULL,                       NULL},
-    {"XKAAPI_STATS",                           __parse_stats,              "Boolean to dump stats on deinit"},
-    {"XKAAPI_USE_P2P",                         __parse_p2p,                "Boolean to enable/disable the use of p2p transfers"},
-    {"XKAAPI_WARMUP",                          __parse_warmup,             "Boolean to enable/disable threads/devices warmup on runtime initialization"},
-    {"XKAAPI_VERBOSE",                         __parse_verbose,            "Verbosity level (the higher the most)"},
+    {"CACHE_LIMIT",                      NULL,                       NULL},
+    {"D2D_PER_QUEUE",                   __parse_d2d_per_queue,     "Number of concurrent copies per D2D queue before throttling device-thread"},
+    {"D2H_PER_QUEUE",                   __parse_d2h_per_queue,     "Number of concurrent copies per D2H queue before throttling device-thread"},
+    {"DEFAULT_MATH",                     NULL,                       NULL},
+    {"DRIVERS",                          __parse_drivers,            "Exemple: 'cuda,4;hip,2;host,3' - will enable drivers cuda, hip and host respectively with 4, 2, and 3 threads per device."},
+    {"GPU_MEM_PERCENT",                  __parse_gpu_mem_percent,    "%% of total memory to allocate initially per GPU (in ]0..100["},
+    {"H2D_PER_QUEUE",                   __parse_h2d_per_queue,     "Number of concurrent copies per H2D queue before throttling device-thread"},
+    {"HELP",                             __parse_help,               "Show this helper"},
+    {"KERN_PER_QUEUE",                  __parse_kern_per_queue,    "Number of concurrent kernels per KERN queue before throttling device-thread"},
+    {"MERGE_TRANSFERS",                  __parse_merge_transfers,    "Merge memory transfers over continuous virtual memory"},
+    {"NGPUS",                            __parse_ngpus,              "Number of gpus to use"},
+    {"MEMORY_REGISTER_PROTECT_OVERFLOW", __parse_register_overflow,  "Split memory transfers to avoid overflow over registered/unregistered memory that causes cuda to crash"},
+    {"PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,  "When progression threads have nothing else to do but poll pending commands, put it to sleep until the completion of a random command of a random steam."},
+    {"BUSY_POLLING",                     __parse_busy_polling,       "Whether progression threads should pause when there is no tasks and no ready/pending commands"},
+    {"TASK_PREFETCH",                    __parse_task_prefetch,      "If enabled, after completing a task, initiate data transfers for all its WaR successors that place of execution is already known (else, transfers only starts once the successor is ready)."},
+    {"NQUEUES_D2D",                     __parse_nqueues_d2d,       "Number of D2D queues per device"},
+    {"NQUEUES_D2H",                     __parse_nqueues_d2h,       "Number of D2H queues per device"},
+    {"NQUEUES_H2D",                     __parse_nqueues_h2d,       "Number of H2D queues per device"},
+    {"NQUEUES_KERN",                    __parse_nqueues_kern,      "Number of KERN queues per device"},
+    {"NQUEUES_FR",                      __parse_nqueues_fr,        "Number of FR queues per device"},
+    {"NQUEUES_FW",                      __parse_nqueues_fw,        "Number of FW queues per device"},
+    {"OFFLOADER_CAPACITY",              __parse_offloader_capacity, "Maximum number of pending commands per queue"},
+    {"PRECISION",                       NULL,                       NULL},
+    {"STATS",                           __parse_stats,              "Boolean to dump stats on deinit"},
+    {"USE_P2P",                         __parse_p2p,                "Boolean to enable/disable the use of p2p transfers"},
+    {"WARMUP",                          __parse_warmup,             "Boolean to enable/disable threads/devices warmup on runtime initialization"},
+    {"VERBOSE",                         __parse_verbose,            "Verbosity level (the higher the most)"},
     {NULL, NULL, NULL}
 };
 
@@ -303,26 +303,28 @@ static void
 __parse_with_respect_to_prefix(conf_t * conf, const char * prefix)
 {
     // check all environment variable and report unknown variables begining by prefix
+    const size_t prefix_len = strlen(prefix);
     for (char ** s = environ; *s; ++s)
     {
-        if (strncmp(*s, "XKRT_", strlen("XKRT_")) == 0)
-        {
-            LOGGER_ERROR("`XKRT_` environment variables got renamed with `XKAAPI_` - please unset `%s`", *s);
+        if (strncmp(*s, prefix, prefix_len))
             continue ;
-        }
-
-        int error = 0;
-        if (strncmp(*s, prefix, strlen(prefix)) ==0) error = 1;
+        int error = 1;
         char const * ss = strchr(*s, '=');
-        size_t len = (size_t)(ss - *s);
+        size_t len = (size_t) (ss - *s) - prefix_len;
+
         for (conf_parse_t * var = CONF_PARSE ; var->name ; ++var)
         {
-            if (strncmp(*s, var->name, len)==0)
+            if (strncmp(*s + prefix_len, var->name, len) == 0)
             {
+                if (var->parse)
+                    var->parse(conf, ss + 1);
+                else
+                    LOGGER_IMPL("%s%s", prefix, var->name);
                 error = 0;
                 break ;
             }
         }
+
         if (error)
             LOGGER_WARN("Unknown environment variable '%s'", *s);
     }
@@ -380,4 +382,5 @@ conf_t::init(void)
     //  DEVICE CONF //
     //////////////////
     __parse_with_respect_to_prefix(this, "XKAAPI_");
+    __parse_with_respect_to_prefix(this, "XKRT_");
 }

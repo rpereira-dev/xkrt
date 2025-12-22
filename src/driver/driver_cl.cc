@@ -595,7 +595,7 @@ XKRT_DRIVER_ENTRYPOINT(queue_commands_progress)(
     queue_cl_t * queue = (queue_cl_t *) iqueue;
     int r = 0;
 
-    iqueue->pending.progress([&iqueue, &r] (command_t * cmd, queue_command_list_counter_t p) {
+    iqueue->pending.progress([&] (command_t * cmd, queue_command_list_counter_t p) {
 
         switch (cmd->type)
         {
