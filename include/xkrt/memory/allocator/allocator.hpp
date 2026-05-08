@@ -38,9 +38,7 @@
 #ifndef __XKRT_MEMORY_ALLOCATOR_HPP__
 # define __XKRT_MEMORY_ALLOCATOR_HPP__
 
-# include <xkrt/memory/area.h>
-# include <xkrt/memory/size.h>
-# include <xkrt/driver/driver-type.h>
+# include <xkrt/types.h>
 # include <xkrt/namespace.h>
 
 # include <stddef.h>
@@ -89,13 +87,13 @@ class allocator_t
 
     public:
         allocator_t(
-            memory_size_t                    memory_size_initial,
-            memory_size_t                    memory_size_resize,
-            f_memory_device_allocate_t       f_alloc,
-            f_memory_device_deallocate_t     f_dealloc,
-            device_driver_id_t               device_driver_id,
-            int                              nmemories,
-            const size_t                   * capacities
+            memory_size_t                   memory_size_initial,
+            memory_size_t                   memory_size_resize,
+            f_memory_device_allocate_t      f_alloc,
+            f_memory_device_deallocate_t    f_dealloc,
+            device_driver_id_t              device_driver_id,
+            int                             nmemories,
+            const size_t                  * capacities
         )
             : _memory_size_initial(memory_size_initial)
             , _memory_size_resize(memory_size_resize)

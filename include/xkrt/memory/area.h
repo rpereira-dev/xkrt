@@ -39,6 +39,7 @@
 # define __XKRT_AREA_H__
 
 # include <xkrt/sync/mutex.h>
+# include <stdint.h>
 
 ///////////////////////////
 // Driver devices memory //
