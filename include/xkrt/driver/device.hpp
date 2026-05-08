@@ -45,11 +45,10 @@
 # include <xkrt/driver/driver-type.h>
 # include <xkrt/driver/queue.h>
 # include <xkrt/logger/todo.h>
-# include <xkrt/memory/area.h>
+# include <xkrt/memory/allocator/allocator.hpp>
 # include <xkrt/memory/cache-line-size.hpp>
 # include <xkrt/stats/stats.h>
 # include <xkrt/support.h>
-# include <xkrt/sync/mutex.h>
 # include <xkrt/task/task.hpp>
 
 # include <optional>
@@ -83,16 +82,6 @@ typedef struct  device_memory_info_t
 
     /* memory name */
     char name[32];
-
-    ////////////////////////////////
-    //  TO BE FILL BY THE RUNTIME //
-    ////////////////////////////////
-
-    /* whether this area was already allocated+mapped to the device */
-    bool allocated;
-
-    /* the area of that memory */
-    area_t area;
 
 }               device_memory_info_t;
 
@@ -150,6 +139,9 @@ typedef struct  device_t
     device_memory_info_t memories[XKRT_DEVICE_MEMORIES_MAX];
     int nmemories;
 
+    /* the allocator used by this device */
+    allocator_t * allocator;
+
     /* allocate memory on a specific area */
     area_chunk_t * memory_allocate_on(const size_t size, int area_idx);
 
@@ -167,9 +159,6 @@ typedef struct  device_t
 
     /* free all memory of the given area of that device, resetting their state to chunk0 */
     void memory_reset_on(int area_idx);
-
-    /* set chunk0 of an area */
-    void memory_set_chunk0(uintptr_t device_ptr, size_t size, int area_idx);
 
     ///////////////////////
     // QUEUE MANAGEMENT //

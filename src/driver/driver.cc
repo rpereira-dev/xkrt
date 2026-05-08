@@ -41,6 +41,7 @@
 # include <xkrt/internals.h>
 # include <xkrt/driver/driver.h>
 # include <xkrt/logger/logger.h>
+# include <xkrt/memory/allocator/freelist.hpp>
 # include <xkrt/utils/min-max.h>
 # include <xkrt/sync/spinlock.h>
 # include <xkrt/thread/thread.h>
@@ -117,12 +118,38 @@ driver_thread_main(
     {
         driver->f_memory_device_info(device->driver_id, device->memories, &device->nmemories);
         assert(device->nmemories > 0);
+
+        /* collect capacities for the allocator */
+        size_t capacities[XKRT_DEVICE_MEMORIES_MAX];
         for (int i = 0 ; i < device->nmemories ; ++i)
         {
             device_memory_info_t * info = device->memories + i;
             LOGGER_INFO("Found memory `%s` of capacity %zuGB", info->name, info->capacity/(size_t)1e9);
-            info->allocated = 0;
-            XKRT_MUTEX_INIT(info->area.lock);
+            capacities[i] = info->capacity;
+        }
+
+        /* create the allocator */
+        conf_device_t * dconf = device->conf;
+
+        switch (dconf->memory_allocator_type)
+        {
+            case XKRT_MEMORY_ALLOCATOR_TYPE_FREELIST:
+                device->allocator = new freelist_allocator_t(
+                    dconf->memory_size_initial,
+                    dconf->memory_size_resize,
+                    driver->f_memory_device_allocate,
+                    driver->f_memory_device_deallocate,
+                    device->driver_id,
+                    device->nmemories,
+                    capacities
+                );
+                break ;
+            case XKRT_MEMORY_ALLOCATOR_TYPE_BUDDY:
+                LOGGER_FATAL("Buddy allocator not yet implemented");
+                break ;
+            default:
+                LOGGER_FATAL("Invalid allocator type: %d", dconf->memory_allocator_type);
+                break ;
         }
     }
 
@@ -201,20 +228,13 @@ driver_thread_main(
     // Teardown driver //
     /////////////////////
 
-    // release memory
-    if (driver->f_memory_device_deallocate)
+    // finalize and delete the allocator
+    if (device->allocator)
     {
-        for (int j = 0 ; j < device->nmemories ; ++j)
-        {
-            if (device->memories[j].allocated)
-            {
-                area_t * area = &(device->memories[j].area);
-                driver->f_memory_device_deallocate(device->driver_id, (void *) area->chunk0.ptr, area->chunk0.size, j);
-            }
-        }
+        device->allocator->finalize();
+        delete device->allocator;
+        device->allocator = NULL;
     }
-    else
-        LOGGER_WARN("Driver `%u` is missing `f_device_memory_deallocate`", driver->type);
 
     // delete device
     if (driver->f_device_destroy)
