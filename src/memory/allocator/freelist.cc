@@ -38,7 +38,6 @@
 
 # include <xkrt/memory/allocator/freelist.hpp>
 # include <xkrt/logger/logger.h>
-# include <xkrt/logger/todo.h>
 
 # include <cassert>
 # include <cstring>
@@ -75,7 +74,9 @@ freelist_allocator_t::freelist_allocator_t(
     )
 {
     memset(this->_areas, 0, sizeof(this->_areas));
-    memset(this->_initialized, 0, sizeof(this->_initialized));
+    memset(this->_backing, 0, sizeof(this->_backing));
+    memset(this->_nbacking, 0, sizeof(this->_nbacking));
+    memset(this->_backing_capacity, 0, sizeof(this->_backing_capacity));
     for (int i = 0 ; i < XKRT_DEVICE_MEMORIES_MAX ; ++i)
         XKRT_MUTEX_INIT(this->_areas[i].lock);
 }
@@ -84,28 +85,141 @@ freelist_allocator_t::~freelist_allocator_t()
 {
 }
 
-void
-freelist_allocator_t::_set_chunk0(
-    uintptr_t ptr,
-    size_t size,
-    int area_idx
-) {
+bool
+freelist_allocator_t::_add_backing_region(int area_idx)
+{
     area_t * area = &(this->_areas[area_idx]);
 
-    area->chunk0.ptr         = ptr;
-    area->chunk0.size        = size;
-    area->chunk0.state       = XKRT_ALLOC_CHUNK_STATE_FREE;
-    area->chunk0.prev        = NULL;
-    area->chunk0.next        = NULL;
-    area->chunk0.freelink    = NULL;
-    area->chunk0.use_counter = 0;
+    /* determine size: first allocation uses memory_size_initial,
+     * subsequent ones use memory_size_resize */
+    const memory_size_t & ms = (this->_nbacking[area_idx] == 0)
+        ? this->_memory_size_initial
+        : this->_memory_size_resize;
 
-    /* reset the free list to chunk0 */
-    # pragma message(TODO "This is leaking")
-    area_chunk_t * chunk0 = (area_chunk_t *) malloc(sizeof(area_chunk_t));
-    assert(chunk0);
-    memcpy(chunk0, &(area->chunk0), sizeof(area_chunk_t));
-    area->free_chunk_list = chunk0;
+    size_t size = _compute_size(ms, this->_capacities[area_idx]);
+    if (size == 0)
+        return false;
+
+    /* try to allocate device memory, halving the size on failure */
+    assert(this->_f_alloc);
+    void * device_ptr = NULL;
+    while (size > 0)
+    {
+        device_ptr = this->_f_alloc(this->_device_driver_id, size, area_idx);
+        if (device_ptr != NULL)
+            break ;
+        size >>= 1;
+    }
+    if (device_ptr == NULL)
+        return false;
+
+    /* track the backing region */
+    if (this->_nbacking[area_idx] >= this->_backing_capacity[area_idx])
+    {
+        int new_cap = (this->_backing_capacity[area_idx] == 0) ? 4 : this->_backing_capacity[area_idx] * 2;
+        backing_region_t * new_buf = (backing_region_t *) realloc(
+            this->_backing[area_idx],
+            (size_t) new_cap * sizeof(backing_region_t)
+        );
+        assert(new_buf);
+        this->_backing[area_idx] = new_buf;
+        this->_backing_capacity[area_idx] = new_cap;
+    }
+    /* create a free chunk covering the entire region */
+    area_chunk_t * chunk = (area_chunk_t *) malloc(sizeof(area_chunk_t));
+    assert(chunk);
+    chunk->ptr         = (uintptr_t) device_ptr;
+    chunk->size        = size;
+    chunk->state       = XKRT_ALLOC_CHUNK_STATE_FREE;
+    chunk->prev        = NULL;
+    chunk->next        = NULL;
+    chunk->freelink    = area->free_chunk_list;
+    chunk->use_counter = 0;
+    chunk->area_idx    = area_idx;
+
+    area->free_chunk_list = chunk;
+
+    /* track the backing region */
+    backing_region_t * region = &(this->_backing[area_idx][this->_nbacking[area_idx]]);
+    region->ptr  = (uintptr_t) device_ptr;
+    region->size = size;
+    this->_nbacking[area_idx]++;
+
+    return true;
+}
+
+void
+freelist_allocator_t::_free_area_chunks(int area_idx)
+{
+    area_t * area = &(this->_areas[area_idx]);
+
+    /*
+     * We need to free ALL area_chunk_t structs (both free and allocated).
+     * The free_chunk_list only links free chunks via 'freelink'.
+     * However, each chunk also lives in an ordered doubly-linked list
+     * (via prev/next) that covers all chunks within its backing region.
+     *
+     * Strategy:
+     * 1. Walk the free list and collect unique chain heads (prev == NULL).
+     * 2. For each unique head, walk the ordered 'next' chain and free
+     *    every chunk.
+     *
+     * Note: if all chunks in a backing region are currently allocated
+     * (none free), those chunk structs will not be reached here and
+     * will be leaked.  In practice this does not happen because
+     * reset/finalize is called after the memory-tree has freed
+     * everything.
+     */
+
+    /* step 1: collect unique chain heads */
+    int nheads = 0;
+    int heads_cap = 4;
+    area_chunk_t ** heads = (area_chunk_t **) malloc((size_t) heads_cap * sizeof(area_chunk_t *));
+    assert(heads);
+
+    for (area_chunk_t * fchunk = area->free_chunk_list ; fchunk ; fchunk = fchunk->freelink)
+    {
+        /* find the head of this ordered chain */
+        area_chunk_t * head = fchunk;
+        while (head->prev)
+            head = head->prev;
+
+        /* check for duplicates */
+        bool found = false;
+        for (int i = 0 ; i < nheads ; ++i)
+        {
+            if (heads[i] == head)
+            {
+                found = true;
+                break ;
+            }
+        }
+        if (!found)
+        {
+            if (nheads >= heads_cap)
+            {
+                heads_cap *= 2;
+                heads = (area_chunk_t **) realloc(heads, (size_t) heads_cap * sizeof(area_chunk_t *));
+                assert(heads);
+            }
+            heads[nheads++] = head;
+        }
+    }
+
+    /* step 2: walk each chain and free every chunk */
+    for (int i = 0 ; i < nheads ; ++i)
+    {
+        area_chunk_t * curr = heads[i];
+        while (curr)
+        {
+            area_chunk_t * next = curr->next;
+            free(curr);
+            curr = next;
+        }
+    }
+
+    free(heads);
+    area->free_chunk_list = NULL;
 }
 
 void
@@ -114,23 +228,17 @@ freelist_allocator_t::_lazy_init(int area_idx)
     assert(area_idx >= 0);
     assert(area_idx < this->_nmemories);
 
-    if ((volatile bool) this->_initialized[area_idx])
+    if (this->_nbacking[area_idx] > 0)
         return ;
 
     area_t * area = &(this->_areas[area_idx]);
 
     XKRT_MUTEX_LOCK(area->lock);
     {
-        if ((volatile bool) this->_initialized[area_idx] == false)
+        if (this->_nbacking[area_idx] == 0)
         {
-            const size_t size = _compute_size(this->_memory_size_initial, this->_capacities[area_idx]);
-            assert(this->_f_alloc);
-            const void * device_ptr = this->_f_alloc(this->_device_driver_id, size, area_idx);
-            if (device_ptr == NULL)
+            if (!this->_add_backing_region(area_idx))
                 LOGGER_FATAL("Out of GPU memory");
-            assert(device_ptr);
-            this->_set_chunk0((uintptr_t) device_ptr, size, area_idx);
-            this->_initialized[area_idx] = true;
         }
     }
     XKRT_MUTEX_UNLOCK(area->lock);
@@ -142,29 +250,24 @@ freelist_allocator_t::reset_on(int area_idx)
     assert(area_idx >= 0);
     assert(area_idx < this->_nmemories);
 
-    if (!this->_initialized[area_idx])
+    if (this->_nbacking[area_idx] == 0)
         return ;
 
     area_t * area = &(this->_areas[area_idx]);
 
-    /* deallocate the backing device memory */
-    assert(this->_f_dealloc);
-    this->_f_dealloc(this->_device_driver_id, (void *) area->chunk0.ptr, area->chunk0.size, area_idx);
-
-    /* mark as uninitialized — next allocate_on will re-allocate */
-    this->_initialized[area_idx] = false;
-
-    /* clear the area */
     XKRT_MUTEX_LOCK(area->lock);
     {
-        area->chunk0.ptr         = 0;
-        area->chunk0.size        = 0;
-        area->chunk0.state       = XKRT_ALLOC_CHUNK_STATE_FREE;
-        area->chunk0.prev        = NULL;
-        area->chunk0.next        = NULL;
-        area->chunk0.freelink    = NULL;
-        area->chunk0.use_counter = 0;
-        area->free_chunk_list    = NULL;
+        /* free all chunk metadata */
+        this->_free_area_chunks(area_idx);
+
+        /* deallocate all backing device memory regions */
+        assert(this->_f_dealloc);
+        for (int j = 0 ; j < this->_nbacking[area_idx] ; ++j)
+        {
+            backing_region_t * r = &(this->_backing[area_idx][j]);
+            this->_f_dealloc(this->_device_driver_id, (void *) r->ptr, r->size, area_idx);
+        }
+        this->_nbacking[area_idx] = 0;
     }
     XKRT_MUTEX_UNLOCK(area->lock);
 }
@@ -181,16 +284,28 @@ freelist_allocator_t::finalize(void)
 {
     for (int i = 0 ; i < this->_nmemories ; ++i)
     {
-        if (!this->_initialized[i])
+        if (this->_nbacking[i] == 0)
             continue ;
 
-        area_t * area = &(this->_areas[i]);
+        /* free all chunk metadata */
+        this->_free_area_chunks(i);
 
-        /* deallocate the backing device memory */
+        /* deallocate all backing device memory regions */
         assert(this->_f_dealloc);
-        this->_f_dealloc(this->_device_driver_id, (void *) area->chunk0.ptr, area->chunk0.size, i);
+        for (int j = 0 ; j < this->_nbacking[i] ; ++j)
+        {
+            backing_region_t * r = &(this->_backing[i][j]);
+            this->_f_dealloc(this->_device_driver_id, (void *) r->ptr, r->size, i);
+        }
+        this->_nbacking[i] = 0;
 
-        this->_initialized[i] = false;
+        /* free the backing array itself */
+        if (this->_backing[i])
+        {
+            free(this->_backing[i]);
+            this->_backing[i] = NULL;
+            this->_backing_capacity[i] = 0;
+        }
     }
 }
 

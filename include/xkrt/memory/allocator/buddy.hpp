@@ -78,9 +78,6 @@ class buddy_allocator_t : public allocator_t
             /* synchronization lock */
             xkrt_mutex_t lock;
 
-            /* whether this area has been initialized */
-            bool initialized;
-
             /* base device pointer for this area */
             uintptr_t base_ptr;
 

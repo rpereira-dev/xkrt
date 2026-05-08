@@ -154,10 +154,10 @@ typedef struct  device_t
     /* deallocate the given chunk */
     void memory_deallocate(area_chunk_t * chunk);
 
-    /* free all memory of every area of that device, resetting their state to chunk0 */
+    /* free all memory of every area of that device, resetting to uninitialized state */
     void memory_reset(void);
 
-    /* free all memory of the given area of that device, resetting their state to chunk0 */
+    /* free all memory of the given area of that device, resetting to uninitialized state */
     void memory_reset_on(int area_idx);
 
     ///////////////////////

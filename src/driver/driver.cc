@@ -114,7 +114,7 @@ driver_thread_main(
     driver->f_device_info(device_driver_id, buffer, sizeof(buffer));
     LOGGER_INFO("  global id = %2u | %s", device_unique_id, buffer);
 
-    /* get total memory and allocate chunk0 */
+    /* get total memory and create the allocator */
     if (driver->f_memory_device_info)
     {
         driver->f_memory_device_info(device->driver_id, device->memories, &device->nmemories);

@@ -51,15 +51,34 @@ XKRT_NAMESPACE_BEGIN
  *  Manages one area_t per device memory area.
  *
  *  Lazily allocates backing device memory on first allocate_on() per area.
+ *  The first backing allocation uses memory_size_initial, subsequent ones
+ *  use memory_size_resize.
  */
 class freelist_allocator_t : public allocator_t
 {
     private:
-        /* the areas managed by this allocator */
+        /**
+         *  A backing region tracks a single device memory allocation
+         *  obtained via _f_alloc, so it can be released via _f_dealloc.
+         */
+        struct backing_region_t
+        {
+            uintptr_t ptr;
+            size_t    size;
+        };
+
+        /**
+         *  Per-area state: the area_t (lock + free_chunk_list)
+         *  and list of backing regions.
+         *
+         *  An area is considered initialized when _nbacking[area_idx] > 0.
+         */
         area_t _areas[XKRT_DEVICE_MEMORIES_MAX];
 
-        /* whether each area has been initialized (backing memory allocated) */
-        bool _initialized[XKRT_DEVICE_MEMORIES_MAX];
+        /* backing regions per area — dynamically grown */
+        backing_region_t * _backing[XKRT_DEVICE_MEMORIES_MAX];
+        int                _nbacking[XKRT_DEVICE_MEMORIES_MAX];
+        int                _backing_capacity[XKRT_DEVICE_MEMORIES_MAX];
 
         /**
          *  Lazily allocate backing device memory for the given area.
@@ -69,10 +88,23 @@ class freelist_allocator_t : public allocator_t
         void _lazy_init(int area_idx);
 
         /**
-         *  Initialize chunk0 for the given area with the provided pointer and size.
-         *  Internal helper — sets up the area's free list.
+         *  Add a new backing region to the given area.
+         *  Allocates device memory via _f_alloc, creates a free chunk
+         *  covering the entire region, and appends it to the free list.
+         *  The first call uses memory_size_initial, subsequent calls use
+         *  memory_size_resize.  If the driver allocation fails, the size
+         *  is halved repeatedly until it succeeds or reaches zero.
+         *  Must be called with the area lock held.
+         *  Returns true on success, false if allocation ultimately failed.
          */
-        void _set_chunk0(uintptr_t ptr, size_t size, int area_idx);
+        bool _add_backing_region(int area_idx);
+
+        /**
+         *  Free all chunks (allocated and free) in the ordered prev/next
+         *  list for the given area.
+         *  Must be called with the area lock held.
+         */
+        void _free_area_chunks(int area_idx);
 
         /**
          *  Compute the byte size for a memory_size_t relative to a given capacity.

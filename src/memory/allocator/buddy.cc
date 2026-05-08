@@ -263,21 +263,29 @@ buddy_allocator_t::_lazy_init(int area_idx)
 
     buddy_area_t * ba = &(this->_buddy_areas[area_idx]);
 
-    if ((volatile bool) ba->initialized)
+    if (ba->alloc_size > 0)
         return ;
 
     XKRT_MUTEX_LOCK(ba->lock);
     {
-        if ((volatile bool) ba->initialized == false)
+        if (ba->alloc_size == 0)
         {
-            const size_t size = _compute_size(this->_memory_size_initial, this->_capacities[area_idx]);
+            size_t size = _compute_size(this->_memory_size_initial, this->_capacities[area_idx]);
             assert(this->_f_alloc);
-            const void * device_ptr = this->_f_alloc(this->_device_driver_id, size, area_idx);
+
+            /* try to allocate device memory, halving the size on failure */
+            void * device_ptr = NULL;
+            while (size > 0)
+            {
+                device_ptr = this->_f_alloc(this->_device_driver_id, size, area_idx);
+                if (device_ptr != NULL)
+                    break ;
+                size >>= 1;
+            }
             if (device_ptr == NULL)
                 LOGGER_FATAL("Out of GPU memory");
-            assert(device_ptr);
+
             this->_init_area(area_idx, (uintptr_t) device_ptr, size);
-            ba->initialized = true;
         }
     }
     XKRT_MUTEX_UNLOCK(ba->lock);
@@ -497,7 +505,7 @@ buddy_allocator_t::reset_on(int area_idx)
 
     buddy_area_t * ba = &(this->_buddy_areas[area_idx]);
 
-    if (!ba->initialized)
+    if (ba->alloc_size == 0)
         return ;
 
     /* free all chunks in all free lists */
@@ -520,12 +528,11 @@ buddy_allocator_t::reset_on(int area_idx)
     assert(this->_f_dealloc);
     this->_f_dealloc(this->_device_driver_id, (void *) ba->base_ptr, ba->alloc_size, area_idx);
 
-    /* mark as uninitialized — next allocate_on will re-allocate */
+    /* reset to uninitialized — next allocate_on will re-allocate */
     ba->base_ptr   = 0;
     ba->alloc_size = 0;
     ba->pool_size  = 0;
     ba->norders    = 0;
-    ba->initialized = false;
 }
 
 void
@@ -542,7 +549,7 @@ buddy_allocator_t::finalize(void)
     {
         buddy_area_t * ba = &(this->_buddy_areas[i]);
 
-        if (!ba->initialized)
+        if (ba->alloc_size == 0)
             continue ;
 
         /* free all chunks in all free lists */
@@ -565,6 +572,9 @@ buddy_allocator_t::finalize(void)
         assert(this->_f_dealloc);
         this->_f_dealloc(this->_device_driver_id, (void *) ba->base_ptr, ba->alloc_size, i);
 
-        ba->initialized = false;
+        ba->base_ptr   = 0;
+        ba->alloc_size = 0;
+        ba->pool_size  = 0;
+        ba->norders    = 0;
     }
 }
