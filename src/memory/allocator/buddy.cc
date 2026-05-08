@@ -153,10 +153,6 @@ buddy_allocator_t::buddy_allocator_t(
         XKRT_MUTEX_INIT(this->_buddy_areas[i].lock);
 }
 
-buddy_allocator_t::~buddy_allocator_t()
-{
-}
-
 ///////////////////////////
 // AREA INITIALIZATION   //
 ///////////////////////////
@@ -494,7 +490,7 @@ buddy_allocator_t::deallocate_on(area_chunk_t * chunk, int area_idx)
 }
 
 ///////////////////////////
-// RESET / FINALIZE      //
+// RESET / DESTRUCTOR    //
 ///////////////////////////
 
 void
@@ -542,8 +538,7 @@ buddy_allocator_t::reset(void)
         this->reset_on(i);
 }
 
-void
-buddy_allocator_t::finalize(void)
+buddy_allocator_t::~buddy_allocator_t()
 {
     for (int i = 0 ; i < this->_nmemories ; ++i)
     {

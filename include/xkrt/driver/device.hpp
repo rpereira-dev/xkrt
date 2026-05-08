@@ -45,7 +45,9 @@
 # include <xkrt/driver/driver-type.h>
 # include <xkrt/driver/queue.h>
 # include <xkrt/logger/todo.h>
-# include <xkrt/memory/allocator/allocator.hpp>
+# include <xkrt/memory/allocator/freelist.hpp>
+# include <xkrt/memory/allocator/buddy.hpp>
+# include <xkrt/memory/allocator-type.h>
 # include <xkrt/memory/cache-line-size.hpp>
 # include <xkrt/stats/stats.h>
 # include <xkrt/support.h>
@@ -139,7 +141,20 @@ typedef struct  device_t
     device_memory_info_t memories[XKRT_DEVICE_MEMORIES_MAX];
     int nmemories;
 
-    /* the allocator used by this device */
+    /* allocator type for this device */
+    xkrt_memory_allocator_type_t allocator_type;
+
+    /* inline storage for the allocator (no heap allocation).
+     * Constructed via placement new, destroyed via explicit destructor call.
+     * The trivial default ctor/dtor allow device_t to be default-constructed. */
+    union allocator_storage_t {
+        freelist_allocator_t freelist;
+        buddy_allocator_t    buddy;
+        allocator_storage_t()  {}
+        ~allocator_storage_t() {}
+    } allocator_storage;
+
+    /* virtual dispatch pointer — points into allocator_storage */
     allocator_t * allocator;
 
     /* allocate memory on a specific area */

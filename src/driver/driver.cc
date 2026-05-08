@@ -51,6 +51,7 @@
 # include <cstring>
 # include <cerrno>
 # include <climits>
+# include <new>
 
 XKRT_NAMESPACE_BEGIN;
 
@@ -129,13 +130,16 @@ driver_thread_main(
             capacities[i] = info->capacity;
         }
 
-        /* create the allocator */
+        /* create the allocator (inline in device, no heap allocation) */
         conf_device_t * dconf = device->conf;
+        device->allocator_type = dconf->memory_allocator_type;
 
         switch (dconf->memory_allocator_type)
         {
-            case XKRT_MEMORY_ALLOCATOR_TYPE_FREELIST:
-                device->allocator = new freelist_allocator_t(
+            case (XKRT_MEMORY_ALLOCATOR_TYPE_FREELIST):
+            {
+                LOGGER_DEBUG("Creating freelist allocator");
+                device->allocator = new (&device->allocator_storage.freelist) freelist_allocator_t(
                     dconf->memory_size_initial,
                     dconf->memory_size_resize,
                     driver->f_memory_device_allocate,
@@ -145,8 +149,12 @@ driver_thread_main(
                     capacities
                 );
                 break ;
-            case XKRT_MEMORY_ALLOCATOR_TYPE_BUDDY:
-                device->allocator = new buddy_allocator_t(
+            }
+
+            case (XKRT_MEMORY_ALLOCATOR_TYPE_BUDDY):
+            {
+                LOGGER_DEBUG("Creating buddy allocator");
+                device->allocator = new (&device->allocator_storage.buddy) buddy_allocator_t(
                     dconf->memory_size_initial,
                     dconf->memory_size_resize,
                     driver->f_memory_device_allocate,
@@ -156,6 +164,8 @@ driver_thread_main(
                     capacities
                 );
                 break ;
+            }
+
             default:
                 LOGGER_FATAL("Invalid allocator type: %d", dconf->memory_allocator_type);
                 break ;
@@ -237,11 +247,10 @@ driver_thread_main(
     // Teardown driver //
     /////////////////////
 
-    // finalize and delete the allocator
+    // destroy the allocator (inline storage, explicit destructor call)
     if (device->allocator)
     {
-        device->allocator->finalize();
-        delete device->allocator;
+        device->allocator->~allocator_t();
         device->allocator = NULL;
     }
 

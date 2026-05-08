@@ -65,7 +65,7 @@ typedef void   (*f_memory_device_deallocate_t)(device_driver_id_t device_driver_
  *      backing memory and sets up the area internally.
  *    - On reset(), it deallocates all backing device memory and returns
  *      to initial state (no memory allocated).
- *    - On finalize(), it deallocates all backing device memory (for teardown).
+ *    - On deinitialize(), it deallocates all backing device memory (for teardown).
  */
 class allocator_t
 {
@@ -103,7 +103,7 @@ class allocator_t
             , _nmemories(nmemories)
         {
             for (int i = 0 ; i < nmemories ; ++i)
-                _capacities[i] = capacities[i];
+                this->_capacities[i] = capacities[i];
         }
 
         virtual ~allocator_t() {}
@@ -144,13 +144,6 @@ class allocator_t
          *  and returning to initial state.
          */
         virtual void reset_on(int area_idx) = 0;
-
-        /**
-         *  Finalize the allocator (teardown).
-         *  Deallocates all backing device memory via f_dealloc.
-         *  Called before the allocator is destroyed.
-         */
-        virtual void finalize(void) = 0;
 };
 
 XKRT_NAMESPACE_END

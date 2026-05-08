@@ -179,7 +179,6 @@ class buddy_allocator_t : public allocator_t
         void           deallocate(area_chunk_t * chunk)                  override;
         void           reset(void)                                       override;
         void           reset_on(int area_idx)                            override;
-        void           finalize(void)                                    override;
 };
 
 XKRT_NAMESPACE_END

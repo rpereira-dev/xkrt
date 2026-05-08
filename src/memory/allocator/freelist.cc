@@ -81,10 +81,6 @@ freelist_allocator_t::freelist_allocator_t(
         XKRT_MUTEX_INIT(this->_areas[i].lock);
 }
 
-freelist_allocator_t::~freelist_allocator_t()
-{
-}
-
 bool
 freelist_allocator_t::_add_backing_region(int area_idx)
 {
@@ -279,8 +275,7 @@ freelist_allocator_t::reset(void)
         this->reset_on(i);
 }
 
-void
-freelist_allocator_t::finalize(void)
+freelist_allocator_t::~freelist_allocator_t()
 {
     for (int i = 0 ; i < this->_nmemories ; ++i)
     {
