@@ -42,6 +42,7 @@
 # include <xkrt/driver/driver.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/memory/allocator/freelist.hpp>
+# include <xkrt/memory/allocator/buddy.hpp>
 # include <xkrt/utils/min-max.h>
 # include <xkrt/sync/spinlock.h>
 # include <xkrt/thread/thread.h>
@@ -145,7 +146,15 @@ driver_thread_main(
                 );
                 break ;
             case XKRT_MEMORY_ALLOCATOR_TYPE_BUDDY:
-                LOGGER_FATAL("Buddy allocator not yet implemented");
+                device->allocator = new buddy_allocator_t(
+                    dconf->memory_size_initial,
+                    dconf->memory_size_resize,
+                    driver->f_memory_device_allocate,
+                    driver->f_memory_device_deallocate,
+                    device->driver_id,
+                    device->nmemories,
+                    capacities
+                );
                 break ;
             default:
                 LOGGER_FATAL("Invalid allocator type: %d", dconf->memory_allocator_type);
