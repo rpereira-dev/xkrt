@@ -259,7 +259,7 @@ read_from_binary(unsigned char **output, size_t * size, const char *name)
 
 # include <xkrt/driver/driver-ze.h>
 # include <xkrt/logger/logger-ze.h>
-# include <ze_api.h>
+# include <level_zero/ze_api.h>
 
 static xkrt_driver_module_t ZE_MODULES[XKRT_DEVICES_MAX];
 static xkrt_driver_module_t ZE_KERNELS[XKRT_DEVICES_MAX];

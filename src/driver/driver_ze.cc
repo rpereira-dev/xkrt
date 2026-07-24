@@ -51,7 +51,7 @@
 # include <xkrt/sync/bits.h>
 # include <xkrt/sync/mutex.h>
 
-# include <ze_api.h>
+# include <level_zero/ze_api.h>
 # include <hwloc/levelzero.h>
 # include <hwloc/glibc-sched.h>
 

@@ -38,7 +38,7 @@
 #  define __LOGGER_ZE_H__
 
 #  include <xkrt/logger/logger.h>
-#  include <ze_api.h>
+#  include <level_zero/ze_api.h>
 
 static const char *
 ze_error_to_str(const ze_result_t & r)

@@ -43,7 +43,7 @@
 
 # include <xkrt/support.h>
 
-# include <ze_api.h>
+# include <level_zero/ze_api.h>
 # if XKRT_SUPPORT_ZE_SYCL_INTEROP
 #  include <sycl/sycl.hpp>
 # endif /* XKRT_SUPPORT_ZE_SYCL_INTEROP */
