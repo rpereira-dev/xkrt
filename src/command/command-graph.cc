@@ -379,6 +379,9 @@ runtime_t::command_graph_replay(command_graph_t * cg)
     command_t command(ctype, flags);
     command.batch.cg = cg;
     command.batch.driver_handle = (void *) this;
+    // the top-level wrapper is replayed via the wavefront: its sub-graph holds
+    // the per-device batch nodes (not a plain sequence of task PROGs)
+    command.batch.is_sequence = false;
     this->command_submit(device_unique_id, &command);
 }
 

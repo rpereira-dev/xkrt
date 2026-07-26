@@ -41,6 +41,7 @@
 #include <xkrt/driver/driver-host.h>
 #include <xkrt/driver/driver.h>
 #include <xkrt/driver/queue.h>
+#include <xkrt/internals.h>
 #include <xkrt/runtime.h>
 #include <xkrt/sync/atomic.h>
 #include <xkrt/sync/bits.h>
@@ -438,6 +439,58 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(
     return 0;
 }
 
+/* Replay a batch whose sub-graph is a linear sequence of OpenMP-task PROG
+ * commands (marked `is_sequence` by CGIR's batch pass).
+ *
+ * Instead of the wavefront (which would spawn one task per command), we spawn a
+ * single "super" task: the worker that schedules it serially runs the recorded
+ * routine of every kmp task of the chain on that one thread. This collapses the
+ * n task-spawns and n scheduling decisions of a task chain into a single one. */
+static int
+XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
+    runtime_t * runtime,
+    command_graph_t * cg
+) {
+    assert(runtime);
+    assert(cg);
+
+    command_graph_node_t * entry = (command_graph_node_t *) cg->node_get_entry();
+    command_graph_node_t * exit  = (command_graph_node_t *) cg->node_get_exit();
+
+    // Completion flags: `exit->state` is polled by the KERN command_queue_progress
+    // (async batch path), while `cg->completed` is waited on by command_graph_wait
+    // (synchronous command_execute path). Reset both before spawning the task.
+    exit->state = COMMAND_GRAPH_NODE_STATE_INIT;
+    cg->completed.store(1, std::memory_order_seq_cst);
+
+    runtime->task_spawn(
+        [entry, exit, cg] (runtime_t *, device_t *, task_t *) {
+
+            // walk the linear chain entry -> ... -> exit, running each body
+            command_graph_node_t * node = entry;
+            while (node != exit)
+            {
+                if (node->type == cgir::COMMAND_GRAPH_NODE_TYPE_COMMAND)
+                {
+                    assert(node->command);
+                    assert(node->command->type == cgir::COMMAND_TYPE_PROG);
+                    command_prog_run_host((command_t *) node->command);
+                }
+
+                // a sequence node has exactly one successor
+                assert(node->successors.size() == 1);
+                node = (command_graph_node_t *) node->successors.front();
+            }
+
+            // notify both completion mechanisms
+            exit->state = COMMAND_GRAPH_NODE_STATE_COMPLETE;
+            cg->completed.store(0, std::memory_order_seq_cst);
+        }
+    );
+
+    return 0;
+}
+
 static int
 XKRT_DRIVER_ENTRYPOINT(command_execute)(
     device_driver_id_t device_driver_id,
@@ -450,7 +503,12 @@ XKRT_DRIVER_ENTRYPOINT(command_execute)(
     runtime_t * runtime = (runtime_t *) command->batch.driver_handle;
     command_graph_t * cg = (command_graph_t *) command->batch.cg;
 
-    XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
+    // a linear sequence of OpenMP tasks replays as a single super-task
+    if (command->batch.is_sequence)
+        XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(runtime, cg);
+    else
+        XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
+
     XKRT_DRIVER_ENTRYPOINT(command_graph_wait)(runtime, cg);
 
     return 0;
@@ -518,7 +576,13 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
         assert(command->batch.cg);
         runtime_t * runtime = (runtime_t *) command->batch.driver_handle;
         command_graph_t * cg = (command_graph_t *) command->batch.cg;
-        XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
+
+        // a linear sequence of OpenMP tasks replays as a single super-task;
+        // otherwise fall back to the wavefront replay
+        if (command->batch.is_sequence)
+            XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(runtime, cg);
+        else
+            XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
     }
 
     return 0;

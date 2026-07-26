@@ -36,6 +36,7 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
+# include <xkrt/internals.h>
 # include <xkrt/runtime.h>
 
 XKRT_NAMESPACE_USE;
@@ -127,8 +128,8 @@ command_type_to_queue_type(
  *   - KMP: a recorded OpenMP task body that was NOT JIT-compiled; run it directly
  *     through its ahead-of-time libomp routine `fn(gtid, task)`. Recorded bodies
  *     replay with gtid 0 (as the previous replay path did). */
-static inline void
-command_prog_run_host(command_t * command)
+void
+XKRT_NAMESPACE::command_prog_run_host(command_t * command)
 {
     auto & prog = command->prog;
     switch (prog.prototype)
