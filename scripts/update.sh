@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 # ============================================================================
 # update.sh — in-place updater for the xkrt ecosystem (companion to install.sh)
 #
