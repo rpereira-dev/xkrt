@@ -196,27 +196,10 @@ command_prog_launch_host(
             // callback drives the wavefront (the assertion in task_fetch_execute
             // otherwise fires: a non-device task on a device implicit team).
 
-    if (command->replay_team != nullptr)
-    {
-        runtime->team_task_spawn<TASK_FLAG_ZERO>(
-            (team_t *)                    command->replay_team,
-            (const device_unique_id_t)    XKRT_UNSPECIFIED_DEVICE_UNIQUE_ID,
-            (const task_access_counter_t) 0,
-            (const xkrt::runtime_t::task_accesses_setter_t) nullptr,
-            (const xkrt::runtime_t::task_split_condition_t) nullptr,
-            routine
-        );
-    }
-    else
-    {
-        runtime->task_spawn<TASK_FLAG_ZERO>(
-            (const device_unique_id_t)    XKRT_UNSPECIFIED_DEVICE_UNIQUE_ID,
-            (const task_access_counter_t) 0,
-            (const xkrt::runtime_t::task_accesses_setter_t) nullptr,
-            (const xkrt::runtime_t::task_split_condition_t) nullptr,
-            routine
-        );
-    }
+            if (command->replay_team != nullptr)
+                runtime->team_task_spawn<TASK_FLAG_ZERO>((team_t *) command->replay_team, routine);
+            else
+                runtime->task_spawn(routine);
 
             break ;
         }

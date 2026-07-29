@@ -518,16 +518,7 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
     // runs the whole chain on a host device == NULL thread). Fall back to the
     // current team if the replay team is unknown (e.g. not driven by a replay).
     if (cg->replay_team != nullptr)
-    {
-        runtime->team_task_spawn<TASK_FLAG_ZERO>(
-            (team_t *)                    cg->replay_team,
-            (const device_unique_id_t)    XKRT_UNSPECIFIED_DEVICE_UNIQUE_ID,
-            (const task_access_counter_t) 0,
-            (const runtime_t::task_accesses_setter_t) nullptr,
-            (const runtime_t::task_split_condition_t) nullptr,
-            routine
-        );
-    }
+        runtime->team_task_spawn((team_t *) cg->replay_team, routine);
     else
         runtime->task_spawn(routine);
 
