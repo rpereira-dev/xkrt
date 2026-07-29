@@ -1171,6 +1171,14 @@ struct  runtime_t
         this->team_task_commit(team, task);
     }
 
+    inline void
+    task_spawn(
+        team_t * team,
+        const task_routine_t & f
+    ) {
+        return this->team_task_spawn<TASK_FLAG_ZERO>(team, XKRT_UNSPECIFIED_DEVICE_UNIQUE_ID, 0, nullptr, nullptr, f);
+    }
+
     //////////////////
     // TEAM - UTILS //
     //////////////////

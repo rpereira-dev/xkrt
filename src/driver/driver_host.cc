@@ -329,9 +329,18 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_process_node)(
                 callback.args[2] = node;
                 ((command_t *) node->command)->completion_callback_push(callback);
 
+                // forward the replay team so a host task emitted by this command
+                // is spawned on the replay-initiator's team, not the (device)
+                // team of the thread that happens to run its completion callback
+                ((command_t *) node->command)->replay_team = cg->replay_team;
+
                 // if a host command graph, forward the runtime as a driver_handle
+                // and propagate the replay team to the nested sub-graph
                 if (node->command->type == cgir::COMMAND_TYPE_BATCH && node->device_unique_id == XKRT_HOST_DEVICE_UNIQUE_ID)
+                {
                     node->command->batch.driver_handle = runtime;
+                    ((command_graph_t *) node->command->batch.cg)->replay_team = cg->replay_team;
+                }
             }
 
             // set node in INIT state
@@ -478,7 +487,7 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
     // i.e. ~2 pointers): a larger closure is heap-allocated and the shallow copy
     // ends up with a dangling pointer once the temporary std::function dies.
     // Capture the single `cg` pointer only, and derive entry/exit inside.
-    runtime->task_spawn(
+    const runtime_t::task_routine_t routine =
         [cg] (runtime_t *, device_t *, task_t *) {
 
             command_graph_node_t * entry = (command_graph_node_t *) cg->node_get_entry();
@@ -503,8 +512,15 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
             // notify both completion mechanisms
             exit->state = COMMAND_GRAPH_NODE_STATE_COMPLETE;
             cg->completed.store(0, std::memory_order_seq_cst);
-        }
-    );
+        };
+
+    // Spawn the super-task onto the replay-initiator's team (any of its threads
+    // runs the whole chain on a host device == NULL thread). Fall back to the
+    // current team if the replay team is unknown (e.g. not driven by a replay).
+    if (cg->replay_team != nullptr)
+        runtime->team_task_spawn<TASK_FLAG_ZERO>((team_t *) cg->replay_team, routine);
+    else
+        runtime->task_spawn(routine);
 
     return 0;
 }

@@ -379,6 +379,15 @@ runtime_t::command_graph_replay(command_graph_t * cg)
     command_t command(ctype, flags);
     command.batch.cg = cg;
     command.batch.driver_handle = (void *) this;
+
+    // Capture the team of the thread initiating the replay. Host tasks emitted
+    // while replaying this graph are spawned onto this team, so they run on a
+    // host (device == NULL) thread even when their predecessor command completed
+    // on a device thread (whose completion callback drives the wavefront). The
+    // replay may run on a different team than the one that first spawned the
+    // tasks, hence capturing it here rather than relying on the original thread.
+    cg->replay_team = (void *) thread_t::get_tls()->team;
+
     // the top-level graph is replayed via the wavefront: `cg->is_sequence` is
     // false (it holds per-device batch nodes, not a plain sequence of task PROGs)
     this->command_submit(device_unique_id, &command);
