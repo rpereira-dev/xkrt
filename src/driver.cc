@@ -197,7 +197,7 @@ command_prog_launch_host(
             // otherwise fires: a non-device task on a device implicit team).
 
             if (command->replay_team != nullptr)
-                runtime->team_task_spawn<TASK_FLAG_ZERO>((team_t *) command->replay_team, routine);
+                runtime->team_task_spawn((team_t *) command->replay_team, routine);
             else
                 runtime->task_spawn(routine);
 
