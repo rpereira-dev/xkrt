@@ -1172,7 +1172,7 @@ struct  runtime_t
     }
 
     inline void
-    task_spawn(
+    team_task_spawn(
         team_t * team,
         const task_routine_t & f
     ) {
