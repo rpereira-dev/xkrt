@@ -421,10 +421,6 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(
     assert(runtime);
     assert(cg);
 
-    // a linear sequence of tasks replays as a single super-task
-    if (command->batch.is_sequence)
-        return XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(runtime, cg);
-
      // increase replay counter
     ++cg->rc;
 
@@ -458,7 +454,6 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
     assert(runtime);
     assert(cg);
 
-    command_graph_node_t * entry = (command_graph_node_t *) cg->node_get_entry();
     command_graph_node_t * exit  = (command_graph_node_t *) cg->node_get_exit();
 
     // Completion flags: `exit->state` is polled by the KERN command_queue_progress
@@ -467,8 +462,17 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
     exit->state = COMMAND_GRAPH_NODE_STATE_INIT;
     cg->completed.store(1, std::memory_order_seq_cst);
 
+    // IMPORTANT: a task routine is byte-copied (memcpy) into the task, not
+    // copy-constructed (see task_new/body_host_capture). This only works while
+    // the closure stays inside std::function's small-buffer (<= 16B on libstdc++,
+    // i.e. ~2 pointers): a larger closure is heap-allocated and the shallow copy
+    // ends up with a dangling pointer once the temporary std::function dies.
+    // Capture the single `cg` pointer only, and derive entry/exit inside.
     runtime->task_spawn(
-        [entry, exit, cg] (runtime_t *, device_t *, task_t *) {
+        [cg] (runtime_t *, device_t *, task_t *) {
+
+            command_graph_node_t * entry = (command_graph_node_t *) cg->node_get_entry();
+            command_graph_node_t * exit  = (command_graph_node_t *) cg->node_get_exit();
 
             // walk the linear chain entry -> ... -> exit, running each body
             command_graph_node_t * node = entry;
@@ -507,7 +511,11 @@ XKRT_DRIVER_ENTRYPOINT(command_execute)(
     runtime_t * runtime = (runtime_t *) command->batch.driver_handle;
     command_graph_t * cg = (command_graph_t *) command->batch.cg;
 
-    XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
+    // a linear sequence of tasks replays as a single super-task
+    if (command->batch.is_sequence)
+        XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(runtime, cg);
+    else
+        XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
     XKRT_DRIVER_ENTRYPOINT(command_graph_wait)(runtime, cg);
 
     return 0;
@@ -576,7 +584,11 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
         runtime_t * runtime = (runtime_t *) command->batch.driver_handle;
         command_graph_t * cg = (command_graph_t *) command->batch.cg;
 
-        XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
+        // a linear sequence of tasks replays as a single super-task
+        if (command->batch.is_sequence)
+            XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(runtime, cg);
+        else
+            XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
     }
 
     return 0;
