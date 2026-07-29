@@ -414,12 +414,22 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_wait)(
 }
 
 static int
+XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
+    runtime_t * runtime,
+    command_graph_t * cg
+);
+
+static int
 XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(
     runtime_t * runtime,
     command_graph_t * cg
 ) {
     assert(runtime);
     assert(cg);
+
+    // a linear sequence of OpenMP tasks replays as a single super-task
+    if (cg->is_sequence)
+        return XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(runtime, cg);
 
      // increase replay counter
     ++cg->rc;
@@ -511,11 +521,8 @@ XKRT_DRIVER_ENTRYPOINT(command_execute)(
     runtime_t * runtime = (runtime_t *) command->batch.driver_handle;
     command_graph_t * cg = (command_graph_t *) command->batch.cg;
 
-    // a linear sequence of tasks replays as a single super-task
-    if (command->batch.is_sequence)
-        XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(runtime, cg);
-    else
-        XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
+    // command_graph_launch dispatches on cg->is_sequence (super-task vs wavefront)
+    XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
     XKRT_DRIVER_ENTRYPOINT(command_graph_wait)(runtime, cg);
 
     return 0;
@@ -584,11 +591,8 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
         runtime_t * runtime = (runtime_t *) command->batch.driver_handle;
         command_graph_t * cg = (command_graph_t *) command->batch.cg;
 
-        // a linear sequence of tasks replays as a single super-task
-        if (command->batch.is_sequence)
-            XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(runtime, cg);
-        else
-            XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
+        // command_graph_launch dispatches on cg->is_sequence (super-task vs wavefront)
+        XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
     }
 
     return 0;
