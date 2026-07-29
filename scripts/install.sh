@@ -741,17 +741,26 @@ if prompt_yn "Install custom patched LLVM?" "$(_dflt_yn "${_C_INSTALL_LLVM:-}" "
     LLVM_PROJECTS="$_projects"
 
     # ── Runtimes ─────────────────────────────────────────────────────────────
+    # openmp and offload are coupled — always both or neither.  The custom
+    # libomptarget ("offload" runtime) links against libompdevice.a, which is
+    # produced only by the "openmp" runtime; enabling offload without openmp
+    # fails to link.  So this is a single yes/no that selects "openmp;offload"
+    # or "" (no runtimes).
     _tty "\n  ${BOLD}LLVM runtimes${NC}:\n"
-    _runtimes=""
-    if prompt_yn "  Build openmp  (OpenMP host runtime)?" "$(_dflt_member "$HAVE_CACHE" "${_C_LLVM_RUNTIMES:-}" openmp "yes")"; then
-        _runtimes="${_runtimes}${_runtimes:+;}openmp"
+    # Default from cache: yes if runtimes were enabled before (openmp or offload).
+    _rt_default="yes"
+    if [[ "$HAVE_CACHE" == "true" ]]; then
+        if _list_contains "${_C_LLVM_RUNTIMES:-}" openmp || _list_contains "${_C_LLVM_RUNTIMES:-}" offload
+        then _rt_default="yes"; else _rt_default="no"; fi
     fi
-    _tty "  ${DIM}Note: the custom libomptarget depends on XKRT and XKOMP,\n"
-    _tty "  so when enabled it is built last — after XKRT and XKOMP.${NC}\n"
-    if prompt_yn "  Build offload (OpenMP GPU offload runtime / libomptarget)?" "$(_dflt_member "$HAVE_CACHE" "${_C_LLVM_RUNTIMES:-}" offload "yes")"; then
-        _runtimes="${_runtimes}${_runtimes:+;}offload"
+    _tty "  ${DIM}openmp and offload are built together (offload's libomptarget links\n"
+    _tty "  libompdevice.a from openmp).  offload also depends on XKRT and XKOMP, so\n"
+    _tty "  it is built last — after XKRT and XKOMP.${NC}\n"
+    if prompt_yn "  Build OpenMP runtimes (openmp + offload / libomptarget)?" "$_rt_default"; then
+        LLVM_RUNTIMES="openmp;offload"
+    else
+        LLVM_RUNTIMES=""
     fi
-    LLVM_RUNTIMES="$_runtimes"
 
     # ── Extra flags ───────────────────────────────────────────────────────────
     LLVM_EXTRA_CMAKE_OPTS=$(prompt_value "Extra cmake flags for LLVM (or Enter to keep/skip)" "${_C_LLVM_EXTRA_CMAKE_OPTS:-}")
