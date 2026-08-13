@@ -1361,6 +1361,12 @@ struct  runtime_t
     void task_dependency_graph_record_stop(void);
 
     /**
+     *  Return true iff the currently executing task is recording a task
+     *  dependency graph (i.e. has the 'TASK_FLAG_GRAPH_RECORDING' bit set).
+     */
+    bool task_dependency_graph_is_recording(void);
+
+    /**
      *  Destroy a command graph record
      */
     void task_dependency_graph_destroy(task_dependency_graph_t * tdg);

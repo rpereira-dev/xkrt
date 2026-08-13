@@ -94,6 +94,20 @@ runtime_t::task_dependency_graph_record_stop(void)
     gph->tdg->postprocess();
 }
 
+bool
+runtime_t::task_dependency_graph_is_recording(void)
+{
+    thread_t * thread = thread_t::get_tls();
+    if (thread == nullptr)
+        return false;
+
+    task_t * task = thread->current_task;
+    if (task == nullptr)
+        return false;
+
+    return (task->flags & TASK_FLAG_GRAPH_RECORDING) != 0;
+}
+
 void
 runtime_t::task_dependency_graph_replay(task_dependency_graph_t * tdg)
 {
