@@ -53,21 +53,21 @@ typedef struct  reentrant_spinlock_t
 
 # define REENTRANT_SPINLOCK_LOCK(L)                                             \
     do {                                                                        \
-        const int xkrt_tid_ = XKRT_NAMESPACE::thread_t::get_tls()->tid;         \
-        if ((L).owner != xkrt_tid_)                                             \
+        const int xkrt_gtid_ = XKRT_NAMESPACE::thread_t::get_tls()->gtid;       \
+        if ((L).owner != xkrt_gtid_)                                            \
             while (__sync_val_compare_and_swap(&(L).owner,                      \
-                        REENTRANT_SPINLOCK_NO_OWNER, xkrt_tid_)                 \
-                    != REENTRANT_SPINLOCK_NO_OWNER)                            \
+                        REENTRANT_SPINLOCK_NO_OWNER, xkrt_gtid_)                \
+                    != REENTRANT_SPINLOCK_NO_OWNER)                             \
                 mem_pause();                                                    \
         ++(L).depth;                                                            \
     } while (0)
 
 # define REENTRANT_SPINLOCK_TRYLOCK(L)                                          \
-    (((L).owner == XKRT_NAMESPACE::thread_t::get_tls()->tid)                    \
+    (((L).owner == XKRT_NAMESPACE::thread_t::get_tls()->gtid)                   \
         ? (++(L).depth, true)                                                   \
         : ((__sync_val_compare_and_swap(&(L).owner,                             \
                 REENTRANT_SPINLOCK_NO_OWNER,                                    \
-                XKRT_NAMESPACE::thread_t::get_tls()->tid)                       \
+                XKRT_NAMESPACE::thread_t::get_tls()->gtid)                      \
                     == REENTRANT_SPINLOCK_NO_OWNER)                             \
             ? ((L).depth = 1, true)                                             \
             : false))
@@ -85,6 +85,6 @@ typedef struct  reentrant_spinlock_t
     ((L).owner != REENTRANT_SPINLOCK_NO_OWNER)
 
 # define REENTRANT_SPINLOCK_OWNS(L)                                             \
-    ((L).owner == XKRT_NAMESPACE::thread_t::get_tls()->tid)
+    ((L).owner == XKRT_NAMESPACE::thread_t::get_tls()->gtid)
 
 #endif /* __REENTRANT_SPINLOCK_H__ */
