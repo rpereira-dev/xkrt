@@ -493,9 +493,12 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
             command_graph_node_t * entry = (command_graph_node_t *) cg->node_get_entry();
             command_graph_node_t * exit  = (command_graph_node_t *) cg->node_get_exit();
 
-            // walk the linear chain entry -> ... -> exit, running each body
+            // walk the linear chain entry -> ... -> exit (inclusive), running
+            // each body. entry/exit may themselves be PROG commands: the
+            // sequence pass reuses the chain head/tail as the sub-graph
+            // entry/exit rather than adding empty control nodes.
             command_graph_node_t * node = entry;
-            while (node != exit)
+            while (true)
             {
                 if (node->type == cgir::COMMAND_GRAPH_NODE_TYPE_COMMAND)
                 {
@@ -504,7 +507,10 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
                     command_prog_run_host((command_t *) node->command);
                 }
 
-                // a sequence node has exactly one successor
+                if (node == exit)
+                    break ;
+
+                // a non-exit sequence node has exactly one successor
                 assert(node->successors.size() == 1);
                 node = (command_graph_node_t *) node->successors.front();
             }

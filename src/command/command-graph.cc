@@ -61,25 +61,27 @@ command_graph_node_new(
     return cg->nodes.put(device_unique_id, type);
 }
 
-void command_graph_init(command_graph_t * cg);
+void command_graph_init(command_graph_t * cg, command_graph_node_t * entry = nullptr, command_graph_node_t * exit = nullptr);
 
 static command_graph_t *
-command_graph_new(command_graph_t * original_cg)
+command_graph_new(command_graph_t * original_cg, command_graph_node_t * entry, command_graph_node_t * exit)
 {
     command_graph_t * cg = (command_graph_t *) malloc(sizeof(command_graph_t));
     assert(cg);
-    command_graph_init(cg);
+    command_graph_init(cg, entry, exit);
     return cg;
 }
 
 void
-command_graph_init(command_graph_t * cg)
+command_graph_init(command_graph_t * cg, command_graph_node_t * entry, command_graph_node_t * exit)
 {
     new (cg) command_graph_t();
     cg->init(
         (cgir::command_constructor_t)            command_new,
         (cgir::command_graph_node_constructor_t) command_graph_node_new,
-        (cgir::command_graph_constructor_t)      command_graph_new
+        (cgir::command_graph_constructor_t)      command_graph_new,
+        entry,
+        exit
     );
 }
 
