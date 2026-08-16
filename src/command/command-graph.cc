@@ -389,7 +389,8 @@ runtime_t::command_graph_replay(command_graph_t * cg)
     cg->replay_team = (void *) thread_t::get_tls()->team;
 
     // the top-level graph is replayed via the wavefront: `cg->is_sequence` is
-    // false (it holds per-device batch nodes, not a plain sequence of task PROGs)
+    // false (it is the recorded graph, possibly holding sequence/batch sub-nodes,
+    // not itself a single collapsed chain of task PROGs)
     this->command_submit(device_unique_id, &command);
 }
 

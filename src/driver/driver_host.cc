@@ -459,7 +459,7 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(
 }
 
 /* Replay a batch whose sub-graph is a linear sequence of OpenMP-task PROG
- * commands (marked `is_sequence` by CGIR's batch pass).
+ * commands (marked `is_sequence` by CGIR's sequence pass).
  *
  * Instead of the wavefront (which would spawn one task per command), we spawn a
  * single "super" task: the worker that schedules it serially runs the recorded
