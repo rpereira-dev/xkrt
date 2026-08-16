@@ -707,11 +707,11 @@ xkrt_cuda_driver_command_batch_init(
      * so we can set CUDA dependencies */
     struct pls_t { CUgraphNode cu_node; };
     using iterator_t = cgir::command_graph_t::node_iterator_t<pls_t>;
-    constexpr cgir::command_graph_walk_direction_t direction          = cgir::COMMAND_GRAPH_WALK_DIRECTION_FORWARD;
-    constexpr cgir::command_graph_walk_search_t    search             = cgir::COMMAND_GRAPH_WALK_SEARCH_BFS;
-    constexpr bool                                include_entry_exit = false;
+    constexpr cgir::command_graph_walk_search_t search = cgir::COMMAND_GRAPH_WALK_SEARCH_BFS;
+    constexpr cgir::command_graph_walk_order_t  order  = cgir::COMMAND_GRAPH_WALK_ORDER_PRE;
+    constexpr bool include_entry_exit = false;
 
-    std::vector<iterator_t> iterators = command->batch.cg->create_node_iterators<pls_t, include_entry_exit, direction, search>();
+    std::vector<iterator_t> iterators = command->batch.cg->create_node_iterators<pls_t, include_entry_exit, search, order>();
 
     /* Iterate once to create all nodes */
     for (iterator_t & it : iterators)
