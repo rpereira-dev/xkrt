@@ -162,12 +162,14 @@ run_spinner() {
 # ─── CMake option parsing ─────────────────────────────────────────────────────
 
 # parse_cmake_opts FILE
-# Prints one "VARNAME|description|DEFAULT" line per xkoption/ocgoption entry.
+# Prints one "VARNAME|description|DEFAULT" line per xkoption/cgiroption/ocgoption
+# entry.  cgir uses 'cgiroption(NAME "desc" DEFAULT [DEPVAR ...])', so trailing
+# dependency-variable names after the default are tolerated (and ignored here).
 parse_cmake_opts() {
     local f="$1"
     [[ -f "$f" ]] || return 0
-    grep -E '^\s*(xkoption|ocgoption)\s*\(' "$f" \
-      | sed -E 's/^\s*(xkoption|ocgoption)\s*\(\s*([A-Za-z0-9_]+)\s+"([^"]+)"\s+(ON|OFF)\s*\)/\2|\3|\4/' \
+    grep -E '^\s*(xkoption|cgiroption|ocgoption)\s*\(' "$f" \
+      | sed -E 's/^\s*(xkoption|cgiroption|ocgoption)\s*\(\s*([A-Za-z0-9_]+)\s+"([^"]+)"\s+(ON|OFF)[^)]*\)/\2|\3|\4/' \
       | grep -E '^[A-Za-z0-9_]+\|' \
       || true
 }
@@ -195,9 +197,9 @@ ask_cmake_opts() {
     local opts
     opts=$(parse_cmake_opts "$f")
 
-    # No xkoption/ocgoption entries: just offer the free-form extra-flags field.
+    # No xkoption/cgiroption/ocgoption entries: just offer the free-form flags field.
     if [[ -z "$opts" ]]; then
-        _tty "  ${DIM}(no xkoption/ocgoption entries found in CMakeLists.txt)${NC}\n"
+        _tty "  ${DIM}(no xkoption/cgiroption/ocgoption entries found in CMakeLists.txt)${NC}\n"
         _tty "  ${BOLD}${BLUE}?${NC} Extra cmake flags for %s (or Enter to skip): " "$lib"
         local extra; read -r extra </dev/tty
         printf '%s' "${extra:-}"; return
@@ -506,6 +508,7 @@ _dflt_member() {
 # Cache file: an explicit path (positional arg) wins; otherwise default to a
 # per-variant name in the CWD so different variants keep independent configs.
 _CLI_VARIANT="$(_sanitize_ref "$VARIANT")"   # --variant wins over any cached VARIANT
+_C_VARIANT=""                                 # variant recorded in the loaded cache
 if [[ -n "$CACHE_ARG" ]]; then
     CACHE_FILE="$CACHE_ARG"
 else
@@ -523,6 +526,7 @@ if [[ -f "$CACHE_FILE" ]]; then
 
     # Snapshot the cached values: each component block below resets its working
     # variables before prompting, so keep a copy to use as the prompt defaults.
+    _C_VARIANT="${VARIANT:-}"
     _C_BASE_DIR="${BASE_DIR:-}"
     _C_CC="${CC:-}"; _C_CXX="${CXX:-}"
     _C_INSTALL_LLVM="${INSTALL_LLVM:-}"
@@ -561,7 +565,20 @@ fi
 # value recorded in the loaded cache (so re-running with just the cache path keeps
 # the variant).  VARIANT_SFX is folded into every component's ref key below.
 VARIANT="$(_sanitize_ref "${_CLI_VARIANT:-${VARIANT:-}}")"
+# Keep the variant safe for paths, module names and the unquoted 'module load'
+# lines written into env.sh ('/' was already turned into '-' above).
+if [[ -n "$VARIANT" && ! "$VARIANT" =~ ^[A-Za-z0-9._-]+$ ]]; then
+    fatal "invalid variant '$VARIANT' — use only letters, digits, '.', '_', '-' (and '/')."
+fi
 VARIANT_SFX="${VARIANT:+-$VARIANT}"
+# Warn if a CLI --variant overrides a different variant baked into the loaded
+# cache: the current install uses the CLI value, but on the reuse path the cache
+# file is not re-tagged, so update.sh (which reads the variant from the cache)
+# would target the cache's variant.  Give each variant its own cache to be safe.
+if [[ -n "$_CLI_VARIANT" && "$HAVE_CACHE" == "true" && "$_CLI_VARIANT" != "$_C_VARIANT" ]]; then
+    warn "cache records variant '${_C_VARIANT:-<none>}' but --variant '$VARIANT' was given — using '$VARIANT'."
+    warn "tip: keep one cache per variant (e.g. ./.xkrt_install.$VARIANT.cache) so update.sh matches."
+fi
 [[ -n "$VARIANT" ]] && info "Variant '${VARIANT}' — install/build/module paths and env.sh are tagged with it."
 
 if [[ "$REUSE_CACHE" == "false" ]]; then
