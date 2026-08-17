@@ -237,6 +237,22 @@ ask_cmake_opts() {
 
 # ─── Configuration cache ─────────────────────────────────────────────────────
 
+# Every Phase-1 output variable, listed once.  Used to (a) snapshot cached values
+# into _C_* as prompt defaults and (b) serialise the config in _write_cache — so
+# adding a config variable only needs editing this one list.
+CONFIG_VARS=(
+    BASE_DIR REPO_DIR INSTALL_DIR MODULES_DIR VARIANT
+    CC CXX
+    INSTALL_LLVM LLVM_BRANCH LLVM_BUILD_TYPE LLVM_PROJECTS LLVM_RUNTIMES
+    LLVM_CMAKE_TARGETS LLVM_CMAKE_RUNTIME_TARGETS LLVM_EXTRA_CMAKE_OPTS
+    LLVM_GPU_SUMMARY USE_LLVM_FOR_BUILD LLVM_BOOTSTRAP_CC LLVM_BOOTSTRAP_CXX
+    INSTALL_HWLOC HWLOC_BRANCH HWLOC_CONFIGURE_OPTS
+    INSTALL_CGIR   CGIR_BRANCH   CGIR_BUILD_TYPE   CGIR_CMAKE_OPTS
+    INSTALL_XKRT   XKRT_BRANCH   XKRT_BUILD_TYPE   XKRT_CMAKE_OPTS
+    INSTALL_XKBLAS XKBLAS_BRANCH XKBLAS_BUILD_TYPE XKBLAS_CMAKE_OPTS
+    INSTALL_XKOMP  XKOMP_BRANCH  XKOMP_BUILD_TYPE  XKOMP_CMAKE_OPTS
+)
+
 # _write_cache FILE
 # Serialises every Phase-1 output variable into a sourceable bash file so the
 # user can skip re-answering all questions on a re-run.
@@ -244,18 +260,7 @@ _write_cache() {
     local f="$1"
     {
         printf '# xkrt install configuration — %s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
-        declare -p BASE_DIR REPO_DIR INSTALL_DIR MODULES_DIR VARIANT
-        declare -p CC CXX
-        declare -p INSTALL_LLVM LLVM_BRANCH LLVM_BUILD_TYPE \
-                   LLVM_PROJECTS LLVM_RUNTIMES \
-                   LLVM_CMAKE_TARGETS LLVM_CMAKE_RUNTIME_TARGETS \
-                   LLVM_EXTRA_CMAKE_OPTS LLVM_GPU_SUMMARY \
-                   USE_LLVM_FOR_BUILD LLVM_BOOTSTRAP_CC LLVM_BOOTSTRAP_CXX
-        declare -p INSTALL_HWLOC HWLOC_BRANCH HWLOC_CONFIGURE_OPTS
-        declare -p INSTALL_CGIR CGIR_BRANCH CGIR_BUILD_TYPE CGIR_CMAKE_OPTS
-        declare -p INSTALL_XKRT  XKRT_BRANCH  XKRT_BUILD_TYPE  XKRT_CMAKE_OPTS
-        declare -p INSTALL_XKBLAS XKBLAS_BRANCH XKBLAS_BUILD_TYPE XKBLAS_CMAKE_OPTS
-        declare -p INSTALL_XKOMP  XKOMP_BRANCH  XKOMP_BUILD_TYPE  XKOMP_CMAKE_OPTS
+        declare -p "${CONFIG_VARS[@]}"
     } > "$f"
 }
 
@@ -499,6 +504,63 @@ build_llvm() {
     env -u LLVM_DIR -u MLIR_DIR make install -j "$(nproc)"
 }
 
+# ─── Component build helpers (cgir · xkrt · xkblas · xkomp) ────────────────────
+# These factor out the boilerplate shared by the cmake-based components.  The
+# component-specific bits (configure flags, build command, deps, activation) stay
+# explicit in each component's block, between _component_prep and _component_finish.
+
+# _component_prep PREFIX NAME URL
+# Clone/update NAME, derive its (branch+variant-keyed) paths and export them as
+# globals for downstream stages, then set _NEED_BUILD.  Call this as a PLAIN
+# statement (NOT inside an if-condition) so 'set -e' stays active in its body and
+# a git/rm/mkdir/cd failure still aborts — matching the original inline blocks.
+#   reads:   <PREFIX>_BRANCH <PREFIX>_BUILD_TYPE   (+ global VARIANT_SFX)
+#   exports: <PREFIX>_HASH <PREFIX>_REF <PREFIX>_INSTALL_DIR <PREFIX>_BUILD_DIR <PREFIX>_MOD
+#   sets:    _NEED_BUILD=yes → marker removed, build dir wiped+created, cwd = build dir
+#            _NEED_BUILD=no  → already installed at this commit (--force overrides)
+_component_prep() {
+    local P="$1" name="$2" url="$3"
+    local _bn="${P}_BRANCH" _tn="${P}_BUILD_TYPE"
+    local branch="${!_bn}" btype="${!_tn}" hash ref idir bdir mod
+    step "Building & installing $name"
+    clone_or_update "$url" "$REPO_DIR/$name" "$branch"
+    hash="$(git -C "$REPO_DIR/$name" rev-parse HEAD | cut -c1-12)" \
+        || fatal "$name: cannot read git HEAD in $REPO_DIR/$name"
+    ref="$(_sanitize_ref "$branch")$VARIANT_SFX"          # branch(+variant) → path/module key
+    idir="$INSTALL_DIR/$name/$ref/$btype"
+    bdir="$REPO_DIR/$name/build/$ref/$btype"
+    mod="$MODULES_DIR/$name/$ref/$btype"
+    declare -g "${P}_HASH=$hash" "${P}_REF=$ref" "${P}_INSTALL_DIR=$idir" \
+               "${P}_BUILD_DIR=$bdir" "${P}_MOD=$mod"
+    if _already_installed "$idir/.xkrt-installed" "$hash"; then
+        info "$name already installed ($ref/$btype @ $hash) — skipping build (--force to rebuild)."
+        _NEED_BUILD=no
+        return 0
+    fi
+    rm -f "$idir/.xkrt-installed"
+    rm -rf "$bdir" && mkdir -p "$bdir" || fatal "$name: cannot prepare build dir $bdir"
+    cd "$bdir" || fatal "$name: cannot enter build dir $bdir"
+    _NEED_BUILD=yes
+}
+
+# _component_finish PREFIX NAME ENVVAR ACTIVATE [DEP ...]
+# Generate the module file, optionally activate the prefix (so later components
+# find it), record the module load line, refresh env.sh and report.
+#   reads: <PREFIX>_INSTALL_DIR <PREFIX>_REF <PREFIX>_BUILD_TYPE <PREFIX>_MOD
+#   ACTIVATE: "yes" to put this prefix on CMAKE_PREFIX_PATH / LLVM_DIR etc.
+_component_finish() {
+    local P="$1" name="$2" envvar="$3" activate="$4"; shift 4
+    local -a deps=("$@")
+    local _in="${P}_INSTALL_DIR" _rn="${P}_REF" _tn="${P}_BUILD_TYPE" _mn="${P}_MOD"
+    local idir="${!_in}" ref="${!_rn}" btype="${!_tn}" mod="${!_mn}"
+    generate_modulefile "$name" "$idir" "$envvar" "$mod" ${deps[@]+"${deps[@]}"}
+    [[ "$activate" == "yes" ]] && _activate_prefix "$idir" "$name" "$ref/$btype"
+    MOD_LOAD+=("module load $name/$ref/$btype")
+    write_env_sh
+    success "$name installed → $idir"
+    success "module file      → $mod"
+}
+
 # ─── Error trap ───────────────────────────────────────────────────────────────
 trap 'fatal "error on line $LINENO – aborting."' ERR
 
@@ -525,6 +587,25 @@ _dflt_member() {
     if _list_contains "$2" "$3"; then printf 'yes'; else printf 'no'; fi
 }
 
+# prompt_cmake_component PREFIX NAME URL DEFAULT_BRANCH DEFAULT_BUILD_TYPE
+# Ask whether to install a cmake component and, if so, its branch/build type and
+# cmake options (clone first so the option list is parsed from its CMakeLists).
+# Cached answers (via _C_* snapshot) seed the defaults.  Sets the globals the
+# build phase reads: INSTALL_<PREFIX>, <PREFIX>_BRANCH/_BUILD_TYPE/_CMAKE_OPTS.
+prompt_cmake_component() {
+    local P="$1" name="$2" url="$3" dbranch="$4" dbtype="$5"
+    local _cin="_C_INSTALL_${P}" _cbr="_C_${P}_BRANCH" _cbt="_C_${P}_BUILD_TYPE" _cop="_C_${P}_CMAKE_OPTS"
+    declare -g "INSTALL_${P}=false" "${P}_BRANCH=" "${P}_BUILD_TYPE=" "${P}_CMAKE_OPTS="
+    if prompt_yn "Install $name?" "$(_dflt_yn "${!_cin:-}" "yes")"; then
+        local branch btype opts
+        branch="$(prompt_value "Branch" "${!_cbr:-$dbranch}")"
+        btype="$(prompt_value "Build type (Release/Debug)" "${!_cbt:-$dbtype}")"
+        clone_or_update "$url" "$REPO_DIR/$name" "$branch"
+        opts="$(ask_cmake_opts "$name" "$REPO_DIR/$name/CMakeLists.txt" "${!_cop:-}")"
+        declare -g "INSTALL_${P}=true" "${P}_BRANCH=$branch" "${P}_BUILD_TYPE=$btype" "${P}_CMAKE_OPTS=$opts"
+    fi
+}
+
 # Cache file: an explicit path (positional arg) wins; otherwise default to a
 # per-variant name in the CWD so different variants keep independent configs.
 _CLI_VARIANT="$(_sanitize_ref "$VARIANT")"   # --variant wins over any cached VARIANT
@@ -544,24 +625,9 @@ if [[ -f "$CACHE_FILE" ]]; then
     source "$CACHE_FILE"
     HAVE_CACHE=true
 
-    # Snapshot the cached values: each component block below resets its working
-    # variables before prompting, so keep a copy to use as the prompt defaults.
-    _C_VARIANT="${VARIANT:-}"
-    _C_BASE_DIR="${BASE_DIR:-}"
-    _C_CC="${CC:-}"; _C_CXX="${CXX:-}"
-    _C_INSTALL_LLVM="${INSTALL_LLVM:-}"
-    _C_LLVM_BRANCH="${LLVM_BRANCH:-}"; _C_LLVM_BUILD_TYPE="${LLVM_BUILD_TYPE:-}"
-    _C_LLVM_PROJECTS="${LLVM_PROJECTS:-}"; _C_LLVM_RUNTIMES="${LLVM_RUNTIMES:-}"
-    _C_LLVM_CMAKE_TARGETS="${LLVM_CMAKE_TARGETS:-}"
-    _C_LLVM_EXTRA_CMAKE_OPTS="${LLVM_EXTRA_CMAKE_OPTS:-}"
-    _C_USE_LLVM_FOR_BUILD="${USE_LLVM_FOR_BUILD:-}"
-    _C_LLVM_BOOTSTRAP_CC="${LLVM_BOOTSTRAP_CC:-}"; _C_LLVM_BOOTSTRAP_CXX="${LLVM_BOOTSTRAP_CXX:-}"
-    _C_INSTALL_HWLOC="${INSTALL_HWLOC:-}"; _C_HWLOC_BRANCH="${HWLOC_BRANCH:-}"
-    _C_HWLOC_CONFIGURE_OPTS="${HWLOC_CONFIGURE_OPTS:-}"
-    _C_INSTALL_CGIR="${INSTALL_CGIR:-}"; _C_CGIR_BRANCH="${CGIR_BRANCH:-}"; _C_CGIR_BUILD_TYPE="${CGIR_BUILD_TYPE:-}"; _C_CGIR_CMAKE_OPTS="${CGIR_CMAKE_OPTS:-}"
-    _C_INSTALL_XKRT="${INSTALL_XKRT:-}"; _C_XKRT_BRANCH="${XKRT_BRANCH:-}"; _C_XKRT_BUILD_TYPE="${XKRT_BUILD_TYPE:-}"; _C_XKRT_CMAKE_OPTS="${XKRT_CMAKE_OPTS:-}"
-    _C_INSTALL_XKBLAS="${INSTALL_XKBLAS:-}"; _C_XKBLAS_BRANCH="${XKBLAS_BRANCH:-}"; _C_XKBLAS_BUILD_TYPE="${XKBLAS_BUILD_TYPE:-}"; _C_XKBLAS_CMAKE_OPTS="${XKBLAS_CMAKE_OPTS:-}"
-    _C_INSTALL_XKOMP="${INSTALL_XKOMP:-}"; _C_XKOMP_BRANCH="${XKOMP_BRANCH:-}"; _C_XKOMP_BUILD_TYPE="${XKOMP_BUILD_TYPE:-}"; _C_XKOMP_CMAKE_OPTS="${XKOMP_CMAKE_OPTS:-}"
+    # Snapshot the cached values into _C_* so the prompts below can offer them as
+    # defaults (each component block resets its working vars before prompting).
+    for _v in "${CONFIG_VARS[@]}"; do declare -g "_C_$_v=${!_v:-}"; done
 
     _tty "\n"
     hr
@@ -900,58 +966,22 @@ fi
 
 # ── cgir ────────────────────────────────────────────────────────────────────
 step "cgir  [cmake; no runtime dependencies; parallel to hwloc]"
-INSTALL_CGIR=false
-CGIR_BRANCH=""; CGIR_BUILD_TYPE=""; CGIR_CMAKE_OPTS=""
-if prompt_yn "Install cgir?" "$(_dflt_yn "${_C_INSTALL_CGIR:-}" "yes")"; then
-    INSTALL_CGIR=true
-    CGIR_BRANCH=$(prompt_value "Branch" "${_C_CGIR_BRANCH:-release/latest}")
-    CGIR_BUILD_TYPE=$(prompt_value "Build type (Release/Debug)" "${_C_CGIR_BUILD_TYPE:-Release}")
-    clone_or_update "https://github.com/JLESC-Tasking-Group/opencg" \
-        "$REPO_DIR/cgir" "$CGIR_BRANCH"
-    CGIR_CMAKE_OPTS=$(ask_cmake_opts "cgir" "$REPO_DIR/cgir/CMakeLists.txt" "${_C_CGIR_CMAKE_OPTS:-}")
-fi
+prompt_cmake_component CGIR cgir "https://github.com/JLESC-Tasking-Group/opencg" release/latest Release
 
 # ── xkrt ──────────────────────────────────────────────────────────────────────
 step "xkrt  [cmake; depends on hwloc + cgir]"
-INSTALL_XKRT=false
-XKRT_BRANCH=""; XKRT_BUILD_TYPE=""; XKRT_CMAKE_OPTS=""
-if prompt_yn "Install xkrt?" "$(_dflt_yn "${_C_INSTALL_XKRT:-}" "yes")"; then
-    INSTALL_XKRT=true
-    XKRT_BRANCH=$(prompt_value "Branch" "${_C_XKRT_BRANCH:-release/latest}")
-    XKRT_BUILD_TYPE=$(prompt_value "Build type (Release/Debug)" "${_C_XKRT_BUILD_TYPE:-Release}")
-    clone_or_update "https://gitlab.inria.fr/xkaapi/dev-v2" \
-        "$REPO_DIR/xkrt" "$XKRT_BRANCH"
-    XKRT_CMAKE_OPTS=$(ask_cmake_opts "xkrt" "$REPO_DIR/xkrt/CMakeLists.txt" "${_C_XKRT_CMAKE_OPTS:-}")
-fi
+prompt_cmake_component XKRT xkrt "https://gitlab.inria.fr/xkaapi/dev-v2" release/latest Release
 
 # ── xkblas ────────────────────────────────────────────────────────────────────
 step "xkblas  [cmake; depends on xkrt; parallel to xkomp]"
 _tty "\n"
 _tty "  Tip: if you enable USE_CBLAS, also set USE_OPENBLAS, USE_MKL, or\n"
 _tty "  USE_CRAYBLAS via the 'extra cmake flags' prompt below.\n\n"
-INSTALL_XKBLAS=false
-XKBLAS_BRANCH=""; XKBLAS_BUILD_TYPE=""; XKBLAS_CMAKE_OPTS=""
-if prompt_yn "Install xkblas?" "$(_dflt_yn "${_C_INSTALL_XKBLAS:-}" "yes")"; then
-    INSTALL_XKBLAS=true
-    XKBLAS_BRANCH=$(prompt_value "Branch" "${_C_XKBLAS_BRANCH:-release/v2.0-latest}")
-    XKBLAS_BUILD_TYPE=$(prompt_value "Build type (Release/Debug)" "${_C_XKBLAS_BUILD_TYPE:-Release}")
-    clone_or_update "https://gitlab.inria.fr/xkblas/dev" \
-        "$REPO_DIR/xkblas" "$XKBLAS_BRANCH"
-    XKBLAS_CMAKE_OPTS=$(ask_cmake_opts "xkblas" "$REPO_DIR/xkblas/CMakeLists.txt" "${_C_XKBLAS_CMAKE_OPTS:-}")
-fi
+prompt_cmake_component XKBLAS xkblas "https://gitlab.inria.fr/xkblas/dev" release/v2.0-latest Release
 
 # ── xkomp ─────────────────────────────────────────────────────────────────────
 step "xkomp  [cmake; depends on xkrt; parallel to xkblas]"
-INSTALL_XKOMP=false
-XKOMP_BRANCH=""; XKOMP_BUILD_TYPE=""; XKOMP_CMAKE_OPTS=""
-if prompt_yn "Install xkomp?" "$(_dflt_yn "${_C_INSTALL_XKOMP:-}" "yes")"; then
-    INSTALL_XKOMP=true
-    XKOMP_BRANCH=$(prompt_value "Branch" "${_C_XKOMP_BRANCH:-release/latest}")
-    XKOMP_BUILD_TYPE=$(prompt_value "Build type (Release/Debug)" "${_C_XKOMP_BUILD_TYPE:-Release}")
-    clone_or_update "https://github.com/anlsys/xkomp" \
-        "$REPO_DIR/xkomp" "$XKOMP_BRANCH"
-    XKOMP_CMAKE_OPTS=$(ask_cmake_opts "xkomp" "$REPO_DIR/xkomp/CMakeLists.txt" "${_C_XKOMP_CMAKE_OPTS:-}")
-fi
+prompt_cmake_component XKOMP xkomp "https://github.com/anlsys/xkomp" release/latest Release
 
 # ── Summary & confirmation ────────────────────────────────────────────────────
 _tty "\n"; hr
@@ -1256,24 +1286,8 @@ fi
 
 # ── cgir ────────────────────────────────────────────────────────────────────
 if [[ "$INSTALL_CGIR" == "true" ]]; then
-    step "Building & installing cgir"
-    clone_or_update \
-        "https://github.com/JLESC-Tasking-Group/opencg" \
-        "$REPO_DIR/cgir" \
-        "$CGIR_BRANCH"
-
-    CGIR_HASH=$(git -C "$REPO_DIR/cgir" rev-parse HEAD | cut -c1-12)
-    CGIR_REF="$(_sanitize_ref "$CGIR_BRANCH")$VARIANT_SFX"   # branch(+variant) → path/module key
-    CGIR_INSTALL_DIR="$INSTALL_DIR/cgir/$CGIR_REF/$CGIR_BUILD_TYPE"
-    CGIR_BUILD_DIR="$REPO_DIR/cgir/build/$CGIR_REF/$CGIR_BUILD_TYPE"
-
-    if _already_installed "$CGIR_INSTALL_DIR/.xkrt-installed" "$CGIR_HASH"; then
-        info "cgir already installed ($CGIR_REF/$CGIR_BUILD_TYPE @ $CGIR_HASH) — skipping build (--force to rebuild)."
-    else
-        rm -f "$CGIR_INSTALL_DIR/.xkrt-installed"
-        rm -rf "$CGIR_BUILD_DIR" && mkdir -p "$CGIR_BUILD_DIR"
-        cd "$CGIR_BUILD_DIR"
-
+    _component_prep CGIR cgir "https://github.com/JLESC-Tasking-Group/opencg"
+    if [[ "$_NEED_BUILD" == "yes" ]]; then
         # If a custom LLVM was built, force cgir's find_package(LLVM)/find_package(MLIR)
         # onto that exact build so it can never silently fall back to a system LLVM/MLIR.
         _cgir_llvm_flags=""
@@ -1291,44 +1305,18 @@ if [[ "$INSTALL_CGIR" == "true" ]]; then
         _mark_installed "$CGIR_INSTALL_DIR/.xkrt-installed" "$CGIR_HASH"
     fi
 
-    # Activate cgir so xkrt finds its headers, libs and cmake config.
-    CGIR_MOD="$MODULES_DIR/cgir/$CGIR_REF/$CGIR_BUILD_TYPE"
-    # cgir builds against (and links) the custom LLVM/MLIR whenever one was
-    # built, so its module must load that llvm module at runtime — regardless of
-    # whether the custom LLVM was also used as the compiler.  (A system LLVM, like
-    # a system hwloc, ships no module to load.)
+    # cgir builds against (and links) the custom LLVM/MLIR whenever one was built,
+    # so its module must load that llvm module at runtime (a system LLVM, like a
+    # system hwloc, ships no module).  Activate it so xkrt finds its cmake config.
     declare -a _cgir_deps=()
-    [[ "$INSTALL_LLVM" == "true" ]] && \
-        _cgir_deps+=("llvm/$LLVM_REF/$LLVM_BUILD_TYPE")
-    generate_modulefile "cgir" "$CGIR_INSTALL_DIR" "CGIR_HOME" "$CGIR_MOD" \
-        ${_cgir_deps[@]+"${_cgir_deps[@]}"}
-    _activate_prefix "$CGIR_INSTALL_DIR" "cgir" "$CGIR_REF/$CGIR_BUILD_TYPE"
-    MOD_LOAD+=("module load cgir/$CGIR_REF/$CGIR_BUILD_TYPE")
-    write_env_sh
-    success "cgir installed → $CGIR_INSTALL_DIR"
-    success "module file      → $CGIR_MOD"
+    [[ "$INSTALL_LLVM" == "true" ]] && _cgir_deps+=("llvm/$LLVM_REF/$LLVM_BUILD_TYPE")
+    _component_finish CGIR cgir CGIR_HOME yes ${_cgir_deps[@]+"${_cgir_deps[@]}"}
 fi
 
 # ── xkrt ──────────────────────────────────────────────────────────────────────
 if [[ "$INSTALL_XKRT" == "true" ]]; then
-    step "Building & installing xkrt"
-    clone_or_update \
-        "https://gitlab.inria.fr/xkaapi/dev-v2" \
-        "$REPO_DIR/xkrt" \
-        "$XKRT_BRANCH"
-
-    XKRT_HASH=$(git -C "$REPO_DIR/xkrt" rev-parse HEAD | cut -c1-12)
-    XKRT_REF="$(_sanitize_ref "$XKRT_BRANCH")$VARIANT_SFX"   # branch(+variant) → path/module key
-    XKRT_INSTALL_DIR="$INSTALL_DIR/xkrt/$XKRT_REF/$XKRT_BUILD_TYPE"
-    XKRT_BUILD_DIR="$REPO_DIR/xkrt/build/$XKRT_REF/$XKRT_BUILD_TYPE"
-
-    if _already_installed "$XKRT_INSTALL_DIR/.xkrt-installed" "$XKRT_HASH"; then
-        info "xkrt already installed ($XKRT_REF/$XKRT_BUILD_TYPE @ $XKRT_HASH) — skipping build (--force to rebuild)."
-    else
-        rm -f "$XKRT_INSTALL_DIR/.xkrt-installed"
-        rm -rf "$XKRT_BUILD_DIR" && mkdir -p "$XKRT_BUILD_DIR"
-        cd "$XKRT_BUILD_DIR"
-
+    _component_prep XKRT xkrt "https://gitlab.inria.fr/xkaapi/dev-v2"
+    if [[ "$_NEED_BUILD" == "yes" ]]; then
         # shellcheck disable=SC2086
         cmake $XKRT_CMAKE_OPTS \
             -DCMAKE_BUILD_TYPE="$XKRT_BUILD_TYPE" \
@@ -1339,41 +1327,18 @@ if [[ "$INSTALL_XKRT" == "true" ]]; then
     fi
 
     # Activate xkrt so xkblas and xkomp find its headers, libs and cmake config.
-    XKRT_MOD="$MODULES_DIR/xkrt/$XKRT_REF/$XKRT_BUILD_TYPE"
-    # Build the dependency list: cgir is always required; hwloc only when
-    # it was installed from source by this script (otherwise it is system-provided).
+    # Deps: cgir is always required; hwloc only when installed from source here
+    # (otherwise it is system-provided and ships no module).
     declare -a _xkrt_deps=()
-    [[ "$INSTALL_CGIR" == "true" ]] && _xkrt_deps+=("cgir/$CGIR_REF/$CGIR_BUILD_TYPE")
-    [[ "$INSTALL_HWLOC"  == "true" ]] && _xkrt_deps+=("hwloc/$HWLOC_REF/default")
-    generate_modulefile "xkrt" "$XKRT_INSTALL_DIR" "XKRT_HOME" "$XKRT_MOD" \
-        ${_xkrt_deps[@]+"${_xkrt_deps[@]}"}
-    _activate_prefix "$XKRT_INSTALL_DIR" "xkrt" "$XKRT_REF/$XKRT_BUILD_TYPE"
-    MOD_LOAD+=("module load xkrt/$XKRT_REF/$XKRT_BUILD_TYPE")
-    write_env_sh
-    success "xkrt  installed  → $XKRT_INSTALL_DIR"
-    success "module file      → $XKRT_MOD"
+    [[ "$INSTALL_CGIR"  == "true" ]] && _xkrt_deps+=("cgir/$CGIR_REF/$CGIR_BUILD_TYPE")
+    [[ "$INSTALL_HWLOC" == "true" ]] && _xkrt_deps+=("hwloc/$HWLOC_REF/default")
+    _component_finish XKRT xkrt XKRT_HOME yes ${_xkrt_deps[@]+"${_xkrt_deps[@]}"}
 fi
 
 # ── xkblas ────────────────────────────────────────────────────────────────────
 if [[ "$INSTALL_XKBLAS" == "true" ]]; then
-    step "Building & installing xkblas"
-    clone_or_update \
-        "https://gitlab.inria.fr/xkblas/dev" \
-        "$REPO_DIR/xkblas" \
-        "$XKBLAS_BRANCH"
-
-    XKBLAS_HASH=$(git -C "$REPO_DIR/xkblas" rev-parse HEAD | cut -c1-12)
-    XKBLAS_REF="$(_sanitize_ref "$XKBLAS_BRANCH")$VARIANT_SFX"   # branch(+variant) → path/module key
-    XKBLAS_INSTALL_DIR="$INSTALL_DIR/xkblas/$XKBLAS_REF/$XKBLAS_BUILD_TYPE"
-    XKBLAS_BUILD_DIR="$REPO_DIR/xkblas/build/$XKBLAS_REF/$XKBLAS_BUILD_TYPE"
-
-    if _already_installed "$XKBLAS_INSTALL_DIR/.xkrt-installed" "$XKBLAS_HASH"; then
-        info "xkblas already installed ($XKBLAS_REF/$XKBLAS_BUILD_TYPE @ $XKBLAS_HASH) — skipping build (--force to rebuild)."
-    else
-        rm -f "$XKBLAS_INSTALL_DIR/.xkrt-installed"
-        rm -rf "$XKBLAS_BUILD_DIR" && mkdir -p "$XKBLAS_BUILD_DIR"
-        cd "$XKBLAS_BUILD_DIR"
-
+    _component_prep XKBLAS xkblas "https://gitlab.inria.fr/xkblas/dev"
+    if [[ "$_NEED_BUILD" == "yes" ]]; then
         # shellcheck disable=SC2086
         cmake $XKBLAS_CMAKE_OPTS \
             -DCMAKE_BUILD_TYPE="$XKBLAS_BUILD_TYPE" \
@@ -1383,37 +1348,16 @@ if [[ "$INSTALL_XKBLAS" == "true" ]]; then
         _mark_installed "$XKBLAS_INSTALL_DIR/.xkrt-installed" "$XKBLAS_HASH"
     fi
 
-    XKBLAS_MOD="$MODULES_DIR/xkblas/$XKBLAS_REF/$XKBLAS_BUILD_TYPE"
+    # xkblas is a leaf (nothing else builds against it): no activation.
     declare -a _xkblas_deps=()
     [[ "$INSTALL_XKRT" == "true" ]] && _xkblas_deps+=("xkrt/$XKRT_REF/$XKRT_BUILD_TYPE")
-    generate_modulefile "xkblas" "$XKBLAS_INSTALL_DIR" "XKBLAS_HOME" "$XKBLAS_MOD" \
-        ${_xkblas_deps[@]+"${_xkblas_deps[@]}"}
-    MOD_LOAD+=("module load xkblas/$XKBLAS_REF/$XKBLAS_BUILD_TYPE")
-    write_env_sh
-    success "xkblas installed → $XKBLAS_INSTALL_DIR"
-    success "module file      → $XKBLAS_MOD"
+    _component_finish XKBLAS xkblas XKBLAS_HOME no ${_xkblas_deps[@]+"${_xkblas_deps[@]}"}
 fi
 
 # ── xkomp ─────────────────────────────────────────────────────────────────────
 if [[ "$INSTALL_XKOMP" == "true" ]]; then
-    step "Building & installing xkomp"
-    clone_or_update \
-        "https://github.com/anlsys/xkomp" \
-        "$REPO_DIR/xkomp" \
-        "$XKOMP_BRANCH"
-
-    XKOMP_HASH=$(git -C "$REPO_DIR/xkomp" rev-parse HEAD | cut -c1-12)
-    XKOMP_REF="$(_sanitize_ref "$XKOMP_BRANCH")$VARIANT_SFX"   # branch(+variant) → path/module key
-    XKOMP_INSTALL_DIR="$INSTALL_DIR/xkomp/$XKOMP_REF/$XKOMP_BUILD_TYPE"
-    XKOMP_BUILD_DIR="$REPO_DIR/xkomp/build/$XKOMP_REF/$XKOMP_BUILD_TYPE"
-
-    if _already_installed "$XKOMP_INSTALL_DIR/.xkrt-installed" "$XKOMP_HASH"; then
-        info "xkomp already installed ($XKOMP_REF/$XKOMP_BUILD_TYPE @ $XKOMP_HASH) — skipping build (--force to rebuild)."
-    else
-        rm -f "$XKOMP_INSTALL_DIR/.xkrt-installed"
-        rm -rf "$XKOMP_BUILD_DIR" && mkdir -p "$XKOMP_BUILD_DIR"
-        cd "$XKOMP_BUILD_DIR"
-
+    _component_prep XKOMP xkomp "https://github.com/anlsys/xkomp"
+    if [[ "$_NEED_BUILD" == "yes" ]]; then
         # shellcheck disable=SC2086
         cmake $XKOMP_CMAKE_OPTS \
             -DCMAKE_BUILD_TYPE="$XKOMP_BUILD_TYPE" \
@@ -1433,15 +1377,10 @@ if [[ "$INSTALL_XKOMP" == "true" ]]; then
         _mark_installed "$XKOMP_INSTALL_DIR/.xkrt-installed" "$XKOMP_HASH"
     fi
 
-    XKOMP_MOD="$MODULES_DIR/xkomp/$XKOMP_REF/$XKOMP_BUILD_TYPE"
+    # xkomp is a leaf (nothing else builds against it): no activation.
     declare -a _xkomp_deps=()
     [[ "$INSTALL_XKRT" == "true" ]] && _xkomp_deps+=("xkrt/$XKRT_REF/$XKRT_BUILD_TYPE")
-    generate_modulefile "xkomp" "$XKOMP_INSTALL_DIR" "XKOMP_HOME" "$XKOMP_MOD" \
-        ${_xkomp_deps[@]+"${_xkomp_deps[@]}"}
-    MOD_LOAD+=("module load xkomp/$XKOMP_REF/$XKOMP_BUILD_TYPE")
-    write_env_sh
-    success "xkomp installed  → $XKOMP_INSTALL_DIR"
-    success "module file      → $XKOMP_MOD"
+    _component_finish XKOMP xkomp XKOMP_HOME no ${_xkomp_deps[@]+"${_xkomp_deps[@]}"}
 fi
 
 # ── LLVM offload runtime (custom libomptarget) ─────────────────────────────────
