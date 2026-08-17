@@ -450,25 +450,25 @@ _strip_token() {
 #   LLVM_EXTRA_CMAKE_OPTS LLVM_BOOTSTRAP_CC LLVM_BOOTSTRAP_CXX
 build_llvm() {
     local runtimes="$1" label="$2"
-    # Assemble the LLVM_ENABLE_RUNTIMES flags.  'openmp' is only wanted on GPU
-    # targets, where it builds the device runtime (libompdevice.a); on the host it
-    # would also build libomp/archer/libompd/docs, which we don't use (xkomp
-    # provides the host OpenMP runtime).  So when 'openmp' is requested, drop it
-    # from the global (host) list and enable it per-GPU-target instead; 'offload'
-    # (the host libomptarget) stays in the global list.
+    # Assemble the LLVM_ENABLE_RUNTIMES flags.  The host list NEVER includes
+    # 'openmp': the host OpenMP runtime (libomp/archer/libompd/docs) is unused —
+    # xkomp provides it.  But 'offload' (the host libomptarget) needs the device
+    # runtime libompdevice.a, which is built by 'openmp' on GPU targets — so when
+    # offload is requested, enable openmp per-GPU-target only (it does not matter
+    # whether the caller also listed 'openmp'; it is always stripped from the host
+    # and added to the GPU targets).
     local -a rt_flags=()
     if [[ -n "$runtimes" ]]; then
-        if _list_contains "$runtimes" openmp; then
-            local _host_rt _t; local -a _rtts=()
-            _host_rt="$(_strip_token "$runtimes" openmp)"
-            rt_flags+=("-DLLVM_ENABLE_RUNTIMES=${_host_rt}")
+        local _host_rt _gpu_rt _t; local -a _rtts=()
+        _host_rt="$(_strip_token "$runtimes" openmp)"       # host: never openmp
+        [[ -n "$_host_rt" ]] && rt_flags+=("-DLLVM_ENABLE_RUNTIMES=${_host_rt}")
+        if _list_contains "$runtimes" offload; then
+            _gpu_rt="${_host_rt:+${_host_rt};}openmp"        # e.g. "offload;openmp"
             IFS=';' read -r -a _rtts <<< "$LLVM_CMAKE_RUNTIME_TARGETS"
             for _t in ${_rtts[@]+"${_rtts[@]}"}; do
                 [[ "$_t" =~ ^(nvptx|amdgcn|spirv) ]] && \
-                    rt_flags+=("-DRUNTIMES_${_t}_LLVM_ENABLE_RUNTIMES=${runtimes}")
+                    rt_flags+=("-DRUNTIMES_${_t}_LLVM_ENABLE_RUNTIMES=${_gpu_rt}")
             done
-        else
-            rt_flags+=("-DLLVM_ENABLE_RUNTIMES=${runtimes}")
         fi
     fi
 
@@ -803,13 +803,12 @@ if prompt_yn "Install custom patched LLVM?" "$(_dflt_yn "${_C_INSTALL_LLVM:-}" "
     LLVM_PROJECTS="$_projects"
 
     # ── Runtimes ─────────────────────────────────────────────────────────────
-    # openmp and offload are coupled — always both or neither.  The custom
-    # libomptarget ("offload" runtime) links against libompdevice.a, which is
-    # produced only by the "openmp" runtime; enabling offload without openmp
-    # fails to link.  So this is a single yes/no that selects "openmp;offload"
-    # or "" (no runtimes).  NOTE: build_llvm enables "openmp" GPU-target-only, so
-    # only the device runtime (libompdevice.a) is built — never the host libomp/
-    # archer/libompd/docs (xkomp provides the host OpenMP runtime).
+    # A single yes/no selecting "offload" or "" (no runtimes).  build_llvm turns
+    # "offload" into: host libomptarget, plus the 'openmp' device runtime
+    # (libompdevice.a) on GPU targets only (offload needs it).  The host OpenMP
+    # runtime (libomp/archer/libompd/docs) is never built — xkomp provides it.
+    # ("openmp;offload" from an older cache is also accepted; openmp is always
+    # stripped from the host and placed on the GPU targets.)
     _tty "\n  ${BOLD}LLVM runtimes${NC}:\n"
     # Default from cache: yes if runtimes were enabled before (openmp or offload).
     _rt_default="yes"
@@ -821,7 +820,7 @@ if prompt_yn "Install custom patched LLVM?" "$(_dflt_yn "${_C_INSTALL_LLVM:-}" "
     _tty "  the host OpenMP runtime is NOT built (xkomp provides it).  offload also\n"
     _tty "  depends on XKRT and XKOMP, so it is built last — after XKRT and XKOMP.${NC}\n"
     if prompt_yn "  Build OpenMP offload (libomptarget + device runtime)?" "$_rt_default"; then
-        LLVM_RUNTIMES="openmp;offload"
+        LLVM_RUNTIMES="offload"
     else
         LLVM_RUNTIMES=""
     fi
