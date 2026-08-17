@@ -26,6 +26,10 @@
 # for a consistent rebuild — update.sh does not re-stage that dependency loop.
 #
 # Usage: update.sh [--force] [path/to/.xkrt_install.cache]
+#
+# Variants: the variant (if any) is read from the cache, so pass that variant's
+# cache to update it, e.g.  update.sh .xkrt_install.fast.cache  updates the
+# 'fast' variant (its env.fast.sh and build/<ref>-fast/<type> dirs).
 # ============================================================================
 
 # Make sure we are actually running under bash.  This script uses bash-only
@@ -47,6 +51,10 @@ info()    { _tty "  ${BLUE}·${NC} %s\n" "$*"; }
 success() { _tty "  ${GREEN}✓${NC} %s\n" "$*"; }
 warn()    { _tty "  ${YELLOW}!${NC} %s\n" "$*"; }
 fatal()   { _tty "  ${RED}✗ FATAL:${NC} %s\n" "$*"; exit 1; }
+
+# _sanitize_ref REF — filesystem/module-safe form of a git ref ('/' → '-'); must
+# match install.sh so the ref[+variant] build-dir keys line up.
+_sanitize_ref() { printf '%s' "${1//\//-}"; }
 
 trap 'fatal "error on line $LINENO – aborting."' ERR
 
@@ -82,10 +90,15 @@ source "$CACHE_FILE"
 : "${BASE_DIR:?cache is missing BASE_DIR — is this a valid install cache?}"
 : "${REPO_DIR:?cache is missing REPO_DIR — is this a valid install cache?}"
 
+# Variant recorded by install.sh (empty for a base install).  Tags the env file
+# and each component's build-dir key so the matching variant is updated.
+VARIANT="$(_sanitize_ref "${VARIANT:-}")"
+
 hr
 _tty "  ${BOLD}xkrt ecosystem — in-place update${NC}\n"
 _tty "  cache : %s\n" "$CACHE_FILE"
 _tty "  repos : %s\n" "$REPO_DIR"
+[[ -n "$VARIANT" ]] && _tty "  variant: %s\n" "$VARIANT"
 [[ "$FORCE" == "true" ]] && _tty "  mode  : ${BOLD}--force${NC} (rebuild everything)\n"
 hr
 
@@ -93,7 +106,7 @@ hr
 # install.sh writes env.sh (module use + module load for every component).  Just
 # source it: that loads every component's module, so the incremental builds below
 # find each other's headers, libraries and cmake config (e.g. <cgir/cgir.hpp>).
-ENV_FILE="$BASE_DIR/env.sh"
+ENV_FILE="$BASE_DIR/env${VARIANT:+.$VARIANT}.sh"
 if [[ -f "$ENV_FILE" ]]; then
     step "Loading modules (source $ENV_FILE)"
     set +u   # 'module' (Lmod) and its init scripts are not always set -u clean
@@ -142,9 +155,16 @@ _pull() {
     fi
 }
 
-# _newest_build_dir REPO [BUILD_TYPE] — newest build dir containing a CMakeCache.
+# _newest_build_dir REPO [BUILD_TYPE] [KEY] — pick a build dir with a CMakeCache.
+# When KEY (the sanitized ref[+variant]) is given, prefer the exact
+# build/<KEY>/<BUILD_TYPE> dir so the right branch/variant is updated even when
+# several coexist; otherwise fall back to the newest CMakeCache by mtime (which
+# also covers older hash-keyed layouts).
 _newest_build_dir() {
-    local repo="$1" btype="${2:-}" d t best=0 newest="" glob
+    local repo="$1" btype="${2:-}" key="${3:-}" d t best=0 newest="" glob
+    if [[ -n "$key" && -n "$btype" && -f "$repo/build/$key/$btype/CMakeCache.txt" ]]; then
+        printf '%s' "$repo/build/$key/$btype"; return
+    fi
     if [[ -n "$btype" ]]; then glob="$repo/build/*/$btype"; else glob="$repo/build/*/*"; fi
     # shellcheck disable=SC2086
     for d in $glob; do
@@ -181,7 +201,8 @@ update_cmake() {
     fi
     DIRTY=true   # downstream components must now rebuild against this one
 
-    local bdir; bdir="$(_newest_build_dir "$repo" "$btype")"
+    local key; key="$(_sanitize_ref "$branch")${VARIANT:+-$VARIANT}"
+    local bdir; bdir="$(_newest_build_dir "$repo" "$btype" "$key")"
     if [[ -z "$bdir" ]]; then
         warn "no configured build dir under $repo/build — run install.sh for $name first; skipping"
         return 0

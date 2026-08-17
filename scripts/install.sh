@@ -52,16 +52,27 @@ fatal()   { _tty "  ${RED}✗ FATAL:${NC} %s\n" "$*"; exit 1; }
 # --force / --rebuild : rebuild & reinstall every component even if it is already
 #                       installed (ignore the per-component completion markers).
 FORCE_REBUILD=false
-for _arg in "$@"; do
-    case "$_arg" in
+VARIANT=""          # --variant NAME : tag paths so a build can coexist as a variant
+CACHE_ARG=""        # optional positional path to an .xkrt_install cache file
+while [[ $# -gt 0 ]]; do
+    case "$1" in
         -f|--force|--rebuild) FORCE_REBUILD=true ;;
+        --variant)   shift; [[ $# -gt 0 ]] || fatal "--variant requires a value (e.g. --variant fast)"; VARIANT="$1" ;;
+        --variant=*) VARIANT="${1#*=}" ;;
         -h|--help)
-            _tty "Usage: %s [--force]\n" "$(basename "$0")"
-            _tty "  --force   rebuild & reinstall every component, ignoring the\n"
-            _tty "            per-component completion markers (.xkrt-installed).\n"
+            _tty "Usage: %s [--force] [--variant NAME] [path/to/.xkrt_install.cache]\n" "$(basename "$0")"
+            _tty "  --force         rebuild & reinstall every component, ignoring the\n"
+            _tty "                  per-component completion markers (.xkrt-installed).\n"
+            _tty "  --variant NAME  tag install/build/module paths and env.sh with NAME so\n"
+            _tty "                  the same branch + build type can be installed side-by-side\n"
+            _tty "                  as an independent variant (also --variant=NAME).\n"
+            _tty "  [cache]         path to an .xkrt_install cache to load defaults from and\n"
+            _tty "                  save back to (default: ./.xkrt_install[.NAME].cache).\n"
             exit 0 ;;
-        *) fatal "unknown argument: $_arg  (try --help)" ;;
+        -*) fatal "unknown argument: $1  (try --help)" ;;
+        *)  CACHE_ARG="$1" ;;
     esac
+    shift
 done
 
 # _sanitize_ref REF
@@ -230,7 +241,7 @@ _write_cache() {
     local f="$1"
     {
         printf '# xkrt install configuration — %s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
-        declare -p BASE_DIR REPO_DIR INSTALL_DIR MODULES_DIR
+        declare -p BASE_DIR REPO_DIR INSTALL_DIR MODULES_DIR VARIANT
         declare -p CC CXX
         declare -p INSTALL_LLVM LLVM_BRANCH LLVM_BUILD_TYPE \
                    LLVM_PROJECTS LLVM_RUNTIMES \
@@ -492,7 +503,14 @@ _dflt_member() {
     if _list_contains "$2" "$3"; then printf 'yes'; else printf 'no'; fi
 }
 
-CACHE_FILE="$(pwd)/.xkrt_install.cache"
+# Cache file: an explicit path (positional arg) wins; otherwise default to a
+# per-variant name in the CWD so different variants keep independent configs.
+_CLI_VARIANT="$(_sanitize_ref "$VARIANT")"   # --variant wins over any cached VARIANT
+if [[ -n "$CACHE_ARG" ]]; then
+    CACHE_FILE="$CACHE_ARG"
+else
+    CACHE_FILE="$(pwd)/.xkrt_install${_CLI_VARIANT:+.$_CLI_VARIANT}.cache"
+fi
 REUSE_CACHE=false
 HAVE_CACHE=false
 
@@ -538,6 +556,13 @@ if [[ -f "$CACHE_FILE" ]]; then
         info "Re-running configuration (cached values pre-filled as the defaults)."
     fi
 fi
+
+# Resolve the effective variant: a CLI --variant always wins; otherwise adopt the
+# value recorded in the loaded cache (so re-running with just the cache path keeps
+# the variant).  VARIANT_SFX is folded into every component's ref key below.
+VARIANT="$(_sanitize_ref "${_CLI_VARIANT:-${VARIANT:-}}")"
+VARIANT_SFX="${VARIANT:+-$VARIANT}"
+[[ -n "$VARIANT" ]] && info "Variant '${VARIANT}' — install/build/module paths and env.sh are tagged with it."
 
 if [[ "$REUSE_CACHE" == "false" ]]; then
 
@@ -894,6 +919,7 @@ fi
 _tty "\n"; hr
 _tty "  ${BOLD}Summary${NC}\n"; hr
 _tty "\n"
+[[ -n "$VARIANT" ]] && _tty "  ${BOLD}variant${NC}: %s   ${DIM}(paths & env.sh tagged '-%s')${NC}\n\n" "$VARIANT" "$VARIANT"
 
 _lib_row() {
     local name="$1" install="$2" branch="${3:-}" btype="${4:-}"
@@ -952,7 +978,9 @@ fi # REUSE_CACHE — end of Phase 1
 mkdir -p "$REPO_DIR" "$INSTALL_DIR" "$MODULES_DIR"
 
 declare -a MOD_LOAD=()   # module load lines for final usage message
-ENV_FILE="$BASE_DIR/env.sh"
+# Variant installs get their own env file (env.<variant>.sh) so they never
+# clobber the base env.sh (or another variant's).
+ENV_FILE="$BASE_DIR/env${VARIANT:+.$VARIANT}.sh"
 
 # write_env_sh
 # (Re)write env.sh so it loads every module accumulated in MOD_LOAD so far.  It is
@@ -1029,7 +1057,7 @@ if [[ "$INSTALL_LLVM" == "true" ]]; then
     fi
 
     LLVM_HASH=$(git -C "$LLVM_REPO_DIR" rev-parse HEAD | cut -c1-12)
-    LLVM_REF="$(_sanitize_ref "$LLVM_BRANCH")"          # branch → path/module key
+    LLVM_REF="$(_sanitize_ref "$LLVM_BRANCH")$VARIANT_SFX"   # branch(+variant) → path/module key
     LLVM_INSTALL_DIR="$INSTALL_DIR/llvm/$LLVM_REF/$LLVM_BUILD_TYPE"
     LLVM_BUILD_DIR="$LLVM_REPO_DIR/build/$LLVM_REF/$LLVM_BUILD_TYPE"
 
@@ -1143,7 +1171,7 @@ if [[ "$INSTALL_HWLOC" == "true" ]]; then
         "$HWLOC_BRANCH"
 
     HWLOC_HASH=$(git -C "$REPO_DIR/hwloc" rev-parse HEAD | cut -c1-12)
-    HWLOC_REF="$(_sanitize_ref "$HWLOC_BRANCH")"          # branch/tag → path/module key
+    HWLOC_REF="$(_sanitize_ref "$HWLOC_BRANCH")$VARIANT_SFX"   # branch/tag(+variant) → path/module key
     HWLOC_INSTALL_DIR="$INSTALL_DIR/hwloc/$HWLOC_REF"
 
     if _already_installed "$HWLOC_INSTALL_DIR/.xkrt-installed" "$HWLOC_HASH"; then
@@ -1194,7 +1222,7 @@ if [[ "$INSTALL_CGIR" == "true" ]]; then
         "$CGIR_BRANCH"
 
     CGIR_HASH=$(git -C "$REPO_DIR/cgir" rev-parse HEAD | cut -c1-12)
-    CGIR_REF="$(_sanitize_ref "$CGIR_BRANCH")"          # branch → path/module key
+    CGIR_REF="$(_sanitize_ref "$CGIR_BRANCH")$VARIANT_SFX"   # branch(+variant) → path/module key
     CGIR_INSTALL_DIR="$INSTALL_DIR/cgir/$CGIR_REF/$CGIR_BUILD_TYPE"
     CGIR_BUILD_DIR="$REPO_DIR/cgir/build/$CGIR_REF/$CGIR_BUILD_TYPE"
 
@@ -1249,7 +1277,7 @@ if [[ "$INSTALL_XKRT" == "true" ]]; then
         "$XKRT_BRANCH"
 
     XKRT_HASH=$(git -C "$REPO_DIR/xkrt" rev-parse HEAD | cut -c1-12)
-    XKRT_REF="$(_sanitize_ref "$XKRT_BRANCH")"          # branch → path/module key
+    XKRT_REF="$(_sanitize_ref "$XKRT_BRANCH")$VARIANT_SFX"   # branch(+variant) → path/module key
     XKRT_INSTALL_DIR="$INSTALL_DIR/xkrt/$XKRT_REF/$XKRT_BUILD_TYPE"
     XKRT_BUILD_DIR="$REPO_DIR/xkrt/build/$XKRT_REF/$XKRT_BUILD_TYPE"
 
@@ -1294,7 +1322,7 @@ if [[ "$INSTALL_XKBLAS" == "true" ]]; then
         "$XKBLAS_BRANCH"
 
     XKBLAS_HASH=$(git -C "$REPO_DIR/xkblas" rev-parse HEAD | cut -c1-12)
-    XKBLAS_REF="$(_sanitize_ref "$XKBLAS_BRANCH")"          # branch → path/module key
+    XKBLAS_REF="$(_sanitize_ref "$XKBLAS_BRANCH")$VARIANT_SFX"   # branch(+variant) → path/module key
     XKBLAS_INSTALL_DIR="$INSTALL_DIR/xkblas/$XKBLAS_REF/$XKBLAS_BUILD_TYPE"
     XKBLAS_BUILD_DIR="$REPO_DIR/xkblas/build/$XKBLAS_REF/$XKBLAS_BUILD_TYPE"
 
@@ -1334,7 +1362,7 @@ if [[ "$INSTALL_XKOMP" == "true" ]]; then
         "$XKOMP_BRANCH"
 
     XKOMP_HASH=$(git -C "$REPO_DIR/xkomp" rev-parse HEAD | cut -c1-12)
-    XKOMP_REF="$(_sanitize_ref "$XKOMP_BRANCH")"          # branch → path/module key
+    XKOMP_REF="$(_sanitize_ref "$XKOMP_BRANCH")$VARIANT_SFX"   # branch(+variant) → path/module key
     XKOMP_INSTALL_DIR="$INSTALL_DIR/xkomp/$XKOMP_REF/$XKOMP_BUILD_TYPE"
     XKOMP_BUILD_DIR="$REPO_DIR/xkomp/build/$XKOMP_REF/$XKOMP_BUILD_TYPE"
 
