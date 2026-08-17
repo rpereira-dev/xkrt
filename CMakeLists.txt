@@ -127,8 +127,10 @@ set(XKRT_TARGETS ${XKRT})
 # DEPENDENCES #
 ###############
 
-# CGIR
+# C++
+target_link_libraries(xkrt PUBLIC stdc++)
 
+# CGIR
 find_package(CGIR REQUIRED)
 target_link_libraries(${XKRT} PUBLIC CGIR::cgir)
 
