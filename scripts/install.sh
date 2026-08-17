@@ -16,8 +16,9 @@
 # calls to XKRT and XKOMP, creating a build loop (libomptarget → xkrt + xkomp →
 # cgir → clang).  It is therefore built in two stages: LLVM is first built
 # WITHOUT offload, then (after xkrt + xkomp are installed) the offload runtime is
-# added in place:
-#   llvm (no offload) ─▶ cgir ─▶ xkrt ─▶ xkomp ─▶ llvm offload/libomptarget
+# added in place.  xkomp's tests link libomptarget too, so only the xkomp library
+# is installed before offload; its tests are compiled afterwards:
+#   llvm (no offload) ─▶ cgir ─▶ xkrt ─▶ xkomp (lib) ─▶ llvm offload/libomptarget ─▶ xkomp tests
 #
 # Requires: cmake >= 3.17, a C/C++ compiler, git, autoconf/automake (for hwloc)
 # ============================================================================
@@ -1395,7 +1396,17 @@ if [[ "$INSTALL_XKOMP" == "true" ]]; then
             -DCMAKE_BUILD_TYPE="$XKOMP_BUILD_TYPE" \
             -DCMAKE_INSTALL_PREFIX="$XKOMP_INSTALL_DIR" \
             "$REPO_DIR/xkomp"
-        make install -j "$(nproc)"
+        # Build & install ONLY the xkomp library — the 'xkomp' target plus its
+        # 'compat_links' symlinks (libomp.so/libiomp5.so) — NOT tests/.  xkomp's
+        # CMakeLists always does add_subdirectory(tests/), and those tests link the
+        # custom libomptarget, which does not exist yet (libomptarget depends on the
+        # xkomp library and is built in the offload stage below).  A plain
+        # 'make install' would build 'all' first (tests included) and fail here.
+        # 'cmake --install' installs the already-built artifacts without an 'all'
+        # build; the tests are compiled later, once libomptarget exists (see the
+        # "xkomp tests" step after the offload stage).
+        make -j "$(nproc)" xkomp compat_links
+        cmake --install .
         _mark_installed "$XKOMP_INSTALL_DIR/.xkrt-installed" "$XKOMP_HASH"
     fi
 
@@ -1482,6 +1493,36 @@ if [[ "$INSTALL_LLVM" == "true" && "$LLVM_BUILD_OFFLOAD" == "true" ]]; then
         fi
         _mark_installed "$LLVM_INSTALL_DIR/.xkrt-offload-installed" "$LLVM_HASH"
     fi
+fi
+
+# ── xkomp tests (require the patched LLVM + custom libomptarget) ────────────────
+# xkomp's tests/ link the OpenMP target runtime (libomptarget), which only exists
+# after the offload stage above.  They were intentionally NOT built when the xkomp
+# library was installed (libomptarget did not exist yet), so build them now.  This
+# is best-effort: the libraries are already installed, so a test build failure
+# warns instead of aborting the whole install.
+if [[ "$INSTALL_XKOMP" == "true" && "${LLVM_BUILD_OFFLOAD:-false}" == "true" ]]; then
+    step "Building xkomp tests (require libomptarget)"
+    if [[ -f "${XKOMP_BUILD_DIR:-/nonexistent}/CMakeCache.txt" ]]; then
+        cd "$XKOMP_BUILD_DIR"
+        # 'make' now builds the remaining targets — the test executables — with the
+        # patched clang, which can finally resolve -lomptarget from the LLVM install.
+        if make -j "$(nproc)"; then
+            success "xkomp tests built → $XKOMP_BUILD_DIR/tests"
+            _tty "  ${DIM}Run them with:  ( source %s && cd %s && ctest --output-on-failure )${NC}\n" \
+                 "$ENV_FILE" "$XKOMP_BUILD_DIR"
+        else
+            warn "xkomp tests failed to build — the xkomp library itself is installed and"
+            warn "usable.  Inspect the output above (tests dir: $XKOMP_BUILD_DIR/tests)."
+        fi
+    else
+        warn "xkomp tests skipped: no configured build dir at ${XKOMP_BUILD_DIR:-<unset>}."
+        warn "xkomp was likely already installed from a previous run — re-run with --force"
+        warn "to reconfigure and build the tests."
+    fi
+elif [[ "$INSTALL_XKOMP" == "true" ]]; then
+    info "xkomp library installed; tests not built — they need the custom libomptarget"
+    info "(enable the LLVM 'offload' runtime to build them)."
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
