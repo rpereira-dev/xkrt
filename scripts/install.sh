@@ -16,8 +16,9 @@
 # calls to XKRT and XKOMP, creating a build loop (libomptarget → xkrt + xkomp →
 # cgir → clang).  It is therefore built in two stages: LLVM is first built
 # WITHOUT offload, then (after xkrt + xkomp are installed) the offload runtime is
-# added in place:
-#   llvm (no offload) ─▶ cgir ─▶ xkrt ─▶ xkomp ─▶ llvm offload/libomptarget
+# added in place.  xkomp's tests link libomptarget too, so only the xkomp library
+# is installed before offload; its tests are compiled afterwards:
+#   llvm (no offload) ─▶ cgir ─▶ xkrt ─▶ xkomp (lib) ─▶ llvm offload/libomptarget ─▶ xkomp tests
 #
 # Requires: cmake >= 3.17, a C/C++ compiler, git, autoconf/automake (for hwloc)
 # ============================================================================
@@ -47,6 +48,54 @@ info()    { _tty "  ${BLUE}·${NC} %s\n" "$*"; }
 success() { _tty "  ${GREEN}✓${NC} %s\n" "$*"; }
 warn()    { _tty "  ${YELLOW}!${NC} %s\n" "$*"; }
 fatal()   { _tty "  ${RED}✗ FATAL:${NC} %s\n" "$*"; exit 1; }
+
+# ─── Arguments ────────────────────────────────────────────────────────────────
+# --force / --rebuild : rebuild & reinstall every component even if it is already
+#                       installed (ignore the per-component completion markers).
+FORCE_REBUILD=false
+VARIANT=""          # --variant NAME : tag paths so a build can coexist as a variant
+CACHE_ARG=""        # optional positional path to an .xkrt_install cache file
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -f|--force|--rebuild) FORCE_REBUILD=true ;;
+        --variant)   shift; [[ $# -gt 0 ]] || fatal "--variant requires a value (e.g. --variant fast)"; VARIANT="$1" ;;
+        --variant=*) VARIANT="${1#*=}" ;;
+        -h|--help)
+            _tty "Usage: %s [--force] [--variant NAME] [path/to/.xkrt_install.cache]\n" "$(basename "$0")"
+            _tty "  --force         rebuild & reinstall every component, ignoring the\n"
+            _tty "                  per-component completion markers (.xkrt-installed).\n"
+            _tty "  --variant NAME  tag install/build/module paths and env.sh with NAME so\n"
+            _tty "                  the same branch + build type can be installed side-by-side\n"
+            _tty "                  as an independent variant (also --variant=NAME).\n"
+            _tty "  [cache]         path to an .xkrt_install cache to load defaults from and\n"
+            _tty "                  save back to (default: ./.xkrt_install[.NAME].cache).\n"
+            exit 0 ;;
+        -*) fatal "unknown argument: $1  (try --help)" ;;
+        *)  CACHE_ARG="$1" ;;
+    esac
+    shift
+done
+
+# _sanitize_ref REF
+# Filesystem/module-safe form of a git ref (branch/tag): '/' → '-', so it stays a
+# single path component (e.g. "release/latest" → "release-latest").  Install,
+# build and module paths are keyed on the branch (not the raw commit), so updating
+# a branch reuses the same locations instead of piling up one dir per commit.
+_sanitize_ref() { printf '%s' "${1//\//-}"; }
+
+# _already_installed MARKER COMMIT
+# True when --force was not given AND MARKER exists AND records COMMIT — i.e. this
+# exact commit is already installed under the (branch-keyed) prefix, so its build
+# can be skipped.  If the branch has since moved (COMMIT differs), it returns false
+# so the branch dir is rebuilt in place.
+_already_installed() {
+    [[ "$FORCE_REBUILD" == "true" ]] && return 1
+    [[ -f "$1" && "$(cat "$1" 2>/dev/null)" == "$2" ]]
+}
+
+# _mark_installed MARKER COMMIT — record COMMIT in MARKER (creating its dir),
+# stamping a successful install of that commit.
+_mark_installed() { mkdir -p "$(dirname "$1")"; printf '%s\n' "$2" > "$1"; }
 
 # prompt_yn QUESTION [DEFAULT=yes]
 # Returns 0 for yes, 1 for no.
@@ -114,12 +163,14 @@ run_spinner() {
 # ─── CMake option parsing ─────────────────────────────────────────────────────
 
 # parse_cmake_opts FILE
-# Prints one "VARNAME|description|DEFAULT" line per xkoption/ocgoption entry.
+# Prints one "VARNAME|description|DEFAULT" line per xkoption/cgiroption/ocgoption
+# entry.  cgir uses 'cgiroption(NAME "desc" DEFAULT [DEPVAR ...])', so trailing
+# dependency-variable names after the default are tolerated (and ignored here).
 parse_cmake_opts() {
     local f="$1"
     [[ -f "$f" ]] || return 0
-    grep -E '^\s*(xkoption|ocgoption)\s*\(' "$f" \
-      | sed -E 's/^\s*(xkoption|ocgoption)\s*\(\s*([A-Za-z0-9_]+)\s+"([^"]+)"\s+(ON|OFF)\s*\)/\2|\3|\4/' \
+    grep -E '^\s*(xkoption|cgiroption|ocgoption)\s*\(' "$f" \
+      | sed -E 's/^\s*(xkoption|cgiroption|ocgoption)\s*\(\s*([A-Za-z0-9_]+)\s+"([^"]+)"\s+(ON|OFF)[^)]*\)/\2|\3|\4/' \
       | grep -E '^[A-Za-z0-9_]+\|' \
       || true
 }
@@ -147,9 +198,9 @@ ask_cmake_opts() {
     local opts
     opts=$(parse_cmake_opts "$f")
 
-    # No xkoption/ocgoption entries: just offer the free-form extra-flags field.
+    # No xkoption/cgiroption/ocgoption entries: just offer the free-form flags field.
     if [[ -z "$opts" ]]; then
-        _tty "  ${DIM}(no xkoption/ocgoption entries found in CMakeLists.txt)${NC}\n"
+        _tty "  ${DIM}(no xkoption/cgiroption/ocgoption entries found in CMakeLists.txt)${NC}\n"
         _tty "  ${BOLD}${BLUE}?${NC} Extra cmake flags for %s (or Enter to skip): " "$lib"
         local extra; read -r extra </dev/tty
         printf '%s' "${extra:-}"; return
@@ -186,6 +237,22 @@ ask_cmake_opts() {
 
 # ─── Configuration cache ─────────────────────────────────────────────────────
 
+# Every Phase-1 output variable, listed once.  Used to (a) snapshot cached values
+# into _C_* as prompt defaults and (b) serialise the config in _write_cache — so
+# adding a config variable only needs editing this one list.
+CONFIG_VARS=(
+    BASE_DIR REPO_DIR INSTALL_DIR MODULES_DIR VARIANT
+    CC CXX
+    INSTALL_LLVM LLVM_BRANCH LLVM_BUILD_TYPE LLVM_PROJECTS LLVM_RUNTIMES
+    LLVM_CMAKE_TARGETS LLVM_CMAKE_RUNTIME_TARGETS LLVM_EXTRA_CMAKE_OPTS
+    LLVM_GPU_SUMMARY USE_LLVM_FOR_BUILD LLVM_BOOTSTRAP_CC LLVM_BOOTSTRAP_CXX
+    INSTALL_HWLOC HWLOC_BRANCH HWLOC_CONFIGURE_OPTS
+    INSTALL_CGIR   CGIR_BRANCH   CGIR_BUILD_TYPE   CGIR_CMAKE_OPTS
+    INSTALL_XKRT   XKRT_BRANCH   XKRT_BUILD_TYPE   XKRT_CMAKE_OPTS
+    INSTALL_XKBLAS XKBLAS_BRANCH XKBLAS_BUILD_TYPE XKBLAS_CMAKE_OPTS
+    INSTALL_XKOMP  XKOMP_BRANCH  XKOMP_BUILD_TYPE  XKOMP_CMAKE_OPTS
+)
+
 # _write_cache FILE
 # Serialises every Phase-1 output variable into a sourceable bash file so the
 # user can skip re-answering all questions on a re-run.
@@ -193,18 +260,7 @@ _write_cache() {
     local f="$1"
     {
         printf '# xkrt install configuration — %s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
-        declare -p BASE_DIR REPO_DIR INSTALL_DIR MODULES_DIR
-        declare -p CC CXX
-        declare -p INSTALL_LLVM LLVM_BRANCH LLVM_BUILD_TYPE \
-                   LLVM_PROJECTS LLVM_RUNTIMES \
-                   LLVM_CMAKE_TARGETS LLVM_CMAKE_RUNTIME_TARGETS \
-                   LLVM_EXTRA_CMAKE_OPTS LLVM_GPU_SUMMARY \
-                   USE_LLVM_FOR_BUILD LLVM_BOOTSTRAP_CC LLVM_BOOTSTRAP_CXX
-        declare -p INSTALL_HWLOC HWLOC_BRANCH HWLOC_CONFIGURE_OPTS
-        declare -p INSTALL_CGIR CGIR_BRANCH CGIR_BUILD_TYPE CGIR_CMAKE_OPTS
-        declare -p INSTALL_XKRT  XKRT_BRANCH  XKRT_BUILD_TYPE  XKRT_CMAKE_OPTS
-        declare -p INSTALL_XKBLAS XKBLAS_BRANCH XKBLAS_BUILD_TYPE XKBLAS_CMAKE_OPTS
-        declare -p INSTALL_XKOMP  XKOMP_BRANCH  XKOMP_BUILD_TYPE  XKOMP_CMAKE_OPTS
+        declare -p "${CONFIG_VARS[@]}"
     } > "$f"
 }
 
@@ -399,8 +455,27 @@ _strip_token() {
 #   LLVM_EXTRA_CMAKE_OPTS LLVM_BOOTSTRAP_CC LLVM_BOOTSTRAP_CXX
 build_llvm() {
     local runtimes="$1" label="$2"
-    local rt_flag=""
-    [[ -n "$runtimes" ]] && rt_flag="-DLLVM_ENABLE_RUNTIMES=${runtimes}"
+    # Assemble the LLVM_ENABLE_RUNTIMES flags.  The host list NEVER includes
+    # 'openmp': the host OpenMP runtime (libomp/archer/libompd/docs) is unused —
+    # xkomp provides it.  But 'offload' (the host libomptarget) needs the device
+    # runtime libompdevice.a, which is built by 'openmp' on GPU targets — so when
+    # offload is requested, enable openmp per-GPU-target only (it does not matter
+    # whether the caller also listed 'openmp'; it is always stripped from the host
+    # and added to the GPU targets).
+    local -a rt_flags=()
+    if [[ -n "$runtimes" ]]; then
+        local _host_rt _gpu_rt _t; local -a _rtts=()
+        _host_rt="$(_strip_token "$runtimes" openmp)"       # host: never openmp
+        [[ -n "$_host_rt" ]] && rt_flags+=("-DLLVM_ENABLE_RUNTIMES=${_host_rt}")
+        if _list_contains "$runtimes" offload; then
+            _gpu_rt="${_host_rt:+${_host_rt};}openmp"        # e.g. "offload;openmp"
+            IFS=';' read -r -a _rtts <<< "$LLVM_CMAKE_RUNTIME_TARGETS"
+            for _t in ${_rtts[@]+"${_rtts[@]}"}; do
+                [[ "$_t" =~ ^(nvptx|amdgcn|spirv) ]] && \
+                    rt_flags+=("-DRUNTIMES_${_t}_LLVM_ENABLE_RUNTIMES=${_gpu_rt}")
+            done
+        fi
+    fi
 
     info "Configuring LLVM (${label}) …"
     cd "$LLVM_BUILD_DIR"
@@ -418,7 +493,7 @@ build_llvm() {
         -DCMAKE_BUILD_TYPE="$LLVM_BUILD_TYPE" \
         -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_DIR" \
         -DLLVM_ENABLE_PROJECTS="$LLVM_PROJECTS" \
-        ${rt_flag:+"$rt_flag"} \
+        ${rt_flags[@]+"${rt_flags[@]}"} \
         -DLLVM_RUNTIME_TARGETS="$LLVM_CMAKE_RUNTIME_TARGETS" \
         -DLLVM_TARGETS_TO_BUILD="$LLVM_CMAKE_TARGETS" \
         -DCMAKE_CXX_FLAGS="-Wno-c2y-extensions" \
@@ -427,6 +502,63 @@ build_llvm() {
 
     info "Building & installing LLVM (${label}) — this may take a while …"
     env -u LLVM_DIR -u MLIR_DIR make install -j "$(nproc)"
+}
+
+# ─── Component build helpers (cgir · xkrt · xkblas · xkomp) ────────────────────
+# These factor out the boilerplate shared by the cmake-based components.  The
+# component-specific bits (configure flags, build command, deps, activation) stay
+# explicit in each component's block, between _component_prep and _component_finish.
+
+# _component_prep PREFIX NAME URL
+# Clone/update NAME, derive its (branch+variant-keyed) paths and export them as
+# globals for downstream stages, then set _NEED_BUILD.  Call this as a PLAIN
+# statement (NOT inside an if-condition) so 'set -e' stays active in its body and
+# a git/rm/mkdir/cd failure still aborts — matching the original inline blocks.
+#   reads:   <PREFIX>_BRANCH <PREFIX>_BUILD_TYPE   (+ global VARIANT_SFX)
+#   exports: <PREFIX>_HASH <PREFIX>_REF <PREFIX>_INSTALL_DIR <PREFIX>_BUILD_DIR <PREFIX>_MOD
+#   sets:    _NEED_BUILD=yes → marker removed, build dir wiped+created, cwd = build dir
+#            _NEED_BUILD=no  → already installed at this commit (--force overrides)
+_component_prep() {
+    local P="$1" name="$2" url="$3"
+    local _bn="${P}_BRANCH" _tn="${P}_BUILD_TYPE"
+    local branch="${!_bn}" btype="${!_tn}" hash ref idir bdir mod
+    step "Building & installing $name"
+    clone_or_update "$url" "$REPO_DIR/$name" "$branch"
+    hash="$(git -C "$REPO_DIR/$name" rev-parse HEAD | cut -c1-12)" \
+        || fatal "$name: cannot read git HEAD in $REPO_DIR/$name"
+    ref="$(_sanitize_ref "$branch")$VARIANT_SFX"          # branch(+variant) → path/module key
+    idir="$INSTALL_DIR/$name/$ref/$btype"
+    bdir="$REPO_DIR/$name/build/$ref/$btype"
+    mod="$MODULES_DIR/$name/$ref/$btype"
+    declare -g "${P}_HASH=$hash" "${P}_REF=$ref" "${P}_INSTALL_DIR=$idir" \
+               "${P}_BUILD_DIR=$bdir" "${P}_MOD=$mod"
+    if _already_installed "$idir/.xkrt-installed" "$hash"; then
+        info "$name already installed ($ref/$btype @ $hash) — skipping build (--force to rebuild)."
+        _NEED_BUILD=no
+        return 0
+    fi
+    rm -f "$idir/.xkrt-installed"
+    rm -rf "$bdir" && mkdir -p "$bdir" || fatal "$name: cannot prepare build dir $bdir"
+    cd "$bdir" || fatal "$name: cannot enter build dir $bdir"
+    _NEED_BUILD=yes
+}
+
+# _component_finish PREFIX NAME ENVVAR ACTIVATE [DEP ...]
+# Generate the module file, optionally activate the prefix (so later components
+# find it), record the module load line, refresh env.sh and report.
+#   reads: <PREFIX>_INSTALL_DIR <PREFIX>_REF <PREFIX>_BUILD_TYPE <PREFIX>_MOD
+#   ACTIVATE: "yes" to put this prefix on CMAKE_PREFIX_PATH / LLVM_DIR etc.
+_component_finish() {
+    local P="$1" name="$2" envvar="$3" activate="$4"; shift 4
+    local -a deps=("$@")
+    local _in="${P}_INSTALL_DIR" _rn="${P}_REF" _tn="${P}_BUILD_TYPE" _mn="${P}_MOD"
+    local idir="${!_in}" ref="${!_rn}" btype="${!_tn}" mod="${!_mn}"
+    generate_modulefile "$name" "$idir" "$envvar" "$mod" ${deps[@]+"${deps[@]}"}
+    [[ "$activate" == "yes" ]] && _activate_prefix "$idir" "$name" "$ref/$btype"
+    MOD_LOAD+=("module load $name/$ref/$btype")
+    write_env_sh
+    success "$name installed → $idir"
+    success "module file      → $mod"
 }
 
 # ─── Error trap ───────────────────────────────────────────────────────────────
@@ -455,7 +587,34 @@ _dflt_member() {
     if _list_contains "$2" "$3"; then printf 'yes'; else printf 'no'; fi
 }
 
-CACHE_FILE="$(pwd)/.xkrt_install.cache"
+# prompt_cmake_component PREFIX NAME URL DEFAULT_BRANCH DEFAULT_BUILD_TYPE
+# Ask whether to install a cmake component and, if so, its branch/build type and
+# cmake options (clone first so the option list is parsed from its CMakeLists).
+# Cached answers (via _C_* snapshot) seed the defaults.  Sets the globals the
+# build phase reads: INSTALL_<PREFIX>, <PREFIX>_BRANCH/_BUILD_TYPE/_CMAKE_OPTS.
+prompt_cmake_component() {
+    local P="$1" name="$2" url="$3" dbranch="$4" dbtype="$5"
+    local _cin="_C_INSTALL_${P}" _cbr="_C_${P}_BRANCH" _cbt="_C_${P}_BUILD_TYPE" _cop="_C_${P}_CMAKE_OPTS"
+    declare -g "INSTALL_${P}=false" "${P}_BRANCH=" "${P}_BUILD_TYPE=" "${P}_CMAKE_OPTS="
+    if prompt_yn "Install $name?" "$(_dflt_yn "${!_cin:-}" "yes")"; then
+        local branch btype opts
+        branch="$(prompt_value "Branch" "${!_cbr:-$dbranch}")"
+        btype="$(prompt_value "Build type (Release/Debug)" "${!_cbt:-$dbtype}")"
+        clone_or_update "$url" "$REPO_DIR/$name" "$branch"
+        opts="$(ask_cmake_opts "$name" "$REPO_DIR/$name/CMakeLists.txt" "${!_cop:-}")"
+        declare -g "INSTALL_${P}=true" "${P}_BRANCH=$branch" "${P}_BUILD_TYPE=$btype" "${P}_CMAKE_OPTS=$opts"
+    fi
+}
+
+# Cache file: an explicit path (positional arg) wins; otherwise default to a
+# per-variant name in the CWD so different variants keep independent configs.
+_CLI_VARIANT="$(_sanitize_ref "$VARIANT")"   # --variant wins over any cached VARIANT
+_C_VARIANT=""                                 # variant recorded in the loaded cache
+if [[ -n "$CACHE_ARG" ]]; then
+    CACHE_FILE="$CACHE_ARG"
+else
+    CACHE_FILE="$(pwd)/.xkrt_install${_CLI_VARIANT:+.$_CLI_VARIANT}.cache"
+fi
 REUSE_CACHE=false
 HAVE_CACHE=false
 
@@ -466,23 +625,9 @@ if [[ -f "$CACHE_FILE" ]]; then
     source "$CACHE_FILE"
     HAVE_CACHE=true
 
-    # Snapshot the cached values: each component block below resets its working
-    # variables before prompting, so keep a copy to use as the prompt defaults.
-    _C_BASE_DIR="${BASE_DIR:-}"
-    _C_CC="${CC:-}"; _C_CXX="${CXX:-}"
-    _C_INSTALL_LLVM="${INSTALL_LLVM:-}"
-    _C_LLVM_BRANCH="${LLVM_BRANCH:-}"; _C_LLVM_BUILD_TYPE="${LLVM_BUILD_TYPE:-}"
-    _C_LLVM_PROJECTS="${LLVM_PROJECTS:-}"; _C_LLVM_RUNTIMES="${LLVM_RUNTIMES:-}"
-    _C_LLVM_CMAKE_TARGETS="${LLVM_CMAKE_TARGETS:-}"
-    _C_LLVM_EXTRA_CMAKE_OPTS="${LLVM_EXTRA_CMAKE_OPTS:-}"
-    _C_USE_LLVM_FOR_BUILD="${USE_LLVM_FOR_BUILD:-}"
-    _C_LLVM_BOOTSTRAP_CC="${LLVM_BOOTSTRAP_CC:-}"; _C_LLVM_BOOTSTRAP_CXX="${LLVM_BOOTSTRAP_CXX:-}"
-    _C_INSTALL_HWLOC="${INSTALL_HWLOC:-}"; _C_HWLOC_BRANCH="${HWLOC_BRANCH:-}"
-    _C_HWLOC_CONFIGURE_OPTS="${HWLOC_CONFIGURE_OPTS:-}"
-    _C_INSTALL_CGIR="${INSTALL_CGIR:-}"; _C_CGIR_BRANCH="${CGIR_BRANCH:-}"; _C_CGIR_BUILD_TYPE="${CGIR_BUILD_TYPE:-}"; _C_CGIR_CMAKE_OPTS="${CGIR_CMAKE_OPTS:-}"
-    _C_INSTALL_XKRT="${INSTALL_XKRT:-}"; _C_XKRT_BRANCH="${XKRT_BRANCH:-}"; _C_XKRT_BUILD_TYPE="${XKRT_BUILD_TYPE:-}"; _C_XKRT_CMAKE_OPTS="${XKRT_CMAKE_OPTS:-}"
-    _C_INSTALL_XKBLAS="${INSTALL_XKBLAS:-}"; _C_XKBLAS_BRANCH="${XKBLAS_BRANCH:-}"; _C_XKBLAS_BUILD_TYPE="${XKBLAS_BUILD_TYPE:-}"; _C_XKBLAS_CMAKE_OPTS="${XKBLAS_CMAKE_OPTS:-}"
-    _C_INSTALL_XKOMP="${INSTALL_XKOMP:-}"; _C_XKOMP_BRANCH="${XKOMP_BRANCH:-}"; _C_XKOMP_BUILD_TYPE="${XKOMP_BUILD_TYPE:-}"; _C_XKOMP_CMAKE_OPTS="${XKOMP_CMAKE_OPTS:-}"
+    # Snapshot the cached values into _C_* so the prompts below can offer them as
+    # defaults (each component block resets its working vars before prompting).
+    for _v in "${CONFIG_VARS[@]}"; do declare -g "_C_$_v=${!_v:-}"; done
 
     _tty "\n"
     hr
@@ -501,6 +646,26 @@ if [[ -f "$CACHE_FILE" ]]; then
         info "Re-running configuration (cached values pre-filled as the defaults)."
     fi
 fi
+
+# Resolve the effective variant: a CLI --variant always wins; otherwise adopt the
+# value recorded in the loaded cache (so re-running with just the cache path keeps
+# the variant).  VARIANT_SFX is folded into every component's ref key below.
+VARIANT="$(_sanitize_ref "${_CLI_VARIANT:-${VARIANT:-}}")"
+# Keep the variant safe for paths, module names and the unquoted 'module load'
+# lines written into env.sh ('/' was already turned into '-' above).
+if [[ -n "$VARIANT" && ! "$VARIANT" =~ ^[A-Za-z0-9._-]+$ ]]; then
+    fatal "invalid variant '$VARIANT' — use only letters, digits, '.', '_', '-' (and '/')."
+fi
+VARIANT_SFX="${VARIANT:+-$VARIANT}"
+# Warn if a CLI --variant overrides a different variant baked into the loaded
+# cache: the current install uses the CLI value, but on the reuse path the cache
+# file is not re-tagged, so update.sh (which reads the variant from the cache)
+# would target the cache's variant.  Give each variant its own cache to be safe.
+if [[ -n "$_CLI_VARIANT" && "$HAVE_CACHE" == "true" && "$_CLI_VARIANT" != "$_C_VARIANT" ]]; then
+    warn "cache records variant '${_C_VARIANT:-<none>}' but --variant '$VARIANT' was given — using '$VARIANT'."
+    warn "tip: keep one cache per variant (e.g. ./.xkrt_install.$VARIANT.cache) so update.sh matches."
+fi
+[[ -n "$VARIANT" ]] && info "Variant '${VARIANT}' — install/build/module paths and env.sh are tagged with it."
 
 if [[ "$REUSE_CACHE" == "false" ]]; then
 
@@ -704,17 +869,27 @@ if prompt_yn "Install custom patched LLVM?" "$(_dflt_yn "${_C_INSTALL_LLVM:-}" "
     LLVM_PROJECTS="$_projects"
 
     # ── Runtimes ─────────────────────────────────────────────────────────────
+    # A single yes/no selecting "offload" or "" (no runtimes).  build_llvm turns
+    # "offload" into: host libomptarget, plus the 'openmp' device runtime
+    # (libompdevice.a) on GPU targets only (offload needs it).  The host OpenMP
+    # runtime (libomp/archer/libompd/docs) is never built — xkomp provides it.
+    # ("openmp;offload" from an older cache is also accepted; openmp is always
+    # stripped from the host and placed on the GPU targets.)
     _tty "\n  ${BOLD}LLVM runtimes${NC}:\n"
-    _runtimes=""
-    if prompt_yn "  Build openmp  (OpenMP host runtime)?" "$(_dflt_member "$HAVE_CACHE" "${_C_LLVM_RUNTIMES:-}" openmp "yes")"; then
-        _runtimes="${_runtimes}${_runtimes:+;}openmp"
+    # Default from cache: yes if runtimes were enabled before (openmp or offload).
+    _rt_default="yes"
+    if [[ "$HAVE_CACHE" == "true" ]]; then
+        if _list_contains "${_C_LLVM_RUNTIMES:-}" openmp || _list_contains "${_C_LLVM_RUNTIMES:-}" offload
+        then _rt_default="yes"; else _rt_default="no"; fi
     fi
-    _tty "  ${DIM}Note: the custom libomptarget depends on XKRT and XKOMP,\n"
-    _tty "  so when enabled it is built last — after XKRT and XKOMP.${NC}\n"
-    if prompt_yn "  Build offload (OpenMP GPU offload runtime / libomptarget)?" "$(_dflt_member "$HAVE_CACHE" "${_C_LLVM_RUNTIMES:-}" offload "yes")"; then
-        _runtimes="${_runtimes}${_runtimes:+;}offload"
+    _tty "  ${DIM}Builds the host libomptarget + the GPU device runtime (libompdevice.a);\n"
+    _tty "  the host OpenMP runtime is NOT built (xkomp provides it).  offload also\n"
+    _tty "  depends on XKRT and XKOMP, so it is built last — after XKRT and XKOMP.${NC}\n"
+    if prompt_yn "  Build OpenMP offload (libomptarget + device runtime)?" "$_rt_default"; then
+        LLVM_RUNTIMES="offload"
+    else
+        LLVM_RUNTIMES=""
     fi
-    LLVM_RUNTIMES="$_runtimes"
 
     # ── Extra flags ───────────────────────────────────────────────────────────
     LLVM_EXTRA_CMAKE_OPTS=$(prompt_value "Extra cmake flags for LLVM (or Enter to keep/skip)" "${_C_LLVM_EXTRA_CMAKE_OPTS:-}")
@@ -791,63 +966,28 @@ fi
 
 # ── cgir ────────────────────────────────────────────────────────────────────
 step "cgir  [cmake; no runtime dependencies; parallel to hwloc]"
-INSTALL_CGIR=false
-CGIR_BRANCH=""; CGIR_BUILD_TYPE=""; CGIR_CMAKE_OPTS=""
-if prompt_yn "Install cgir?" "$(_dflt_yn "${_C_INSTALL_CGIR:-}" "yes")"; then
-    INSTALL_CGIR=true
-    CGIR_BRANCH=$(prompt_value "Branch" "${_C_CGIR_BRANCH:-release/latest}")
-    CGIR_BUILD_TYPE=$(prompt_value "Build type (Release/Debug)" "${_C_CGIR_BUILD_TYPE:-Release}")
-    clone_or_update "https://github.com/JLESC-Tasking-Group/opencg" \
-        "$REPO_DIR/cgir" "$CGIR_BRANCH"
-    CGIR_CMAKE_OPTS=$(ask_cmake_opts "cgir" "$REPO_DIR/cgir/CMakeLists.txt" "${_C_CGIR_CMAKE_OPTS:-}")
-fi
+prompt_cmake_component CGIR cgir "https://github.com/JLESC-Tasking-Group/opencg" release/latest Release
 
 # ── xkrt ──────────────────────────────────────────────────────────────────────
 step "xkrt  [cmake; depends on hwloc + cgir]"
-INSTALL_XKRT=false
-XKRT_BRANCH=""; XKRT_BUILD_TYPE=""; XKRT_CMAKE_OPTS=""
-if prompt_yn "Install xkrt?" "$(_dflt_yn "${_C_INSTALL_XKRT:-}" "yes")"; then
-    INSTALL_XKRT=true
-    XKRT_BRANCH=$(prompt_value "Branch" "${_C_XKRT_BRANCH:-release/latest}")
-    XKRT_BUILD_TYPE=$(prompt_value "Build type (Release/Debug)" "${_C_XKRT_BUILD_TYPE:-Release}")
-    clone_or_update "https://gitlab.inria.fr/xkaapi/dev-v2" \
-        "$REPO_DIR/xkrt" "$XKRT_BRANCH"
-    XKRT_CMAKE_OPTS=$(ask_cmake_opts "xkrt" "$REPO_DIR/xkrt/CMakeLists.txt" "${_C_XKRT_CMAKE_OPTS:-}")
-fi
+prompt_cmake_component XKRT xkrt "https://gitlab.inria.fr/xkaapi/dev-v2" release/latest Release
 
 # ── xkblas ────────────────────────────────────────────────────────────────────
 step "xkblas  [cmake; depends on xkrt; parallel to xkomp]"
 _tty "\n"
 _tty "  Tip: if you enable USE_CBLAS, also set USE_OPENBLAS, USE_MKL, or\n"
 _tty "  USE_CRAYBLAS via the 'extra cmake flags' prompt below.\n\n"
-INSTALL_XKBLAS=false
-XKBLAS_BRANCH=""; XKBLAS_BUILD_TYPE=""; XKBLAS_CMAKE_OPTS=""
-if prompt_yn "Install xkblas?" "$(_dflt_yn "${_C_INSTALL_XKBLAS:-}" "yes")"; then
-    INSTALL_XKBLAS=true
-    XKBLAS_BRANCH=$(prompt_value "Branch" "${_C_XKBLAS_BRANCH:-release/v2.0-latest}")
-    XKBLAS_BUILD_TYPE=$(prompt_value "Build type (Release/Debug)" "${_C_XKBLAS_BUILD_TYPE:-Release}")
-    clone_or_update "https://gitlab.inria.fr/xkblas/dev" \
-        "$REPO_DIR/xkblas" "$XKBLAS_BRANCH"
-    XKBLAS_CMAKE_OPTS=$(ask_cmake_opts "xkblas" "$REPO_DIR/xkblas/CMakeLists.txt" "${_C_XKBLAS_CMAKE_OPTS:-}")
-fi
+prompt_cmake_component XKBLAS xkblas "https://gitlab.inria.fr/xkblas/dev" release/v2.0-latest Release
 
 # ── xkomp ─────────────────────────────────────────────────────────────────────
 step "xkomp  [cmake; depends on xkrt; parallel to xkblas]"
-INSTALL_XKOMP=false
-XKOMP_BRANCH=""; XKOMP_BUILD_TYPE=""; XKOMP_CMAKE_OPTS=""
-if prompt_yn "Install xkomp?" "$(_dflt_yn "${_C_INSTALL_XKOMP:-}" "yes")"; then
-    INSTALL_XKOMP=true
-    XKOMP_BRANCH=$(prompt_value "Branch" "${_C_XKOMP_BRANCH:-release/latest}")
-    XKOMP_BUILD_TYPE=$(prompt_value "Build type (Release/Debug)" "${_C_XKOMP_BUILD_TYPE:-Release}")
-    clone_or_update "https://github.com/anlsys/xkomp" \
-        "$REPO_DIR/xkomp" "$XKOMP_BRANCH"
-    XKOMP_CMAKE_OPTS=$(ask_cmake_opts "xkomp" "$REPO_DIR/xkomp/CMakeLists.txt" "${_C_XKOMP_CMAKE_OPTS:-}")
-fi
+prompt_cmake_component XKOMP xkomp "https://github.com/anlsys/xkomp" release/latest Release
 
 # ── Summary & confirmation ────────────────────────────────────────────────────
 _tty "\n"; hr
 _tty "  ${BOLD}Summary${NC}\n"; hr
 _tty "\n"
+[[ -n "$VARIANT" ]] && _tty "  ${BOLD}variant${NC}: %s   ${DIM}(paths & env.sh tagged '-%s')${NC}\n\n" "$VARIANT" "$VARIANT"
 
 _lib_row() {
     local name="$1" install="$2" branch="${3:-}" btype="${4:-}"
@@ -906,6 +1046,48 @@ fi # REUSE_CACHE — end of Phase 1
 mkdir -p "$REPO_DIR" "$INSTALL_DIR" "$MODULES_DIR"
 
 declare -a MOD_LOAD=()   # module load lines for final usage message
+# Variant installs get their own env file (env.<variant>.sh) so they never
+# clobber the base env.sh (or another variant's).
+ENV_FILE="$BASE_DIR/env${VARIANT:+.$VARIANT}.sh"
+
+# write_env_sh
+# (Re)write env.sh so it loads every module accumulated in MOD_LOAD so far.  It is
+# called after each component installs (or is skipped), so env.sh is always up to
+# date — a partial install still leaves a usable env.sh for what succeeded.
+# Uses globals: ENV_FILE, MODULES_DIR, MOD_LOAD.
+write_env_sh() {
+    {
+cat <<EOF
+#!/usr/bin/env bash
+# Auto-generated by install.sh on $(date '+%Y-%m-%d %H:%M:%S')
+#
+# Source this file to load the installed xkrt-ecosystem modules:
+#   source "$ENV_FILE"
+
+# Make 'module' available if the current shell did not export it.  (zsh, notably,
+# does not export shell functions to child processes, so 'bash env.sh' or a script
+# sourcing this file won't have inherited Lmod's 'module' function.)  The Lmod /
+# Modules environment (e.g. \$LMOD_PKG) IS inherited, so re-source its init.
+if ! command -v module >/dev/null 2>&1; then
+    for _f in "\${LMOD_PKG:-/nonexistent}/init/bash" /usr/share/lmod/lmod/init/bash /usr/local/lmod/lmod/init/bash /opt/apps/lmod/lmod/init/bash /usr/share/modules/init/bash /etc/profile.d/modules.sh; do
+        [ -r "\$_f" ] || continue
+        . "\$_f" || true
+        command -v module >/dev/null 2>&1 && break
+    done
+fi
+if ! command -v module >/dev/null 2>&1; then
+    echo "env.sh: no 'module' command and no module-system init script was found;" >&2
+    echo "        load Lmod / Environment Modules, then re-source this file." >&2
+    return 1 2>/dev/null || exit 1
+fi
+
+module use "$MODULES_DIR"
+EOF
+    for line in ${MOD_LOAD[@]+"${MOD_LOAD[@]}"}; do
+        printf '%s\n' "$line"
+    done
+    } > "$ENV_FILE"
+}
 
 _init_module_system      # try to make 'module' available for _activate_prefix
 
@@ -943,8 +1125,9 @@ if [[ "$INSTALL_LLVM" == "true" ]]; then
     fi
 
     LLVM_HASH=$(git -C "$LLVM_REPO_DIR" rev-parse HEAD | cut -c1-12)
-    LLVM_INSTALL_DIR="$INSTALL_DIR/llvm/$LLVM_HASH/$LLVM_BUILD_TYPE"
-    LLVM_BUILD_DIR="$LLVM_REPO_DIR/build/$LLVM_HASH/$LLVM_BUILD_TYPE"
+    LLVM_REF="$(_sanitize_ref "$LLVM_BRANCH")$VARIANT_SFX"   # branch(+variant) → path/module key
+    LLVM_INSTALL_DIR="$INSTALL_DIR/llvm/$LLVM_REF/$LLVM_BUILD_TYPE"
+    LLVM_BUILD_DIR="$LLVM_REPO_DIR/build/$LLVM_REF/$LLVM_BUILD_TYPE"
 
     mkdir -p "$LLVM_BUILD_DIR"
 
@@ -957,13 +1140,23 @@ if [[ "$INSTALL_LLVM" == "true" ]]; then
     else
         LLVM_BUILD_OFFLOAD=false
     fi
-    LLVM_STAGE1_RUNTIMES="$(_strip_token "$LLVM_RUNTIMES" offload)"
+    # Stage 1 builds clang/llvm only.  Defer BOTH offload (needs xkrt/xkomp) and
+    # openmp (built GPU-only in stage 2 via build_llvm's per-target split, so the
+    # host libomp/archer/libompd/docs are never built).
+    LLVM_STAGE1_RUNTIMES="$(_strip_token "$(_strip_token "$LLVM_RUNTIMES" offload)" openmp)"
 
-    if [[ "$LLVM_BUILD_OFFLOAD" == "true" ]]; then
-        info "offload/libomptarget requested → deferred until after XKRT (dependency loop)."
-        build_llvm "$LLVM_STAGE1_RUNTIMES" "1/2 — without libomptarget"
+    if _already_installed "$LLVM_INSTALL_DIR/.xkrt-installed" "$LLVM_HASH"; then
+        info "LLVM already installed ($LLVM_REF/$LLVM_BUILD_TYPE @ $LLVM_HASH) — skipping build (--force to rebuild)."
     else
-        build_llvm "$LLVM_STAGE1_RUNTIMES" "single stage"
+        # Rebuilding stage 1 invalidates any previously-built offload runtime.
+        rm -f "$LLVM_INSTALL_DIR/.xkrt-installed" "$LLVM_INSTALL_DIR/.xkrt-offload-installed"
+        if [[ "$LLVM_BUILD_OFFLOAD" == "true" ]]; then
+            info "offload/libomptarget requested → deferred until after XKRT (dependency loop)."
+            build_llvm "$LLVM_STAGE1_RUNTIMES" "1/2 — without libomptarget"
+        else
+            build_llvm "$LLVM_STAGE1_RUNTIMES" "single stage"
+        fi
+        _mark_installed "$LLVM_INSTALL_DIR/.xkrt-installed" "$LLVM_HASH"
     fi
 
     # Pin this EXACT LLVM/MLIR for every downstream build (cgir directly, and
@@ -972,7 +1165,7 @@ if [[ "$INSTALL_LLVM" == "true" ]]; then
     # point find_package() straight at this build's cmake packages.  Both env
     # vars are read by find_package and inherited by every downstream cmake
     # (including transitive find_dependency(LLVM) pulled in via cgir).
-    _activate_prefix "$LLVM_INSTALL_DIR" "llvm" "$LLVM_HASH/$LLVM_BUILD_TYPE"
+    _activate_prefix "$LLVM_INSTALL_DIR" "llvm" "$LLVM_REF/$LLVM_BUILD_TYPE"
     if   [[ -d "$LLVM_INSTALL_DIR/lib/cmake/llvm"   ]]; then export LLVM_DIR="$LLVM_INSTALL_DIR/lib/cmake/llvm"
     elif [[ -d "$LLVM_INSTALL_DIR/lib64/cmake/llvm" ]]; then export LLVM_DIR="$LLVM_INSTALL_DIR/lib64/cmake/llvm"
     fi
@@ -996,7 +1189,7 @@ if [[ "$INSTALL_LLVM" == "true" ]]; then
     fi
 
     # ── Module file ───────────────────────────────────────────────────────────
-    LLVM_MOD_DIR="$MODULES_DIR/llvm/$LLVM_HASH"
+    LLVM_MOD_DIR="$MODULES_DIR/llvm/$LLVM_REF"
     LLVM_MOD="$LLVM_MOD_DIR/$LLVM_BUILD_TYPE"
     mkdir -p "$LLVM_MOD_DIR"
     cat > "$LLVM_MOD" <<MODEOF
@@ -1029,7 +1222,8 @@ setenv CXX "\$prefix/bin/clang++"
 setenv LLVM_HOME "\$prefix"
 MODEOF
 
-    MOD_LOAD+=("module load llvm/$LLVM_HASH/$LLVM_BUILD_TYPE")
+    MOD_LOAD+=("module load llvm/$LLVM_REF/$LLVM_BUILD_TYPE")
+    write_env_sh
     if [[ "$LLVM_BUILD_OFFLOAD" == "true" ]]; then
         success "LLVM (without libomptarget) installed → $LLVM_INSTALL_DIR"
         info    "libomptarget (offload) will be built after XKRT."
@@ -1048,227 +1242,146 @@ if [[ "$INSTALL_HWLOC" == "true" ]]; then
         "$HWLOC_BRANCH"
 
     HWLOC_HASH=$(git -C "$REPO_DIR/hwloc" rev-parse HEAD | cut -c1-12)
-    HWLOC_INSTALL_DIR="$INSTALL_DIR/hwloc/$HWLOC_HASH"
+    HWLOC_REF="$(_sanitize_ref "$HWLOC_BRANCH")$VARIANT_SFX"   # branch/tag(+variant) → path/module key
+    HWLOC_INSTALL_DIR="$INSTALL_DIR/hwloc/$HWLOC_REF"
 
-    cd "$REPO_DIR/hwloc"
-    if [[ ! -f configure ]]; then
-        info "Running autogen.sh …"
-        ./autogen.sh
+    if _already_installed "$HWLOC_INSTALL_DIR/.xkrt-installed" "$HWLOC_HASH"; then
+        info "hwloc already installed ($HWLOC_REF @ $HWLOC_HASH) — skipping build (--force to rebuild)."
+    else
+        rm -f "$HWLOC_INSTALL_DIR/.xkrt-installed"
+        cd "$REPO_DIR/hwloc"
+        if [[ ! -f configure ]]; then
+            info "Running autogen.sh …"
+            ./autogen.sh
+        fi
+        info "Configuring …"
+        # Disable hwloc's optional GPU backends by default — they make libhwloc
+        # hard-depend on GPU libraries (librocm_smi64, libcudart, …) that are often
+        # not on the linker/loader search path and break downstream links (xkrt).
+        # Any user HWLOC_CONFIGURE_OPTS come last so they can re-enable a specific
+        # backend, e.g. "--enable-rsmi --with-rocm=/opt/rocm".
+        # shellcheck disable=SC2086
+        ./configure --prefix="$HWLOC_INSTALL_DIR" --quiet \
+            --disable-cuda --disable-nvml --disable-rsmi \
+            --disable-opencl --disable-levelzero \
+            $HWLOC_CONFIGURE_OPTS
+        info "Building …"
+        make -j "$(nproc)"
+        info "Installing …"
+        make install
+        _mark_installed "$HWLOC_INSTALL_DIR/.xkrt-installed" "$HWLOC_HASH"
     fi
-    info "Configuring …"
-    # Disable hwloc's optional GPU backends by default — they make libhwloc
-    # hard-depend on GPU libraries (librocm_smi64, libcudart, …) that are often
-    # not on the linker/loader search path and break downstream links (xkrt).
-    # Any user HWLOC_CONFIGURE_OPTS come last so they can re-enable a specific
-    # backend, e.g. "--enable-rsmi --with-rocm=/opt/rocm".
-    # shellcheck disable=SC2086
-    ./configure --prefix="$HWLOC_INSTALL_DIR" --quiet \
-        --disable-cuda --disable-nvml --disable-rsmi \
-        --disable-opencl --disable-levelzero \
-        $HWLOC_CONFIGURE_OPTS
-    info "Building …"
-    make -j "$(nproc)"
-    info "Installing …"
-    make install
 
     # Activate the installed hwloc so downstream builds (xkrt) see its headers,
     # libraries and cmake config.  This sets PATH, CPATH, LD_LIBRARY_PATH,
     # CMAKE_PREFIX_PATH, etc. — equivalent to 'module load hwloc/…'.
-    HWLOC_MOD="$MODULES_DIR/hwloc/$HWLOC_HASH/default"
+    HWLOC_MOD="$MODULES_DIR/hwloc/$HWLOC_REF/default"
     generate_modulefile "hwloc" "$HWLOC_INSTALL_DIR" "HWLOC_HOME" "$HWLOC_MOD"
-    _activate_prefix "$HWLOC_INSTALL_DIR" "hwloc" "$HWLOC_HASH/default"
-    MOD_LOAD+=("module load hwloc/$HWLOC_HASH/default")
+    _activate_prefix "$HWLOC_INSTALL_DIR" "hwloc" "$HWLOC_REF/default"
+    MOD_LOAD+=("module load hwloc/$HWLOC_REF/default")
+    write_env_sh
     success "hwloc  installed → $HWLOC_INSTALL_DIR"
     success "module file      → $HWLOC_MOD"
 fi
 
 # ── cgir ────────────────────────────────────────────────────────────────────
 if [[ "$INSTALL_CGIR" == "true" ]]; then
-    step "Building & installing cgir"
-    clone_or_update \
-        "https://github.com/JLESC-Tasking-Group/opencg" \
-        "$REPO_DIR/cgir" \
-        "$CGIR_BRANCH"
+    _component_prep CGIR cgir "https://github.com/JLESC-Tasking-Group/opencg"
+    if [[ "$_NEED_BUILD" == "yes" ]]; then
+        # If a custom LLVM was built, force cgir's find_package(LLVM)/find_package(MLIR)
+        # onto that exact build so it can never silently fall back to a system LLVM/MLIR.
+        _cgir_llvm_flags=""
+        if [[ "$INSTALL_LLVM" == "true" ]]; then
+            [[ -n "${LLVM_DIR:-}" ]] && _cgir_llvm_flags="-DLLVM_DIR=$LLVM_DIR"
+            [[ -n "${MLIR_DIR:-}" ]] && _cgir_llvm_flags="${_cgir_llvm_flags:+$_cgir_llvm_flags }-DMLIR_DIR=$MLIR_DIR"
+        fi
 
-    CGIR_HASH=$(git -C "$REPO_DIR/cgir" rev-parse HEAD | cut -c1-12)
-    CGIR_INSTALL_DIR="$INSTALL_DIR/cgir/$CGIR_HASH/$CGIR_BUILD_TYPE"
-    CGIR_BUILD_DIR="$REPO_DIR/cgir/build/$CGIR_HASH/$CGIR_BUILD_TYPE"
-
-    rm -rf "$CGIR_BUILD_DIR" && mkdir -p "$CGIR_BUILD_DIR"
-    cd "$CGIR_BUILD_DIR"
-
-    # If a custom LLVM was built, force cgir's find_package(LLVM)/find_package(MLIR)
-    # onto that exact build so it can never silently fall back to a system LLVM/MLIR.
-    _cgir_llvm_flags=""
-    if [[ "$INSTALL_LLVM" == "true" ]]; then
-        [[ -n "${LLVM_DIR:-}" ]] && _cgir_llvm_flags="-DLLVM_DIR=$LLVM_DIR"
-        [[ -n "${MLIR_DIR:-}" ]] && _cgir_llvm_flags="${_cgir_llvm_flags:+$_cgir_llvm_flags }-DMLIR_DIR=$MLIR_DIR"
+        # shellcheck disable=SC2086
+        cmake $CGIR_CMAKE_OPTS $_cgir_llvm_flags \
+            -DCMAKE_BUILD_TYPE="$CGIR_BUILD_TYPE" \
+            -DCMAKE_INSTALL_PREFIX="$CGIR_INSTALL_DIR" \
+            "$REPO_DIR/cgir"
+        make install -j "$(nproc)"
+        _mark_installed "$CGIR_INSTALL_DIR/.xkrt-installed" "$CGIR_HASH"
     fi
 
-    # shellcheck disable=SC2086
-    cmake $CGIR_CMAKE_OPTS $_cgir_llvm_flags \
-        -DCMAKE_BUILD_TYPE="$CGIR_BUILD_TYPE" \
-        -DCMAKE_INSTALL_PREFIX="$CGIR_INSTALL_DIR" \
-        "$REPO_DIR/cgir"
-    make install -j "$(nproc)"
-
-    # Activate cgir so xkrt finds its headers, libs and cmake config.
-    CGIR_MOD="$MODULES_DIR/cgir/$CGIR_HASH/$CGIR_BUILD_TYPE"
-    # cgir builds against (and links) the custom LLVM/MLIR whenever one was
-    # built, so its module must load that llvm module at runtime — regardless of
-    # whether the custom LLVM was also used as the compiler.  (A system LLVM, like
-    # a system hwloc, ships no module to load.)
+    # cgir builds against (and links) the custom LLVM/MLIR whenever one was built,
+    # so its module must load that llvm module at runtime (a system LLVM, like a
+    # system hwloc, ships no module).  Activate it so xkrt finds its cmake config.
     declare -a _cgir_deps=()
-    [[ "$INSTALL_LLVM" == "true" ]] && \
-        _cgir_deps+=("llvm/$LLVM_HASH/$LLVM_BUILD_TYPE")
-    generate_modulefile "cgir" "$CGIR_INSTALL_DIR" "CGIR_HOME" "$CGIR_MOD" \
-        ${_cgir_deps[@]+"${_cgir_deps[@]}"}
-    _activate_prefix "$CGIR_INSTALL_DIR" "cgir" "$CGIR_HASH/$CGIR_BUILD_TYPE"
-    MOD_LOAD+=("module load cgir/$CGIR_HASH/$CGIR_BUILD_TYPE")
-    success "cgir installed → $CGIR_INSTALL_DIR"
-    success "module file      → $CGIR_MOD"
+    [[ "$INSTALL_LLVM" == "true" ]] && _cgir_deps+=("llvm/$LLVM_REF/$LLVM_BUILD_TYPE")
+    _component_finish CGIR cgir CGIR_HOME yes ${_cgir_deps[@]+"${_cgir_deps[@]}"}
 fi
 
 # ── xkrt ──────────────────────────────────────────────────────────────────────
 if [[ "$INSTALL_XKRT" == "true" ]]; then
-    step "Building & installing xkrt"
-    clone_or_update \
-        "https://gitlab.inria.fr/xkaapi/dev-v2" \
-        "$REPO_DIR/xkrt" \
-        "$XKRT_BRANCH"
-
-    XKRT_HASH=$(git -C "$REPO_DIR/xkrt" rev-parse HEAD | cut -c1-12)
-    XKRT_INSTALL_DIR="$INSTALL_DIR/xkrt/$XKRT_HASH/$XKRT_BUILD_TYPE"
-    XKRT_BUILD_DIR="$REPO_DIR/xkrt/build/$XKRT_HASH/$XKRT_BUILD_TYPE"
-
-    rm -rf "$XKRT_BUILD_DIR" && mkdir -p "$XKRT_BUILD_DIR"
-    cd "$XKRT_BUILD_DIR"
-
-    # shellcheck disable=SC2086
-    cmake $XKRT_CMAKE_OPTS \
-        -DCMAKE_BUILD_TYPE="$XKRT_BUILD_TYPE" \
-        -DCMAKE_INSTALL_PREFIX="$XKRT_INSTALL_DIR" \
-        "$REPO_DIR/xkrt"
-    make install -j "$(nproc)"
+    _component_prep XKRT xkrt "https://gitlab.inria.fr/xkaapi/dev-v2"
+    if [[ "$_NEED_BUILD" == "yes" ]]; then
+        # shellcheck disable=SC2086
+        cmake $XKRT_CMAKE_OPTS \
+            -DCMAKE_BUILD_TYPE="$XKRT_BUILD_TYPE" \
+            -DCMAKE_INSTALL_PREFIX="$XKRT_INSTALL_DIR" \
+            "$REPO_DIR/xkrt"
+        make install -j "$(nproc)"
+        _mark_installed "$XKRT_INSTALL_DIR/.xkrt-installed" "$XKRT_HASH"
+    fi
 
     # Activate xkrt so xkblas and xkomp find its headers, libs and cmake config.
-    XKRT_MOD="$MODULES_DIR/xkrt/$XKRT_HASH/$XKRT_BUILD_TYPE"
-    # Build the dependency list: cgir is always required; hwloc only when
-    # it was installed from source by this script (otherwise it is system-provided).
+    # Deps: cgir is always required; hwloc only when installed from source here
+    # (otherwise it is system-provided and ships no module).
     declare -a _xkrt_deps=()
-    [[ "$INSTALL_CGIR" == "true" ]] && _xkrt_deps+=("cgir/$CGIR_HASH/$CGIR_BUILD_TYPE")
-    [[ "$INSTALL_HWLOC"  == "true" ]] && _xkrt_deps+=("hwloc/$HWLOC_HASH/default")
-    generate_modulefile "xkrt" "$XKRT_INSTALL_DIR" "XKRT_HOME" "$XKRT_MOD" \
-        ${_xkrt_deps[@]+"${_xkrt_deps[@]}"}
-    _activate_prefix "$XKRT_INSTALL_DIR" "xkrt" "$XKRT_HASH/$XKRT_BUILD_TYPE"
-    MOD_LOAD+=("module load xkrt/$XKRT_HASH/$XKRT_BUILD_TYPE")
-    success "xkrt  installed  → $XKRT_INSTALL_DIR"
-    success "module file      → $XKRT_MOD"
+    [[ "$INSTALL_CGIR"  == "true" ]] && _xkrt_deps+=("cgir/$CGIR_REF/$CGIR_BUILD_TYPE")
+    [[ "$INSTALL_HWLOC" == "true" ]] && _xkrt_deps+=("hwloc/$HWLOC_REF/default")
+    _component_finish XKRT xkrt XKRT_HOME yes ${_xkrt_deps[@]+"${_xkrt_deps[@]}"}
 fi
 
 # ── xkblas ────────────────────────────────────────────────────────────────────
 if [[ "$INSTALL_XKBLAS" == "true" ]]; then
-    step "Building & installing xkblas"
-    clone_or_update \
-        "https://gitlab.inria.fr/xkblas/dev" \
-        "$REPO_DIR/xkblas" \
-        "$XKBLAS_BRANCH"
+    _component_prep XKBLAS xkblas "https://gitlab.inria.fr/xkblas/dev"
+    if [[ "$_NEED_BUILD" == "yes" ]]; then
+        # shellcheck disable=SC2086
+        cmake $XKBLAS_CMAKE_OPTS \
+            -DCMAKE_BUILD_TYPE="$XKBLAS_BUILD_TYPE" \
+            -DCMAKE_INSTALL_PREFIX="$XKBLAS_INSTALL_DIR" \
+            "$REPO_DIR/xkblas"
+        make install -j "$(nproc)"
+        _mark_installed "$XKBLAS_INSTALL_DIR/.xkrt-installed" "$XKBLAS_HASH"
+    fi
 
-    XKBLAS_HASH=$(git -C "$REPO_DIR/xkblas" rev-parse HEAD | cut -c1-12)
-    XKBLAS_INSTALL_DIR="$INSTALL_DIR/xkblas/$XKBLAS_HASH/$XKBLAS_BUILD_TYPE"
-    XKBLAS_BUILD_DIR="$REPO_DIR/xkblas/build/$XKBLAS_HASH/$XKBLAS_BUILD_TYPE"
-
-    rm -rf "$XKBLAS_BUILD_DIR" && mkdir -p "$XKBLAS_BUILD_DIR"
-    cd "$XKBLAS_BUILD_DIR"
-
-    # shellcheck disable=SC2086
-    cmake $XKBLAS_CMAKE_OPTS \
-        -DCMAKE_BUILD_TYPE="$XKBLAS_BUILD_TYPE" \
-        -DCMAKE_INSTALL_PREFIX="$XKBLAS_INSTALL_DIR" \
-        "$REPO_DIR/xkblas"
-    make install -j "$(nproc)"
-
-    XKBLAS_MOD="$MODULES_DIR/xkblas/$XKBLAS_HASH/$XKBLAS_BUILD_TYPE"
+    # xkblas is a leaf (nothing else builds against it): no activation.
     declare -a _xkblas_deps=()
-    [[ "$INSTALL_XKRT" == "true" ]] && _xkblas_deps+=("xkrt/$XKRT_HASH/$XKRT_BUILD_TYPE")
-    generate_modulefile "xkblas" "$XKBLAS_INSTALL_DIR" "XKBLAS_HOME" "$XKBLAS_MOD" \
-        ${_xkblas_deps[@]+"${_xkblas_deps[@]}"}
-    MOD_LOAD+=("module load xkblas/$XKBLAS_HASH/$XKBLAS_BUILD_TYPE")
-    success "xkblas installed → $XKBLAS_INSTALL_DIR"
-    success "module file      → $XKBLAS_MOD"
+    [[ "$INSTALL_XKRT" == "true" ]] && _xkblas_deps+=("xkrt/$XKRT_REF/$XKRT_BUILD_TYPE")
+    _component_finish XKBLAS xkblas XKBLAS_HOME no ${_xkblas_deps[@]+"${_xkblas_deps[@]}"}
 fi
 
 # ── xkomp ─────────────────────────────────────────────────────────────────────
 if [[ "$INSTALL_XKOMP" == "true" ]]; then
-    step "Building & installing xkomp"
-    clone_or_update \
-        "https://github.com/anlsys/xkomp" \
-        "$REPO_DIR/xkomp" \
-        "$XKOMP_BRANCH"
+    _component_prep XKOMP xkomp "https://github.com/anlsys/xkomp"
+    if [[ "$_NEED_BUILD" == "yes" ]]; then
+        # shellcheck disable=SC2086
+        cmake $XKOMP_CMAKE_OPTS \
+            -DCMAKE_BUILD_TYPE="$XKOMP_BUILD_TYPE" \
+            -DCMAKE_INSTALL_PREFIX="$XKOMP_INSTALL_DIR" \
+            "$REPO_DIR/xkomp"
+        # Build & install ONLY the xkomp library — the 'xkomp' target plus its
+        # 'compat_links' symlinks (libomp.so/libiomp5.so) — NOT tests/.  xkomp's
+        # CMakeLists always does add_subdirectory(tests/), and those tests link the
+        # custom libomptarget, which does not exist yet (libomptarget depends on the
+        # xkomp library and is built in the offload stage below).  A plain
+        # 'make install' would build 'all' first (tests included) and fail here.
+        # 'cmake --install' installs the already-built artifacts without an 'all'
+        # build; the tests are compiled later, once libomptarget exists (see the
+        # "xkomp tests" step after the offload stage).
+        make -j "$(nproc)" xkomp compat_links
+        cmake --install .
+        _mark_installed "$XKOMP_INSTALL_DIR/.xkrt-installed" "$XKOMP_HASH"
+    fi
 
-    XKOMP_HASH=$(git -C "$REPO_DIR/xkomp" rev-parse HEAD | cut -c1-12)
-    XKOMP_INSTALL_DIR="$INSTALL_DIR/xkomp/$XKOMP_HASH/$XKOMP_BUILD_TYPE"
-    XKOMP_BUILD_DIR="$REPO_DIR/xkomp/build/$XKOMP_HASH/$XKOMP_BUILD_TYPE"
-
-    rm -rf "$XKOMP_BUILD_DIR" && mkdir -p "$XKOMP_BUILD_DIR"
-    cd "$XKOMP_BUILD_DIR"
-
-    # shellcheck disable=SC2086
-    cmake $XKOMP_CMAKE_OPTS \
-        -DCMAKE_BUILD_TYPE="$XKOMP_BUILD_TYPE" \
-        -DCMAKE_INSTALL_PREFIX="$XKOMP_INSTALL_DIR" \
-        "$REPO_DIR/xkomp"
-    make install -j "$(nproc)"
-
-    XKOMP_MOD="$MODULES_DIR/xkomp/$XKOMP_HASH/$XKOMP_BUILD_TYPE"
+    # xkomp is a leaf (nothing else builds against it): no activation.
     declare -a _xkomp_deps=()
-    [[ "$INSTALL_XKRT" == "true" ]] && _xkomp_deps+=("xkrt/$XKRT_HASH/$XKRT_BUILD_TYPE")
-    generate_modulefile "xkomp" "$XKOMP_INSTALL_DIR" "XKOMP_HOME" "$XKOMP_MOD" \
-        ${_xkomp_deps[@]+"${_xkomp_deps[@]}"}
-    MOD_LOAD+=("module load xkomp/$XKOMP_HASH/$XKOMP_BUILD_TYPE")
-    success "xkomp installed  → $XKOMP_INSTALL_DIR"
-    success "module file      → $XKOMP_MOD"
+    [[ "$INSTALL_XKRT" == "true" ]] && _xkomp_deps+=("xkrt/$XKRT_REF/$XKRT_BUILD_TYPE")
+    _component_finish XKOMP xkomp XKOMP_HOME no ${_xkomp_deps[@]+"${_xkomp_deps[@]}"}
 fi
-
-# ── Write env.sh ──────────────────────────────────────────────────────────────
-# Generate the sourceable env.sh now — after all libraries (and their module
-# files) are installed, but BEFORE the deferred libomptarget/offload build below.
-# That stage rebuilds into the existing LLVM prefix and adds no new module, so
-# MOD_LOAD is already complete here; writing env.sh now means it exists even if
-# the (optional) offload stage later fails.
-ENV_FILE="$BASE_DIR/env.sh"
-{
-cat <<EOF
-#!/usr/bin/env bash
-# Auto-generated by install.sh on $(date '+%Y-%m-%d %H:%M:%S')
-#
-# Source this file to load the installed xkrt-ecosystem modules:
-#   source "$ENV_FILE"
-
-# Make 'module' available if the current shell did not export it.  (zsh, notably,
-# does not export shell functions to child processes, so 'bash env.sh' or a script
-# sourcing this file won't have inherited Lmod's 'module' function.)  The Lmod /
-# Modules environment (e.g. \$LMOD_PKG) IS inherited, so re-source its init.
-if ! command -v module >/dev/null 2>&1; then
-    for _f in "\${LMOD_PKG:-/nonexistent}/init/bash" /usr/share/lmod/lmod/init/bash /usr/local/lmod/lmod/init/bash /opt/apps/lmod/lmod/init/bash /usr/share/modules/init/bash /etc/profile.d/modules.sh; do
-        [ -r "\$_f" ] || continue
-        . "\$_f" || true
-        command -v module >/dev/null 2>&1 && break
-    done
-fi
-if ! command -v module >/dev/null 2>&1; then
-    echo "env.sh: no 'module' command and no module-system init script was found;" >&2
-    echo "        load Lmod / Environment Modules, then re-source this file." >&2
-    return 1 2>/dev/null || exit 1
-fi
-
-module use "$MODULES_DIR"
-EOF
-for line in ${MOD_LOAD[@]+"${MOD_LOAD[@]}"}; do
-    printf '%s\n' "$line"
-done
-} > "$ENV_FILE"
-success "environment file written → $ENV_FILE"
 
 # ── LLVM offload runtime (custom libomptarget) ─────────────────────────────────
 # Deferred from the LLVM step above: the custom libomptarget depends on XKRT and
@@ -1279,62 +1392,99 @@ success "environment file written → $ENV_FILE"
 if [[ "$INSTALL_LLVM" == "true" && "$LLVM_BUILD_OFFLOAD" == "true" ]]; then
     step "Building & installing custom libomptarget (LLVM offload runtime)"
 
-    # libomptarget does find_package(XKRT) and find_package(XKOMP), so both must
-    # be discoverable BEFORE we reconfigure LLVM.  Explicitly (re)load their
-    # modules and export the variables find_package consults: it looks at
-    # <pkg>_DIR and CMAKE_PREFIX_PATH (NOT <pkg>_HOME).  _activate_prefix puts
-    # each prefix on CMAKE_PREFIX_PATH, and the LLVM runtimes sub-build inherits
-    # these environment variables, which is what resolves the lookups.
-    if [[ "$INSTALL_XKRT" == "true" ]]; then
-        info "Loading the XKRT module so libomptarget (offload) can find it …"
-        _activate_prefix "$XKRT_INSTALL_DIR" "xkrt" "$XKRT_HASH/$XKRT_BUILD_TYPE"
-        export XKRT_HOME="$XKRT_INSTALL_DIR"
-        export XKRT_DIR="$XKRT_INSTALL_DIR"          # find_package(XKRT) hint
-        success "XKRT activated (CMAKE_PREFIX_PATH now includes $XKRT_INSTALL_DIR)"
+    if _already_installed "$LLVM_INSTALL_DIR/.xkrt-offload-installed" "$LLVM_HASH"; then
+        success "libomptarget (offload) already installed → $LLVM_INSTALL_DIR (skipping; --force to rebuild)"
     else
-        warn "XKRT was not installed by this script, but the custom libomptarget"
-        warn "depends on it — load your XKRT module (or put its prefix on"
-        warn "CMAKE_PREFIX_PATH, or set XKRT_DIR) before this step."
-    fi
+        rm -f "$LLVM_INSTALL_DIR/.xkrt-offload-installed"
 
-    if [[ "$INSTALL_XKOMP" == "true" ]]; then
-        info "Loading the XKOMP module so libomptarget (offload) can find it …"
-        _activate_prefix "$XKOMP_INSTALL_DIR" "xkomp" "$XKOMP_HASH/$XKOMP_BUILD_TYPE"
-        export XKOMP_HOME="$XKOMP_INSTALL_DIR"
-        export XKOMP_DIR="$XKOMP_INSTALL_DIR"        # find_package(XKOMP) hint
-        success "XKOMP activated (CMAKE_PREFIX_PATH now includes $XKOMP_INSTALL_DIR)"
-    else
-        warn "XKOMP was not installed by this script, but the custom libomptarget"
-        warn "depends on it — load your XKOMP module (or put its prefix on"
-        warn "CMAKE_PREFIX_PATH, or set XKOMP_DIR) before this step."
-    fi
+        # libomptarget does find_package(XKRT) and find_package(XKOMP), so both must
+        # be discoverable BEFORE we reconfigure LLVM.  Explicitly (re)load their
+        # modules and export the variables find_package consults: it looks at
+        # <pkg>_DIR and CMAKE_PREFIX_PATH (NOT <pkg>_HOME).  _activate_prefix puts
+        # each prefix on CMAKE_PREFIX_PATH, and the LLVM runtimes sub-build inherits
+        # these environment variables, which is what resolves the lookups.
+        if [[ "$INSTALL_XKRT" == "true" ]]; then
+            info "Loading the XKRT module so libomptarget (offload) can find it …"
+            _activate_prefix "$XKRT_INSTALL_DIR" "xkrt" "$XKRT_REF/$XKRT_BUILD_TYPE"
+            export XKRT_HOME="$XKRT_INSTALL_DIR"
+            export XKRT_DIR="$XKRT_INSTALL_DIR"          # find_package(XKRT) hint
+            success "XKRT activated (CMAKE_PREFIX_PATH now includes $XKRT_INSTALL_DIR)"
+        else
+            warn "XKRT was not installed by this script, but the custom libomptarget"
+            warn "depends on it — load your XKRT module (or put its prefix on"
+            warn "CMAKE_PREFIX_PATH, or set XKRT_DIR) before this step."
+        fi
 
-    # Force the LLVM runtimes to fully reconfigure & rebuild.  Stage 1 configured
-    # the runtimes WITHOUT offload; just re-running cmake with offload added does
-    # NOT reconfigure the already-stamped runtimes sub-build (see the cached
-    # runtimes-stamps/ under $LLVM_BUILD_DIR/runtimes), so the host libomptarget.so
-    # gets silently skipped while the device *.bc still build.  Removing the
-    # runtimes sub-build forces a clean openmp+offload build for every
-    # LLVM_RUNTIME_TARGETS entry, while keeping the already-built clang/llvm/mlir
-    # (far cheaper than wiping the whole LLVM build).
-    rm -rf "$LLVM_BUILD_DIR/runtimes"
-    build_llvm "$LLVM_RUNTIMES" "2/2 — with libomptarget"
+        if [[ "$INSTALL_XKOMP" == "true" ]]; then
+            info "Loading the XKOMP module so libomptarget (offload) can find it …"
+            _activate_prefix "$XKOMP_INSTALL_DIR" "xkomp" "$XKOMP_REF/$XKOMP_BUILD_TYPE"
+            export XKOMP_HOME="$XKOMP_INSTALL_DIR"
+            export XKOMP_DIR="$XKOMP_INSTALL_DIR"        # find_package(XKOMP) hint
+            success "XKOMP activated (CMAKE_PREFIX_PATH now includes $XKOMP_INSTALL_DIR)"
+        else
+            warn "XKOMP was not installed by this script, but the custom libomptarget"
+            warn "depends on it — load your XKOMP module (or put its prefix on"
+            warn "CMAKE_PREFIX_PATH, or set XKOMP_DIR) before this step."
+        fi
 
-    # Sanity-check that the host offload runtime (libomptarget.so) was produced;
-    # without it, OpenMP target links fail with "unable to find library -lomptarget".
-    _llvm_omptarget=""
-    for _d in "$LLVM_INSTALL_DIR/lib" "$LLVM_INSTALL_DIR/lib64"; do
-        for _f in "$_d"/libomptarget.so*; do
-            [[ -e "$_f" ]] && { _llvm_omptarget="$_f"; break 2; }
+        # Force the LLVM runtimes to fully reconfigure & rebuild.  Stage 1 configured
+        # the runtimes WITHOUT offload; just re-running cmake with offload added does
+        # NOT reconfigure the already-stamped runtimes sub-build (see the cached
+        # runtimes-stamps/ under $LLVM_BUILD_DIR/runtimes), so the host libomptarget.so
+        # gets silently skipped while the device *.bc still build.  Removing the
+        # runtimes sub-build forces a clean openmp+offload build for every
+        # LLVM_RUNTIME_TARGETS entry, while keeping the already-built clang/llvm/mlir
+        # (far cheaper than wiping the whole LLVM build).
+        rm -rf "$LLVM_BUILD_DIR/runtimes"
+        build_llvm "$LLVM_RUNTIMES" "2/2 — with libomptarget"
+
+        # Sanity-check that the host offload runtime (libomptarget.so) was produced;
+        # without it, OpenMP target links fail with "unable to find library -lomptarget".
+        _llvm_omptarget=""
+        for _d in "$LLVM_INSTALL_DIR/lib" "$LLVM_INSTALL_DIR/lib64"; do
+            for _f in "$_d"/libomptarget.so*; do
+                [[ -e "$_f" ]] && { _llvm_omptarget="$_f"; break 2; }
+            done
         done
-    done
-    if [[ -n "$_llvm_omptarget" ]]; then
-        success "libomptarget (offload) installed → $_llvm_omptarget"
-    else
-        warn "offload build finished but no host libomptarget.so was found under"
-        warn "$LLVM_INSTALL_DIR/lib{,64} — OpenMP target links (-lomptarget) will fail."
-        warn "Check the LLVM offload build output above."
+        if [[ -n "$_llvm_omptarget" ]]; then
+            success "libomptarget (offload) installed → $_llvm_omptarget"
+        else
+            warn "offload build finished but no host libomptarget.so was found under"
+            warn "$LLVM_INSTALL_DIR/lib{,64} — OpenMP target links (-lomptarget) will fail."
+            warn "Check the LLVM offload build output above."
+        fi
+        _mark_installed "$LLVM_INSTALL_DIR/.xkrt-offload-installed" "$LLVM_HASH"
     fi
+fi
+
+# ── xkomp tests (require the patched LLVM + custom libomptarget) ────────────────
+# xkomp's tests/ link the OpenMP target runtime (libomptarget), which only exists
+# after the offload stage above.  They were intentionally NOT built when the xkomp
+# library was installed (libomptarget did not exist yet), so build them now.  This
+# is best-effort: the libraries are already installed, so a test build failure
+# warns instead of aborting the whole install.
+if [[ "$INSTALL_XKOMP" == "true" && "${LLVM_BUILD_OFFLOAD:-false}" == "true" ]]; then
+    step "Building xkomp tests (require libomptarget)"
+    if [[ -f "${XKOMP_BUILD_DIR:-/nonexistent}/CMakeCache.txt" ]]; then
+        cd "$XKOMP_BUILD_DIR"
+        # 'make' now builds the remaining targets — the test executables — with the
+        # patched clang, which can finally resolve -lomptarget from the LLVM install.
+        if make -j "$(nproc)"; then
+            success "xkomp tests built → $XKOMP_BUILD_DIR/tests"
+            _tty "  ${DIM}Run them with:  ( source %s && cd %s && ctest --output-on-failure )${NC}\n" \
+                 "$ENV_FILE" "$XKOMP_BUILD_DIR"
+        else
+            warn "xkomp tests failed to build — the xkomp library itself is installed and"
+            warn "usable.  Inspect the output above (tests dir: $XKOMP_BUILD_DIR/tests)."
+        fi
+    else
+        warn "xkomp tests skipped: no configured build dir at ${XKOMP_BUILD_DIR:-<unset>}."
+        warn "xkomp was likely already installed from a previous run — re-run with --force"
+        warn "to reconfigure and build the tests."
+    fi
+elif [[ "$INSTALL_XKOMP" == "true" ]]; then
+    info "xkomp library installed; tests not built — they need the custom libomptarget"
+    info "(enable the LLVM 'offload' runtime to build them)."
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
