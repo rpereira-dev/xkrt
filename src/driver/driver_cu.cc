@@ -679,9 +679,14 @@ cu_ensure_prog_loaded(device_driver_id_t device_driver_id, cgir::command_t * com
     prog.launcher.variadic.fn = reinterpret_cast<void (*)(void **)>(fn);
 }
 
+command_batch_cu_handle_t * XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(
+    device_driver_id_t device_driver_id,
+    command_t * command
+);
+
 /* Return a handle to the druver's internal representation of the batch */
 void *
-xkrt_cuda_driver_command_batch_init(
+XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
     device_driver_id_t device_driver_id,
     cgir::command_t * command
 ) {
@@ -896,17 +901,7 @@ xkrt_cuda_driver_command_batch_init(
 
                     case (cgir::COMMAND_TYPE_BATCH):
                     {
-                        // assert(command->batch.cg == false);
-
-                        if (command->batch.driver_handle == NULL)
-                            command->batch.driver_handle = xkrt_cuda_driver_command_batch_init(device_driver_id, command);
-
-                        if (command->batch.driver_handle == NULL)
-                            LOGGER_FATAL("Failed to initialized a command batch");
-
-                        command_batch_cu_handle_t * command_handle = (command_batch_cu_handle_t *) command->batch.driver_handle;
-                        assert(command_handle);
-
+                        command_batch_cu_handle_t * command_handle = XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(device_driver_id, (command_t *) command);
                         CU_SAFE_CALL(cuGraphAddChildGraphNode(cu_node, handle->graph, deps, ndeps, command_handle->graph));
                         break ;
                     }
@@ -973,11 +968,11 @@ xkrt_cuda_driver_command_batch_init(
 }
 
 void
-xkrt_cuda_driver_command_batch_deinit(
+XKRT_DRIVER_ENTRYPOINT(command_batch_deinit)(
     device_driver_id_t device_driver_id,
     const cgir::command_t * command
 ) {
-    command_batch_cu_handle_t * handle = (command_batch_cu_handle_t *) command->batch.driver_handle;
+    command_batch_cu_handle_t * handle = (command_batch_cu_handle_t *) ((command_graph_t *) command->batch.cg)->driver_handle;
 
     cu_set_context(device_driver_id);
 
@@ -988,6 +983,24 @@ xkrt_cuda_driver_command_batch_deinit(
         CU_SAFE_CALL(cuGraphDestroy(handle->graph));
 
     free(handle);
+}
+
+command_batch_cu_handle_t *
+XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(
+    device_driver_id_t device_driver_id,
+    command_t * command
+) {
+    command_graph_t * cg = (command_graph_t *) command->batch.cg;
+    if (cg == NULL)
+        LOGGER_FATAL("Batch commands must have an associated command graph");
+
+    if (cg->driver_handle == NULL)
+        cg->driver_handle = XKRT_DRIVER_ENTRYPOINT(command_batch_init)(device_driver_id, command);
+
+    if (cg->driver_handle == NULL)
+        LOGGER_FATAL("Failed to initialized a command batch");
+
+    return  (command_batch_cu_handle_t *) cg->driver_handle;
 }
 
 static int
@@ -1171,17 +1184,7 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
 
         case (cgir::COMMAND_TYPE_BATCH):
         {
-            /* initialize cuda graph on first encounter */
-            if (command->batch.driver_handle == NULL)
-                command->batch.driver_handle = xkrt_cuda_driver_command_batch_init(device_driver_id, command);
-
-            if (command->batch.driver_handle == NULL)
-                LOGGER_FATAL("Failed to initialized a command batch");
-
-            /* launch it */
-            command_batch_cu_handle_t * handle = (command_batch_cu_handle_t *) command->batch.driver_handle;
-            assert(handle->graph_exec);
-
+            command_batch_cu_handle_t * handle = XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(device_driver_id, command);
             CU_SAFE_CALL(cuGraphLaunch(handle->graph_exec, stream));
             return EINPROGRESS;
         }
@@ -1372,14 +1375,15 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_delete)(
     command_queue_t * iqueue
 ) {
     queue_cu_t * queue = (queue_cu_t *) iqueue;
+
+    CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.high));
+    CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.low));
     if (queue->cu.blas.handle)
         cublasDestroy(queue->cu.blas.handle);
     if (queue->cu.sparse.handle)
         cusparseDestroy(queue->cu.sparse.handle);
     if (queue->cu.solver.handle)
         cusolverDnDestroy(queue->cu.solver.handle);
-    CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.high));
-    CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.low));
     free(queue);
 }
 
