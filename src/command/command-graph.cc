@@ -61,25 +61,27 @@ command_graph_node_new(
     return cg->nodes.put(device_unique_id, type);
 }
 
-void command_graph_init(command_graph_t * cg);
+void command_graph_init(command_graph_t * cg, command_graph_node_t * entry = nullptr, command_graph_node_t * exit = nullptr);
 
 static command_graph_t *
-command_graph_new(command_graph_t * original_cg)
+command_graph_new(command_graph_t * original_cg, command_graph_node_t * entry, command_graph_node_t * exit)
 {
     command_graph_t * cg = (command_graph_t *) malloc(sizeof(command_graph_t));
     assert(cg);
-    command_graph_init(cg);
+    command_graph_init(cg, entry, exit);
     return cg;
 }
 
 void
-command_graph_init(command_graph_t * cg)
+command_graph_init(command_graph_t * cg, command_graph_node_t * entry, command_graph_node_t * exit)
 {
     new (cg) command_graph_t();
     cg->init(
         (cgir::command_constructor_t)            command_new,
         (cgir::command_graph_node_constructor_t) command_graph_node_new,
-        (cgir::command_graph_constructor_t)      command_graph_new
+        (cgir::command_graph_constructor_t)      command_graph_new,
+        entry,
+        exit
     );
 }
 
@@ -379,6 +381,18 @@ runtime_t::command_graph_replay(command_graph_t * cg)
     command_t command(ctype, flags);
     command.batch.cg = cg;
     command.batch.driver_handle = (void *) this;
+
+    // Capture the team of the thread initiating the replay. Host tasks emitted
+    // while replaying this graph are spawned onto this team, so they run on a
+    // host (device == NULL) thread even when their predecessor command completed
+    // on a device thread (whose completion callback drives the wavefront). The
+    // replay may run on a different team than the one that first spawned the
+    // tasks, hence capturing it here rather than relying on the original thread.
+    cg->replay_team = (void *) thread_t::get_tls()->team;
+
+    // the top-level graph is replayed via the wavefront: `cg->is_sequence` is
+    // false (it is the recorded graph, possibly holding sequence/batch sub-nodes,
+    // not itself a single collapsed chain of task PROGs)
     this->command_submit(device_unique_id, &command);
 }
 

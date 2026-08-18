@@ -41,6 +41,7 @@
 #include <xkrt/driver/driver-host.h>
 #include <xkrt/driver/driver.h>
 #include <xkrt/driver/queue.h>
+#include <xkrt/internals.h>
 #include <xkrt/runtime.h>
 #include <xkrt/sync/atomic.h>
 #include <xkrt/sync/bits.h>
@@ -328,9 +329,18 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_process_node)(
                 callback.args[2] = node;
                 ((command_t *) node->command)->completion_callback_push(callback);
 
+                // forward the replay team so a host task emitted by this command
+                // is spawned on the replay-initiator's team, not the (device)
+                // team of the thread that happens to run its completion callback
+                ((command_t *) node->command)->replay_team = cg->replay_team;
+
                 // if a host command graph, forward the runtime as a driver_handle
+                // and propagate the replay team to the nested sub-graph
                 if (node->command->type == cgir::COMMAND_TYPE_BATCH && node->device_unique_id == XKRT_HOST_DEVICE_UNIQUE_ID)
+                {
                     node->command->batch.driver_handle = runtime;
+                    ((command_graph_t *) node->command->batch.cg)->replay_team = cg->replay_team;
+                }
             }
 
             // set node in INIT state
@@ -413,12 +423,22 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_wait)(
 }
 
 static int
+XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
+    runtime_t * runtime,
+    command_graph_t * cg
+);
+
+static int
 XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(
     runtime_t * runtime,
     command_graph_t * cg
 ) {
     assert(runtime);
     assert(cg);
+
+    // a linear sequence of OpenMP tasks replays as a single super-task
+    if (cg->is_sequence)
+        return XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(runtime, cg);
 
      // increase replay counter
     ++cg->rc;
@@ -438,6 +458,79 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(
     return 0;
 }
 
+/* Replay a batch whose sub-graph is a linear sequence of OpenMP-task PROG
+ * commands (marked `is_sequence` by CGIR's sequence pass).
+ *
+ * Instead of the wavefront (which would spawn one task per command), we spawn a
+ * single "super" task: the worker that schedules it serially runs the recorded
+ * routine of every kmp task of the chain on that one thread. This collapses the
+ * n task-spawns and n scheduling decisions of a task chain into a single one. */
+static int
+XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
+    runtime_t * runtime,
+    command_graph_t * cg
+) {
+    assert(runtime);
+    assert(cg);
+
+    command_graph_node_t * exit  = (command_graph_node_t *) cg->node_get_exit();
+
+    // Completion flags: `exit->state` is polled by the KERN command_queue_progress
+    // (async batch path), while `cg->completed` is waited on by command_graph_wait
+    // (synchronous command_execute path). Reset both before spawning the task.
+    exit->state = COMMAND_GRAPH_NODE_STATE_INIT;
+    cg->completed.store(1, std::memory_order_seq_cst);
+
+    // IMPORTANT: a task routine is byte-copied (memcpy) into the task, not
+    // copy-constructed (see task_new/body_host_capture). This only works while
+    // the closure stays inside std::function's small-buffer (<= 16B on libstdc++,
+    // i.e. ~2 pointers): a larger closure is heap-allocated and the shallow copy
+    // ends up with a dangling pointer once the temporary std::function dies.
+    // Capture the single `cg` pointer only, and derive entry/exit inside.
+    const runtime_t::task_routine_t routine =
+        [cg] (runtime_t *, device_t *, task_t *) {
+
+            command_graph_node_t * entry = (command_graph_node_t *) cg->node_get_entry();
+            command_graph_node_t * exit  = (command_graph_node_t *) cg->node_get_exit();
+
+            // walk the linear chain entry -> ... -> exit (inclusive), running
+            // each body. entry/exit may themselves be PROG commands: the
+            // sequence pass reuses the chain head/tail as the sub-graph
+            // entry/exit rather than adding empty control nodes.
+            command_graph_node_t * node = entry;
+            while (true)
+            {
+                if (node->type == cgir::COMMAND_GRAPH_NODE_TYPE_COMMAND)
+                {
+                    assert(node->command);
+                    assert(node->command->type == cgir::COMMAND_TYPE_PROG);
+                    command_prog_run_host((command_t *) node->command);
+                }
+
+                if (node == exit)
+                    break ;
+
+                // a non-exit sequence node has exactly one successor
+                assert(node->successors.size() == 1);
+                node = (command_graph_node_t *) node->successors.front();
+            }
+
+            // notify both completion mechanisms
+            exit->state = COMMAND_GRAPH_NODE_STATE_COMPLETE;
+            cg->completed.store(0, std::memory_order_seq_cst);
+        };
+
+    // Spawn the super-task onto the replay-initiator's team (any of its threads
+    // runs the whole chain on a host device == NULL thread). Fall back to the
+    // current team if the replay team is unknown (e.g. not driven by a replay).
+    if (cg->replay_team != nullptr)
+        runtime->team_task_spawn((team_t *) cg->replay_team, routine);
+    else
+        runtime->task_spawn(routine);
+
+    return 0;
+}
+
 static int
 XKRT_DRIVER_ENTRYPOINT(command_execute)(
     device_driver_id_t device_driver_id,
@@ -450,6 +543,7 @@ XKRT_DRIVER_ENTRYPOINT(command_execute)(
     runtime_t * runtime = (runtime_t *) command->batch.driver_handle;
     command_graph_t * cg = (command_graph_t *) command->batch.cg;
 
+    // command_graph_launch dispatches on cg->is_sequence (super-task vs wavefront)
     XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
     XKRT_DRIVER_ENTRYPOINT(command_graph_wait)(runtime, cg);
 
@@ -518,6 +612,8 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
         assert(command->batch.cg);
         runtime_t * runtime = (runtime_t *) command->batch.driver_handle;
         command_graph_t * cg = (command_graph_t *) command->batch.cg;
+
+        // command_graph_launch dispatches on cg->is_sequence (super-task vs wavefront)
         XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
     }
 

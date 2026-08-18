@@ -169,11 +169,11 @@ device_t::offloader_queue_next(
 void
 device_t::offloader_queue_command_new(
     const command_queue_type_t qtype,   /* IN  */
-    const cgir::command_type_t ctype,         /* IN  */
+    const cgir::command_type_t ctype,   /* IN  */
     const command_flag_t flags,         /* IN  */
     thread_t ** pthread,                /* OUT */
     command_queue_t ** pqueue,          /* OUT */
-    command_t ** pcommand                   /* OUT */
+    command_t ** pcommand               /* OUT */
 ) {
     assert(pqueue);
     assert(pcommand);

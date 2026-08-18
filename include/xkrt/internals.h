@@ -117,6 +117,18 @@ void task_fetch_execute(
 );
 
 /**
+ * @brief Run a host PROG command's body once on the calling thread.
+ *
+ * Dispatches on the command's function prototype (VARIADIC / PACKED / KMP) and
+ * invokes the routine directly (it does NOT raise the command's completion
+ * callback nor spawn a task). Used both by the serialized host launch path and
+ * by the command-graph "sequence" replay, which runs a whole chain of recorded
+ * OpenMP task bodies serially on a single thread.
+ * @param command The host PROG command to run.
+ */
+void command_prog_run_host(command_t * command);
+
+/**
  * @brief Arguments passed to device team threads during creation
  */
 typedef struct  device_team_args_t

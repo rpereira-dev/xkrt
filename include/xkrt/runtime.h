@@ -1171,6 +1171,14 @@ struct  runtime_t
         this->team_task_commit(team, task);
     }
 
+    inline void
+    team_task_spawn(
+        team_t * team,
+        const task_routine_t & f
+    ) {
+        return this->team_task_spawn<TASK_FLAG_ZERO>(team, XKRT_UNSPECIFIED_DEVICE_UNIQUE_ID, 0, nullptr, nullptr, f);
+    }
+
     //////////////////
     // TEAM - UTILS //
     //////////////////
@@ -1351,6 +1359,12 @@ struct  runtime_t
      *      task_dependency_graph_destroy(g)            // destroy the command graph
      */
     void task_dependency_graph_record_stop(void);
+
+    /**
+     *  Return true iff the currently executing task is recording a task
+     *  dependency graph (i.e. has the 'TASK_FLAG_GRAPH_RECORDING' bit set).
+     */
+    bool task_dependency_graph_is_recording(void);
 
     /**
      *  Destroy a command graph record

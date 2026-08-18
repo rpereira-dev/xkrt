@@ -175,12 +175,13 @@ main(void)
 
     uint64_t t4 = get_nanotime();
 
-    /* optimize: remove useless nodes, redundant edges, then contract */
-    //  # pragma omp taskgraph optimize(reduce-node, reduce-edge, batch)
+    /* optimize: remove useless nodes, redundant edges, then collapse
+     * same-device OpenMP task chains into is_sequence super-task batches */
+    //  # pragma omp taskgraph optimize(reduce-node, reduce-edge, sequence)
     cg.optimize(
           cgir::COMMAND_GRAPH_PASS_REDUCE_NODE_BIT
         | cgir::COMMAND_GRAPH_PASS_REDUCE_EDGE_BIT
-        | cgir::COMMAND_GRAPH_PASS_BATCH_BIT);
+        | cgir::COMMAND_GRAPH_PASS_SEQUENCE_BIT);
 
     uint64_t t5 = get_nanotime();
 
