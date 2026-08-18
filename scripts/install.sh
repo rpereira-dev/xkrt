@@ -477,6 +477,20 @@ build_llvm() {
         fi
     fi
 
+    # Pin the host / default target triple.  LLVM otherwise auto-detects it via
+    # config.guess, which on some nodes (seen when bootstrapping with clang) yields
+    # an empty/"unknown" triple — producing a clang whose default target is
+    # 'unknown' that cannot compile anything (breaks hwloc's configure, etc.).  Ask
+    # the bootstrap compiler for the host triple (both gcc and clang support
+    # -dumpmachine), falling back to LLVM's config.guess, then a uname-derived
+    # triple.  Passed for BOTH host and default so a stale build-dir cache (these
+    # are non-FORCE cache vars in LLVM) can never keep an old empty value.
+    local _host_triple
+    _host_triple="$("$LLVM_BOOTSTRAP_CC" -dumpmachine 2>/dev/null || true)"
+    [[ -z "$_host_triple" ]] && _host_triple="$(sh "$LLVM_REPO_DIR/llvm/cmake/config.guess" 2>/dev/null || true)"
+    [[ -z "$_host_triple" ]] && _host_triple="$(uname -m)-unknown-linux-gnu"
+    info "Host / default target triple: $_host_triple"
+
     info "Configuring LLVM (${label}) …"
     cd "$LLVM_BUILD_DIR"
 
@@ -496,6 +510,8 @@ build_llvm() {
         ${rt_flags[@]+"${rt_flags[@]}"} \
         -DLLVM_RUNTIME_TARGETS="$LLVM_CMAKE_RUNTIME_TARGETS" \
         -DLLVM_TARGETS_TO_BUILD="$LLVM_CMAKE_TARGETS" \
+        -DLLVM_HOST_TRIPLE="$_host_triple" \
+        -DLLVM_DEFAULT_TARGET_TRIPLE="$_host_triple" \
         -DCMAKE_CXX_FLAGS="-Wno-c2y-extensions" \
         $LLVM_EXTRA_CMAKE_OPTS \
         "$LLVM_REPO_DIR/llvm"
@@ -1261,10 +1277,7 @@ if [[ "$INSTALL_HWLOC" == "true" ]]; then
         # Any user HWLOC_CONFIGURE_OPTS come last so they can re-enable a specific
         # backend, e.g. "--enable-rsmi --with-rocm=/opt/rocm".
         # shellcheck disable=SC2086
-        ./configure --prefix="$HWLOC_INSTALL_DIR" --quiet \
-            --disable-cuda --disable-nvml --disable-rsmi \
-            --disable-opencl --disable-levelzero \
-            $HWLOC_CONFIGURE_OPTS
+        ./configure --prefix="$HWLOC_INSTALL_DIR" $HWLOC_CONFIGURE_OPTS
         info "Building …"
         make -j "$(nproc)"
         info "Installing …"
