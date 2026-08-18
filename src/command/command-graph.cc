@@ -404,7 +404,7 @@ runtime_t::command_graph_replay(command_graph_t * cg)
     constexpr command_flag_t flags = COMMAND_FLAG_SERIALIZED | COMMAND_FLAG_SYNCHRONOUS;
     command_t command(ctype, flags);
     command.batch.cg = cg;
-    command.batch.driver_handle = (void *) this;
+    cg->driver_handle = (void *) this;
 
     // Capture the team of the thread initiating the replay. Host tasks emitted
     // while replaying this graph are spawned onto this team, so they run on a

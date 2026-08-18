@@ -231,7 +231,7 @@ device_thread_main(
     if (driver->f_command_queue_delete)
         for (uint8_t j = 0 ; j < XKRT_QUEUE_TYPE_ALL ; ++j)
             for (int k = 0 ; k < device->count[j] ; ++k)
-                driver->f_command_queue_delete(device->queues[thread->tid][j][k]);
+                driver->f_command_queue_delete(device, device->queues[thread->tid][j][k]);
 
     return NULL;
 }

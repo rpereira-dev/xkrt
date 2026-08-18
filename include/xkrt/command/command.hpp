@@ -88,12 +88,7 @@ struct command_t : cgir::command_t
         command_callback_index_t n;
     } callbacks;
 
-    /* Team (a `team_t *`, kept opaque as `void *` to avoid a dependency cycle
-     * with the threading headers) onto which a replayed host task must be
-     * spawned. During replay it is stamped with the team of the thread that
-     * initiated the replay, so a host PROG whose predecessor completed on a
-     * device thread is still spawned on the (host) replay team - not the device
-     * implicit team. NULL outside of replay (falls back to the current team). */
+    /* team_t that must replay the command */
     void * replay_team;
 
     /* constructor */
@@ -201,17 +196,19 @@ struct command_graph_t : cgir::command_graph_t
     /* mutex/cond to notify threads waiting on the replay completion */
     std::atomic<uint32_t> completed;
 
-    /* Team (a `team_t *`, kept opaque as `void *`) of the thread that initiated
-     * the current replay. Host tasks emitted while replaying this graph are
-     * spawned onto this team, and it is propagated to nested batch sub-graphs. */
+    /* team_t that must replay the graph */
     void * replay_team;
+
+    /* Handle for driver (runtime_t for host, cuGraph for CUDA device, etc.) */
+    void * driver_handle;
 
     command_graph_t(void) :
         commands(),
         nodes(),
         rc(0),
         completed(0),
-        replay_team(nullptr)
+        replay_team(nullptr),
+        driver_handle(NULL)
     {}
 
     /* return number of nodes */
