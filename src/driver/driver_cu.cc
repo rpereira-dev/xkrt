@@ -711,15 +711,14 @@ XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
      * a node is processed, all its predecessors have already been processed,
      * so we can set CUDA dependencies */
     struct pls_t { CUgraphNode cu_node; };
-    using iterator_t = cgir::command_graph_t::node_iterator_t<pls_t>;
     constexpr cgir::command_graph_walk_search_t search = cgir::COMMAND_GRAPH_WALK_SEARCH_BFS;
     constexpr cgir::command_graph_walk_order_t  order  = cgir::COMMAND_GRAPH_WALK_ORDER_PRE;
     constexpr bool include_entry_exit = false;
 
-    std::vector<iterator_t> iterators = command->batch.cg->create_node_iterators<pls_t, include_entry_exit, search, order>();
+    auto iterators = command->batch.cg->create_node_iterators<include_entry_exit, pls_t, search, order>();
 
     /* Iterate once to create all nodes */
-    for (iterator_t & it : iterators)
+    for (auto & it : iterators)
     {
         /* get command graph node */
         cgir::command_graph_node_t * node = it.node;
@@ -933,7 +932,7 @@ XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
     cgir::command_graph_node_t * entry = command->batch.cg->node_get_entry();
 
     /* iterate a second time to set dependencies */
-    for (iterator_t & it : iterators)
+    for (auto & it : iterators)
     {
         /* get command graph node */
         cgir::command_graph_node_t * node = it.node;
