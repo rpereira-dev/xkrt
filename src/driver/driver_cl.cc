@@ -698,8 +698,11 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_create)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(command_queue_delete)(
+    device_t * device,
     command_queue_t * iqueue
 ) {
+    assert(device);
+
     queue_cl_t * queue = (queue_cl_t *) iqueue;
 
     for (xkrt_command_queue_list_counter_t i = 0 ; i < iqueue->pending.capacity ; ++i)

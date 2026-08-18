@@ -207,7 +207,7 @@ typedef struct  driver_t
     command_queue_t * (*f_command_queue_create)(device_t * device, command_queue_type_t qtype, xkrt_command_queue_list_counter_t capacity);
 
     /* deallocate a queue */
-    void (*f_command_queue_delete)(command_queue_t * iqueue);
+    void (*f_command_queue_delete)(device_t * device, command_queue_t * iqueue);
 
     /* launch a queue command */
     int (*f_command_queue_launch)(device_driver_id_t device_driver_id, command_queue_t * queue, command_t * cmd, xkrt_command_queue_list_counter_t idx);

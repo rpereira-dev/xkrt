@@ -1372,12 +1372,18 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_create)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(command_queue_delete)(
+    device_t * device,
     command_queue_t * iqueue
 ) {
+    assert(device);
+    cu_set_context(device->driver_id);
+
     queue_cu_t * queue = (queue_cu_t *) iqueue;
 
-    CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.high));
-    CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.low));
+    if (queue->cu.handle.high)
+        CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.high));
+    if (queue->cu.handle.low)
+        CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.low));
     if (queue->cu.blas.handle)
         cublasDestroy(queue->cu.blas.handle);
     if (queue->cu.sparse.handle)

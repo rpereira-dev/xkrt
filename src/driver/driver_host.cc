@@ -859,6 +859,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_create)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(command_queue_delete)(
+    device_t * device,
     command_queue_t * iqueue
 ) {
     /* TODO: munmap the io_uring ring buffers and close the fd */
