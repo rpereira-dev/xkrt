@@ -549,53 +549,51 @@ get_ith_victim(int tid, int i, int n)
 task_t *
 thread_t::worksteal(void)
 {
-    // if the thread is executing within a team, do hierarchical workstealing
-    if (this->team)
+    assert(this->team);
+
+    const int n = team->priv.nthreads;
+    const int tid = this->tid;
+
+    for (int i = 0 ; i < n ; ++i)
     {
-        const int n = team->priv.nthreads;
-        const int tid = this->tid;
+        const int victim_tid = get_ith_victim(tid, i, n);
+        if ((volatile thread_state_t) team->priv.threads_state[victim_tid] != XKRT_THREAD_INITIALIZED)
+            continue ;
 
-        for (int i = 0 ; i < n ; ++i)
+        task_t * task;
+        if (victim_tid == tid)
         {
-            const int victim_tid = get_ith_victim(tid, i, n);
-            if ((volatile thread_state_t) team->priv.threads_state[victim_tid] != XKRT_THREAD_INITIALIZED)
-                continue ;
-
-            task_t * task;
-            if (victim_tid == tid)
-            {
-                assert(i == 0);
-                task = this->deque.pop();
-            }
-            else
-            {
-                task_t ** tasks_stolen;
-                int n_stolen;
-
-                // try to steal tasks
-                thread_t * victim = team->priv.threads + victim_tid;
-                if (victim->deque.steal(&tasks_stolen, &n_stolen) == 0)
-                {
-                    assert(tasks_stolen);
-                    assert(n_stolen);
-
-                    // Get first task for schedule
-                    task = *tasks_stolen;
-
-                    // Push the remaining n-1 tasks into our own deque, this can only succeed
-                    if (n_stolen > 1)
-                        this->deque.push(&tasks_stolen[1], n_stolen - 1);
-
-                    // Notify steal completed
-                    victim->deque.stolen(&tasks_stolen, &n_stolen);
-
-                    LOGGER_DEBUG("Thread %u stole %d tasks from %u", this->tid, n_stolen, victim_tid);
-                }
-            }
-
-            if (task)
-                return task;
+            assert(i == 0);
+            task = this->deque.pop();
         }
+        else
+        {
+            task_t ** tasks_stolen;
+            int n_stolen;
+
+            // try to steal tasks
+            thread_t * victim = team->priv.threads + victim_tid;
+            if (victim->deque.steal(&tasks_stolen, &n_stolen) == 0)
+            {
+                assert(tasks_stolen);
+                assert(n_stolen);
+
+                // Get first task for schedule
+                task = *tasks_stolen;
+
+                // Push the remaining n-1 tasks into our own deque, this can only succeed
+                if (n_stolen > 1)
+                    this->deque.push(&tasks_stolen[1], n_stolen - 1);
+
+                // Notify steal completed
+                victim->deque.stolen(&tasks_stolen, &n_stolen);
+
+                LOGGER_DEBUG("Thread %u stole %d tasks from %u", this->tid, n_stolen, victim_tid);
+            }
+        }
+
+        if (task)
+            return task;
     }
 
     return NULL;
@@ -607,7 +605,7 @@ runtime_t::task_schedule(void)
     thread_t * thread = thread_t::get_tls();
     assert(thread);
 
-    task_t * task = thread->worksteal();
+    task_t * task = (thread->team) ? thread->worksteal() : thread->deque.pop();
     if (task)
     {
         task_fetch_execute(this, NULL, task);

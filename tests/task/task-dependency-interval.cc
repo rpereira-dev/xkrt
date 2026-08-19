@@ -53,7 +53,7 @@ constexpr size_t task_size = task_compute_size(flags, AC);
 constexpr size_t args_size = sizeof(int);
 
 static void
-func(task_t * task)
+func(runtime_t * runtime, device_t * device, task_t * task)
 {
     int * args = (int *) TASK_ARGS(task, task_size);
     assert(*args == x);

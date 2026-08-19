@@ -349,7 +349,11 @@ __task_complete(
         for (task_access_counter_t i = 0 ; i < acs->ac ; ++i)
         {
             access_t * access = accesses + i;
-            assert(access->mode & ACCESS_MODE_V || access->state == ACCESS_STATE_FETCHED);
+            assert(
+                access->mode & ACCESS_MODE_V ||
+                access->state == ACCESS_STATE_FETCHED ||
+                (access->type == ACCESS_TYPE_HANDLE && access->state == ACCESS_STATE_INIT)
+            );
 
             // detached access, not my responsibility to fulfill this dependency
             if (access->mode & ACCESS_MODE_D)
