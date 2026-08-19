@@ -29,29 +29,33 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 include(BooleanUtils)
 
+# Miscelleanous options
 xkoption(ENABLE_HEAVY_DEBUG "Heavy assertion tests in the khp-tree structure, setting this variable to 'ON' will considerably slowdown task insertion, but can help debugging the khp-trees" OFF)
 xkoption(STRICT       "Enable strict compilation mode" OFF)
 xkoption(BUILD_C_API  "Build the C API" ON)
 
+# Memory assistant options
 xkoption(USE_MEMORY_REGISTER_OVERFLOW_PROTECTION "Enable the protection of memory copies over regions that are not continuously registered, by splitting into multiple copies, to avoid cuda crashes" ON)
 xkoption(USE_MEMORY_REGISTER_PAGE "Align memory registration request to lower and upper pages." ON)
 xkoption(USE_MEMORY_REGISTER_ASSISTED "Allow programmer register/unregister respectively already-registered and non-registered memory." ON)
 
-xkoption(USE_SHUT_UP  "Disable all logging activities" OFF)
 
+# Tooling options
+xkoption(USE_TOOLS    "Build the XKRT tooling interface (XKRT-T) so external tools can observe runtime events." OFF)
+xkoption(USE_SHUT_UP  "Disable all logging activities" OFF)
+xkoption(USE_STATS    "Whether to compile the built-in stat system." OFF)
+xkoption(USE_JULIA    "Link with Julia to attach threads (needed for running host tasks from Julia)" OFF)
+xkoption(USE_CAIRO    "Use Cairo to generate images (memory-tree debugging purposes mostly)." OFF)
+
+# Drivers options
 xkoption(USE_CL       "Whether to build the OpenCL driver." OFF)
 xkoption(USE_CUDA     "Whether to build the CUDA driver." OFF)
 xkoption(USE_HIP      "Whether to build the HIP driver." OFF)
 xkoption(USE_NVML     "Use Nvidia's NVML management library." OFF)
-xkoption(USE_STATS    "Whether to compile the built-in stat system." OFF)
 xkoption(USE_SYCL     "Whether to build the SYCL driver." OFF)
 xkoption(USE_ZE       "Whether to build the Level Zero driver." OFF)
 xkoption(USE_ZES      "Use Intel's ZES management library." OFF)
 xkoption(USE_ZE_SYCL_INTEROP "Enable the compilation of SYCL interop with Level Zero driver" OFF)
-xkoption(USE_JULIA    "Link with Julia to attach threads (needed for running host tasks from Julia)" OFF)
-xkoption(USE_CAIRO    "Use Cairo to generate images (memory-tree debugging purposes mostly)." OFF)
-xkoption(USE_PROTHEUS "Use Protheus for JIT." OFF)
-xkoption(USE_TOOLS    "Build the XKRT tooling interface (XKRT-T) so external tools can observe runtime events." OFF)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(DEBUG_BUILD ON)
