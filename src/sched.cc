@@ -268,6 +268,8 @@ runtime_t::task_team_enqueue(
 ) {
     // get a random thread in the team
     int nthreads = team->get_nthreads();
+    assert(nthreads);
+
     thread_t * tls = thread_t::get_tls();
     assert(tls);
     int start = tls->rng() % nthreads;

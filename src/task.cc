@@ -689,7 +689,6 @@ task_fetch_execute(
 ) {
     assert(task);
     assert(task->state.value == TASK_STATE_READY);
-    assert(((task->flags & TASK_FLAG_DEVICE) && device) || !device);
 
     /* if that's a device task, then fetches to the device. Else, fetch to the host */
     device_unique_id_t device_unique_id = (task->flags & TASK_FLAG_DEVICE) ? device->unique_id : XKRT_HOST_DEVICE_UNIQUE_ID;
