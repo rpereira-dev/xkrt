@@ -932,6 +932,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_create)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(command_queue_delete)(
+    device_t * device,
     command_queue_t * iqueue
 ) {
     queue_ze_t * queue = (queue_ze_t *) iqueue;

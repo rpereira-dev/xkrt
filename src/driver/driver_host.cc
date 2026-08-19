@@ -338,8 +338,8 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_process_node)(
                 // and propagate the replay team to the nested sub-graph
                 if (node->command->type == cgir::COMMAND_TYPE_BATCH && node->device_unique_id == XKRT_HOST_DEVICE_UNIQUE_ID)
                 {
-                    node->command->batch.driver_handle = runtime;
-                    ((command_graph_t *) node->command->batch.cg)->replay_team = cg->replay_team;
+                    ((command_graph_t *) node->command->batch.cg)->replay_team   = cg->replay_team;
+                    ((command_graph_t *) node->command->batch.cg)->driver_handle = runtime;
                 }
             }
 
@@ -537,11 +537,12 @@ XKRT_DRIVER_ENTRYPOINT(command_execute)(
     command_t * command
 ) {
     assert(command->type == cgir::COMMAND_TYPE_BATCH);
-    assert(command->batch.cg);              // stores the cg to replay
-    assert(command->batch.driver_handle);   // stores the runtime_t
 
-    runtime_t * runtime = (runtime_t *) command->batch.driver_handle;
     command_graph_t * cg = (command_graph_t *) command->batch.cg;
+    assert(cg);
+
+    runtime_t * runtime = (runtime_t *) cg->driver_handle;
+    assert(runtime);
 
     // command_graph_launch dispatches on cg->is_sequence (super-task vs wavefront)
     XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
@@ -609,9 +610,12 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
     else
     {
         assert(command->type == cgir::COMMAND_TYPE_BATCH);
-        assert(command->batch.cg);
-        runtime_t * runtime = (runtime_t *) command->batch.driver_handle;
+
         command_graph_t * cg = (command_graph_t *) command->batch.cg;
+        assert(cg);
+
+        runtime_t * runtime  = (runtime_t *) cg->driver_handle;
+        assert(runtime);
 
         // command_graph_launch dispatches on cg->is_sequence (super-task vs wavefront)
         XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
@@ -711,11 +715,13 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_wait)(
         case (XKRT_QUEUE_TYPE_KERN):
         {
             assert(command->type == cgir::COMMAND_TYPE_BATCH);
-            assert(command->batch.cg);              // stores the cg to replay
-            assert(command->batch.driver_handle);   // stores the runtime_t
 
-            runtime_t * runtime = (runtime_t *) command->batch.driver_handle;
             command_graph_t * cg = (command_graph_t *) command->batch.cg;
+            assert(cg);
+
+            runtime_t * runtime = (runtime_t *) cg->driver_handle;
+            assert(runtime);
+
             XKRT_DRIVER_ENTRYPOINT(command_graph_wait)(runtime, cg);
 
             return 0;
@@ -853,6 +859,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_create)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(command_queue_delete)(
+    device_t * device,
     command_queue_t * iqueue
 ) {
     /* TODO: munmap the io_uring ring buffers and close the fd */

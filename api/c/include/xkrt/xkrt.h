@@ -477,6 +477,7 @@ xkrt_driver_command_queue_create(
 void
 xkrt_driver_command_queue_delete(
     xkrt_driver_t * driver,
+    xkrt_device_t * device,
     xkrt_command_queue_t * queue
 );
 

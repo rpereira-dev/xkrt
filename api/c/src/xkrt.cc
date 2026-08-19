@@ -1071,11 +1071,13 @@ xkrt_driver_command_queue_create(
 void
 xkrt_driver_command_queue_delete(
     xkrt_driver_t * driver,
+    xkrt_device_t * device,
     xkrt_command_queue_t * queue
 ) {
     assert(driver);
     driver_t * drv = (driver_t *) driver;
-    drv->f_command_queue_delete((command_queue_t *) queue);
+    device_t * dev = (device_t *) device;
+    drv->f_command_queue_delete(dev, (command_queue_t *) queue);
 }
 
 // MODULES
