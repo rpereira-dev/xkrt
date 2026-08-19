@@ -606,10 +606,6 @@ task_execute(
     task->state.value = TASK_STATE_EXECUTING;
     LOGGER_DEBUG_TASK_STATE(task);
 
-    // report the task being scheduled in (the currently running task is
-    // suspended while `task` executes on this thread)
-    XKRT_TOOL_EMIT(runtime, XKRT_CALLBACK_TASK_SCHEDULE, xkrt_callback_task_schedule_t, thread, thread->current_task, task);
-
     // if detachable, increase counter to avoid early completion (before routine executed)
     if (task->flags & TASK_FLAG_DETACHABLE)
         __task_detachable_incr<1>(task);
@@ -654,7 +650,11 @@ task_execute(
                 thread->current_taskgroup = (task->flags & TASK_FLAG_TASKGROUP)
                                           ? TASK_GRP_INFO(task)->taskgroup : NULL;
 
+                XKRT_TOOL_EMIT(runtime, XKRT_CALLBACK_TASK_SCHEDULE, xkrt_callback_task_schedule_t, thread, current, task);
+
                 ((void (*)(runtime_t *, device_t *, task_t *)) format->f[targetfmt])(runtime, device, task);
+
+                XKRT_TOOL_EMIT(runtime, XKRT_CALLBACK_TASK_SCHEDULE, xkrt_callback_task_schedule_t, thread, task, current);
 
                 thread->current_taskgroup = current_taskgroup;
                 thread->current_task = current;
