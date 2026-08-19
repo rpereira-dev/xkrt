@@ -43,6 +43,7 @@
 #  include <xkrt/support.h>
 #  include <xkrt/sync/spinlock.h>
 #  include <xkrt/task/task.hpp>
+#  include <xkrt/tool.h>
 // #  include <xkrt/thread/deque.hpp>
 #  include <xkrt/thread/naive-deque.hpp>
 #  include <xkrt/thread/team-thread-place.h>
@@ -154,6 +155,11 @@ struct alignas(xkrt_pagesize) thread_t
         /* previous TLS */
         thread_t * prev;
 
+        # if XKRT_SUPPORT_TOOLS
+        /* tool-owned data (XKRT-T), never inspected by the runtime */
+        xkrt_tool_data_t tool_data;
+        # endif /* XKRT_SUPPORT_TOOLS */
+
     public:
 
         // thread_t(int tid) : thread_t(tid, 0, XKRT_UNSPECIFIED_DEVICE_UNIQUE_ID) {}
@@ -183,6 +189,10 @@ struct alignas(xkrt_pagesize) thread_t
             this->current_task = &this->implicit_task;
             this->current_task_record = NULL;
             this->current_taskgroup = NULL;
+
+            # if XKRT_SUPPORT_TOOLS
+            this->tool_data.value = 0;
+            # endif /* XKRT_SUPPORT_TOOLS */
 
             // initialize sync primitives
             pthread_mutex_init(&this->sleep.lock, 0);

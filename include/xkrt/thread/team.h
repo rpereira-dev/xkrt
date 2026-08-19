@@ -45,6 +45,7 @@
 #  include <xkrt/task/task.hpp>
 #  include <xkrt/thread/deque.hpp>
 #  include <xkrt/thread/team-thread-place.h>
+#  include <xkrt/tool.h>
 
 #  include <pthread.h>
 #  include <atomic>
@@ -188,7 +189,12 @@ typedef enum    thread_state_t
 struct team_t
 {
     // default constructor
-    team_t() : desc() {}
+    team_t() : desc()
+    {
+        # if XKRT_SUPPORT_TOOLS
+        this->tool_data.value = 0;
+        # endif /* XKRT_SUPPORT_TOOLS */
+    }
 
     // team description, to be filled by the user before forking it
     team_desc_t desc;
@@ -235,6 +241,13 @@ struct team_t
         } parallel_for;
 
     } priv;
+
+    # if XKRT_SUPPORT_TOOLS
+    /* tool-owned data (XKRT-T), never inspected by the runtime. Kept outside
+     * `priv` so it survives the `memset` of `priv` performed by team_create;
+     * it is (re)initialized explicitly when the team is created. */
+    xkrt_tool_data_t tool_data;
+    # endif /* XKRT_SUPPORT_TOOLS */
 
     /* get a thread */
     thread_t * get_thread(int tid);

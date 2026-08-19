@@ -102,6 +102,11 @@
 /* If Julia support is enabled */
 # define XKRT_SUPPORT_JULIA             @USE_JULIA@
 
+/* If the runtime was compiled with the tooling interface (XKRT-T), allowing
+ * external tools loaded through `XKRT_TOOL_PATH` (or connected in-process) to
+ * observe runtime events through registered callbacks. */
+# define XKRT_SUPPORT_TOOLS             @USE_TOOLS@
+
 /* If XKRT is built in debug mode */
 # define XKRT_SUPPORT_DEBUG             @DEBUG_BUILD@
 

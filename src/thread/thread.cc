@@ -281,12 +281,18 @@ team_create_recursive(void * vargs)
         // save tls
         thread_t::push_tls(thread);
 
+        // report this thread_t starting to the tool
+        XKRT_TOOL_EMIT(args->runtime, XKRT_CALLBACK_THREAD_START, xkrt_callback_thread_start_t, thread);
+
         // warmup thread if conf says so
         if (args->runtime->conf.warmup)
             thread->warmup();
 
         // starts
         void * r = args->team->desc.routine(args->runtime, team, thread);
+
+        // report this thread_t stopping to the tool
+        XKRT_TOOL_EMIT(args->runtime, XKRT_CALLBACK_THREAD_STOP, xkrt_callback_thread_stop_t, thread);
 
         // if master thread
         if (team->desc.master_is_member && tid == 0)
@@ -452,6 +458,10 @@ runtime_t::team_create(team_t * team)
 
     // init hierarchy
     // team_create_hierarchy(team);
+
+    // report team creation to the tool (before workers are spawned, so the
+    // team_create event precedes the workers' thread_start events)
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_TEAM_CREATE, xkrt_callback_team_create_t, team);
 
     // init barrier
     pthread_mutex_init(&team->priv.barrier.mtx, NULL);
@@ -677,7 +687,13 @@ runtime_t::task_wait(void)
     thread_t * thread = thread_t::get_tls();
     assert(thread);
     assert(thread->current_task);
+
+    // taskwait is a synchronization region: wait for the current task's children
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_TASKWAIT, xkrt_callback_taskwait_t, thread, thread->current_task, XKRT_SCOPE_BEGIN);
+
     this->task_wait(&thread->current_task->cc);
+
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_TASKWAIT, xkrt_callback_taskwait_t, thread, thread->current_task, XKRT_SCOPE_END);
 }
 
 void
@@ -701,8 +717,14 @@ runtime_t::team_barrier(
     team_t * team,
     thread_t * thread
 ) {
+    // the barrier is a synchronization region: report its begin/end to the tool
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_BARRIER, xkrt_callback_barrier_t, team, thread_t::get_tls(), XKRT_SCOPE_BEGIN);
+
     if (team->priv.nthreads == 1)
+    {
+        XKRT_TOOL_EMIT(this, XKRT_CALLBACK_BARRIER, xkrt_callback_barrier_t, team, thread_t::get_tls(), XKRT_SCOPE_END);
         return ;
+    }
 
     assert((ws && thread) || (!ws && !thread));
 
@@ -731,6 +753,8 @@ runtime_t::team_barrier(
             pthread_mutex_unlock(&team->priv.barrier.mtx);
         }
     }
+
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_BARRIER, xkrt_callback_barrier_t, team, thread_t::get_tls(), XKRT_SCOPE_END);
 }
 
 template void runtime_t::team_barrier<true>(team_t * team, thread_t * thread);
@@ -927,6 +951,11 @@ runtime_t::team_join(team_t * team)
         int r = pthread_join(team->priv.threads[i].pthread, NULL);
         assert(r == 0);
     }
+
+    // all workers have wound down (and reported thread_stop): report the team
+    // being joined to the tool
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_TEAM_JOIN, xkrt_callback_team_join_t, team);
+
     const size_t threads_array_size = (sizeof(thread_t) + sizeof(thread_state_t)) * team->priv.nthreads;
     munmap(team->priv.threads, threads_array_size);
 }

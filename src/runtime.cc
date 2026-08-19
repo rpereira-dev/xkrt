@@ -89,6 +89,12 @@ runtime_t::init(void)
 
     // load
     this->conf.init();
+
+    // activate the tooling interface (XKRT-T) if a tool is registered, then
+    // report the initial (calling) thread to it
+    this->tool_init();
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_THREAD_START, xkrt_callback_thread_start_t, thread_t::get_tls());
+
     task_format_register(this);
 
     // the '+1' is to enforce the host device, always
@@ -124,7 +130,16 @@ runtime_t::deinit(void)
     # endif /* XKRT_SUPPORT_STATS */
 
     this->state = runtime_t::state_t::DEINITIALIZED;
+
+    // tear down device teams first: this raises their threads' thread_stop and
+    // team_join events, which must be dispatched before the tool is finalized
     drivers_deinit(this);
+
+    // report the initial thread stopping, then finalize the tooling interface
+    // (last, so every runtime event has been dispatched to the tool)
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_THREAD_STOP, xkrt_callback_thread_stop_t, thread_t::get_tls());
+    this->tool_fini();
+
     hwloc_topology_destroy(this->topology);
     this->formats.all.list.release();
     # if XKRT_SUPPORT_STATS

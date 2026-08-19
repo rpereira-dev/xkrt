@@ -335,6 +335,11 @@ runtime_t::task_accesses_resolve(
 ) {
     this->task_accesses_link(task, accesses, n);
     this->task_accesses_put(task, accesses, n);
+
+    // report the resolved accesses to the tool. The accesses belong to the
+    // dependent (child) task, not to `task` (the enclosing dependency domain).
+    if (n > 0)
+        XKRT_TOOL_EMIT(this, XKRT_CALLBACK_TASK_ACCESSES, xkrt_callback_task_accesses_t, accesses[0].task, accesses, n);
 }
 
 XKRT_NAMESPACE_END

@@ -415,6 +415,22 @@ __parse_task_prefetch(conf_t * conf, char const * value)
         conf->enable_prefetching = atoi(value);
 }
 
+static void
+__parse_tool_path(conf_t * conf, char const * value)
+{
+    (void) conf;
+    /* The tool path is read directly by runtime_t::tool_init() through getenv
+     * when the tooling interface is compiled in. This entry only exists so the
+     * variable is recognized (and so we can warn otherwise). */
+    # if !XKRT_SUPPORT_TOOLS
+    if (value)
+        LOGGER_WARN("`XKRT_TOOL_PATH` is set but XKRT was not built with the "
+                    "tooling interface (`-DUSE_TOOLS=ON`); ignoring.");
+    # else
+    (void) value;
+    # endif
+}
+
 void __parse_help(conf_t * conf, char const * value);
 
 extern char ** environ;
@@ -456,6 +472,7 @@ static conf_parse_t CONF_PARSE[] = {
     {"OFFLOADER_CAPACITY",               __parse_offloader_capacity,        "Maximum number of pending commands per queue"},
     {"PRECISION",                        NULL,                              NULL},
     {"STATS",                            __parse_stats,                     "Boolean to dump stats on deinit"},
+    {"TOOL_PATH",                        __parse_tool_path,                 "Path to a tooling interface (XKRT-T) shared library exporting `xkrt_tool_start` (requires `-DUSE_TOOLS=ON`)"},
     {"USE_P2P",                          __parse_p2p,                       "Boolean to enable/disable the use of p2p transfers"},
     {"WARMUP",                           __parse_warmup,                    "Boolean to enable/disable threads/devices warmup on runtime initialization"},
     {"VERBOSE",                          __parse_verbose,                   "Verbosity level (the higher the most)"},

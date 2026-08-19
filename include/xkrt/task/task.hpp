@@ -62,6 +62,7 @@
 # include <xkrt/task/flag.h>
 # include <xkrt/task/format.h>
 # include <xkrt/task/state.h>
+# include <xkrt/tool.h>
 # include <xkrt/types.h>
 
 XKRT_NAMESPACE_BEGIN
@@ -97,6 +98,11 @@ typedef struct  task_t
         /* task flags */
         task_flag_bitfield_t flags;
 
+        # if XKRT_SUPPORT_TOOLS
+        /* tool-owned data (XKRT-T), never inspected by the runtime */
+        xkrt_tool_data_t tool_data;
+        # endif /* XKRT_SUPPORT_TOOLS */
+
         # if XKRT_SUPPORT_DEBUG
         char label[128];
         # endif /* XKRT_SUPPORT_DEBUG */
@@ -110,6 +116,9 @@ typedef struct  task_t
             fmtid(fmtid),
             flags(flags)
         {
+            # if XKRT_SUPPORT_TOOLS
+            this->tool_data.value = 0;
+            # endif
             # if XKRT_SUPPORT_DEBUG
             strncpy(this->label, "(unamed)", sizeof(this->label));
             # endif

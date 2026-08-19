@@ -337,6 +337,9 @@ __task_complete(
     SPINLOCK_UNLOCK(task->state.lock);
     assert(task->parent);
 
+    // report the task completing to the tool
+    XKRT_TOOL_EMIT(runtime, XKRT_CALLBACK_TASK_COMPLETE, xkrt_callback_task_complete_t, task);
+
     // if the task has successors, that dependency is now satisfied
     if (task->flags & TASK_FLAG_ACCESSES)
     {
@@ -599,6 +602,10 @@ task_execute(
     task->state.value = TASK_STATE_EXECUTING;
     LOGGER_DEBUG_TASK_STATE(task);
 
+    // report the task being scheduled in (the currently running task is
+    // suspended while `task` executes on this thread)
+    XKRT_TOOL_EMIT(runtime, XKRT_CALLBACK_TASK_SCHEDULE, xkrt_callback_task_schedule_t, thread, thread->current_task, task);
+
     // if detachable, increase counter to avoid early completion (before routine executed)
     if (task->flags & TASK_FLAG_DETACHABLE)
         __task_detachable_incr<1>(task);
@@ -800,6 +807,9 @@ runtime_t::taskgroup_begin(void)
     // push a new group nested in the current one; tasks created from now on
     // (and their descendants) bind to it until the matching taskgroup_end
     thread->current_taskgroup = new taskgroup_t(thread->current_taskgroup);
+
+    // a taskgroup is a synchronization region
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_TASKGROUP, xkrt_callback_taskgroup_t, thread, thread->current_task, XKRT_SCOPE_BEGIN);
 }
 
 void
@@ -817,6 +827,9 @@ runtime_t::taskgroup_end(void)
     // created (incremented) during its parent's body, before the parent's own
     // completion (decrement).
     this->task_wait(&tg->count);
+
+    // the taskgroup synchronization region ends once every bound task completed
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_TASKGROUP, xkrt_callback_taskgroup_t, thread, thread->current_task, XKRT_SCOPE_END);
 
     // pop back to the enclosing group and release this one
     thread->current_taskgroup = tg->parent;

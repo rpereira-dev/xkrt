@@ -51,6 +51,7 @@ xkoption(USE_ZE_SYCL_INTEROP "Enable the compilation of SYCL interop with Level 
 xkoption(USE_JULIA    "Link with Julia to attach threads (needed for running host tasks from Julia)" OFF)
 xkoption(USE_CAIRO    "Use Cairo to generate images (memory-tree debugging purposes mostly)." OFF)
 xkoption(USE_PROTHEUS "Use Protheus for JIT." OFF)
+xkoption(USE_TOOLS    "Build the XKRT tooling interface (XKRT-T) so external tools can observe runtime events." OFF)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(DEBUG_BUILD ON)
@@ -103,6 +104,11 @@ SET(SOURCE_FILES
     ${CMAKE_SOURCE_DIR}/src/thread/thread.cc
 )
 
+# XKRT tooling interface (XKRT-T)
+if (USE_TOOLS)
+    list(APPEND SOURCE_FILES ${CMAKE_SOURCE_DIR}/src/tool/tool.cc)
+endif()
+
 if (BUILD_C_API)
     list(APPEND SOURCE_FILES ${CMAKE_SOURCE_DIR}/api/c/src/xkrt.cc)
     include_directories(${CMAKE_SOURCE_DIR}/api/c/src)
@@ -146,6 +152,11 @@ target_link_libraries(${XKRT} PRIVATE Threads::Threads)
 # HWLOC
 find_package(hwloc REQUIRED)
 target_link_libraries(${XKRT} PRIVATE hwloc::hwloc)
+
+# XKRT-T tooling interface needs libdl to dlopen tools passed through XKRT_TOOL_PATH
+if (USE_TOOLS)
+    target_link_libraries(${XKRT} PRIVATE ${CMAKE_DL_LIBS})
+endif()
 
 # Host driver
 add_library(${XKRT}_driver_host SHARED src/driver/driver_host.cc)
