@@ -62,6 +62,7 @@ extern spinlock_t LOGGER_PRINT_MTX;
 # define LOGGER_PRINT_INFO_ID       3
 # define LOGGER_PRINT_IMPL_ID       4
 # define LOGGER_PRINT_DEBUG_ID      5
+# define LOGGER_PRINT_ID_MAX        6
 
 extern char * LOGGER_PRINT_COLORS[6];
 extern char * LOGGER_PRINT_HEADERS[6];

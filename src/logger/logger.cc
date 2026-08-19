@@ -36,6 +36,7 @@
 
 # include <stdint.h>
 
+# include <xkrt/logger/logger.h>
 # include <xkrt/sync/spinlock.h>
 
 volatile spinlock_t LOGGER_PRINT_MTX;
@@ -43,9 +44,7 @@ volatile spinlock_t LOGGER_PRINT_MTX;
 volatile double     LOGGER_TIME_ELAPSED = 0.0;
 volatile uint64_t   LOGGER_LAST_TIME    = 0;
 
-# define NLVL 6
-
-char const * LOGGER_PRINT_COLORS[NLVL] = {
+char const * LOGGER_PRINT_COLORS[LOGGER_PRINT_ID_MAX] = {
     "\033[1;31m",
     "\033[1;31m",
     "\033[1;33m",
@@ -54,7 +53,7 @@ char const * LOGGER_PRINT_COLORS[NLVL] = {
     "\033[1;36m",
 };
 
-char const * LOGGER_PRINT_HEADERS[NLVL] = {
+char const * LOGGER_PRINT_HEADERS[LOGGER_PRINT_ID_MAX] = {
     "FATAL",
     "ERROR",
     "WARN",
@@ -63,5 +62,5 @@ char const * LOGGER_PRINT_HEADERS[NLVL] = {
     "DEBUG",
 };
 
-int LOGGER_VERBOSE = NLVL;
+int LOGGER_VERBOSE = LOGGER_PRINT_INFO_ID;
 int LOGGER_INITIALIZED = 0;
