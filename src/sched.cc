@@ -244,18 +244,21 @@ runtime_t::task_thread_enqueue(
     thread_t * tls = thread_t::get_tls();
     assert(tls);
 
-    // pushing to my own queue or another thread ?
-    int r = (tls == thread) ? thread->deque.push(task) : thread->deque.give(task);
+    // pushing to my own queue, or to another thread ?
+    int r = (thread == tls) ? thread->deque.push(task) : thread->deque.give(task);
     if (r)
-        LOGGER_FATAL("Queue is full, what to do????");
+        LOGGER_FATAL("Queue was full, what to do????");
 
     // TODO: this is quite ugly, but the thread may be sleeping in three places:
     //  - within its condition
     //  - within a team barrier (thus, the broadcast)
     //  - within parallel for
-    thread->wakeup();
+
     if (thread->team)
         pthread_cond_signal(&thread->team->priv.barrier.cond);
+
+    if (thread != tls)
+        thread->wakeup();
 }
 
 void
