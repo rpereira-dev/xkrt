@@ -224,11 +224,7 @@ device_t::offloader_queue_command_commit(
             command_t * commandrec = task_put_command_record(task);
             memcpy(commandrec, command, sizeof(command_t));
             commandrec->completion_callback_clear();
-            /* The recorded command is a template later copied into a command-graph
-             * node and pushed for replay via 'emplace' (externally owned). It must
-             * NOT inherit the queue-pool ownership of the live command it was copied
-             * from, otherwise replay completion would free a graph command into the
-             * queue pool. */
+            /* Unset pool flag, to avoid free during graph replay */
             commandrec->flags = (command_flag_t) (commandrec->flags & ~COMMAND_FLAG_POOLED);
 
             // if skipping command execution
