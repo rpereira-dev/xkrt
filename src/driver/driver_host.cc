@@ -776,7 +776,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_progress)(
 
                 const xkrt_command_queue_list_counter_t p =
                     (const xkrt_command_queue_list_counter_t)cqe->user_data;
-                assert(cqe->res == (int)iqueue->pending.cmd[p].file.size);
+                assert(cqe->res == (int)iqueue->pending.cmd[p]->file.size);
 
                 ++head;
                 ++completed;

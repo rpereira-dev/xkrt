@@ -66,6 +66,12 @@ typedef enum    command_flag_t
     /* if the command is a host program launching additional commands */
     COMMAND_FLAG_PROG_LAUNCHER  = (1 << 2),
 
+    /* if the command_t storage was allocated from a queue's command pool (and
+     * must be recycled to it on completion). Commands NOT carrying this flag are
+     * externally owned (e.g. a command-graph node command pushed for replay) and
+     * are never freed by the queue. Set by 'command_new'; consumed on completion. */
+    COMMAND_FLAG_POOLED         = (1 << 3),
+
 }               command_flag_t;
 
 inline constexpr command_flag_t

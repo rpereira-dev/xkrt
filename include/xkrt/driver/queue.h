@@ -44,10 +44,13 @@
 # include <xkrt/stats/stats.h>
 # include <xkrt/support.h>
 # include <xkrt/sync/lockable.hpp>
+# include <xkrt/sync/spinlock.h>
 # include <xkrt/thread/thread.h>
 # include <xkrt/thread/reentrant_spinlock.h>
 
 # include <atomic>
+# include <new>
+# include <vector>
 
 XKRT_NAMESPACE_BEGIN
 
@@ -56,7 +59,7 @@ const char * command_queue_type_to_str(xkrt_command_queue_type_t type);
 struct command_queue_list_t
 {
     // TODO: memory layout: do we want AoS or SoA here ?
-    command_t * cmd;                                 /* commands buffer */
+    command_t ** cmd;                                /* ring of command pointers */
     xkrt_command_queue_list_counter_t capacity;      /* buffer capacity */
     struct {
         volatile xkrt_command_queue_list_counter_t r; /* first command to process */
@@ -111,6 +114,58 @@ struct command_queue_list_t
     }
 };
 
+/*
+ * Per-queue pool of `command_t` storage. The queue rings hold `command_t *`; the
+ * pointers are either externally owned (e.g. a command-graph node command pushed
+ * for replay -- so the driver's in-place mutations, like a resolved device
+ * function handle, persist across replays) or allocated here for producers that
+ * need the runtime to own the command (copies, file I/O, task-emitted programs).
+ *
+ * Storage is append-only with stable addresses (memory_pool_t); completed pooled
+ * commands are recycled through the freelist. Bounded by the queue capacity in
+ * steady state. Its own spinlock guards it because 'alloc' runs under the queue's
+ * reentrant spinlock (producer threads) while 'free' runs on the owning thread at
+ * completion (without the queue lock).
+ */
+struct command_pool_t
+{
+    memory_pool_t<command_t> storage;   /* backing storage (stable addresses) */
+    std::vector<command_t *> freelist;  /* recycled commands, ready for reuse   */
+    spinlock_t               lock;      /* guards storage + freelist            */
+
+    command_pool_t(void) : storage(), freelist(), lock(SPINLOCK_INITIALIZER) {}
+
+    /* allocate + (re)construct a command_t owned by this pool */
+    command_t *
+    alloc(const cgir::command_type_t ctype, const command_flag_t flags)
+    {
+        command_t * c;
+        SPINLOCK_LOCK(this->lock);
+        if (!this->freelist.empty())
+        {
+            c = this->freelist.back();
+            this->freelist.pop_back();
+        }
+        else
+            c = this->storage.put();    /* raw storage, not yet constructed */
+        SPINLOCK_UNLOCK(this->lock);
+
+        /* (re)construct: resets flags/callbacks/replay_team. command_t is
+         * trivially destructible and owns no heap the pool must release, so no
+         * destructor is run before reuse. */
+        return new (c) command_t(ctype, flags);
+    }
+
+    /* recycle a command previously returned by 'alloc' */
+    void
+    free(command_t * c)
+    {
+        SPINLOCK_LOCK(this->lock);
+        this->freelist.push_back(c);
+        SPINLOCK_UNLOCK(this->lock);
+    }
+};
+
 /* this is a 'io_queue' equivalent */
 struct command_queue_t
 {
@@ -129,6 +184,10 @@ struct command_queue_t
 
     /* whether command at index 'p' is completed */
     bool * completed;
+
+    /* storage pool for runtime-owned commands pushed through 'command_new'
+     * (externally-owned commands pushed via 'emplace' do not use it) */
+    command_pool_t pool;
 
     /* spinlock on the ready queue
      *  - any thread may push to it
@@ -156,22 +215,27 @@ struct command_queue_t
     int is_full(void) const;
 
     /**
-     *  Allocate a new command to the queue (must then be commited via 'commit') later
-     *  Threading: called by any thread
+     *  Allocate a new pool-owned command and place its pointer at the next ready
+     *  slot (must then be commited via 'commit'). The command carries
+     *  COMMAND_FLAG_POOLED and is recycled to the pool on completion.
+     *  Threading: called by any thread (under the queue reentrant spinlock)
      */
     command_t * command_new(const cgir::command_type_t ctype, const command_flag_t flags);
 
     /**
-     *  Commit a command previously allocated via 'command_new'
+     *  Commit a command previously placed at the next ready slot (via 'command_new'
+     *  or 'emplace'): mark it not-completed and advance the ready write cursor.
      *  Threading: called by any thread
      */
     int commit(const command_t * command);
 
     /**
-     *  Memcpy the passed command to the end of the ready queue.
+     *  Store the passed (externally-owned) command POINTER at the next ready slot.
+     *  The command must outlive its completion (e.g. a command-graph node command);
+     *  it is NOT freed by the queue. Follow with 'commit'.
      *  Threading: called by any thread
      */
-    int emplace(const command_t * command);
+    int emplace(command_t * command);
 
     /**
      *  Iterate on each command at index p of the list, if it is not completed already.

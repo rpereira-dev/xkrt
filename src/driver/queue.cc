@@ -72,7 +72,7 @@ command_queue_list_init(
     uint8_t * buffer,
     xkrt_command_queue_list_counter_t capacity
 ) {
-    list->cmd = (command_t *) buffer;
+    list->cmd = (command_t **) buffer;
     list->capacity = capacity;
     list->pos.r = 0;
     list->pos.w = 0;
@@ -86,10 +86,12 @@ command_queue_init(
 ) {
     queue->type = type;
 
+    /* The rings hold command POINTERS; the command_t storage lives either in the
+     * per-queue pool (runtime-owned commands) or externally (e.g. graph nodes). */
     uint8_t * mem = (uint8_t *) malloc(
-        sizeof(command_t) * capacity    // ready
-      + sizeof(command_t) * capacity    // pending
-      + sizeof(bool)      * capacity    // completed
+        sizeof(command_t *) * capacity    // ready ring
+      + sizeof(command_t *) * capacity    // pending ring
+      + sizeof(bool)        * capacity    // completed
     );
     assert(mem);
 
@@ -101,13 +103,16 @@ command_queue_init(
 
     command_queue_list_init(
         &queue->pending,
-        mem + sizeof(command_t) * capacity,
+        mem + sizeof(command_t *) * capacity,
         capacity
     );
 
-    queue->completed = (bool *) (mem + 2 * sizeof(command_t) * capacity);
+    queue->completed = (bool *) (mem + 2 * sizeof(command_t *) * capacity);
     // memset(queue->completed, 0, sizeof(bool) * capacity);
     assert(queue->completed);
+
+    /* the queue is malloc'd (no constructor ran), so construct the pool in place */
+    new (&queue->pool) command_pool_t();
 
     queue->reentrant_spinlock = REENTRANT_SPINLOCK_INITIALIZER;
 
@@ -123,6 +128,7 @@ command_queue_deinit(command_queue_t * queue)
     assert(queue->ready.cmd);
     assert(queue->pending.cmd);
 
+    queue->pool.~command_pool_t();
     free(queue->ready.cmd);
 }
 
@@ -138,22 +144,23 @@ command_queue_t::command_new(
     if (this->ready.is_full())
         return NULL;
 
+    /* pool-owned command: tagged so completion recycles it to the pool */
+    command_t * cmd = this->pool.alloc(ctype, flags | COMMAND_FLAG_POOLED);
+
     const xkrt_command_queue_list_counter_t p = this->ready.pos.w;
     assert(0 <= p && p < this->ready.capacity);
-    command_t * cmd = this->ready.cmd + p;
-    new (cmd) command_t(ctype, flags);
+    this->ready.cmd[p] = cmd;
 
     return cmd;
 }
 
 int
-command_queue_t::emplace(const command_t * cmd)
+command_queue_t::emplace(command_t * cmd)
 {
-    memcpy(
-        (void *) (this->ready.cmd + this->ready.pos.w),
-        (void *) (cmd),
-        sizeof(command_t)
-    );
+    /* store the (externally-owned) command pointer at the next ready slot; the
+     * driver mutates this very object, so in-place state (e.g. a resolved device
+     * function handle) persists across re-submissions/replays. */
+    this->ready.cmd[this->ready.pos.w] = cmd;
     return 0;
 }
 
@@ -190,9 +197,14 @@ __complete_command_internal(
 ) {
     assert(0 <= p && p < queue->pending.capacity);
 
-    command_t * cmd = queue->pending.cmd + p;
-    assert(cmd >= queue->pending.cmd);
-    assert(cmd <  queue->pending.cmd + queue->pending.capacity);
+    /* idempotent: a slot may already be completed (e.g. an out-of-order
+     * non-blocking progress before a blocking pending-wait). Completing twice
+     * would double-raise callbacks and, now, double-free the pooled command. */
+    if (queue->completed[p])
+        return ;
+
+    command_t * cmd = queue->pending.cmd[p];
+    assert(cmd);
 
     LOGGER_DEBUG(
         "Completed command `%s` on queue %p of type `%s`",
@@ -230,6 +242,12 @@ __complete_command_internal(
             break ;
         }
     }
+
+    /* recycle pool-owned commands; externally-owned commands (e.g. graph node
+     * commands pushed for replay) are left untouched. Done last: callbacks and
+     * stats above still read 'cmd'. */
+    if (cmd->flags & COMMAND_FLAG_POOLED)
+        queue->pool.free(cmd);
 }
 
 void
@@ -257,7 +275,7 @@ command_queue_t::progress(
     return this->pending.iterate([&] (xkrt_command_queue_list_counter_t p) {
         if (this->completed[p])
             return true;
-        return process(this->pending.cmd + p, p);
+        return process(this->pending.cmd[p], p);
     });
 }
 

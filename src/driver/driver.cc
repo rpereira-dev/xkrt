@@ -572,7 +572,7 @@ driver_device_command_queue_launch_ready(
             return false;
 
         /* retrieve it */
-        command_t * cmd = queue->ready.cmd + p;
+        command_t * cmd = queue->ready.cmd[p];
         assert(cmd);
 
         LOGGER_DEBUG(
@@ -663,12 +663,19 @@ driver_device_command_queue_launch_ready(
             }
         }
 
-        /* if the command is synchronous, it is completed now */
+        /* if the command is synchronous, it is completed now. Such a command is
+         * NOT moved to the pending list, so complete 'cmd' directly (raising its
+         * callbacks and recycling it if pool-owned) rather than through the
+         * pending-indexed path. NOTE: today all synchronous commands are also
+         * serialized and handled inline in command_submit, so this branch is not
+         * exercised by the queue; it is kept correct for robustness. */
         if (cmd->flags & COMMAND_FLAG_SYNCHRONOUS)
         {
-            queue->complete_command(p);
+            cmd->completion_callback_raise();
+            if (cmd->flags & COMMAND_FLAG_POOLED)
+                queue->pool.free(cmd);
         }
-        /* else, save to pending list */
+        /* else, save to pending list (pointer copy: same command_t object) */
         else
         {
             /* the pending queue must not be full at that point */
@@ -676,11 +683,7 @@ driver_device_command_queue_launch_ready(
             const xkrt_command_queue_list_counter_t wp = queue->pending.pos.w;
             queue->pending.pos.w = (queue->pending.pos.w + 1) % queue->pending.capacity;
 
-            memcpy(
-                (void *) (queue->pending.cmd + wp),
-                (void *) (queue->ready.cmd   + p),
-                sizeof(command_t)
-            );
+            queue->pending.cmd[wp] = queue->ready.cmd[p];
 
             ++r;
         }
@@ -799,7 +802,7 @@ driver_t::device_offloader_wait_random_command(
                 assert(i >= 0);
                 assert(i < queue->pending.capacity);
 
-                command_t * cmd = queue->pending.cmd + i;
+                command_t * cmd = queue->pending.cmd[i];
                 assert(cmd);
 
                 assert(this->f_command_queue_wait);
