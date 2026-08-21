@@ -122,7 +122,7 @@ runtime_t::task_dependency_graph_is_recording(void)
     if (task == nullptr)
         return false;
 
-    return (task->flags & TASK_FLAG_GRAPH_RECORDING) != 0;
+    return (task->flags & (TASK_FLAG_RECORD | TASK_FLAG_GRAPH_RECORDING)) != 0;
 }
 
 void
