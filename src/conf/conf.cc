@@ -338,6 +338,13 @@ __parse_p2p(conf_t * conf, char const * value)
 }
 
 static void
+__parse_taskgraph_dump(conf_t * conf, char const * value)
+{
+    if (value)
+        conf->taskgraph_dump = (bool) atoi(value);
+}
+
+static void
 __parse_warmup(conf_t * conf, char const * value)
 {
     if (value)
@@ -444,38 +451,39 @@ typedef struct  conf_parse_t
 
 // variables are parsed in-order
 static conf_parse_t CONF_PARSE[] = {
-    {"CACHE_LIMIT",                      NULL,                              NULL},
-    {"D2H_PER_QUEUE",                    __parse_d2h_per_queue,             "Number of concurrent copies per D2H queue before throttling device-thread"},
-    {"D2D_PER_QUEUE",                    __parse_d2d_per_queue,             "Number of concurrent copies per D2D queue before throttling device-thread"},
-    {"P2P_PER_QUEUE",                    __parse_p2p_per_queue,             "Number of concurrent copies per P2P queue before throttling device-thread"},
-    {"DEFAULT_MATH",                     NULL,                              NULL},
-    {"DRIVERS",                          __parse_drivers,                   "Exemple: 'cuda,4;hip,2;host,3' - will enable drivers cuda, hip and host respectively with 4, 2, and 3 threads per device."},
-    {"ALLOCATOR_TYPE",                   __parse_allocator_type,            "Either 'buddy' or 'freelist'"},
     {"ALLOCATOR_CHUNK_INITIAL",          __parse_allocator_chunk_initial,   "Size of the initial chunk of driver's memory for the allocator."},
     {"ALLOCATOR_CHUNK_RESIZE",           __parse_allocator_chunk_resize,    "Size of chunks to use when re-allocating driver's memory."},
+    {"ALLOCATOR_TYPE",                   __parse_allocator_type,            "Either 'buddy' or 'freelist'"},
+    {"BUSY_POLLING",                     __parse_busy_polling,              "Whether progression threads should pause when there is no tasks and no ready/pending commands"},
+    {"CACHE_LIMIT",                      NULL,                              NULL},
+    {"D2D_PER_QUEUE",                    __parse_d2d_per_queue,             "Number of concurrent copies per D2D queue before throttling device-thread"},
+    {"D2H_PER_QUEUE",                    __parse_d2h_per_queue,             "Number of concurrent copies per D2H queue before throttling device-thread"},
+    {"DEFAULT_MATH",                     NULL,                              NULL},
+    {"DRIVERS",                          __parse_drivers,                   "Exemple: 'cuda,4;hip,2;host,3' - will enable drivers cuda, hip and host respectively with 4, 2, and 3 threads per device."},
     {"H2D_PER_QUEUE",                    __parse_h2d_per_queue,             "Number of concurrent copies per H2D queue before throttling device-thread"},
     {"HELP",                             __parse_help,                      "Show this helper"},
     {"KERN_PER_QUEUE",                   __parse_kern_per_queue,            "Number of concurrent kernels per KERN queue before throttling device-thread"},
+    {"MEMORY_REGISTER_PROTECT_OVERFLOW", __parse_register_overflow,         "Split memory transfers to avoid overflow over registered/unregistered memory that causes cuda to crash"},
     {"MERGE_TRANSFERS",                  __parse_merge_transfers,           "Merge memory transfers over continuous virtual memory"},
     {"NGPUS",                            __parse_ngpus,                     "Number of gpus to use"},
-    {"MEMORY_REGISTER_PROTECT_OVERFLOW", __parse_register_overflow,         "Split memory transfers to avoid overflow over registered/unregistered memory that causes cuda to crash"},
-    {"PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,         "When progression threads have nothing else to do but poll pending commands, put it to sleep until the completion of a random command of a random steam."},
-    {"BUSY_POLLING",                     __parse_busy_polling,              "Whether progression threads should pause when there is no tasks and no ready/pending commands"},
-    {"TASK_PREFETCH",                    __parse_task_prefetch,           "If enabled, after completing a task, initiate data transfers for all its WaR successors that place of execution is already known (else, transfers only starts once the successor is ready)."},
-    {"NQUEUES_D2H",                      __parse_nqueues_d2h,               "Number of D2H queues per device"},
-    {"NQUEUES_H2D",                      __parse_nqueues_h2d,               "Number of H2D queues per device"},
     {"NQUEUES_D2D",                      __parse_nqueues_d2d,               "Number of D2D queues per device"},
-    {"NQUEUES_P2P",                      __parse_nqueues_p2p,               "Number of P2P queues per device"},
-    {"NQUEUES_KERN",                     __parse_nqueues_kern,              "Number of KERN queues per device"},
+    {"NQUEUES_D2H",                      __parse_nqueues_d2h,               "Number of D2H queues per device"},
     {"NQUEUES_FR",                       __parse_nqueues_fr,                "Number of FR queues per device"},
     {"NQUEUES_FW",                       __parse_nqueues_fw,                "Number of FW queues per device"},
+    {"NQUEUES_H2D",                      __parse_nqueues_h2d,               "Number of H2D queues per device"},
+    {"NQUEUES_KERN",                     __parse_nqueues_kern,              "Number of KERN queues per device"},
+    {"NQUEUES_P2P",                      __parse_nqueues_p2p,               "Number of P2P queues per device"},
     {"OFFLOADER_CAPACITY",               __parse_offloader_capacity,        "Maximum number of pending commands per queue"},
+    {"P2P_PER_QUEUE",                    __parse_p2p_per_queue,             "Number of concurrent copies per P2P queue before throttling device-thread"},
+    {"PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,         "When progression threads have nothing else to do but poll pending commands, put it to sleep until the completion of a random command of a random steam."},
     {"PRECISION",                        NULL,                              NULL},
     {"STATS",                            __parse_stats,                     "Boolean to dump stats on deinit"},
+    {"TASK_PREFETCH",                    __parse_task_prefetch,             "If enabled, after completing a task, initiate data transfers for all its WaR successors that place of execution is already known (else, transfers only starts once the successor is ready)."},
+    {"TASKGRAPH_DUMP",                    __parse_taskgraph_dump,          "If enabled, dump a taskgraph to a dot file after recording it."},
     {"TOOL_PATH",                        __parse_tool_path,                 "Path to a tooling interface (XKRT-T) shared library exporting `xkrt_tool_start` (requires `-DUSE_TOOLS=ON`)"},
     {"USE_P2P",                          __parse_p2p,                       "Boolean to enable/disable the use of p2p transfers"},
-    {"WARMUP",                           __parse_warmup,                    "Boolean to enable/disable threads/devices warmup on runtime initialization"},
     {"VERBOSE",                          __parse_verbose,                   "Verbosity level (the higher the most)"},
+    {"WARMUP",                           __parse_warmup,                    "Boolean to enable/disable threads/devices warmup on runtime initialization"},
     {NULL, NULL, NULL}
 };
 

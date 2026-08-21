@@ -92,6 +92,23 @@ runtime_t::task_dependency_graph_record_stop(void)
 
     assert(gph->tdg);
     gph->tdg->postprocess();
+
+    if (this->conf.taskgraph_dump)
+    {
+        FILE * tasks = fopen("tasks.dot", "w");
+        if (tasks)
+        {
+            gph->tdg->dump_tasks(tasks);
+            fclose(tasks);
+        }
+
+        FILE * accesses = fopen("accesses.dot", "w");
+        if (accesses)
+        {
+            gph->tdg->dump_accesses(accesses);
+            fclose(accesses);
+        }
+    }
 }
 
 bool
@@ -144,19 +161,13 @@ task_dependency_graph_t::dump_tasks(FILE * f)
         # else
         fprintf(f, "    \"%p\" [label=\"%p\"] ;\n", (void *) task, task);
         # endif /* XKRT_SUPPORT_DEBUG */
-        if (task->flags & TASK_FLAG_ACCESSES)
-        {
-            task_acs_info_t * acs = TASK_ACS_INFO(task);
-            assert(acs);
 
-            access_t * accesses = TASK_ACCESSES(task);
-            for (task_access_counter_t ac = 0 ; ac < acs->ac ; ++ac)
-            {
-                access_t * pred = accesses + ac;
-                for (access_t * succ : pred->successors)
-                    fprintf(f, "    \"%p\" -> \"%p\" ;\n", (void *) pred->task, (void *) succ->task);
-            }
-        }
+        assert(task->flags & TASK_FLAG_RECORD);
+        task_rec_info_t * rec = TASK_REC_INFO(task);
+        assert(rec);
+
+        for (access_t * succ : rec->successors)
+            fprintf(f, "    \"%p\" -> \"%p\" ;\n", (void *) task, (void *) succ->task);
     });
     fprintf(f, "}\n");
 }
@@ -164,6 +175,9 @@ task_dependency_graph_t::dump_tasks(FILE * f)
 void
 task_dependency_graph_t::dump_accesses(FILE * f)
 {
+    // TODO: this dump the original task, it should dump the record instead,
+    // but we dont have the pred/succ accesses in the record, only pred task /
+    // succ access
     fprintf(f, "digraph G {\n");
     this->foreach_task([&] (task_t * task)
     {

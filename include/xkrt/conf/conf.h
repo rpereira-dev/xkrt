@@ -108,6 +108,9 @@ typedef struct  conf_s
      * partially registered */
     bool protect_registered_memory_overflow;
 
+    /* dump taskgraph to dot file after recording */
+    bool taskgraph_dump;
+
     /* prefetch memory: when completing a predecessor, if the successor place
      * of execution is known, and its a WaR dependency, then initiate data
      * transfer now */
