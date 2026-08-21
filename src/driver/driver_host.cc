@@ -664,7 +664,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_wait_all)(
             /* Ensure everything has been submitted before waiting */
             io_uring_flush_submits(queue);
 
-            int min_completion = queue->super.pending.size();
+            int min_completion = queue->super.pending_size();
             if (min_completion)
             {
                 LOGGER_DEBUG("Waiting for %d i/o commands to complete", min_completion);
@@ -776,7 +776,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_progress)(
 
                 const xkrt_command_queue_list_counter_t p =
                     (const xkrt_command_queue_list_counter_t)cqe->user_data;
-                assert(cqe->res == (int)iqueue->pending.cmd[p]->file.size);
+                assert(cqe->res == (int)iqueue->command_at(p)->file.size);
 
                 ++head;
                 ++completed;

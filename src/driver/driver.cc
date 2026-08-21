@@ -558,31 +558,22 @@ driver_device_command_queue_launch_ready(
 ) {
     assert(driver->type == device->driver_type);
 
-    if (queue->ready.is_empty())
-        return 0;
-
     int r = 0;
 
-    /* for each ready command */
-    REENTRANT_SPINLOCK_LOCK(queue->reentrant_spinlock);
-    const xkrt_command_queue_list_counter_t p = queue->ready.iterate([&] (xkrt_command_queue_list_counter_t p) {
-
-        /* if the pending queue is full, we cannot start more commands */
-        if (queue->pending.is_full())
-            return false;
-
-        /* retrieve it */
-        command_t * cmd = queue->ready.cmd[p];
-        assert(cmd);
-
+    /* single consumer: launch every ready (committed, not-yet-launched) command,
+     * in submission order, keeping each in the pending region to await completion.
+     * Production is lock-free, so a completion/launch callback re-submitting to the
+     * same queue cannot deadlock -- no queue lock is held here. */
+    xkrt_command_queue_list_counter_t p;
+    command_t * cmd;
+    while ((cmd = queue->ready_peek(&p)) != NULL)
+    {
         LOGGER_DEBUG(
-            "Decoding command `%s` on queue %p of type `%s` - p=%u, r=%u, w=%u",
+            "Decoding command `%s` on queue %p of type `%s` - slot=%u",
             cgir::command_type_to_str(cmd->type),
             queue,
             command_queue_type_to_str(queue->type),
-            p,
-            queue->ready.pos.r,
-            queue->ready.pos.w
+            p
         );
 
         /* launch command */
@@ -664,9 +655,9 @@ driver_device_command_queue_launch_ready(
         }
 
         /* if the command is synchronous, it is completed now. Such a command is
-         * NOT moved to the pending list, so complete 'cmd' directly (raising its
+         * NOT kept in the pending region, so complete 'cmd' directly (raising its
          * callbacks and recycling it if pool-owned) rather than through the
-         * pending-indexed path. NOTE: today all synchronous commands are also
+         * completion path. NOTE: today all synchronous commands are also
          * serialized and handled inline in command_submit, so this branch is not
          * exercised by the queue; it is kept correct for robustness. */
         if (cmd->flags & COMMAND_FLAG_SYNCHRONOUS)
@@ -674,35 +665,21 @@ driver_device_command_queue_launch_ready(
             cmd->completion_callback_raise();
             if (cmd->flags & COMMAND_FLAG_POOLED)
                 queue->pool.free(cmd);
+            queue->ready_commit_synchronous();
         }
-        /* else, save to pending list (pointer copy: same command_t object) */
+        /* else, keep it in the pending region [r, s) (same slot, no copy) */
         else
         {
-            /* the pending queue must not be full at that point */
-            assert(!queue->pending.is_full());
-            const xkrt_command_queue_list_counter_t wp = queue->pending.pos.w;
-            queue->pending.pos.w = (queue->pending.pos.w + 1) % queue->pending.capacity;
-
-            queue->pending.cmd[wp] = queue->ready.cmd[p];
-
+            queue->ready_commit_pending();
             ++r;
         }
 
         /* continue */
-        LOGGER_DEBUG("(loop) ready.is_empty() = %d, pending.is_empty() = %d", queue->ready.is_empty(), queue->pending.is_empty());
-        return true;
+        LOGGER_DEBUG("(loop) has_ready = %d, pending_empty = %d", queue->has_ready(), queue->pending_empty());
+    }
 
-    }); /* RING_ITERATE */
-    REENTRANT_SPINLOCK_UNLOCK(queue->reentrant_spinlock);
-
-    // this barrier ensures that the threads that owns the queue correctly
-    // sees the 'ready' queue empty but not the 'pending' - else it would go
-    // to sleep even though there is pending commands
-    writemem_barrier();
-    queue->ready.pos.r = p;
-
-    LOGGER_DEBUG("ready.is_empty() = %d, pending.is_empty() = %d",
-            queue->ready.is_empty(), queue->pending.is_empty());
+    LOGGER_DEBUG("has_ready = %d, pending_empty = %d",
+            queue->has_ready(), queue->pending_empty());
 
     return r;
 }
@@ -748,7 +725,7 @@ driver_t::device_offloader_progress(
             command_queue_t * queue = device->queues[tid][s][i];
             assert(queue);
 
-            if (queue->pending.is_empty())
+            if (queue->pending_empty())
                 continue ;
 
             xkrt_command_queue_list_counter_t n;
@@ -760,8 +737,8 @@ driver_t::device_offloader_progress(
                 }
                 else
                     err = this->device_command_queue_pending_progress(device, queue);
-                n = queue->pending.size();
-                assert(n < queue->pending.capacity);
+                n = queue->pending_size();
+                assert(n <= queue->capacity);
             } while (n > device->conf->offloader.queues[s].concurrency);
             assert(err == 0 || err == EINPROGRESS);
         }
@@ -796,19 +773,18 @@ driver_t::device_offloader_wait_random_command(
             assert(queue);
 
             // if the queue has pending commands
-            if (!queue->pending.is_empty())
+            if (!queue->pending_empty())
             {
-                const xkrt_command_queue_list_counter_t i = queue->pending.pos.r;
-                assert(i >= 0);
-                assert(i < queue->pending.capacity);
+                const xkrt_command_queue_list_counter_t slot = queue->pending_first();
+                assert(slot < queue->capacity);
 
-                command_t * cmd = queue->pending.cmd[i];
+                command_t * cmd = queue->command_at(slot);
                 assert(cmd);
 
                 assert(this->f_command_queue_wait);
 
                 // waiting on the first event of the randomly elected queue
-                int err = this->f_command_queue_wait(queue, cmd, i);
+                int err = this->f_command_queue_wait(queue, cmd, slot);
 
                 // calling this to complete events and move queues pointers
                 // but also detect out-of-order completions
@@ -831,11 +807,11 @@ driver_t::device_command_queue_pending_wait(
     command_queue_t * queue
 ) {
     assert(device->driver_type == this->type);
-    if (!queue->pending.is_empty())
+    if (!queue->pending_empty())
     {
         assert(this->f_command_queue_wait_all);
         this->f_command_queue_wait_all(queue);
-        queue->complete_commands(queue->pending.pos.w);
+        queue->complete_commands();
     }
     return 0;
 }
@@ -846,23 +822,20 @@ driver_t::device_command_queue_pending_progress(
     command_queue_t * queue
 ) {
     assert(device->driver_type == this->type);
-    if (queue->pending.is_empty())
+    if (queue->pending_empty())
         return 0;
 
-    LOGGER_DEBUG("Progressing pending commands of queue %p of type `%s` (%d pending) - ptr at r=%u, w=%u",
-            queue, command_queue_type_to_str(queue->type), queue->pending.size(), queue->pending.pos.r, queue->pending.pos.w);
+    LOGGER_DEBUG("Progressing pending commands of queue %p of type `%s` (%d pending)",
+            queue, command_queue_type_to_str(queue->type), queue->pending_size());
     // ask for progression of the given commands
     assert(this->f_command_queue_progress);
     const int r = this->f_command_queue_progress(queue);
 
-    // move reading position to first uncompleted cmd
-    const xkrt_command_queue_list_counter_t p = queue->pending.iterate([&] (xkrt_command_queue_list_counter_t p) {
-        return queue->completed[p];
-    });
-    queue->pending.pos.r = p;
+    // reclaim the completed prefix, releasing slots back to producers
+    queue->reclaim();
 
     LOGGER_DEBUG("Progressed pending commands of queue %p of type `%s` (%d pending)",
-            queue, command_queue_type_to_str(queue->type), queue->pending.size());
+            queue, command_queue_type_to_str(queue->type), queue->pending_size());
 
     // return err code
     return r;

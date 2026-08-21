@@ -271,12 +271,9 @@ runtime_t::command_submit(
         assert(thread);
         assert(queue);
 
-        REENTRANT_SPINLOCK_LOCK(queue->reentrant_spinlock);
-        {
-            queue->emplace(command);
-            queue->commit(command);
-        }
-        REENTRANT_SPINLOCK_UNLOCK(queue->reentrant_spinlock);
+        /* commit the (externally-owned) command pointer into the ring (lock-free,
+         * multi-producer); it is not pool-owned, so completion won't recycle it */
+        queue->commit(command);
 
         thread->wakeup();
     }

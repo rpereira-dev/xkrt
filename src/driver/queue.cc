@@ -66,55 +66,37 @@ command_queue_type_to_str(xkrt_command_queue_type_t type)
     }
 }
 
-static inline void
-command_queue_list_init(
-    command_queue_list_t * list,
-    uint8_t * buffer,
-    xkrt_command_queue_list_counter_t capacity
-) {
-    list->cmd = (command_t **) buffer;
-    list->capacity = capacity;
-    list->pos.r = 0;
-    list->pos.w = 0;
-}
-
 void
 command_queue_init(
     command_queue_t * queue,
     command_queue_type_t type,
     xkrt_command_queue_list_counter_t capacity
 ) {
-    queue->type = type;
+    assert(capacity > 0);
 
-    /* The rings hold command POINTERS; the command_t storage lives either in the
-     * per-queue pool (runtime-owned commands) or externally (e.g. graph nodes). */
-    uint8_t * mem = (uint8_t *) malloc(
-        sizeof(command_t *) * capacity    // ready ring
-      + sizeof(command_t *) * capacity    // pending ring
-      + sizeof(bool)        * capacity    // completed
-    );
-    assert(mem);
+    queue->type     = type;
+    queue->capacity = capacity;
 
-    command_queue_list_init(
-        &queue->ready,
-        mem,
-        capacity
-    );
+    /* The ring holds command POINTERS; the command_t storage lives either in the
+     * per-queue pool (runtime-owned commands) or externally (e.g. graph nodes).
+     * 'new[]' constructs the per-slot 'seq' atomics; seed them with the Vyukov
+     * free-slot value seq[k] = k. */
+    queue->entries = new command_queue_entry_t[capacity];
+    assert(queue->entries);
+    for (xkrt_command_queue_list_counter_t k = 0; k < capacity; ++k)
+    {
+        queue->entries[k].cmd       = NULL;
+        queue->entries[k].completed = false;
+        queue->entries[k].seq.store((uint64_t) k, std::memory_order_relaxed);
+    }
 
-    command_queue_list_init(
-        &queue->pending,
-        mem + sizeof(command_t *) * capacity,
-        capacity
-    );
+    /* the queue is malloc'd (no constructor ran), so construct in place the
+     * atomic reservation cursor and the command pool */
+    new (&queue->w) std::atomic<uint64_t>(0);
+    queue->s = 0;
+    queue->r = 0;
 
-    queue->completed = (bool *) (mem + 2 * sizeof(command_t *) * capacity);
-    // memset(queue->completed, 0, sizeof(bool) * capacity);
-    assert(queue->completed);
-
-    /* the queue is malloc'd (no constructor ran), so construct the pool in place */
     new (&queue->pool) command_pool_t();
-
-    queue->reentrant_spinlock = REENTRANT_SPINLOCK_INITIALIZER;
 
     # if XKRT_SUPPORT_STATS
     memset(&(queue->stats), 0, sizeof(queue->stats));
@@ -125,11 +107,11 @@ void
 command_queue_deinit(command_queue_t * queue)
 {
     assert(queue);
-    assert(queue->ready.cmd);
-    assert(queue->pending.cmd);
+    assert(queue->entries);
 
     queue->pool.~command_pool_t();
-    free(queue->ready.cmd);
+    delete [] queue->entries;
+    queue->entries = NULL;
 }
 
 //////////////////////////////////////////
@@ -141,49 +123,96 @@ command_queue_t::command_new(
     const cgir::command_type_t ctype,
     const command_flag_t flags
 ) {
-    if (this->ready.is_full())
+    /* pool-owned command: tagged so completion recycles it to the pool. This does
+     * not touch the ring: the caller fills the command then publishes it with
+     * 'commit' (or, on abort, returns it with pool.free). */
+    return this->pool.alloc(ctype, flags | COMMAND_FLAG_POOLED);
+}
+
+int
+command_queue_t::commit(command_t * cmd)
+{
+    assert(cmd);
+
+    const uint64_t C = (uint64_t) this->capacity;
+
+    /* Vyukov bounded-MPMC enqueue: reserve a slot with a CAS on 'w', then publish
+     * the command by bumping the slot 'seq' to pos+1 (release). Producers are
+     * lock-free and may run concurrently from any thread. */
+    uint64_t pos = this->w.load(std::memory_order_relaxed);
+    for (;;)
+    {
+        command_queue_entry_t * e = &this->entries[pos % C];
+        const uint64_t seq  = e->seq.load(std::memory_order_acquire);
+        const int64_t  diff = (int64_t) seq - (int64_t) pos;
+
+        if (diff == 0)
+        {
+            /* slot is free and it is ours if the CAS succeeds */
+            if (this->w.compare_exchange_weak(pos, pos + 1, std::memory_order_relaxed))
+            {
+                e->cmd       = cmd;
+                e->completed = false;
+                e->seq.store(pos + 1, std::memory_order_release); /* publish */
+
+                XKRT_STATS_INCR(this->stats.commands[cmd->type].commited, 1);
+                LOGGER_DEBUG(
+                    "Commited a command of type `%s` at slot %u",
+                    cgir::command_type_to_str(cmd->type),
+                    (unsigned) (pos % C)
+                );
+                return 0;
+            }
+            /* CAS failed: 'pos' was reloaded, retry */
+        }
+        else if (diff < 0)
+        {
+            /* the slot's previous occupant has not been reclaimed yet: the ring is
+             * full. A single ring bounds ready+pending to 'capacity'. */
+            LOGGER_FATAL("Command queue is full, increase 'XKRT_OFFLOADER_CAPACITY' or implement support for full-queue management yourself :-) (sorry)");
+            return ENOSPC;
+        }
+        else
+        {
+            /* another producer is ahead of us: reload and retry */
+            pos = this->w.load(std::memory_order_relaxed);
+        }
+    }
+}
+
+//////////////////////////////////////////////////
+//  LAUNCH - called by the owning thread only    //
+//////////////////////////////////////////////////
+
+command_t *
+command_queue_t::ready_peek(xkrt_command_queue_list_counter_t * slot)
+{
+    const uint64_t s = this->s;
+
+    /* a slot is launchable only once its producer published it (seq == s + 1);
+     * this also naturally reports "empty" and preserves in-order launch. */
+    command_queue_entry_t * e = &this->entries[s % this->capacity];
+    if (e->seq.load(std::memory_order_acquire) != s + 1)
         return NULL;
 
-    /* pool-owned command: tagged so completion recycles it to the pool */
-    command_t * cmd = this->pool.alloc(ctype, flags | COMMAND_FLAG_POOLED);
-
-    const xkrt_command_queue_list_counter_t p = this->ready.pos.w;
-    assert(0 <= p && p < this->ready.capacity);
-    this->ready.cmd[p] = cmd;
-
-    return cmd;
+    *slot = (xkrt_command_queue_list_counter_t) (s % this->capacity);
+    return e->cmd;
 }
 
-int
-command_queue_t::emplace(command_t * cmd)
+void
+command_queue_t::ready_commit_pending(void)
 {
-    /* store the (externally-owned) command pointer at the next ready slot; the
-     * driver mutates this very object, so in-place state (e.g. a resolved device
-     * function handle) persists across re-submissions/replays. */
-    this->ready.cmd[this->ready.pos.w] = cmd;
-    return 0;
+    /* keep the just-launched command in the pending region [r, s) */
+    ++this->s;
 }
 
-int
-command_queue_t::commit(const command_t * cmd)
+void
+command_queue_t::ready_commit_synchronous(void)
 {
-    // TODO: multiple thread may commit in parallel
-
-    assert(cmd);
-    assert(!this->ready.is_full());
-
-    const xkrt_command_queue_list_counter_t p = this->ready.pos.w;
-    this->completed[p] = false;
-    this->ready.pos.w = (this->ready.pos.w + 1) % this->ready.capacity;
-    XKRT_STATS_INCR(this->stats.commands[cmd->type].commited, 1);
-    LOGGER_DEBUG(
-        "Commited a command of type `%s` (%d ready, %d pending)`",
-        cgir::command_type_to_str(cmd->type),
-        this->ready.size(),
-        this->pending.size()
-    );
-
-    return 0;
+    /* a synchronous command never enters the device: mark it completed so
+     * 'reclaim' frees its slot, then advance past it */
+    this->entries[this->s % this->capacity].completed = true;
+    ++this->s;
 }
 
 //////////////////////////////////////////////
@@ -195,15 +224,17 @@ __complete_command_internal(
     command_queue_t * queue,
     const xkrt_command_queue_list_counter_t p
 ) {
-    assert(0 <= p && p < queue->pending.capacity);
+    assert(p < queue->capacity);
+
+    command_queue_entry_t * e = &queue->entries[p];
 
     /* idempotent: a slot may already be completed (e.g. an out-of-order
      * non-blocking progress before a blocking pending-wait). Completing twice
-     * would double-raise callbacks and, now, double-free the pooled command. */
-    if (queue->completed[p])
+     * would double-raise callbacks and double-free the pooled command. */
+    if (e->completed)
         return ;
 
-    command_t * cmd = queue->pending.cmd[p];
+    command_t * cmd = e->cmd;
     assert(cmd);
 
     LOGGER_DEBUG(
@@ -213,7 +244,7 @@ __complete_command_internal(
         command_queue_type_to_str(queue->type)
     );
 
-    queue->completed[p] = true;
+    e->completed = true;
     cmd->completion_callback_raise();
     XKRT_STATS_INCR(queue->stats.commands[cmd->type].completed, 1);
 
@@ -253,30 +284,56 @@ __complete_command_internal(
 void
 command_queue_t::complete_command(const xkrt_command_queue_list_counter_t p)
 {
-    assert(p >= 0);
-    assert(p <  this->pending.capacity);
+    assert(p < this->capacity);
     __complete_command_internal(this, p);
 }
 
 void
-command_queue_t::complete_commands(const xkrt_command_queue_list_counter_t p)
+command_queue_t::complete_commands(void)
 {
-    this->pending.iterate([this] (xkrt_command_queue_list_counter_t p) {
-        __complete_command_internal(this, p);
-        return true;
-    });
-    this->pending.pos.r = p;
+    const uint64_t C = (uint64_t) this->capacity;
+
+    /* complete every pending command [r, s) (idempotent) ... */
+    for (uint64_t i = this->r; i != this->s; ++i)
+        __complete_command_internal(this, (xkrt_command_queue_list_counter_t) (i % C));
+
+    /* ... then reclaim them all (they are now all completed) */
+    this->reclaim();
+}
+
+void
+command_queue_t::reclaim(void)
+{
+    const uint64_t C = (uint64_t) this->capacity;
+
+    /* advance 'r' over the completed prefix of the pending region, releasing each
+     * slot back to producers by bumping its 'seq' to (index + capacity). */
+    uint64_t r = this->r;
+    while (r != this->s && this->entries[r % C].completed)
+    {
+        this->entries[r % C].seq.store(r + C, std::memory_order_release);
+        ++r;
+    }
+    this->r = r;
 }
 
 xkrt_command_queue_list_counter_t
 command_queue_t::progress(
     const std::function<bool(command_t * cmd, xkrt_command_queue_list_counter_t p)> & process
 ) {
-    return this->pending.iterate([&] (xkrt_command_queue_list_counter_t p) {
-        if (this->completed[p])
-            return true;
-        return process(this->pending.cmd[p], p);
-    });
+    const uint64_t C = (uint64_t) this->capacity;
+
+    /* iterate the pending region [r, s), skipping already-completed slots */
+    for (uint64_t i = this->r; i != this->s; ++i)
+    {
+        const xkrt_command_queue_list_counter_t p = (xkrt_command_queue_list_counter_t) (i % C);
+        command_queue_entry_t * e = &this->entries[p];
+        if (e->completed)
+            continue ;
+        if (!process(e->cmd, p))
+            break ;
+    }
+    return 0;
 }
 
 XKRT_NAMESPACE_END;

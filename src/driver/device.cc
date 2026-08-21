@@ -133,9 +133,9 @@ device_t::offloader_queues_are_empty(
         for (int i = 0 ; i < this->count[s] ; ++i)
         {
             const command_queue_t * queue = this->queues[tid][s][i];
-            if (*ready == false && !queue->ready.is_empty())
+            if (*ready == false && queue->has_ready())
                 *ready = true;
-            if (*pending == false && !queue->pending.is_empty())
+            if (*pending == false && !queue->pending_empty())
                 *pending = true;
             if (*ready && *pending)
                 return ;
@@ -184,15 +184,10 @@ device_t::offloader_queue_command_new(
     assert(*pqueue);
     assert((*pqueue)->type == qtype);
 
-    /* allocate the command */
-    do {
-        REENTRANT_SPINLOCK_LOCK((*pqueue)->reentrant_spinlock);
-        (*pcommand) = (*pqueue)->command_new(ctype, flags);
-        if (*pcommand)
-            break ; /* will be unlock during 'commit' */
-        REENTRANT_SPINLOCK_UNLOCK((*pqueue)->reentrant_spinlock);
-        LOGGER_FATAL("Stream is full, increase 'XKRT_OFFLOADER_CAPACITY' or implement support for full-queue management yourself :-) (sorry)");
-    } while (1);
+    /* allocate the command; the ring slot is reserved later, lock-free, at 'commit'
+     * (fatal there if the ring is full) */
+    (*pcommand) = (*pqueue)->command_new(ctype, flags);
+    assert(*pcommand);
 }
 
 /* commit a queue command and wakeup thread */
@@ -237,15 +232,13 @@ device_t::offloader_queue_command_commit(
                 command->completion_callback_raise();
                 if (command->flags & COMMAND_FLAG_POOLED)
                     queue->pool.free(command);
-                REENTRANT_SPINLOCK_UNLOCK(queue->reentrant_spinlock);
                 return ;
             }
         }
     }
 
-    /* commit command to the queue */
+    /* commit command to the queue (lock-free, multi-producer) */
     queue->commit(command);
-    REENTRANT_SPINLOCK_UNLOCK(queue->reentrant_spinlock);
 
     /* wakeup device worker thread */
     thread->wakeup();

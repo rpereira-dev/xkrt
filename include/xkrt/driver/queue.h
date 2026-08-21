@@ -41,14 +41,17 @@
 
 # include <xkrt/command/command.hpp>
 # include <xkrt/driver/queue-type.h>
+# include <xkrt/memory/alignas.h>
 # include <xkrt/stats/stats.h>
 # include <xkrt/support.h>
 # include <xkrt/sync/lockable.hpp>
 # include <xkrt/sync/spinlock.h>
 # include <xkrt/thread/thread.h>
-# include <xkrt/thread/reentrant_spinlock.h>
 
 # include <atomic>
+# include <cassert>
+# include <cstdint>
+# include <functional>
 # include <new>
 # include <vector>
 
@@ -56,62 +59,24 @@ XKRT_NAMESPACE_BEGIN
 
 const char * command_queue_type_to_str(xkrt_command_queue_type_t type);
 
-struct command_queue_list_t
+/*
+ * A single ring slot. The ring stores command POINTERS; the command_t storage
+ * lives either in the per-queue pool (runtime-owned commands) or externally
+ * (e.g. command-graph node commands committed for replay).
+ *
+ * 'seq' is the producer<->consumer handshake (Vyukov bounded-MPMC): it encodes
+ * whether the slot is free, published, or awaiting reuse, and is the only
+ * cross-thread synchronisation the producer side needs.
+ *
+ * 'completed' is written and read by the owning (consumer) thread only, so it
+ * needs no atomicity; it is co-located here (AoS) so completion state travels
+ * with the command.
+ */
+struct command_queue_entry_t
 {
-    // TODO: memory layout: do we want AoS or SoA here ?
-    command_t ** cmd;                                /* ring of command pointers */
-    xkrt_command_queue_list_counter_t capacity;      /* buffer capacity */
-    struct {
-        volatile xkrt_command_queue_list_counter_t r; /* first command to process */
-        volatile xkrt_command_queue_list_counter_t w; /* next position for inserting commands */
-    } pos;
-
-    /* methods */
-    int
-    is_full(void) const
-    {
-        return (this->pos.w  == this->pos.r - 1);
-    }
-
-    int
-    is_empty(void) const
-    {
-        return (this->pos.r == this->pos.w);
-    }
-
-    xkrt_command_queue_list_counter_t
-    size(void) const
-    {
-        if (this->pos.r <= this->pos.w)
-            return (this->pos.w - this->pos.r);
-        else
-            return this->capacity - this->pos.r + this->pos.w;
-    }
-
-    /**
-     *  Iterate on each command at index p of the list,
-     *  and stop early if process(p) returns false
-     */
-    inline xkrt_command_queue_list_counter_t
-    iterate(const std::function<bool(xkrt_command_queue_list_counter_t p)> & process)
-    {
-        const xkrt_command_queue_list_counter_t a = this->pos.r;
-        const xkrt_command_queue_list_counter_t b = this->pos.w;
-
-        assert(a < this->capacity);
-        assert(b < this->capacity);
-
-        if (a <= b) {
-            for (xkrt_command_queue_list_counter_t i = a; i < b; ++i)
-                if (!process(i)) return i;
-        } else {
-            for (xkrt_command_queue_list_counter_t i = a; i < capacity; ++i)
-                if (!process(i)) return i;
-            for (xkrt_command_queue_list_counter_t i = 0; i < b; ++i)
-                if (!process(i)) return i;
-        }
-        return b;
-    }
+    command_t *           cmd;
+    std::atomic<uint64_t> seq;
+    bool                  completed;
 };
 
 /*
@@ -123,9 +88,9 @@ struct command_queue_list_t
  *
  * Storage is append-only with stable addresses (memory_pool_t); completed pooled
  * commands are recycled through the freelist. Bounded by the queue capacity in
- * steady state. Its own spinlock guards it because 'alloc' runs under the queue's
- * reentrant spinlock (producer threads) while 'free' runs on the owning thread at
- * completion (without the queue lock).
+ * steady state. Its own spinlock guards it because 'alloc' runs on any producer
+ * thread (the ring itself is lock-free) while 'free' runs on the owning thread at
+ * completion.
  */
 struct command_pool_t
 {
@@ -166,37 +131,55 @@ struct command_pool_t
     }
 };
 
-/* this is a 'io_queue' equivalent */
+/*
+ * A single lock-free MPSC ring of commands. Any thread may submit commands
+ * (command_new + commit); only the thread that owns the queue may consume them
+ * (launch the ready ones, then progress and complete the pending ones).
+ *
+ * The ring is partitioned by three cursors (monotonic 64-bit indices; the ring
+ * slot is 'index % capacity'), with r <= s <= w:
+ *
+ *      [r, s) : pending  - launched on the device, awaiting completion
+ *      [s, w) : ready    - committed by producers, awaiting launch
+ *      [w, r) : free
+ *
+ *  - 'w' is shared: producers reserve a slot with a CAS (multi-producer).
+ *  - 's' and 'r' belong to the owning thread only (single consumer), so they
+ *    need no atomicity.
+ *
+ * The single 'idx' handed to the driver at launch (f_command_queue_launch) is
+ * the same 'idx' seen at completion (complete_command / events[idx]); with one
+ * ring this is a structural invariant.
+ */
 struct command_queue_t
 {
     /* the type of that queue */
     command_queue_type_t type;
 
-    // TODO: currently, ready/pending/completed are SoA, we probably want AoS to:
-    //  - perform fast copy from ready to pending
-    //  - fast test of completion given a command
+    /* the ring of command slots (size 'capacity') */
+    command_queue_entry_t * entries;
+    xkrt_command_queue_list_counter_t capacity;
 
-    /* queue for ready command */
-    command_queue_list_t ready;
+    /* Cursors. 'w' is hammered by producers (CAS); 's'/'r' are consumer-only.
+     * Plain byte padding keeps them on distinct cache lines to avoid false sharing
+     * WITHOUT over-aligning the queue: drivers allocate the enclosing queue with
+     * malloc, which would not honour an extended (alignas) alignment. */
+    uint8_t _pad0[hardware_destructive_interference_size];
 
-    /* queue for pending commands to progress */
-    command_queue_list_t pending;
+    /* producer reservation cursor (shared, multi-producer) */
+    std::atomic<uint64_t> w;
 
-    /* whether command at index 'p' is completed */
-    bool * completed;
+    uint8_t _pad1[hardware_destructive_interference_size];
+
+    /* consumer cursors (owning thread only): launch boundary 's', reclaim 'r' */
+    uint64_t s;
+    uint64_t r;
+
+    uint8_t _pad2[hardware_destructive_interference_size];
 
     /* storage pool for runtime-owned commands pushed through 'command_new'
-     * (externally-owned commands pushed via 'emplace' do not use it) */
+     * (externally-owned commands committed directly do not use it) */
     command_pool_t pool;
-
-    /* spinlock on the ready queue
-     *  - any thread may push to it
-     *  - the owning thread may move from it to the pending queue
-     * TODO: a heavy reentrant spinlock is not satisfying here; but it is a
-     * simple working solution to avoid deadlock when progressing/completing
-     * commands triggers resubmitting to the same queue
-     */
-    reentrant_spinlock_t reentrant_spinlock;
 
     # if XKRT_SUPPORT_STATS
     struct {
@@ -208,53 +191,115 @@ struct command_queue_t
     } stats;
     # endif /* XKRT_SUPPORT_STATS */
 
-    /**
-     *  Return true if the queue is full of commands, false otherwise
-     *  Threading: called by any thread
-     */
-    int is_full(void) const;
+    //////////////////////////////////////////////
+    //  PRODUCTION - called by any thread        //
+    //////////////////////////////////////////////
 
     /**
-     *  Allocate a new pool-owned command and place its pointer at the next ready
-     *  slot (must then be commited via 'commit'). The command carries
-     *  COMMAND_FLAG_POOLED and is recycled to the pool on completion.
-     *  Threading: called by any thread (under the queue reentrant spinlock)
+     *  Allocate a new pool-owned command. It carries COMMAND_FLAG_POOLED and is
+     *  recycled to the pool on completion. It does NOT touch the ring yet: fill it,
+     *  then publish it with 'commit' (or, if you abort, return it with pool.free).
+     *  Threading: any thread.
      */
     command_t * command_new(const cgir::command_type_t ctype, const command_flag_t flags);
 
     /**
-     *  Commit a command previously placed at the next ready slot (via 'command_new'
-     *  or 'emplace'): mark it not-completed and advance the ready write cursor.
-     *  Threading: called by any thread
+     *  Publish a command (pool-owned from 'command_new', or externally-owned) into
+     *  the ring: reserve a slot, store the pointer, mark it not-completed. Fatal if
+     *  the ring is full.
+     *  Threading: any thread (lock-free, multi-producer).
      */
-    int commit(const command_t * command);
+    int commit(command_t * command);
+
+    //////////////////////////////////////////////
+    //  CONSUMPTION - the owning thread only     //
+    //////////////////////////////////////////////
 
     /**
-     *  Store the passed (externally-owned) command POINTER at the next ready slot.
-     *  The command must outlive its completion (e.g. a command-graph node command);
-     *  it is NOT freed by the queue. Follow with 'commit'.
-     *  Threading: called by any thread
+     *  Peek the next ready (committed, not-yet-launched) command. Returns NULL if
+     *  none is launchable yet (ring empty, or the next slot is still being
+     *  committed). On success *slot is its ring index (the driver launch 'idx').
      */
-    int emplace(command_t * command);
+    command_t * ready_peek(xkrt_command_queue_list_counter_t * slot);
 
     /**
-     *  Iterate on each command at index p of the list, if it is not completed already.
-     *  Stop early if process(cmd, p) returned false
-     *  Threading: called by the owning thread only
+     *  Advance past the ready command just launched, keeping it in the pending
+     *  region [r, s) to await completion.
+     */
+    void ready_commit_pending(void);
+
+    /**
+     *  Advance past a ready command that completed inline (synchronous, never
+     *  entered the device): mark it completed so 'reclaim' can free the slot.
+     */
+    void ready_commit_synchronous(void);
+
+    /**
+     *  Iterate on each not-yet-completed pending command at ring index p.
+     *  Stop early if process(cmd, p) returns false.
      */
     xkrt_command_queue_list_counter_t progress(const std::function<bool(command_t * cmd, xkrt_command_queue_list_counter_t p)> & process);
 
     /**
-     *  Complete the command at the i-th position in the pending queue (invoke callbacks)
-     *  Threading: called by the owning thread only
+     *  Complete the command at ring index 'p' (idempotent): raise its callbacks
+     *  and recycle it if pool-owned. Does not reclaim the slot (see 'reclaim').
      */
     void complete_command(const xkrt_command_queue_list_counter_t p);
 
     /**
-     *  Complete all commands until index 'ok_p' (see complete_command)
-     *  Threading: called by the owning thread only
+     *  Complete all pending commands [r, s) and reclaim their slots.
      */
-    void complete_commands(const xkrt_command_queue_list_counter_t ok_p);
+    void complete_commands(void);
+
+    /**
+     *  Reclaim the completed prefix of the pending region, returning the freed
+     *  slots to producers. Call after 'progress'.
+     */
+    void reclaim(void);
+
+    //////////////////////////////////////////////
+    //  QUERIES - the owning thread only         //
+    //////////////////////////////////////////////
+
+    /* the command pointer stored at ring index 'p' */
+    inline command_t *
+    command_at(const xkrt_command_queue_list_counter_t p) const
+    {
+        assert(p < this->capacity);
+        return this->entries[p].cmd;
+    }
+
+    /* true if a ready command is available to launch (seq-aware: false while a
+     * producer is mid-commit, which is safe because 'commit' wakes the owner) */
+    inline bool
+    has_ready(void) const
+    {
+        const uint64_t s = this->s;
+        if (s == this->w.load(std::memory_order_acquire))
+            return false;
+        return this->entries[s % this->capacity].seq.load(std::memory_order_acquire) == s + 1;
+    }
+
+    /* true if there is no pending (launched, not-yet-reclaimed) command */
+    inline bool
+    pending_empty(void) const
+    {
+        return this->r == this->s;
+    }
+
+    /* number of pending (launched, not-yet-reclaimed) commands */
+    inline xkrt_command_queue_list_counter_t
+    pending_size(void) const
+    {
+        return (xkrt_command_queue_list_counter_t) (this->s - this->r);
+    }
+
+    /* ring index of the oldest pending command (valid iff !pending_empty()) */
+    inline xkrt_command_queue_list_counter_t
+    pending_first(void) const
+    {
+        return (xkrt_command_queue_list_counter_t) (this->r % this->capacity);
+    }
 
 };  /* command_queue_t */
 

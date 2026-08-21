@@ -705,7 +705,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_delete)(
 
     queue_cl_t * queue = (queue_cl_t *) iqueue;
 
-    for (xkrt_command_queue_list_counter_t i = 0 ; i < iqueue->pending.capacity ; ++i)
+    for (xkrt_command_queue_list_counter_t i = 0 ; i < iqueue->capacity ; ++i)
         CL_SAFE_CALL(clReleaseEvent(queue->cl.events[i]));
 
     CL_SAFE_CALL(clReleaseCommandQueue(queue->cl.queue));
