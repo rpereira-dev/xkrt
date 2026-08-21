@@ -122,7 +122,21 @@ runtime_t::task_dependency_graph_is_recording(void)
     if (task == nullptr)
         return false;
 
-    return (task->flags & (TASK_FLAG_RECORD | TASK_FLAG_GRAPH_RECORDING)) != 0;
+    return (task->flags & TASK_FLAG_GRAPH_RECORDING) != 0;
+}
+
+bool
+runtime_t::task_is_being_recorded(void)
+{
+    thread_t * thread = thread_t::get_tls();
+    if (thread == nullptr)
+        return false;
+
+    task_t * task = thread->current_task;
+    if (task == nullptr)
+        return false;
+
+    return (task->flags & TASK_FLAG_RECORD) != 0;
 }
 
 void

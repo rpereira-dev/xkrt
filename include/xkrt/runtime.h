@@ -1375,6 +1375,15 @@ struct  runtime_t
     bool task_dependency_graph_is_recording(void);
 
     /**
+     *  Return true iff the currently executing task is itself being recorded
+     *  into a task dependency graph (i.e. has the 'TASK_FLAG_RECORD' bit set),
+     *  meaning the commands it emits are captured for later replay. This holds
+     *  for the child tasks spawned while recording (e.g. device kernels), which
+     *  carry 'TASK_FLAG_RECORD' but not 'TASK_FLAG_GRAPH_RECORDING'.
+     */
+    bool task_is_being_recorded(void);
+
+    /**
      *  Destroy a command graph record
      */
     void task_dependency_graph_destroy(task_dependency_graph_t * tdg);
