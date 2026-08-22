@@ -80,17 +80,11 @@ struct command_queue_entry_t
 };
 
 /*
- * Per-queue pool of `command_t` storage. The queue rings hold `command_t *`; the
- * pointers are either externally owned (e.g. a command-graph node command pushed
- * for replay -- so the driver's in-place mutations, like a resolved device
- * function handle, persist across replays) or allocated here for producers that
- * need the runtime to own the command (copies, file I/O, task-emitted programs).
- *
- * Storage is append-only with stable addresses (memory_pool_t); completed pooled
- * commands are recycled through the freelist. Bounded by the queue capacity in
- * steady state. Its own spinlock guards it because 'alloc' runs on any producer
- * thread (the ring itself is lock-free) while 'free' runs on the owning thread at
- * completion.
+ * Per-queue pool backing runtime-owned commands (copies, file I/O, task-emitted
+ * programs); externally-owned commands (e.g. a command-graph node pushed for
+ * replay) are held by pointer and not pooled. Append-only storage with stable
+ * addresses; completed commands are recycled via the freelist. Its own spinlock
+ * guards alloc (any producer) vs free (owning thread).
  */
 struct command_pool_t
 {
