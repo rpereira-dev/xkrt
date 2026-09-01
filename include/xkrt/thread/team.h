@@ -185,6 +185,9 @@ typedef enum    thread_state_t
     XKRT_THREAD_INITIALIZED     = 1
 }               thread_state_t;
 
+typedef std::atomic<thread_state_t> thread_state_atomic_t;
+static_assert(thread_state_atomic_t::is_always_lock_free);
+
 /* a team, currently is made of 1 thread max per device, bound onto its closest physical cpu */
 struct team_t
 {
@@ -207,7 +210,7 @@ struct team_t
         thread_t * threads;
 
         /* thread states, use for synchronizing */
-        thread_state_t * threads_state;
+        thread_state_atomic_t * threads_state;
 
         /* number of threads */
         int nthreads;

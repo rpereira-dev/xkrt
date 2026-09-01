@@ -267,17 +267,23 @@ runtime_t::task_team_enqueue(
     task_t * task
 ) {
     // get a random thread in the team
-    int nthreads = team->get_nthreads();
+    const int nthreads = team->get_nthreads();
     assert(nthreads);
 
     thread_t * tls = thread_t::get_tls();
     assert(tls);
-    int start = tls->rng() % nthreads;
+    const int start = (int) (tls->rng() % (unsigned int) nthreads);
 
-    // assign it the task
-    thread_t * thread = team->get_thread(start);
-    assert((volatile thread_state_t) team->priv.threads_state[thread->tid] == XKRT_THREAD_INITIALIZED);
-    return this->task_thread_enqueue(thread, task);
+    for (int i = 0 ; i < nthreads ; ++i)
+    {
+        const int tid = (start + i) % nthreads;
+        if (team->priv.threads_state[tid].load(std::memory_order_acquire) != XKRT_THREAD_INITIALIZED)
+            continue ;
+        assert(i == 0);
+        return this->task_thread_enqueue(team->get_thread(tid), task);
+    }
+
+    LOGGER_FATAL("Enqueued a task onto a team with no initialized thread");
 }
 
 static inline void

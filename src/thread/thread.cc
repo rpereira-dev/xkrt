@@ -275,8 +275,7 @@ team_create_recursive(void * vargs)
         int tid = args->from;
         thread_t * thread = team->priv.threads + tid;
         new (thread) thread_t(team, tid, args->pthread, args->device_unique_id, args->place);
-        mem_barrier();
-        team->priv.threads_state[tid] = XKRT_THREAD_INITIALIZED;
+        team->priv.threads_state[tid].store(XKRT_THREAD_INITIALIZED, std::memory_order_release);
 
         // save tls
         thread_t::push_tls(thread);
@@ -359,7 +358,8 @@ team_create_recursive_fork(
 
     // fork
     int r = pthread_create(&args->pthread, NULL, team_create_recursive, args);
-    assert(r == 0);
+    if (r)
+        LOGGER_FATAL("Could not fork threads [%d, %d] of the team: %s", from, to, strerror(r));
 
     // restore calling thread cpu set
     runtime_t::thread_setaffinity(save_set);
@@ -443,18 +443,18 @@ runtime_t::team_create(team_t * team)
     assert(nthreads >= 0);
 
     // init priv data
-    const size_t threads_array_size = (sizeof(thread_t) + sizeof(thread_state_t)) * nthreads;
+    const size_t threads_array_size = (sizeof(thread_t) + sizeof(thread_state_atomic_t)) * nthreads;
     thread_t * threads = (thread_t *) mmap(nullptr, threads_array_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
     assert(threads);
     team->priv.threads       = threads;
-    team->priv.threads_state = (thread_state_t *) (threads + nthreads);
+    team->priv.threads_state = (thread_state_atomic_t *) (threads + nthreads);
     team->priv.nthreads      = nthreads;
     assert(xkrt_pagesize == getpagesize()); // if this fails, update 'xkrt_pagesize'
     assert(sizeof(thread_t) % xkrt_pagesize == 0);
     assert(((uintptr_t) team->priv.threads) % xkrt_pagesize == 0);
 
-    static_assert(XKRT_THREAD_UNINITIALIZED == 0);
-    memset(team->priv.threads_state, 0, sizeof(thread_state_t) * nthreads);
+    for (int i = 0 ; i < nthreads ; ++i)
+        new (team->priv.threads_state + i) thread_state_atomic_t(XKRT_THREAD_UNINITIALIZED);
 
     // init hierarchy
     // team_create_hierarchy(team);
@@ -512,7 +512,8 @@ runtime_t::team_create(team_t * team)
         }
     }
 
-    // if master thread is not member of the team, the barrier may now be released
+    // if master thread is not member of the team, no thread of the team waited
+    // for the others: do it here, before the team becomes usable by the caller
     if (!team->desc.master_is_member)
         team_barrier_fetch(team, 1);
 }
@@ -557,10 +558,10 @@ thread_t::worksteal(void)
     for (int i = 0 ; i < n ; ++i)
     {
         const int victim_tid = get_ith_victim(tid, i, n);
-        if ((volatile thread_state_t) team->priv.threads_state[victim_tid] != XKRT_THREAD_INITIALIZED)
+        if (team->priv.threads_state[victim_tid].load(std::memory_order_acquire) != XKRT_THREAD_INITIALIZED)
             continue ;
 
-        task_t * task;
+        task_t * task = NULL;
         if (victim_tid == tid)
         {
             assert(i == 0);
@@ -941,10 +942,8 @@ runtime_t::team_join(team_t * team)
     const int begin = team->desc.master_is_member ? 1 : 0;
     for (int i = begin ; i < team->priv.nthreads ; ++i)
     {
-        // waiting for the thread to spawn before joining
-        while ((volatile thread_state_t) team->priv.threads_state[i] != XKRT_THREAD_INITIALIZED)
+        while (team->priv.threads_state[i].load(std::memory_order_acquire) != XKRT_THREAD_INITIALIZED)
             mem_pause();
-
         assert(team->priv.threads_state[i] == XKRT_THREAD_INITIALIZED);
         int r = pthread_join(team->priv.threads[i].pthread, NULL);
         assert(r == 0);
@@ -954,7 +953,7 @@ runtime_t::team_join(team_t * team)
     // being joined to the tool
     XKRT_TOOL_EMIT(this, XKRT_CALLBACK_TEAM_JOIN, xkrt_callback_team_join_t, team);
 
-    const size_t threads_array_size = (sizeof(thread_t) + sizeof(thread_state_t)) * team->priv.nthreads;
+    const size_t threads_array_size = (sizeof(thread_t) + sizeof(thread_state_atomic_t)) * team->priv.nthreads;
     munmap(team->priv.threads, threads_array_size);
 }
 
