@@ -180,7 +180,7 @@ main(void)
     //  # pragma omp taskgraph optimize(reduce-node, reduce-edge, sequence)
     cg.optimize(
           cgir::COMMAND_GRAPH_PASS_REDUCE_NODE_BIT
-        | cgir::COMMAND_GRAPH_PASS_REDUCE_EDGE_BIT
+        | cgir::COMMAND_GRAPH_PASS_TRANSITIVE_REDUCTION_BIT
         | cgir::COMMAND_GRAPH_PASS_SEQUENCE_BIT);
 
     uint64_t t5 = get_nanotime();
