@@ -437,7 +437,7 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(
     assert(cg);
 
     // a linear sequence of OpenMP tasks replays as a single super-task
-    if (cg->is_sequence)
+    if (cg->is_serial)
         return XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(runtime, cg);
 
      // increase replay counter
@@ -459,7 +459,7 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(
 }
 
 /* Replay a batch whose sub-graph is a linear sequence of OpenMP-task PROG
- * commands (marked `is_sequence` by CGIR's sequence pass).
+ * commands (marked `is_serial` by CGIR's sequence pass).
  *
  * Instead of the wavefront (which would spawn one task per command), we spawn a
  * single "super" task: the worker that schedules it serially runs the recorded
@@ -544,7 +544,7 @@ XKRT_DRIVER_ENTRYPOINT(command_execute)(
     runtime_t * runtime = (runtime_t *) cg->driver_handle;
     assert(runtime);
 
-    // command_graph_launch dispatches on cg->is_sequence (super-task vs wavefront)
+    // command_graph_launch dispatches on cg->is_serial (super-task vs wavefront)
     XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
     XKRT_DRIVER_ENTRYPOINT(command_graph_wait)(runtime, cg);
 
@@ -617,7 +617,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
         runtime_t * runtime  = (runtime_t *) cg->driver_handle;
         assert(runtime);
 
-        // command_graph_launch dispatches on cg->is_sequence (super-task vs wavefront)
+        // command_graph_launch dispatches on cg->is_serial (super-task vs wavefront)
         XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(runtime, cg);
     }
 

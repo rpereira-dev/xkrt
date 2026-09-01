@@ -479,7 +479,7 @@ static conf_parse_t CONF_PARSE[] = {
     {"PRECISION",                        NULL,                              NULL},
     {"STATS",                            __parse_stats,                     "Boolean to dump stats on deinit"},
     {"TASK_PREFETCH",                    __parse_task_prefetch,             "If enabled, after completing a task, initiate data transfers for all its WaR successors that place of execution is already known (else, transfers only starts once the successor is ready)."},
-    {"TASKGRAPH_DUMP",                    __parse_taskgraph_dump,          "If enabled, dump a taskgraph to a dot file after recording it."},
+    {"TASKGRAPH_DUMP",                   __parse_taskgraph_dump,           "If enabled, dump a taskgraph to a dot file after recording it."},
     {"TOOL_PATH",                        __parse_tool_path,                 "Path to a tooling interface (XKRT-T) shared library exporting `xkrt_tool_start` (requires `-DUSE_TOOLS=ON`)"},
     {"USE_P2P",                          __parse_p2p,                       "Boolean to enable/disable the use of p2p transfers"},
     {"VERBOSE",                          __parse_verbose,                   "Verbosity level (the higher the most)"},
@@ -562,6 +562,7 @@ conf_t::init(void)
     this->enable_busy_polling                   = false;
     this->enable_prefetching                    = true;
     this->warmup                                = false;
+    this->taskgraph_dump                        = false;
 
     //////////////////
     // drivers conf //
