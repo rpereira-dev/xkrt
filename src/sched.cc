@@ -279,7 +279,6 @@ runtime_t::task_team_enqueue(
         const int tid = (start + i) % nthreads;
         if (team->priv.threads_state[tid].load(std::memory_order_acquire) != XKRT_THREAD_INITIALIZED)
             continue ;
-        assert(i == 0);
         return this->task_thread_enqueue(team->get_thread(tid), task);
     }
 
