@@ -72,7 +72,7 @@ typedef struct  device_stats_t
 
     struct {
         stats_int_t n;
-        stats_int_t transfered;
+        stats_int_t copied;
     } queues[XKRT_QUEUE_TYPE_ALL];
 
     struct {
@@ -105,7 +105,7 @@ stats_device_agg(device_stats_t * src, device_stats_t * agg)
     for (int stype = 0 ; stype < XKRT_QUEUE_TYPE_ALL ; ++stype)
     {
         agg->queues[stype].n += src->queues[stype].n;
-        agg->queues[stype].transfered += src->queues[stype].transfered;
+        agg->queues[stype].copied += src->queues[stype].copied;
     }
 
     for (int cmd_type = 0 ; cmd_type < cgir::COMMAND_TYPE_MAX ; ++cmd_type)
@@ -168,10 +168,10 @@ stats_device_report(device_stats_t * stats)
     for (int stype = 0 ; stype < XKRT_QUEUE_TYPE_ALL ; ++stype)
     {
         # if 0
-        metric_byte(buffer, sizeof(buffer), stats->queues[stype].transfered.load());
-        LOGGER_WARN("    `%4s` - with %2lu queues - transfered %s", cgir::command_type_to_str((queue_type_t) stype), stats->queues[stype].n.load(), buffer);
+        metric_byte(buffer, sizeof(buffer), stats->queues[stype].copied.load());
+        LOGGER_WARN("    `%4s` - with %2lu queues - copied %s", cgir::command_type_to_str((queue_type_t) stype), stats->queues[stype].n.load(), buffer);
         # else
-        LOGGER_WARN("    `%8s` - with %2lu queues - transfered %zuB", command_queue_type_to_str((command_queue_type_t) stype), stats->queues[stype].n.load(), stats->queues[stype].transfered.load());
+        LOGGER_WARN("    `%8s` - with %2lu queues - copied %zuB", command_queue_type_to_str((command_queue_type_t) stype), stats->queues[stype].n.load(), stats->queues[stype].copied.load());
         # endif
     }
 
@@ -211,7 +211,7 @@ stats_device_gather(
                     stats->commands[cmd_type].commited += queue->stats.commands[cmd_type].commited.load();
                     stats->commands[cmd_type].completed += queue->stats.commands[cmd_type].completed.load();
                 }
-                stats->queues[stype].transfered += queue->stats.transfered.load();
+                stats->queues[stype].copied += queue->stats.copied.load();
             }
             stats->queues[stype].n += device->count[stype];
         }

@@ -453,7 +453,7 @@ XKRT_DRIVER_ENTRYPOINT(device_commit)(
 }
 
 static inline int
-XKRT_DRIVER_ENTRYPOINT(transfer_async)(
+XKRT_DRIVER_ENTRYPOINT(copy_async)(
     void * dst,
     void * src,
     const size_t size,
@@ -594,7 +594,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
                     void * l_src = (void *) (cmd->copy_2D.src_addr + i*src_pitch);
                     const size_t l_size = width;
                     const ze_event_handle_t l_ze_event_handle = (i == src_region.height - 1) ? ze_event_handle : nullptr;
-                    XKRT_DRIVER_ENTRYPOINT(transfer_async)(l_dst, l_src, l_size, iqueue, l_ze_event_handle);
+                    XKRT_DRIVER_ENTRYPOINT(copy_async)(l_dst, l_src, l_size, iqueue, l_ze_event_handle);
                 }
                 XKRT_DRIVER_ENTRYPOINT(command_queue_wait_all)(iqueue);
             }
@@ -1259,21 +1259,21 @@ XKRT_DRIVER_ENTRYPOINT(module_get_fn)(
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_h2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
-    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, iqueue);
+    return XKRT_DRIVER_ENTRYPOINT(copy_async)(dst, src, size, iqueue);
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_d2h_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
-    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, iqueue);
+    return XKRT_DRIVER_ENTRYPOINT(copy_async)(dst, src, size, iqueue);
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_d2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
-    return XKRT_DRIVER_ENTRYPOINT(transfer_async)(dst, src, size, iqueue);
+    return XKRT_DRIVER_ENTRYPOINT(copy_async)(dst, src, size, iqueue);
 }
 
 static int
@@ -1327,13 +1327,13 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(device_info);
 
     # if 0
-    REGISTER(transfer_h2d);
-    REGISTER(transfer_d2h);
-    REGISTER(transfer_d2d);
+    REGISTER(copy_h2d);
+    REGISTER(copy_d2h);
+    REGISTER(copy_d2d);
     # endif
-    REGISTER(transfer_h2d_async);
-    REGISTER(transfer_d2h_async);
-    REGISTER(transfer_d2d_async);
+    REGISTER(copy_h2d_async);
+    REGISTER(copy_d2h_async);
+    REGISTER(copy_d2d_async);
 
     REGISTER(memory_device_info);
     REGISTER(memory_device_allocate);

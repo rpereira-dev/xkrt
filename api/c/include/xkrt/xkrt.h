@@ -112,6 +112,18 @@ int  xkrt_memory_unregister      (xkrt_runtime_t * runtime, void * ptr, size_t s
 int  xkrt_memory_register_async  (xkrt_runtime_t * runtime, void * ptr, size_t size);
 int  xkrt_memory_unregister_async(xkrt_runtime_t * runtime, void * ptr, size_t size);
 
+/* Synchronous memory copy between two devices.
+ * Blocks the calling thread until completion. Bypasses the coherence protocol
+ * and the dependency resolution. Use `XKRT_HOST_DEVICE_UNIQUE_ID` for the host. */
+void xkrt_memory_copy(
+    xkrt_runtime_t * runtime,
+    const size_t size,
+    const xkrt_device_unique_id_t dst_device_unique_id,
+    const uintptr_t dst_device_addr,
+    const xkrt_device_unique_id_t src_device_unique_id,
+    const uintptr_t src_device_addr
+);
+
 /* File operations */
 int  xkrt_file_read_async (xkrt_runtime_t * runtime, int fd, void * buffer, size_t n, unsigned int nchunks);
 int  xkrt_file_write_async(xkrt_runtime_t * runtime, int fd, void * buffer, size_t n, unsigned int nchunks);
@@ -392,10 +404,10 @@ xkrt_driver_memory_unified_prefetch_host(
     const size_t size
 );
 
-// MEMORY TRANSFERS
+// MEMORY COPIES
 
 int
-xkrt_driver_transfer_h2d(
+xkrt_driver_copy_h2d(
     xkrt_driver_t * driver,
     void * dst,
     void * src,
@@ -403,7 +415,7 @@ xkrt_driver_transfer_h2d(
 );
 
 int
-xkrt_driver_transfer_d2h(
+xkrt_driver_copy_d2h(
     xkrt_driver_t * driver,
     void * dst,
     void * src,
@@ -411,7 +423,7 @@ xkrt_driver_transfer_d2h(
 );
 
 int
-xkrt_driver_transfer_d2d(
+xkrt_driver_copy_d2d(
     xkrt_driver_t * driver,
     void * dst,
     void * src,
@@ -419,7 +431,7 @@ xkrt_driver_transfer_d2d(
 );
 
 int
-xkrt_driver_transfer_h2d_async(
+xkrt_driver_copy_h2d_async(
     xkrt_driver_t * driver,
     void * dst,
     void * src,
@@ -428,7 +440,7 @@ xkrt_driver_transfer_h2d_async(
 );
 
 int
-xkrt_driver_transfer_d2h_async(
+xkrt_driver_copy_d2h_async(
     xkrt_driver_t * driver,
     void * dst,
     void * src,
@@ -437,7 +449,7 @@ xkrt_driver_transfer_d2h_async(
 );
 
 int
-xkrt_driver_transfer_d2d_async(
+xkrt_driver_copy_d2d_async(
     xkrt_driver_t * driver,
     void * dst,
     void * src,

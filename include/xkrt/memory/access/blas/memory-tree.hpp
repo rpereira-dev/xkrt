@@ -158,10 +158,10 @@ class KMemoryReplicaAllocationView {
         /* awaiting operations */
         struct {
 
-            /* tasks awaiting on that view to be transfered */
+            /* tasks awaiting on that view to be copied */
             std::vector<access_t *> accesses;
 
-            /* must forward this view to other views using D2D transfer */
+            /* must forward this view to other views using D2D copy */
             std::vector<MemoryForward> forwards;
 
         } awaiting;
@@ -482,7 +482,7 @@ class KBLASMemoryTreeNodeSearch {
         enum Type : uint8_t {
             INSERTING_BLOCKS     = 0,    // insert new blocks
             SEARCH_FOR_PARTITION = 1,    // search for a partition
-            SEARCH_FETCHED       = 2,    // search tasks awaiting on blocks (to be transfered onto a gpu, typically)
+            SEARCH_FETCHED       = 2,    // search tasks awaiting on blocks (to be copied onto a gpu, typically)
             SEARCH_OWNERS        = 3,    // search how many bytes owns each device
             # if XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION
             REGISTER             = 4,    // mark memory block as registered
@@ -681,13 +681,13 @@ class KBLASMemoryTree : public LPTree<K, KBLASMemoryTreeNodeSearch<K>>, public L
             runtime_t * runtime,
             const size_t ld,
             const size_t sizeof_type,
-            const bool merge_transfers
+            const bool merge_copies
         ) :
             Base(),
             runtime(runtime),
             ld(ld),
             sizeof_type(sizeof_type),
-            merge_transfers(merge_transfers),
+            merge_copies(merge_copies),
             pagesize(getpagesize())
         {}
 
@@ -705,8 +705,8 @@ class KBLASMemoryTree : public LPTree<K, KBLASMemoryTreeNodeSearch<K>>, public L
         /* the size of type */
         const size_t sizeof_type;
 
-        /* whether transfers in continuous virtual memory should be merged */
-        const bool merge_transfers;
+        /* whether copies in continuous virtual memory should be merged */
+        const bool merge_copies;
 
         /* pagesize, to avoid repetitively calling `getpagesize()` */
         const size_t pagesize;
@@ -791,11 +791,11 @@ class KBLASMemoryTree : public LPTree<K, KBLASMemoryTreeNodeSearch<K>>, public L
 
         }               fetch_list_t;
 
-        /* if merging is enabled, merge consecutive transfers to a single transfer */
+        /* if merging is enabled, merge consecutive copies to a single copy */
         static inline void
         fetch_list_reduce(fetch_list_t * list)
         {
-            LOGGER_FATAL("Transfer merge not supported");
+            LOGGER_FATAL("Copy merge not supported");
 
             /* fast way out */
             const size_t n = list->n;
@@ -1064,7 +1064,7 @@ class KBLASMemoryTree : public LPTree<K, KBLASMemoryTreeNodeSearch<K>>, public L
         // Create a list of fetch requests for the given accesses //
         ////////////////////////////////////////////////////////////
 
-        /* convert a partition to a minimal fetch list, merging consecutive partite to a single transfer */
+        /* convert a partition to a minimal fetch list, merging consecutive partite to a single copy */
         fetch_list_t *
         fetch_list_from_partition(
             Partition & partition
@@ -1124,7 +1124,7 @@ class KBLASMemoryTree : public LPTree<K, KBLASMemoryTreeNodeSearch<K>>, public L
             {
                 MemoryBlock * block = partite.block;
 
-                /* we can skip the transfer if whether:
+                /* we can skip the copy if whether:
                  *  - the block is not coherent on any devices, then assume it is coherent on the host
                  *  - the host already has a coherent replica
                  *  - the host is already fetching
@@ -1174,7 +1174,7 @@ class KBLASMemoryTree : public LPTree<K, KBLASMemoryTreeNodeSearch<K>>, public L
                 MemoryReplicaAllocationView * src_allocation_view = src_replica.allocations[src_allocation_view_id];
                 assert(src_allocation_view);
 
-                // set partite transfer infos
+                // set partite copy infos
                 partite.src_allocation_view_id  = src_allocation_view_id;
                 partite.src_device_unique_id    = src;
                 partite.src_view                = src_allocation_view->view;
@@ -1211,7 +1211,7 @@ class KBLASMemoryTree : public LPTree<K, KBLASMemoryTreeNodeSearch<K>>, public L
                     this->intersect(search, rect);
                 assert(search.partition.partites.size() >= 1);
 
-                /* step (5) if read access, find src/dst, and setup views to transfer on step (7) */
+                /* step (5) if read access, find src/dst, and setup views to copy on step (7) */
                 this->fetch_list_to_host_setup_partition(search.partition);
             }
             this->unlock();
@@ -1539,8 +1539,8 @@ next_view:
 
                     // find source:
                     //  - if its already coherent on a device, use it as a source
-                    //  - else, if its already transfering from the host to any device, wait for it and forward using D2D (PCI contention heuristic)
-                    //  - else, transfer H2D
+                    //  - else, if its already copying from the host to any device, wait for it and forward using D2D (PCI contention heuristic)
+                    //  - else, copy H2D
 
                     if (partite.block->coherency & ~(1 << XKRT_HOST_DEVICE_UNIQUE_ID))
                     {
@@ -1576,7 +1576,7 @@ next_view:
                     else if (partite.block->fetching & ~(1 << XKRT_HOST_DEVICE_UNIQUE_ID))
                     {
                         /* the fetch will be initiated by the other device that
-                         * is already fetching that data for a D2D transfer.
+                         * is already fetching that data for a D2D copy.
                          * No need to create partite.src and partite.dst as we
                          * are not fetching now */
                         partite.must_fetch = false;
@@ -1796,7 +1796,7 @@ next_view:
 
                 if (!only_allocates)
                 {
-                    /* step (5) if read access, find src/dst, and setup views to transfer on step (7) */
+                    /* step (5) if read access, find src/dst, and setup views to copy on step (7) */
                     this->fetch_access_setup_copies(access, device_unique_id, search.partition);
 
                     /* step (6) if write access, make all other replicas incoherent */
@@ -1890,7 +1890,7 @@ next_view:
             if (list)
             {
                 // reduce them
-                if (this->merge_transfers)
+                if (this->merge_copies)
                     this->fetch_list_reduce(list);
 
                 // increase task wait counter

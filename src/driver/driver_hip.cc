@@ -1016,28 +1016,28 @@ XKRT_DRIVER_ENTRYPOINT(power_stop)(device_driver_id_t device_driver_id, power_t 
 #include <hip/hip_runtime.h>
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_h2d)(void * dst, void * src, const size_t size)
+XKRT_DRIVER_ENTRYPOINT(copy_h2d)(void * dst, void * src, const size_t size)
 {
     HIP_SAFE_CALL(hipMemcpy(dst, src, size, hipMemcpyHostToDevice));
     return 0;
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2h)(void * dst, void * src, const size_t size)
+XKRT_DRIVER_ENTRYPOINT(copy_d2h)(void * dst, void * src, const size_t size)
 {
     HIP_SAFE_CALL(hipMemcpy(dst, src, size, hipMemcpyDeviceToHost));
     return 0;
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2d)(void * dst, void * src, const size_t size)
+XKRT_DRIVER_ENTRYPOINT(copy_d2d)(void * dst, void * src, const size_t size)
 {
     HIP_SAFE_CALL(hipMemcpy(dst, src, size, hipMemcpyDeviceToDevice));
     return 0;
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_h2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
     queue_hip_t * queue = (queue_hip_t *) iqueue;
     HIP_SAFE_CALL(hipMemcpyAsync(dst, src, size, hipMemcpyHostToDevice, (hipStream_t)(queue->hip.handle.high)));
@@ -1045,7 +1045,7 @@ XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t 
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_d2h_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
     queue_hip_t * queue = (queue_hip_t *) iqueue;
     HIP_SAFE_CALL(hipMemcpyAsync(dst, src, size, hipMemcpyDeviceToHost, (hipStream_t)(queue->hip.handle.high)));
@@ -1053,7 +1053,7 @@ XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t 
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_d2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
     queue_hip_t * queue = (queue_hip_t *) iqueue;
     HIP_SAFE_CALL(hipMemcpyAsync(dst, src, size, hipMemcpyDeviceToDevice, (hipStream_t)(queue->hip.handle.high)));
@@ -1080,12 +1080,12 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(device_destroy);
     REGISTER(device_info);
 
-    REGISTER(transfer_h2d);
-    REGISTER(transfer_d2h);
-    REGISTER(transfer_d2d);
-    REGISTER(transfer_h2d_async);
-    REGISTER(transfer_d2h_async);
-    REGISTER(transfer_d2d_async);
+    REGISTER(copy_h2d);
+    REGISTER(copy_d2h);
+    REGISTER(copy_d2d);
+    REGISTER(copy_h2d_async);
+    REGISTER(copy_d2h_async);
+    REGISTER(copy_d2d_async);
 
     REGISTER(memory_device_info);
     REGISTER(memory_device_allocate);

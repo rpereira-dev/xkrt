@@ -170,18 +170,22 @@ typedef struct  driver_t
     int (*f_memory_unified_prefetch_device)(const device_driver_id_t device_unique_id, const void * addr, const size_t size);
     int (*f_memory_unified_prefetch_host)(const void * addr, const size_t size);
 
-    //////////////////////
-    // MEMORY TRANSFERS //
-    //////////////////////
+    ////////////////////
+    // MEMORY COPIES  //
+    ////////////////////
 
     // DEPRECATED: use command_execute instead
 
-    int (*f_transfer_h2d)(void * dst, void * src, const size_t size);
-    int (*f_transfer_d2h)(void * dst, void * src, const size_t size);
-    int (*f_transfer_d2d)(void * dst, void * src, const size_t size);
-    int (*f_transfer_h2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue);
-    int (*f_transfer_d2h_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue);
-    int (*f_transfer_d2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue);
+    /* Synchronous copies. They do not bind a device context: the calling
+     * thread must already be bound to the device performing the copy. */
+    int (*f_copy_h2d)(void * dst, void * src, const size_t size);
+    int (*f_copy_d2h)(void * dst, void * src, const size_t size);
+    int (*f_copy_d2d)(void * dst, void * src, const size_t size);
+
+    /* Asynchronous copies, enqueued on 'iqueue' */
+    int (*f_copy_h2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue);
+    int (*f_copy_d2h_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue);
+    int (*f_copy_d2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue);
 
     ///////////////////////////////////////////////
     // SERIALIZED+SYNCHRONOUS COMMAND SUBMISSION //

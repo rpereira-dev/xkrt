@@ -1505,28 +1505,28 @@ XKRT_DRIVER_ENTRYPOINT(power_stop)(device_driver_id_t device_driver_id, power_t 
 # endif /* XKRT_SUPPORT_NVML */
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_h2d)(void * dst, void * src, const size_t size)
+XKRT_DRIVER_ENTRYPOINT(copy_h2d)(void * dst, void * src, const size_t size)
 {
     CU_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) dst, src, size));
     return 0;
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2h)(void * dst, void * src, const size_t size)
+XKRT_DRIVER_ENTRYPOINT(copy_d2h)(void * dst, void * src, const size_t size)
 {
     CU_SAFE_CALL(cuMemcpyDtoH(dst, (CUdeviceptr) src, size));
     return 0;
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2d)(void * dst, void * src, const size_t size)
+XKRT_DRIVER_ENTRYPOINT(copy_d2d)(void * dst, void * src, const size_t size)
 {
     CU_SAFE_CALL(cuMemcpyDtoD((CUdeviceptr)dst, (CUdeviceptr) src, size));
     return 0;
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_h2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
     queue_cu_t * queue = (queue_cu_t *) iqueue;
     CU_SAFE_CALL(cuMemcpyHtoDAsync((CUdeviceptr) dst, src, size, queue->cu.handle.high));
@@ -1534,7 +1534,7 @@ XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t 
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_d2h_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
     queue_cu_t * queue = (queue_cu_t *) iqueue;
     CU_SAFE_CALL(cuMemcpyDtoHAsync(dst, (CUdeviceptr) src, size, queue->cu.handle.high));
@@ -1542,7 +1542,7 @@ XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t 
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_d2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
     queue_cu_t * queue = (queue_cu_t *) iqueue;
     CU_SAFE_CALL(cuMemcpyDtoDAsync((CUdeviceptr)dst, (CUdeviceptr) src, size, queue->cu.handle.high));
@@ -1647,12 +1647,12 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     REGISTER(device_info);
     REGISTER(device_get_target);
 
-    REGISTER(transfer_h2d);
-    REGISTER(transfer_d2h);
-    REGISTER(transfer_d2d);
-    REGISTER(transfer_h2d_async);
-    REGISTER(transfer_d2h_async);
-    REGISTER(transfer_d2d_async);
+    REGISTER(copy_h2d);
+    REGISTER(copy_d2h);
+    REGISTER(copy_d2d);
+    REGISTER(copy_h2d_async);
+    REGISTER(copy_d2h_async);
+    REGISTER(copy_d2d_async);
 
     REGISTER(memory_device_info);
     REGISTER(memory_device_allocate);

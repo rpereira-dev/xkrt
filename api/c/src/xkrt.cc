@@ -116,6 +116,20 @@ xkrt_memory_unregister_async(
     return rt->memory_unregister_async(ptr, size);
 }
 
+void
+xkrt_memory_copy(
+    xkrt_runtime_t * runtime,
+    const size_t size,
+    const xkrt_device_unique_id_t dst_device_unique_id,
+    const uintptr_t dst_device_addr,
+    const xkrt_device_unique_id_t src_device_unique_id,
+    const uintptr_t src_device_addr
+) {
+    assert(runtime);
+    runtime_t * rt = (runtime_t *) runtime;
+    rt->memory_copy(size, dst_device_unique_id, dst_device_addr, src_device_unique_id, src_device_addr);
+}
+
 int
 xkrt_file_read_async(
     xkrt_runtime_t * runtime,
@@ -913,10 +927,10 @@ xkrt_driver_memory_unified_prefetch_host(
     return drv->f_memory_unified_prefetch_host(addr, size);
 }
 
-// MEMORY TRANSFERS
+// MEMORY COPIES
 
 int
-xkrt_driver_transfer_h2d(
+xkrt_driver_copy_h2d(
     xkrt_driver_t * driver,
     void * dst,
     void * src,
@@ -924,11 +938,11 @@ xkrt_driver_transfer_h2d(
 ) {
     assert(driver);
     driver_t * drv = (driver_t *) driver;
-    return drv->f_transfer_h2d(dst, src, size);
+    return drv->f_copy_h2d(dst, src, size);
 }
 
 int
-xkrt_driver_transfer_d2h(
+xkrt_driver_copy_d2h(
     xkrt_driver_t * driver,
     void * dst,
     void * src,
@@ -936,11 +950,11 @@ xkrt_driver_transfer_d2h(
 ) {
     assert(driver);
     driver_t * drv = (driver_t *) driver;
-    return drv->f_transfer_d2h(dst, src, size);
+    return drv->f_copy_d2h(dst, src, size);
 }
 
 int
-xkrt_driver_transfer_d2d(
+xkrt_driver_copy_d2d(
     xkrt_driver_t * driver,
     void * dst,
     void * src,
@@ -948,11 +962,11 @@ xkrt_driver_transfer_d2d(
 ) {
     assert(driver);
     driver_t * drv = (driver_t *) driver;
-    return drv->f_transfer_d2d(dst, src, size);
+    return drv->f_copy_d2d(dst, src, size);
 }
 
 int
-xkrt_driver_transfer_h2d_async(
+xkrt_driver_copy_h2d_async(
     xkrt_driver_t * driver,
     void * dst,
     void * src,
@@ -961,11 +975,11 @@ xkrt_driver_transfer_h2d_async(
 ) {
     assert(driver);
     driver_t * drv = (driver_t *) driver;
-    return drv->f_transfer_h2d_async(dst, src, size, (command_queue_t *) queue);
+    return drv->f_copy_h2d_async(dst, src, size, (command_queue_t *) queue);
 }
 
 int
-xkrt_driver_transfer_d2h_async(
+xkrt_driver_copy_d2h_async(
     xkrt_driver_t * driver,
     void * dst,
     void * src,
@@ -974,11 +988,11 @@ xkrt_driver_transfer_d2h_async(
 ) {
     assert(driver);
     driver_t * drv = (driver_t *) driver;
-    return drv->f_transfer_d2h_async(dst, src, size, (command_queue_t *) queue);
+    return drv->f_copy_d2h_async(dst, src, size, (command_queue_t *) queue);
 }
 
 int
-xkrt_driver_transfer_d2d_async(
+xkrt_driver_copy_d2d_async(
     xkrt_driver_t * driver,
     void * dst,
     void * src,
@@ -987,7 +1001,7 @@ xkrt_driver_transfer_d2d_async(
 ) {
     assert(driver);
     driver_t * drv = (driver_t *) driver;
-    return drv->f_transfer_d2d_async(dst, src, size, (command_queue_t *) queue);
+    return drv->f_copy_d2d_async(dst, src, size, (command_queue_t *) queue);
 }
 
 // KERNEL LAUNCH

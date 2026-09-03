@@ -219,6 +219,39 @@ struct  runtime_t
     );
 
     /**
+     * @brief Synchronously copy memory between two devices
+     *
+     * Blocks the calling thread until the copy completed. No task is spawned,
+     * no command is queued: the copy is issued directly through the driver
+     * synchronous copy entrypoints (`f_copy_h2d`, `f_copy_d2h`, `f_copy_d2d`),
+     * which fallback on the vendor blocking primitives (`cuMemcpyHtoD`,
+     * `hipMemcpy`, ...). A host-to-host copy falls back on `memcpy`.
+     *
+     * The device performing the copy is deduced from the operands: the
+     * destination device if it is not the host, the source device otherwise.
+     *
+     * @warning This bypasses the coherence protocol and the dependency
+     * resolution: the caller is responsible for ensuring that no concurrent
+     * task or command accesses the involved memory segments.
+     *
+     * @warning The driver entrypoints do not bind a device context. The
+     * calling thread must already be bound to the device performing the copy.
+     *
+     * @param size Number of bytes to copy
+     * @param dst_device_unique_id Destination device global ID
+     * @param dst_device_addr Destination device address
+     * @param src_device_unique_id Source device global ID
+     * @param src_device_addr Source device address
+     */
+    void memory_copy(
+        const size_t               size,
+        const device_unique_id_t   dst_device_unique_id,
+        const uintptr_t            dst_device_addr,
+        const device_unique_id_t   src_device_unique_id,
+        const uintptr_t            src_device_addr
+    );
+
+    /**
      * @brief Asynchronously copy memory by spawning n parallel tasks
      *
      * Spawns 'n' tasks where each task i in [0..n-1]:

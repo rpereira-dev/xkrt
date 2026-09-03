@@ -104,6 +104,63 @@ runtime_t::copy(
     );
 }
 
+void
+runtime_t::memory_copy(
+    const size_t               size,
+    const device_unique_id_t   dst_device_unique_id,
+    const uintptr_t            dst_device_addr,
+    const device_unique_id_t   src_device_unique_id,
+    const uintptr_t            src_device_addr
+) {
+    assert(size);
+    assert(dst_device_addr);
+    assert(src_device_addr);
+
+    const bool dst_is_host = (dst_device_unique_id == XKRT_HOST_DEVICE_UNIQUE_ID);
+    const bool src_is_host = (src_device_unique_id == XKRT_HOST_DEVICE_UNIQUE_ID);
+
+    /* host to host: no driver involved */
+    if (dst_is_host && src_is_host)
+    {
+        memcpy((void *) dst_device_addr, (const void *) src_device_addr, size);
+        return ;
+    }
+
+    /* the copy is performed by the destination device, unless it is the host */
+    const device_unique_id_t device_unique_id = dst_is_host ? src_device_unique_id : dst_device_unique_id;
+
+    device_t * device = this->device_get(device_unique_id);
+    assert(device);
+
+    driver_t * driver = this->driver_get(device->driver_type);
+    assert(driver);
+
+    /* pick the driver synchronous entrypoint matching the copy direction */
+    int (*f_copy)(void *, void *, const size_t);
+    const char * kind;
+    if (src_is_host)
+    {
+        f_copy = driver->f_copy_h2d;
+        kind   = "h2d";
+    }
+    else if (dst_is_host)
+    {
+        f_copy = driver->f_copy_d2h;
+        kind   = "d2h";
+    }
+    else
+    {
+        f_copy = driver->f_copy_d2d;
+        kind   = "d2d";
+    }
+
+    if (f_copy == NULL)
+        LOGGER_FATAL("Driver `%s` registers no synchronous `copy_%s` entrypoint",
+                xkrt_driver_name(device->driver_type), kind);
+
+    f_copy((void *) dst_device_addr, (void *) src_device_addr, size);
+}
+
 ////////////////////////////
 // task spawning routines //
 ////////////////////////////

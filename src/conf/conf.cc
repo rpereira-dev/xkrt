@@ -217,10 +217,10 @@ __parse_verbose(conf_t * conf, char const * value)
 }
 
 static void
-__parse_merge_transfers(conf_t * conf, char const * value)
+__parse_merge_copies(conf_t * conf, char const * value)
 {
     if (value)
-        conf->merge_transfers = atoi(value) ? true : false;
+        conf->merge_copies = atoi(value) ? true : false;
 }
 
 static void
@@ -463,8 +463,8 @@ static conf_parse_t CONF_PARSE[] = {
     {"H2D_PER_QUEUE",                    __parse_h2d_per_queue,             "Number of concurrent copies per H2D queue before throttling device-thread"},
     {"HELP",                             __parse_help,                      "Show this helper"},
     {"KERN_PER_QUEUE",                   __parse_kern_per_queue,            "Number of concurrent kernels per KERN queue before throttling device-thread"},
-    {"MEMORY_REGISTER_PROTECT_OVERFLOW", __parse_register_overflow,         "Split memory transfers to avoid overflow over registered/unregistered memory that causes cuda to crash"},
-    {"MERGE_TRANSFERS",                  __parse_merge_transfers,           "Merge memory transfers over continuous virtual memory"},
+    {"MEMORY_REGISTER_PROTECT_OVERFLOW", __parse_register_overflow,         "Split memory copies to avoid overflow over registered/unregistered memory that causes cuda to crash"},
+    {"MERGE_COPIES",                     __parse_merge_copies,              "Merge memory copies over continuous virtual memory"},
     {"NGPUS",                            __parse_ngpus,                     "Number of gpus to use"},
     {"NQUEUES_D2D",                      __parse_nqueues_d2d,               "Number of D2D queues per device"},
     {"NQUEUES_D2H",                      __parse_nqueues_d2h,               "Number of D2H queues per device"},
@@ -478,10 +478,10 @@ static conf_parse_t CONF_PARSE[] = {
     {"PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,         "When progression threads have nothing else to do but poll pending commands, put it to sleep until the completion of a random command of a random steam."},
     {"PRECISION",                        NULL,                              NULL},
     {"STATS",                            __parse_stats,                     "Boolean to dump stats on deinit"},
-    {"TASK_PREFETCH",                    __parse_task_prefetch,             "If enabled, after completing a task, initiate data transfers for all its WaR successors that place of execution is already known (else, transfers only starts once the successor is ready)."},
+    {"TASK_PREFETCH",                    __parse_task_prefetch,             "If enabled, after completing a task, initiate data copies for all its WaR successors that place of execution is already known (else, copies only starts once the successor is ready)."},
     {"TASKGRAPH_DUMP",                   __parse_taskgraph_dump,           "If enabled, dump a taskgraph to a dot file after recording it."},
     {"TOOL_PATH",                        __parse_tool_path,                 "Path to a tooling interface (XKRT-T) shared library exporting `xkrt_tool_start` (requires `-DUSE_TOOLS=ON`)"},
-    {"USE_P2P",                          __parse_p2p,                       "Boolean to enable/disable the use of p2p transfers"},
+    {"USE_P2P",                          __parse_p2p,                       "Boolean to enable/disable the use of p2p copies"},
     {"VERBOSE",                          __parse_verbose,                   "Verbosity level (the higher the most)"},
     {"WARMUP",                           __parse_warmup,                    "Boolean to enable/disable threads/devices warmup on runtime initialization"},
     {NULL, NULL, NULL}
@@ -556,7 +556,7 @@ conf_t::init(void)
     this->device.memory_size_resize.amount      = 0;
     this->device.memory_size_resize.unit        = XKRT_MEMORY_SIZE_UNIT_ABSOLUTE;
     this->device.use_p2p                        = true;
-    this->merge_transfers                       = false;
+    this->merge_copies                          = false;
     this->protect_registered_memory_overflow    = true;
     this->enable_progress_thread_pause          = true;
     this->enable_busy_polling                   = false;

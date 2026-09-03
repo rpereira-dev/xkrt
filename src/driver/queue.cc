@@ -255,7 +255,7 @@ __complete_command_internal(
         case (cgir::COMMAND_TYPE_COPY_D2H_1D):
         case (cgir::COMMAND_TYPE_COPY_D2D_1D):
         {
-            XKRT_STATS_INCR(queue->stats.transfered, cmd->copy_1D.size);
+            XKRT_STATS_INCR(queue->stats.copied, cmd->copy_1D.size);
             break ;
         }
 
@@ -264,7 +264,7 @@ __complete_command_internal(
         case (cgir::COMMAND_TYPE_COPY_D2H_2D):
         case (cgir::COMMAND_TYPE_COPY_D2D_2D):
         {
-            XKRT_STATS_INCR(queue->stats.transfered, cmd->copy_2D.m * cmd->copy_2D.n * cmd->copy_2D.sizeof_type);
+            XKRT_STATS_INCR(queue->stats.copied, cmd->copy_2D.m * cmd->copy_2D.n * cmd->copy_2D.sizeof_type);
             break ;
         }
 

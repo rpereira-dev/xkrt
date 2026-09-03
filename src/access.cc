@@ -139,7 +139,7 @@ task_get_memory_controller(
                             runtime,
                             SIZE_MAX,
                             1,
-                            runtime->conf.merge_transfers
+                            runtime->conf.merge_copies
                         );
                         created = true;
                     }
@@ -190,7 +190,7 @@ task_get_memory_controller(
                     runtime,
                     access->host_view.ld,
                     access->host_view.sizeof_type,
-                    runtime->conf.merge_transfers
+                    runtime->conf.merge_copies
                 );
                 dom->mccs.blas.mcc.push_back((MemoryCoherencyController *) mcc);
                 created = true;
@@ -208,7 +208,7 @@ task_get_memory_controller(
                 # endif /* XKRT_MEMORY_REGISTER_OVERFLOW_PROTECTION */
 
                 LOGGER_DEBUG("Created a new memory tree with (ld, sizeof(type), merge) = (%lu, %lu, %s)",
-                        access->host_view.ld, access->host_view.sizeof_type, runtime->conf.merge_transfers ? "true" : "false");
+                        access->host_view.ld, access->host_view.sizeof_type, runtime->conf.merge_copies ? "true" : "false");
             }
 
             break ;

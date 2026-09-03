@@ -100,11 +100,11 @@ typedef struct  conf_s
 {
     conf_device_t device;      /* device conf */
     conf_drivers_t drivers;    /* driver conf */
-    bool merge_transfers;           /* attempt to merge continuous memory to a single transfer */
+    bool merge_copies;              /* attempt to merge continuous memory to a single copy */
     bool report_stats_on_deinit;    /* report stats on deinit */
 
-    /* keep track of registered memory, and split transfers for each registered
-     * segment to avoid cuda crashing while transfering memory that is
+    /* keep track of registered memory, and split copies for each registered
+     * segment to avoid cuda crashing while copying memory that is
      * partially registered */
     bool protect_registered_memory_overflow;
 
@@ -113,7 +113,7 @@ typedef struct  conf_s
 
     /* prefetch memory: when completing a predecessor, if the successor place
      * of execution is known, and its a WaR dependency, then initiate data
-     * transfer now */
+     * copy now */
     bool enable_prefetching;
 
     /* pause progress thread until a random command completed,

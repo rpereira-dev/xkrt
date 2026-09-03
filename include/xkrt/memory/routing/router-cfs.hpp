@@ -36,7 +36,7 @@
 **/
 
 /**
- *  Idea is to use a dijkstra algorithm with weights being BW, but ignoring the link if there is already a pending transfer
+ *  Idea is to use a dijkstra algorithm with weights being BW, but ignoring the link if there is already a pending copy
  *  Problem is it may add significant latency
  */
 

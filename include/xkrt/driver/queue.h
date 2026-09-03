@@ -181,7 +181,7 @@ struct command_queue_t
             stats_int_t commited;
             stats_int_t completed;
         } commands[cgir::COMMAND_TYPE_MAX];
-        stats_int_t transfered;
+        stats_int_t copied;
     } stats;
     # endif /* XKRT_SUPPORT_STATS */
 
