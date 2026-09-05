@@ -75,8 +75,8 @@
 
 # include <algorithm>
 # include <map>
-# include <mutex>
 # include <string>
+# include <tuple>
 # include <utility>
 
 XKRT_NAMESPACE_BEGIN
@@ -363,9 +363,10 @@ XKRT_DRIVER_ENTRYPOINT(device_init)(device_driver_id_t device_driver_id)
     snprintf(device->cu.prop.arch, sizeof(device->cu.prop.arch), "sm_%d%d",
              device->cu.prop.cc_major, device->cu.prop.cc_minor);
 
-    /* SM count (reported in device_info; also the unit of the blocks-per-SM
-     * occupancy targets, see cu_prog_enforce_occupancy) */
+    /* SM count and register file size: the unit and the currency of the
+     * blocks-per-SM occupancy targets (see cu_prog_prepare) */
     CU_SAFE_CALL(cuDeviceGetAttribute(&device->cu.prop.nsm, CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, device->cu.device));
+    CU_SAFE_CALL(cuDeviceGetAttribute(&device->cu.prop.regs_per_sm, CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_MULTIPROCESSOR, device->cu.device));
 }
 
 /* Device LLVM code-generation target (see driver_t::f_device_get_target). The
@@ -663,15 +664,69 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_suggest)(
     }
 }
 
-/* Modules already loaded from PTX, keyed by (device, PTX text). cgir's jit pass
- * gives every command node its own copy of the emitted PTX, so a graph typically
- * holds many nodes whose PTX is byte-identical (the same construct instantiated
- * over different tiles). Without this map each of them would pay its own
- * cuModuleLoadDataEx -- i.e. its own PTX->SASS compile, several ms each -- and
- * leave its own copy of the code resident on the device. Never evicted: modules
- * are kept for the process lifetime (as the host JIT does). */
+/* Modules already loaded from PTX, keyed by (device, PTX text, register cap).
+ * cgir's jit pass gives every command node its own copy of the emitted PTX, so a
+ * graph typically holds many nodes whose PTX is byte-identical (the same
+ * construct instantiated over different tiles). Without this map each of them
+ * would pay its own cuModuleLoadDataEx -- i.e. its own PTX->SASS compile,
+ * several ms each -- and leave its own copy of the code resident on the device.
+ * The register cap is part of the key because the same PTX compiled under a
+ * different cap is different code (see cu_prog_raise_occupancy). Never evicted:
+ * modules are kept for the process lifetime (as the host JIT does). */
 static spinlock_t cu_ptx_modules_lock;
-static std::map<std::pair<device_driver_id_t, std::string>, CUmodule> cu_ptx_modules;
+static std::map<std::tuple<device_driver_id_t, std::string, unsigned int>, CUmodule> cu_ptx_modules;
+
+/* Compile `ptx` for this device with at most `maxregs` registers per thread (0 =
+ * let ptxas choose) and resolve `sym` in it. Modules are cached; NULL on
+ * failure to resolve. Requires the device context to be current. */
+static CUfunction
+cu_ptx_get_function(device_driver_id_t device_driver_id, const std::string & ptx,
+                    const char * sym, unsigned int maxregs)
+{
+    SPINLOCK_LOCK(cu_ptx_modules_lock);
+
+    CUmodule mod = NULL;
+    const auto key = std::make_tuple(device_driver_id, ptx, maxregs);
+    auto it = cu_ptx_modules.find(key);
+    if (it != cu_ptx_modules.end())
+    {
+        mod = it->second;
+    }
+    else
+    {
+        /* Load via cuModuleLoadDataEx with JIT log buffers so a PTX compile/link
+         * failure (e.g. an unresolved extern such as __kmpc_target_init from the
+         * OpenMP device runtime) is reported with the ptxas diagnostic instead of
+         * an opaque CUDA_ERROR_INVALID_PTX (218). */
+        char jit_info[8192]; jit_info[0] = '\0';
+        char jit_err [8192]; jit_err [0] = '\0';
+        CUjit_option jit_opts[5] = {
+            CU_JIT_INFO_LOG_BUFFER,  CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES,
+            CU_JIT_ERROR_LOG_BUFFER, CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES,
+            CU_JIT_MAX_REGISTERS,
+        };
+        void * jit_optvals[5] = {
+            (void *) jit_info, (void *) (uintptr_t) sizeof(jit_info),
+            (void *) jit_err,  (void *) (uintptr_t) sizeof(jit_err),
+            (void *) (uintptr_t) maxregs,
+        };
+        const unsigned int nopts = maxregs ? 5 : 4;
+
+        CUresult lres = cuModuleLoadDataEx(&mod, ptx.c_str(), nopts, jit_opts, jit_optvals);
+        if (lres != CUDA_SUCCESS)
+            LOGGER_FATAL("cuModuleLoadDataEx failed (%d) for JIT'd device program:\n%s%s",
+                (int) lres,
+                jit_err[0]  ? jit_err  : "(no JIT error log)\n",
+                jit_info[0] ? jit_info : "");
+        cu_ptx_modules.emplace(key, mod);
+    }
+    SPINLOCK_UNLOCK(cu_ptx_modules_lock);
+
+    CUfunction fn = NULL;
+    if (cuModuleGetFunction(&fn, mod, sym) != CUDA_SUCCESS)
+        return NULL;
+    return fn;
+}
 
 /* Blocks per SM the device would co-schedule for `fn` with `threads` threads and
  * `dyn` bytes of dynamic shared memory. 0 if the query fails. */
@@ -690,15 +745,13 @@ cu_occupancy(CUfunction fn, unsigned int threads, size_t dyn)
  * overwriting it is allowed. */
 static constexpr unsigned int CU_PROG_OCCUPANCY_APPLIED = ~0u;
 
-/* Hold a program to its recorded occupancy (see command_prog_t::blocks_per_sm).
+/* Bring a rewritten program's occupancy back down to `target`.
  *
  * Rewriting a program's code changes the per-block resources it uses, and those
  * decide how many blocks the hardware co-schedules per SM -- so a pass that
- * recompiles or fuses programs silently changes a launch property nobody asked it
- * to change. That is not neutral: a program whose speed rests on cache reuse
+ * recompiles or fuses programs silently changes a launch property nobody asked
+ * it to change. That is not neutral: a program whose speed rests on cache reuse
  * slows down when more of its blocks run at once and compete for the same cache.
- * When the replacement is co-scheduled *more* densely than what it replaced, put
- * it back; otherwise leave it alone (this never raises occupancy).
  *
  * The lever has to be a resource the hardware accounts *per block*, so that the
  * residency it frees cannot simply be taken by another block. Shrinking the grid
@@ -709,25 +762,22 @@ static constexpr unsigned int CU_PROG_OCCUPANCY_APPLIED = ~0u;
  *      (every resident block costs at least the driver's per-block reservation),
  *      and a smaller carveout leaves *more* L1 -- which is what a program that
  *      used to be co-scheduled sparsely tends to want. Free, so try it first.
- *   2. dynamic shared memory as ballast. Always sufficient, but it spends the
- *      capacity L1 shares on most devices, so it is the fallback.
+ *   2. dynamic shared memory as ballast, on top of whatever the program itself
+ *      requires. Always sufficient, but it spends the capacity L1 shares on most
+ *      devices, so it is the fallback.
  *
  * The carveout is a property of the CUfunction, which commands running the same
  * code share (see the module cache above); they also share the recorded target,
  * being instances of the same program, so the last writer agrees with the others.
  * The ballast is per-command.
  *
- * Returns the dynamic shared memory the launch must request (0 if none). */
+ * `required` is the dynamic shared memory the program asks for in its own right;
+ * the returned amount is never below it. */
 static unsigned int
-cu_prog_enforce_occupancy(CUfunction fn, unsigned int threads, unsigned int target,
-                          const char * name)
+cu_prog_lower_occupancy(CUfunction fn, unsigned int threads, unsigned int target,
+                        unsigned int required, const char * name)
 {
-    if (fn == NULL || threads == 0 || target == 0)
-        return 0;
-
-    const int now = cu_occupancy(fn, threads, 0);
-    if (now == 0 || (unsigned int) now <= target)
-        return 0;   /* not co-scheduled more densely: nothing owed */
+    const int now = cu_occupancy(fn, threads, required);
 
     /* 1. Carveout. Residency is monotone non-decreasing in the carveout, so scan
      * upwards and keep the setting with the highest residency that still respects
@@ -739,7 +789,7 @@ cu_prog_enforce_occupancy(CUfunction fn, unsigned int threads, unsigned int targ
     {
         if (cuFuncSetAttribute(fn, CU_FUNC_ATTRIBUTE_PREFERRED_SHARED_MEMORY_CARVEOUT, pct) != CUDA_SUCCESS)
             break ;
-        const int blocks = cu_occupancy(fn, threads, 0);
+        const int blocks = cu_occupancy(fn, threads, required);
         if (blocks == 0 || (unsigned int) blocks > target)
             continue ;
         if (blocks > best_blocks)
@@ -754,20 +804,20 @@ cu_prog_enforce_occupancy(CUfunction fn, unsigned int threads, unsigned int targ
         LOGGER_INFO("prog `%s`: rewritten code is %d blocks/SM vs %u recorded; "
                     "a %d%% shared-memory carveout brings it back to %d",
                     name, now, target, best_pct, best_blocks);
-        return 0;
+        return required;
     }
 
     /* 2. Ballast. Residency is monotone non-increasing in the dynamic shared
      * memory, so binary-search the smallest amount that meets the target, i.e.
      * the least L1 given up. Stay under the 48KiB that needs no opt-in. */
     cuFuncSetAttribute(fn, CU_FUNC_ATTRIBUTE_PREFERRED_SHARED_MEMORY_CARVEOUT, 0);
-    size_t lo = 1, hi = 48u * 1024u, found = 0;
-    if (cu_occupancy(fn, threads, hi) > (int) target)
+    size_t lo = (size_t) required + 1, hi = 48u * 1024u, found = 0;
+    if (lo > hi || cu_occupancy(fn, threads, hi) > (int) target)
     {
         LOGGER_WARN("prog `%s`: rewritten code is %d blocks/SM vs %u recorded and no "
                     "per-block resource brings it back; launching as-is",
                     name, now, target);
-        return 0;
+        return required;
     }
     while (lo <= hi)
     {
@@ -805,54 +855,86 @@ cu_prog_resolve(device_driver_id_t device_driver_id, cgir::command_t * command)
     cu_set_context(device_driver_id);
 
     const std::string ptx(static_cast<const char *>(prog.source.content.llvmir.raw));
-    SPINLOCK_LOCK(cu_ptx_modules_lock);
-
-    CUmodule mod = NULL;
-    const auto key = std::make_pair(device_driver_id, ptx);
-    auto it = cu_ptx_modules.find(key);
-    if (it != cu_ptx_modules.end())
-    {
-        mod = it->second;
-    }
-    else
-    {
-        /* Load via cuModuleLoadDataEx with JIT log buffers so a PTX compile/link
-         * failure (e.g. an unresolved extern such as __kmpc_target_init from the
-         * OpenMP device runtime) is reported with the ptxas diagnostic instead of an
-         * opaque CUDA_ERROR_INVALID_PTX (218). */
-        char jit_info[8192]; jit_info[0] = '\0';
-        char jit_err [8192]; jit_err [0] = '\0';
-        CUjit_option jit_opts[] = {
-            CU_JIT_INFO_LOG_BUFFER,  CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES,
-            CU_JIT_ERROR_LOG_BUFFER, CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES,
-        };
-        void * jit_optvals[] = {
-            (void *) jit_info, (void *) (uintptr_t) sizeof(jit_info),
-            (void *) jit_err,  (void *) (uintptr_t) sizeof(jit_err),
-        };
-        CUresult lres = cuModuleLoadDataEx(&mod, ptx.c_str(),
-            (unsigned int) (sizeof(jit_opts) / sizeof(jit_opts[0])), jit_opts, jit_optvals);
-        if (lres != CUDA_SUCCESS)
-            LOGGER_FATAL("cuModuleLoadDataEx failed (%d) for JIT'd device program:\n%s%s",
-                (int) lres,
-                jit_err[0]  ? jit_err  : "(no JIT error log)\n",
-                jit_info[0] ? jit_info : "");
-        cu_ptx_modules.emplace(key, mod);
-    }
-    SPINLOCK_UNLOCK(cu_ptx_modules_lock);
-
     const char * sym = prog.source.content.llvmir.symbol
         ? prog.source.content.llvmir.symbol : "__fused_wrapper";
-    CUfunction fn = NULL;
-    CU_SAFE_CALL(cuModuleGetFunction(&fn, mod, sym));
+
+    CUfunction fn = cu_ptx_get_function(device_driver_id, ptx, sym, 0);
+    if (fn == NULL)
+        LOGGER_FATAL("cuModuleGetFunction failed for JIT'd device program `%s`", sym);
     prog.launcher.variadic.fn = reinterpret_cast<void (*)(void **)>(fn);
 }
 
-/* Prepare a PROG command for launch: resolve its kernel handle, then apply the
- * occupancy contract. Both are once-per-command; the second runs for precompiled
- * kernels too, where it is a no-op by construction (their occupancy *is* the
- * recorded one), which keeps one code path and lets XKRT_PROG_BLOCKS_PER_SM
- * override the target for any program. */
+/* Raise a rewritten program's occupancy back up to `target`, by re-JITting its
+ * PTX under a register cap. The mirror image of cu_prog_lower_occupancy: a
+ * rewrite that makes a program *hungrier* (a fused kernel holding more live
+ * values, say) starves the device of parallelism just as surely as one that
+ * makes it leaner floods the cache.
+ *
+ * Only possible for a program we hold the source of -- there is nothing to
+ * recompile in a precompiled kernel, and by construction its occupancy already
+ * is the recorded one. Trading registers for occupancy backfires once the cap
+ * forces spills, so the new code is accepted only if it actually gains blocks
+ * and spills no more than the code it would replace. */
+static void
+cu_prog_raise_occupancy(device_driver_id_t device_driver_id, cgir::command_t * command,
+                        unsigned int threads, unsigned int target, int now, const char * name)
+{
+    auto & prog = command->prog;
+
+    if (prog.source.type != cgir::COMMAND_PROG_SOURCE_TYPE_PTX ||
+        prog.source.content.llvmir.raw == NULL)
+        return ;
+
+    const device_cu_t * device = device_cu_get(device_driver_id);
+    if (device == NULL || device->cu.prop.regs_per_sm <= 0)
+        return ;
+
+    /* registers per thread that leave room for `target` blocks on an SM */
+    const uint64_t slots = (uint64_t) target * (uint64_t) threads;
+    if (slots == 0)
+        return ;
+    uint64_t cap = (uint64_t) device->cu.prop.regs_per_sm / slots;
+    if (cap > 255)
+        cap = 255;
+    if (cap < 16)   /* below this ptxas has no realistic chance */
+        return ;
+
+    CUfunction fn = reinterpret_cast<CUfunction>(prog.launcher.variadic.fn);
+    int local_before = 0;
+    cuFuncGetAttribute(&local_before, CU_FUNC_ATTRIBUTE_LOCAL_SIZE_BYTES, fn);
+
+    const std::string ptx(static_cast<const char *>(prog.source.content.llvmir.raw));
+    const char * sym = prog.source.content.llvmir.symbol
+        ? prog.source.content.llvmir.symbol : "__fused_wrapper";
+    CUfunction capped = cu_ptx_get_function(device_driver_id, ptx, sym, (unsigned int) cap);
+    if (capped == NULL)
+        return ;
+
+    int local_after = 0;
+    cuFuncGetAttribute(&local_after, CU_FUNC_ATTRIBUTE_LOCAL_SIZE_BYTES, capped);
+    const int gained = cu_occupancy(capped, threads, prog.dyn_shmem);
+
+    if (gained > now && local_after <= local_before)
+    {
+        prog.launcher.variadic.fn = reinterpret_cast<void (*)(void **)>(capped);
+        LOGGER_INFO("prog `%s`: rewritten code is %d blocks/SM vs %u recorded; "
+                    "recompiling under a %u-register cap brings it back to %d",
+                    name, now, target, (unsigned int) cap, gained);
+    }
+    else
+    {
+        LOGGER_INFO("prog `%s`: rewritten code is %d blocks/SM vs %u recorded; a "
+                    "%u-register cap would give %d blocks/SM and %d bytes of spill "
+                    "(vs %d), declining", name, now, target, (unsigned int) cap,
+                    gained, local_after, local_before);
+    }
+}
+
+/* Prepare a PROG command for launch: resolve its kernel handle, then hold it to
+ * its recorded occupancy. Both are once-per-command; the second runs for
+ * precompiled kernels too, where it is a no-op by construction (their occupancy
+ * *is* the recorded one), which keeps one code path and lets
+ * XKRT_PROG_BLOCKS_PER_SM override the target for any program. */
 static void
 cu_prog_prepare(device_driver_id_t device_driver_id, cgir::command_t * command)
 {
@@ -869,14 +951,23 @@ cu_prog_prepare(device_driver_id_t device_driver_id, cgir::command_t * command)
     const unsigned int target = policy ? (unsigned int) policy : prog.blocks_per_sm;
     prog.blocks_per_sm = CU_PROG_OCCUPANCY_APPLIED;
 
-    if (target == 0)
+    const unsigned int threads = prog.block.x * prog.block.y * prog.block.z;
+    CUfunction fn = reinterpret_cast<CUfunction>(prog.launcher.variadic.fn);
+    if (target == 0 || threads == 0 || fn == NULL)
         return ;
 
     cu_set_context(device_driver_id);
-    prog.dyn_shmem = cu_prog_enforce_occupancy(
-        reinterpret_cast<CUfunction>(prog.launcher.variadic.fn),
-        prog.block.x * prog.block.y * prog.block.z, target,
-        prog.source.content.llvmir.symbol ? prog.source.content.llvmir.symbol : "?");
+
+    const int now = cu_occupancy(fn, threads, prog.dyn_shmem);
+    if (now == 0)
+        return ;
+
+    if ((unsigned int) now > target)
+        prog.dyn_shmem = cu_prog_lower_occupancy(fn, threads, target, prog.dyn_shmem,
+            prog.source.content.llvmir.symbol ? prog.source.content.llvmir.symbol : "?");
+    else if ((unsigned int) now < target)
+        cu_prog_raise_occupancy(device_driver_id, command, threads, target, now,
+            prog.source.content.llvmir.symbol ? prog.source.content.llvmir.symbol : "?");
 }
 
 command_batch_cu_handle_t * XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(

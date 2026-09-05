@@ -98,6 +98,7 @@ typedef struct  device_cu_t
             int cc_minor;       /* compute capability minor */
             char arch[16];      /* device arch / target-cpu, e.g. "sm_80" */
             int nsm;            /* number of SMs (multiprocessors) */
+            int regs_per_sm;    /* registers per SM (occupancy arithmetic) */
         } prop;
 
     } cu;
