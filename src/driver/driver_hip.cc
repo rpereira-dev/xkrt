@@ -587,8 +587,6 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
     {
         case (cgir::COMMAND_TYPE_PROG):
         {
-            constexpr size_t sharedmemory = 0;
-
             /* VARIADIC: `args` is the kernelParams pointer array. PACKED: `args` is
              * a byte buffer of `args_size` bytes passed via the HIP_LAUNCH_PARAM
              * "extra" config (kernelParams must be NULL). `fn` holds the
@@ -609,7 +607,7 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
                     command->prog.block.x,
                     command->prog.block.y,
                     command->prog.block.z,
-                    sharedmemory,
+                    command->prog.dyn_shmem,
                     stream,
                     packed ? nullptr : command->prog.args,   /* kernelParams */
                     packed ? hip_config : nullptr            /* extra */

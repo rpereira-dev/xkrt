@@ -279,7 +279,6 @@ runtime_t::command_graph_from_task_dependency_graph(
                      * so measure the occupancy now and let the driver hold the
                      * replacement to it (see command_prog_t::blocks_per_sm). */
                     if (driver && driver->f_prog_max_blocks_per_sm &&
-                        rec.command.prog.blocks_per_sm == 0 &&
                         rec.command.prog.launcher.variadic.fn != NULL &&
                         rec.command.prog.block.x != 0)
                     {
