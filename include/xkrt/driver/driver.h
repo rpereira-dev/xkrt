@@ -139,6 +139,18 @@ typedef struct  driver_t
      * JIT/fusion codegen target. */
     void (*f_device_get_target)(device_driver_id_t device_driver_id, const char ** triple, const char ** arch);
 
+    /* Occupancy limit of a resolved device kernel: how many blocks (CTAs) of
+     * `block_threads` threads and `dyn_smem` bytes of dynamic shared memory the
+     * device can co-schedule per SM. Returns 0 when unknown.
+     *
+     * Used to keep a program's occupancy stable across a code substitution: the
+     * `jit` pass replaces a kernel's code, which changes its register footprint
+     * and hence how many blocks the device co-schedules -- a silent change of
+     * launch behaviour that can dominate runtime for cache-sensitive kernels.
+     * See command_prog_t::blocks_per_sm. Optional (NULL => no occupancy
+     * management on this driver). */
+    unsigned int (*f_prog_max_blocks_per_sm)(device_driver_id_t device_driver_id, void * fn, unsigned int block_threads, size_t dyn_smem);
+
     ////////////////////////////////
     //  MEMORY MANAGEMENT         //
     ////////////////////////////////

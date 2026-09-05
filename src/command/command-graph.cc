@@ -265,6 +265,30 @@ runtime_t::command_graph_from_task_dependency_graph(
                     }
                     else
                         LOGGER_FATAL("Driver `%s` does not support `f_device_get_target` to get target triple", driver ? driver->get_name() : "?");
+
+                    /* Pin the occupancy before the `jit` pass may replace the code.
+                     *
+                     * We are one step away from cg.optimize(), so the recorded
+                     * launcher is still the ahead-of-time compiled kernel. Its
+                     * register footprint is what decides how many blocks the device
+                     * co-schedules per SM, and a JIT-emitted replacement generally
+                     * has a *different* footprint (OpenMPOpt proving the kernel
+                     * SPMD-only removes the generic-mode path, so it needs fewer
+                     * registers and the device packs more blocks per SM). For a
+                     * kernel that lives off cache reuse that is a large regression,
+                     * so measure the occupancy now and let the driver hold the
+                     * replacement to it (see command_prog_t::blocks_per_sm). */
+                    if (driver && driver->f_prog_max_blocks_per_sm &&
+                        rec.command.prog.blocks_per_sm == 0 &&
+                        rec.command.prog.launcher.variadic.fn != NULL &&
+                        rec.command.prog.block.x != 0)
+                    {
+                        rec.command.prog.blocks_per_sm = driver->f_prog_max_blocks_per_sm(
+                            cmd_device->driver_id,
+                            (void *) rec.command.prog.launcher.variadic.fn,
+                            rec.command.prog.block.x * rec.command.prog.block.y * rec.command.prog.block.z,
+                            0);
+                    }
                 }
             }
 

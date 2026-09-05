@@ -231,6 +231,13 @@ __parse_kern_per_queue(conf_t * conf, char const * value)
 }
 
 static void
+__parse_prog_blocks_per_sm(conf_t * conf, char const * value)
+{
+    if (value)
+        conf->device.prog_blocks_per_sm = (uint32_t) MAX(atoi(value), 0);
+}
+
+static void
 __parse_h2d_per_queue(conf_t * conf, char const * value)
 {
     if (value)
@@ -477,6 +484,7 @@ static conf_parse_t CONF_PARSE[] = {
     {"P2P_PER_QUEUE",                    __parse_p2p_per_queue,             "Number of concurrent copies per P2P queue before throttling device-thread"},
     {"PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,         "When progression threads have nothing else to do but poll pending commands, put it to sleep until the completion of a random command of a random steam."},
     {"PRECISION",                        NULL,                              NULL},
+    {"PROG_BLOCKS_PER_SM",               __parse_prog_blocks_per_sm,        "Occupancy of device program launches, in blocks (CTAs) per SM. 0 (default) keeps each program at the occupancy it was recorded with; a positive value forces it, by capping the launch grid (device kernels are grid-stride, so this is semantics-preserving)."},
     {"STATS",                            __parse_stats,                     "Boolean to dump stats on deinit"},
     {"TASK_PREFETCH",                    __parse_task_prefetch,             "If enabled, after completing a task, initiate data copies for all its WaR successors that place of execution is already known (else, copies only starts once the successor is ready)."},
     {"TASKGRAPH_DUMP",                   __parse_taskgraph_dump,           "If enabled, dump a taskgraph to a dot file after recording it."},
@@ -556,6 +564,7 @@ conf_t::init(void)
     this->device.memory_size_resize.amount      = 0;
     this->device.memory_size_resize.unit        = XKRT_MEMORY_SIZE_UNIT_ABSOLUTE;
     this->device.use_p2p                        = true;
+    this->device.prog_blocks_per_sm             = 0;
     this->merge_copies                          = false;
     this->protect_registered_memory_overflow    = true;
     this->enable_progress_thread_pause          = true;

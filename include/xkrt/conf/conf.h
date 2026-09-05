@@ -76,6 +76,18 @@ typedef struct  conf_device_t
     bool use_p2p;                       /* enable/disable p2p */
     conf_offloader_t offloader;         /* offloader conf */
 
+    /* Occupancy policy for device programs, in blocks (CTAs) per SM. 0 = let
+     * each program keep the occupancy it was recorded with (see
+     * cgir::command_prog_t::blocks_per_sm); a positive value forces that many
+     * blocks per SM on every program launch, by capping the launch grid.
+     *
+     * The occupancy that maximizes throughput is a property of the *data*, not
+     * of the code -- a kernel whose gather relies on cache reuse is usually
+     * fastest well below the hardware maximum, because co-resident blocks
+     * compete for the same cache. Only the runtime can know that, which is why
+     * this is a runtime knob and not a compile-time launch bound. */
+    uint32_t prog_blocks_per_sm;
+
     memory_allocator_type_t memory_allocator_type;
     memory_size_t memory_size_initial;
     memory_size_t memory_size_resize;

@@ -70,9 +70,14 @@
 # include <cassert>
 # include <cstdio>
 # include <cstdint>
+# include <cstdlib>
 # include <cerrno>
 
 # include <algorithm>
+# include <map>
+# include <mutex>
+# include <string>
+# include <utility>
 
 XKRT_NAMESPACE_BEGIN
 
@@ -357,6 +362,10 @@ XKRT_DRIVER_ENTRYPOINT(device_init)(device_driver_id_t device_driver_id)
     CU_SAFE_CALL(cuDeviceGetAttribute(&device->cu.prop.cc_minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, device->cu.device));
     snprintf(device->cu.prop.arch, sizeof(device->cu.prop.arch), "sm_%d%d",
              device->cu.prop.cc_major, device->cu.prop.cc_minor);
+
+    /* SM count: needed to convert a blocks-per-SM occupancy target into a grid
+     * size (see cu_prog_grid_x) */
+    CU_SAFE_CALL(cuDeviceGetAttribute(&device->cu.prop.nsm, CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, device->cu.device));
 }
 
 /* Device LLVM code-generation target (see driver_t::f_device_get_target). The
@@ -369,6 +378,27 @@ XKRT_DRIVER_ENTRYPOINT(device_get_target)(device_driver_id_t device_driver_id,
     device_cu_t * device = device_cu_get(device_driver_id);
     if (triple) *triple = "nvptx64-nvidia-cuda";
     if (arch)   *arch   = device ? device->cu.prop.arch : NULL;
+}
+
+/* Blocks (CTAs) of `block_threads` threads the device can co-schedule per SM for
+ * the kernel `fn`, i.e. its occupancy limit (see driver_t::f_prog_max_blocks_per_sm).
+ * 0 when `fn` is not a resolved device kernel. */
+static unsigned int
+XKRT_DRIVER_ENTRYPOINT(prog_max_blocks_per_sm)(
+    device_driver_id_t device_driver_id,
+    void * fn,
+    unsigned int block_threads,
+    size_t dyn_smem
+) {
+    if (fn == NULL || block_threads == 0)
+        return 0;
+
+    cu_set_context(device_driver_id);
+
+    int blocks = 0;
+    const CUresult res = cuOccupancyMaxActiveBlocksPerMultiprocessor(
+        &blocks, reinterpret_cast<CUfunction>(fn), (int) block_threads, dyn_smem);
+    return (res == CUDA_SUCCESS && blocks > 0) ? (unsigned int) blocks : 0;
 }
 
 # define USE_MMAP_EXPLICITLY 0
@@ -633,50 +663,144 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_suggest)(
     }
 }
 
-/* A JIT-fused device kernel arrives as PTX in the PROG source with the launcher fn
+/* Modules already loaded from PTX, keyed by (device, PTX text). cgir's jit pass
+ * gives every command node its own copy of the emitted PTX, so a graph typically
+ * holds many nodes whose PTX is byte-identical (the same construct instantiated
+ * over different tiles). Without this map each of them would pay its own
+ * cuModuleLoadDataEx -- i.e. its own PTX->SASS compile, several ms each -- and
+ * leave its own copy of the code resident on the device. Never evicted: modules
+ * are kept for the process lifetime (as the host JIT does). */
+static spinlock_t cu_ptx_modules_lock;
+static std::map<std::pair<device_driver_id_t, std::string>, CUmodule> cu_ptx_modules;
+
+/* A JIT'd device kernel arrives as PTX in the PROG source with the launcher fn
  * unresolved (cgir's jit pass emits PTX; the driver compiles it). On first launch,
  * load the PTX module (the CUDA driver JIT-compiles it to SASS) and resolve the
  * entry (source.symbol), caching the CUfunction in the launcher so replays reuse
- * it. The module is kept for the process lifetime (as the host JIT does). A no-op
- * for precompiled device kernels (fn already set) and non-PTX sources. */
+ * it. A no-op for precompiled device kernels (fn already set) and non-PTX
+ * sources.
+ *
+ * This is also where the occupancy guard is armed. command_prog_t::blocks_per_sm
+ * holds the occupancy of the program as it was *recorded* (measured on the
+ * ahead-of-time kernel, see command_graph_from_task_dependency_graph). It must
+ * only constrain the launch when this function actually substitutes different
+ * code AND that code raises occupancy; otherwise it is cleared, so the recorded
+ * grid is launched verbatim. */
 static void
 cu_ensure_prog_loaded(device_driver_id_t device_driver_id, cgir::command_t * command)
 {
     auto & prog = command->prog;
     if (prog.launcher.variadic.fn != NULL)
+    {
+        /* nothing substituted: the running code *is* the recorded code */
+        prog.blocks_per_sm = 0;
         return ;
+    }
     if (prog.source.type != cgir::COMMAND_PROG_SOURCE_TYPE_PTX ||
         prog.source.content.llvmir.raw == NULL)
+    {
+        prog.blocks_per_sm = 0;
         return ;
+    }
 
     cu_set_context(device_driver_id);
+
+    const std::string ptx(static_cast<const char *>(prog.source.content.llvmir.raw));
+    SPINLOCK_LOCK(cu_ptx_modules_lock);
+
     CUmodule mod = NULL;
-    /* Load via cuModuleLoadDataEx with JIT log buffers so a PTX compile/link
-     * failure (e.g. an unresolved extern such as __kmpc_target_init from the
-     * OpenMP device runtime) is reported with the ptxas diagnostic instead of an
-     * opaque CUDA_ERROR_INVALID_PTX (218). */
-    char jit_info[8192]; jit_info[0] = '\0';
-    char jit_err [8192]; jit_err [0] = '\0';
-    CUjit_option jit_opts[] = {
-        CU_JIT_INFO_LOG_BUFFER,  CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES,
-        CU_JIT_ERROR_LOG_BUFFER, CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES,
-    };
-    void * jit_optvals[] = {
-        (void *) jit_info, (void *) (uintptr_t) sizeof(jit_info),
-        (void *) jit_err,  (void *) (uintptr_t) sizeof(jit_err),
-    };
-    CUresult lres = cuModuleLoadDataEx(&mod, prog.source.content.llvmir.raw,
-        (unsigned int) (sizeof(jit_opts) / sizeof(jit_opts[0])), jit_opts, jit_optvals);
-    if (lres != CUDA_SUCCESS)
-        LOGGER_FATAL("cuModuleLoadDataEx failed (%d) for JIT'd device program:\n%s%s",
-            (int) lres,
-            jit_err[0]  ? jit_err  : "(no JIT error log)\n",
-            jit_info[0] ? jit_info : "");
+    const auto key = std::make_pair(device_driver_id, ptx);
+    auto it = cu_ptx_modules.find(key);
+    if (it != cu_ptx_modules.end())
+    {
+        mod = it->second;
+    }
+    else
+    {
+        /* Load via cuModuleLoadDataEx with JIT log buffers so a PTX compile/link
+         * failure (e.g. an unresolved extern such as __kmpc_target_init from the
+         * OpenMP device runtime) is reported with the ptxas diagnostic instead of an
+         * opaque CUDA_ERROR_INVALID_PTX (218). */
+        char jit_info[8192]; jit_info[0] = '\0';
+        char jit_err [8192]; jit_err [0] = '\0';
+        CUjit_option jit_opts[] = {
+            CU_JIT_INFO_LOG_BUFFER,  CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES,
+            CU_JIT_ERROR_LOG_BUFFER, CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES,
+        };
+        void * jit_optvals[] = {
+            (void *) jit_info, (void *) (uintptr_t) sizeof(jit_info),
+            (void *) jit_err,  (void *) (uintptr_t) sizeof(jit_err),
+        };
+        CUresult lres = cuModuleLoadDataEx(&mod, ptx.c_str(),
+            (unsigned int) (sizeof(jit_opts) / sizeof(jit_opts[0])), jit_opts, jit_optvals);
+        if (lres != CUDA_SUCCESS)
+            LOGGER_FATAL("cuModuleLoadDataEx failed (%d) for JIT'd device program:\n%s%s",
+                (int) lres,
+                jit_err[0]  ? jit_err  : "(no JIT error log)\n",
+                jit_info[0] ? jit_info : "");
+        cu_ptx_modules.emplace(key, mod);
+    }
+    SPINLOCK_UNLOCK(cu_ptx_modules_lock);
+
     const char * sym = prog.source.content.llvmir.symbol
         ? prog.source.content.llvmir.symbol : "__fused_wrapper";
     CUfunction fn = NULL;
     CU_SAFE_CALL(cuModuleGetFunction(&fn, mod, sym));
     prog.launcher.variadic.fn = reinterpret_cast<void (*)(void **)>(fn);
+
+    /* Arm the occupancy guard only if the substituted code is co-scheduled more
+     * densely than the code it replaces. The guard never *raises* occupancy: a
+     * replacement that needs more registers than the original is left alone. */
+    if (prog.blocks_per_sm)
+    {
+        const unsigned int threads = prog.block.x * prog.block.y * prog.block.z;
+        int blocks = 0;
+        if (threads == 0 ||
+            cuOccupancyMaxActiveBlocksPerMultiprocessor(&blocks, fn, (int) threads, 0) != CUDA_SUCCESS ||
+            blocks <= 0 || (unsigned int) blocks <= prog.blocks_per_sm)
+        {
+            prog.blocks_per_sm = 0;
+        }
+        else
+        {
+            LOGGER_INFO("prog `%s`: JIT'd kernel is %d blocks/SM vs %u recorded; "
+                        "capping the grid to preserve occupancy",
+                        sym, blocks, prog.blocks_per_sm);
+        }
+    }
+}
+
+/* Grid X to launch `command` with: the recorded grid, capped so that no more than
+ * `blocks_per_sm` blocks are co-resident per SM.
+ *
+ * The target is XKRT_PROG_BLOCKS_PER_SM when set (a global policy, applied to
+ * every program), else command_prog_t::blocks_per_sm -- which cu_ensure_prog_loaded
+ * arms only when the launched code is a substitution that *raises* occupancy. So
+ * with the default policy this is the identity for every unmodified program, i.e.
+ * one predictable branch on the launch path.
+ *
+ * Capping the grid (rather than padding shared memory to squeeze out blocks) is
+ * exact and needs no carveout tuning, and it is semantics-preserving here because
+ * these kernels are grid-stride: an OpenMP `distribute` loop advances by
+ * gridDim.x*blockDim.x, and libomptarget already relies on that -- it clamps the
+ * trip-count-derived grid to a device default before the grid is ever recorded. A
+ * driver whose programs are not grid-stride must not use this. */
+static inline unsigned int
+cu_prog_grid_x(device_driver_id_t device_driver_id, const cgir::command_t * command)
+{
+    const auto & prog = command->prog;
+
+    const device_cu_t * device = device_cu_get(device_driver_id);
+    if (device == NULL || device->cu.prop.nsm <= 0)
+        return prog.grid.x;
+
+    const uint32_t policy = device->inherited.conf ? device->inherited.conf->prog_blocks_per_sm : 0;
+    const unsigned int bpsm = policy ? (unsigned int) policy : prog.blocks_per_sm;
+    if (bpsm == 0)
+        return prog.grid.x;
+
+    const unsigned int cap = (unsigned int) device->cu.prop.nsm * bpsm;
+    return (prog.grid.x && prog.grid.x < cap) ? prog.grid.x : cap;
 }
 
 command_batch_cu_handle_t * XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(
@@ -754,7 +878,7 @@ XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
                          * device kernel it actually holds the CUfunction handle
                          * (function<->object pointer reinterpret is POSIX-safe). */
                         params.func             = reinterpret_cast<CUfunction>(command->prog.launcher.variadic.fn);
-                        params.gridDimX         = command->prog.grid.x;
+                        params.gridDimX         = cu_prog_grid_x(device_driver_id, command);
                         params.gridDimY         = command->prog.grid.y;
                         params.gridDimZ         = command->prog.grid.z;
                         params.blockDimX        = command->prog.block.x;
@@ -1033,7 +1157,7 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
             CU_SAFE_CALL(
                 cuLaunchKernel(
                     reinterpret_cast<CUfunction>(command->prog.launcher.variadic.fn),
-                    command->prog.grid.x,
+                    cu_prog_grid_x(device_driver_id, command),
                     command->prog.grid.y,
                     command->prog.grid.z,
                     command->prog.block.x,
@@ -1646,6 +1770,7 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 
     REGISTER(device_info);
     REGISTER(device_get_target);
+    REGISTER(prog_max_blocks_per_sm);
 
     REGISTER(copy_h2d);
     REGISTER(copy_d2h);
