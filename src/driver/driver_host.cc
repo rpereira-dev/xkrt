@@ -336,7 +336,7 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_process_node)(
 
                 // if a host command graph, forward the runtime as a driver_handle
                 // and propagate the replay team to the nested sub-graph
-                if (node->command->type == cgir::COMMAND_TYPE_BATCH && node->device_unique_id == XKRT_HOST_DEVICE_UNIQUE_ID)
+                if (node->command->type == cgir::COMMAND_TYPE_PACK && node->device_unique_id == XKRT_HOST_DEVICE_UNIQUE_ID)
                 {
                     ((command_graph_t *) node->command->batch.cg)->replay_team   = cg->replay_team;
                     ((command_graph_t *) node->command->batch.cg)->driver_handle = runtime;
@@ -536,7 +536,7 @@ XKRT_DRIVER_ENTRYPOINT(command_execute)(
     device_driver_id_t device_driver_id,
     command_t * command
 ) {
-    assert(command->type == cgir::COMMAND_TYPE_BATCH);
+    assert(command->type == cgir::COMMAND_TYPE_PACK);
 
     command_graph_t * cg = (command_graph_t *) command->batch.cg;
     assert(cg);
@@ -563,7 +563,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
     assert(
         command->type == cgir::COMMAND_TYPE_FD_READ  ||
         command->type == cgir::COMMAND_TYPE_FD_WRITE ||
-        command->type == cgir::COMMAND_TYPE_BATCH
+        command->type == cgir::COMMAND_TYPE_PACK
     );
 
     queue_host_t * queue = (queue_host_t *)iqueue;
@@ -600,8 +600,8 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
          * the ring is getting full.  This amortises the syscall cost across
          * multiple commands.
          */
-        constexpr unsigned BATCH_THRESHOLD = 16;
-        if (queue->io_uring.pending_submits >= BATCH_THRESHOLD)
+        constexpr unsigned PACK_THRESHOLD = 16;
+        if (queue->io_uring.pending_submits >= PACK_THRESHOLD)
             io_uring_flush_submits(queue);
 
         return EINPROGRESS;
@@ -609,7 +609,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
     // batch commands = emit all sub-cg commands
     else
     {
-        assert(command->type == cgir::COMMAND_TYPE_BATCH);
+        assert(command->type == cgir::COMMAND_TYPE_PACK);
 
         command_graph_t * cg = (command_graph_t *) command->batch.cg;
         assert(cg);
@@ -714,7 +714,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_wait)(
 
         case (XKRT_QUEUE_TYPE_KERN):
         {
-            assert(command->type == cgir::COMMAND_TYPE_BATCH);
+            assert(command->type == cgir::COMMAND_TYPE_PACK);
 
             command_graph_t * cg = (command_graph_t *) command->batch.cg;
             assert(cg);
@@ -794,7 +794,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_progress)(
         {
             iqueue->progress([&] (command_t * command, xkrt_command_queue_list_counter_t p) {
 
-                assert(command->type == cgir::COMMAND_TYPE_BATCH);
+                assert(command->type == cgir::COMMAND_TYPE_PACK);
                 assert(command->batch.cg);
 
                 command_graph_node_t * exit  = (command_graph_node_t *) command->batch.cg->node_get_exit();

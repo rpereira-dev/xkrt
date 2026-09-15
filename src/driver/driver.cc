@@ -619,7 +619,7 @@ driver_device_command_queue_launch_ready(
                 /* else, fallthrough so the driver launch the program */
             }
 
-            case (cgir::COMMAND_TYPE_BATCH):
+            case (cgir::COMMAND_TYPE_PACK):
             case (cgir::COMMAND_TYPE_COPY_H2D_1D):
             case (cgir::COMMAND_TYPE_COPY_D2H_1D):
             case (cgir::COMMAND_TYPE_COPY_D2D_1D):

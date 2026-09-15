@@ -373,12 +373,19 @@ XKRT_DRIVER_ENTRYPOINT(device_init)(device_driver_id_t device_driver_id)
  * triple is fixed for CUDA; the arch is the device's compute capability, cached
  * in device_init. Both strings are stable (constant / device-owned). */
 static void
-XKRT_DRIVER_ENTRYPOINT(device_get_target)(device_driver_id_t device_driver_id,
-                                          const char ** triple, const char ** arch)
-{
-    device_cu_t * device = device_cu_get(device_driver_id);
-    if (triple) *triple = "nvptx64-nvidia-cuda";
-    if (arch)   *arch   = device ? device->cu.prop.arch : NULL;
+XKRT_DRIVER_ENTRYPOINT(device_get_target)(
+    device_driver_id_t device_driver_id,
+    const char ** triple,
+    const char ** arch
+) {
+    if (triple)
+        *triple = "nvptx64-nvidia-cuda";
+
+    if (arch)
+    {
+        device_cu_t * device = device_cu_get(device_driver_id);
+        *arch = device ? device->cu.prop.arch : NULL;
+    }
 }
 
 /* Blocks (CTAs) of `block_threads` threads the device can co-schedule per SM for
@@ -690,9 +697,12 @@ static std::map<std::tuple<device_driver_id_t, std::string, unsigned int>, CUmod
  * let ptxas choose) and resolve `sym` in it. Modules are cached; NULL on
  * failure to resolve. Requires the device context to be current. */
 static CUfunction
-cu_ptx_get_function(device_driver_id_t device_driver_id, const std::string & ptx,
-                    const char * sym, unsigned int maxregs)
-{
+cu_ptx_get_function(
+    device_driver_id_t device_driver_id,
+    const std::string & ptx,
+    const char * sym,
+    unsigned int maxregs
+) {
     SPINLOCK_LOCK(cu_ptx_modules_lock);
 
     CUmodule mod = NULL;
@@ -734,7 +744,10 @@ cu_ptx_get_function(device_driver_id_t device_driver_id, const std::string & ptx
 
     CUfunction fn = NULL;
     if (cuModuleGetFunction(&fn, mod, sym) != CUDA_SUCCESS)
+    {
+        LOGGER_FATAL("cuModuleGetFunction failed for JIT'd device program `%s`", sym);
         return NULL;
+    }
     return fn;
 }
 
@@ -958,8 +971,7 @@ cu_prog_resolve(device_driver_id_t device_driver_id, cgir::command_t * command)
         ? prog.source.content.llvmir.symbol : "__fused_wrapper";
 
     CUfunction fn = cu_ptx_get_function(device_driver_id, ptx, sym, 0);
-    if (fn == NULL)
-        LOGGER_FATAL("cuModuleGetFunction failed for JIT'd device program `%s`", sym);
+    assert(fn);
     prog.launcher.variadic.fn = reinterpret_cast<void (*)(void **)>(fn);
 }
 
@@ -1006,8 +1018,7 @@ cu_prog_raise_occupancy(device_driver_id_t device_driver_id, cgir::command_t * c
     const char * sym = prog.source.content.llvmir.symbol
         ? prog.source.content.llvmir.symbol : "__fused_wrapper";
     CUfunction capped = cu_ptx_get_function(device_driver_id, ptx, sym, (unsigned int) cap);
-    if (capped == NULL)
-        return ;
+    assert(capped);
 
     int local_after = 0;
     cuFuncGetAttribute(&local_after, CU_FUNC_ATTRIBUTE_LOCAL_SIZE_BYTES, capped);
@@ -1085,7 +1096,7 @@ XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
     device_driver_id_t device_driver_id,
     cgir::command_t * command
 ) {
-    assert(command->type == cgir::COMMAND_TYPE_BATCH);
+    assert(command->type == cgir::COMMAND_TYPE_PACK);
     assert(command->batch.cg);
 
     /* set context */
@@ -1327,7 +1338,7 @@ XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
                         break ;
                     }
 
-                    case (cgir::COMMAND_TYPE_BATCH):
+                    case (cgir::COMMAND_TYPE_PACK):
                     {
                         command_batch_cu_handle_t * command_handle = XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(device_driver_id, (command_t *) command);
                         CU_SAFE_CALL(cuGraphAddChildGraphNode(cu_node, handle->graph, deps, ndeps, command_handle->graph));
@@ -1650,7 +1661,7 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
             return EINPROGRESS;
         }
 
-        case (cgir::COMMAND_TYPE_BATCH):
+        case (cgir::COMMAND_TYPE_PACK):
         {
             command_batch_cu_handle_t * handle = XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(device_driver_id, command);
             CU_SAFE_CALL(cuGraphLaunch(handle->graph_exec, stream));
@@ -1750,7 +1761,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_progress)(
             case (cgir::COMMAND_TYPE_COPY_H2D_2D):
             case (cgir::COMMAND_TYPE_COPY_D2H_2D):
             case (cgir::COMMAND_TYPE_COPY_D2D_2D):
-            case (cgir::COMMAND_TYPE_BATCH):
+            case (cgir::COMMAND_TYPE_PACK):
             {
                 CUevent event = queue->cu.events.buffer[p];
                 CUresult res = cuEventQuery(event);

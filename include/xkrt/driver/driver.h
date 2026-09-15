@@ -251,14 +251,14 @@ typedef struct  driver_t
     // COMMANDS MANAGEMENT //
     /////////////////////////
 
-    /* Contract the passed command subgraph to a single BATCH command.
+    /* Contract the passed command subgraph to a single PACK command.
      * All commands of the subgraph are scheduled on the same device of `driver_id`.
      * The resulting command must be written to `command` */
-    void * (*f_command_batch_init)(device_driver_id_t device_driver_id, command_batch_t * cmd);
+    void * (*f_command_pack_init)(device_driver_id_t device_driver_id, command_pack_t * cmd);
 
-    /* Release driver resources associated with a BATCH command
+    /* Release driver resources associated with a PACK command
      * previously created by f_command_graph_init */
-    void (*f_command_batch_deinit)(device_driver_id_t device_driver_id, const command_batch_t * cmd, void * handle);
+    void (*f_command_pack_deinit)(device_driver_id_t device_driver_id, const command_pack_t * cmd, void * handle);
     # endif
 
     ///////////////////

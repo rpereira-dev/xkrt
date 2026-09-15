@@ -109,14 +109,14 @@ typedef struct  driver_cu_t
     driver_t super;
 }               driver_cu_t;
 
-/* Opaque state kept behind command_batch_t::driver_handle for CUDA.
+/* Opaque state kept behind command_pack_t::driver_handle for CUDA.
  * Forward-declared here so it can be used in command_queue_launch. */
-typedef struct  command_batch_cu_handle_t
+typedef struct  command_pack_cu_handle_t
 {
     CUgraph     graph;
     CUgraphExec graph_exec;
 
-}               command_batch_cu_handle_t;
+}               command_pack_cu_handle_t;
 
 XKRT_NAMESPACE_END
 

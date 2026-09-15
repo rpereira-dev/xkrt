@@ -227,6 +227,8 @@ runtime_t::command_graph_from_task_dependency_graph(
                 all_cmd_are_on_same_device = false;
             }
 
+            // TODO: instead, we want a 'program format' too, no ?
+            // TODO: so that caching JIT is tied to a format, rather than globally to llvm-ir/ptx
             // forward the task format's source (if any) to program commands
             if (rec.command.type == cgir::COMMAND_TYPE_PROG)
             {
@@ -244,14 +246,7 @@ runtime_t::command_graph_from_task_dependency_graph(
                         rec.command.prog.source = src;
                 }
 
-                /* Device kernels: attach the executing device's codegen target
-                 * (triple/arch) so cgir's fuse/jit passes compile the device IR for
-                 * the GPU (and emit PTX) instead of the host. The source may be
-                 * forwarded from the task format (above) or already set on the
-                 * emitted command (e.g. xktarget's target-kernel builder), so tag it
-                 * off the command's own LLVM-IR source -- not the format slot, which
-                 * is empty for runtime-emitted target kernels. Host progs leave
-                 * triple/arch NULL (host codegen). */
+                /* attach the codegen triple to the executing device */
                 if (cmd_device && cmd_device->driver_type != XKRT_DRIVER_TYPE_HOST &&
                     rec.command.prog.source.type == cgir::COMMAND_PROG_SOURCE_TYPE_LLVMIR &&
                     rec.command.prog.source.content.llvmir.raw != NULL)
@@ -259,25 +254,16 @@ runtime_t::command_graph_from_task_dependency_graph(
                     driver_t * driver = this->driver_get(cmd_device->driver_type);
                     if (driver && driver->f_device_get_target)
                     {
-                        driver->f_device_get_target(cmd_device->driver_id,
+                        driver->f_device_get_target(
+                            cmd_device->driver_id,
                             &rec.command.prog.source.content.llvmir.triple,
-                            &rec.command.prog.source.content.llvmir.arch);
+                            &rec.command.prog.source.content.llvmir.arch
+                        );
                     }
                     else
                         LOGGER_FATAL("Driver `%s` does not support `f_device_get_target` to get target triple", driver ? driver->get_name() : "?");
 
-                    /* Pin the occupancy before the `jit` pass may replace the code.
-                     *
-                     * We are one step away from cg.optimize(), so the recorded
-                     * launcher is still the ahead-of-time compiled kernel. Its
-                     * register footprint is what decides how many blocks the device
-                     * co-schedules per SM, and a JIT-emitted replacement generally
-                     * has a *different* footprint (OpenMPOpt proving the kernel
-                     * SPMD-only removes the generic-mode path, so it needs fewer
-                     * registers and the device packs more blocks per SM). For a
-                     * kernel that lives off cache reuse that is a large regression,
-                     * so measure the occupancy now and let the driver hold the
-                     * replacement to it (see command_prog_t::blocks_per_sm). */
+                    /* Pin the occupancy before the `jit` pass may replace the code. */
                     if (driver && driver->f_prog_max_blocks_per_sm &&
                         rec.command.prog.launcher.variadic.fn != NULL &&
                         rec.command.prog.block.x != 0)
@@ -286,22 +272,14 @@ runtime_t::command_graph_from_task_dependency_graph(
                             cmd_device->driver_id,
                             (void *) rec.command.prog.launcher.variadic.fn,
                             rec.command.prog.block.x * rec.command.prog.block.y * rec.command.prog.block.z,
-                            0);
+                            0
+                        );
 
-                        /* How many blocks of this program the device runs at
-                         * once. cgir needs it to decide whether it may fuse this
-                         * program with the next one: a fused kernel is a single
-                         * launch, so it orders its parts with a grid-wide barrier,
-                         * and a barrier only completes when every block is
-                         * resident (see command_prog_t::max_coresident_blocks).
-                         * Left at 0 when the driver cannot say, which makes cgir
-                         * decline to fuse -- the safe answer. */
+                        /* How many blocks of this program the device runs at once. */
                         if (driver->f_device_compute_units)
                         {
-                            const unsigned int nsm =
-                                driver->f_device_compute_units(cmd_device->driver_id);
-                            rec.command.prog.max_coresident_blocks =
-                                nsm * rec.command.prog.blocks_per_sm;
+                            const unsigned int nsm = driver->f_device_compute_units(cmd_device->driver_id);
+                            rec.command.prog.max_coresident_blocks = nsm * rec.command.prog.blocks_per_sm;
                         }
                     }
                 }
@@ -439,23 +417,20 @@ void
 runtime_t::command_graph_replay(command_graph_t * cg)
 {
     constexpr device_unique_id_t device_unique_id = XKRT_HOST_DEVICE_UNIQUE_ID;
-    constexpr cgir::command_type_t ctype = cgir::COMMAND_TYPE_BATCH;
+    constexpr cgir::command_type_t ctype = cgir::COMMAND_TYPE_PACK;
     constexpr command_flag_t flags = COMMAND_FLAG_SERIALIZED | COMMAND_FLAG_SYNCHRONOUS;
     command_t command(ctype, flags);
-    command.batch.cg = cg;
+    command.pack.cg = cg;
     cg->driver_handle = (void *) this;
 
     // Capture the team of the thread initiating the replay. Host tasks emitted
     // while replaying this graph are spawned onto this team, so they run on a
     // host (device == NULL) thread even when their predecessor command completed
-    // on a device thread (whose completion callback drives the wavefront). The
-    // replay may run on a different team than the one that first spawned the
+    // on a device thread (whose completion callback will submit successors). The
     // tasks, hence capturing it here rather than relying on the original thread.
     cg->replay_team = (void *) thread_t::get_tls()->team;
 
-    // the top-level graph is replayed via the wavefront: `cg->is_serial` is
-    // false (it is the recorded graph, possibly holding sequence/batch sub-nodes,
-    // not itself a single collapsed chain of task PROGs)
+    // submit the serialized command graph to replay
     this->command_submit(device_unique_id, &command);
 }
 
