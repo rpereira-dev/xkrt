@@ -76,6 +76,18 @@ typedef struct  conf_device_t
     bool use_p2p;                       /* enable/disable p2p */
     conf_offloader_t offloader;         /* offloader conf */
 
+    /* Occupancy policy for device programs, in blocks (CTAs) per SM. 0 = hold
+     * each program to the occupancy it was recorded with (see
+     * cgir::command_prog_t::blocks_per_sm); a positive value overrides that
+     * target for every program.
+     *
+     * The occupancy that maximizes throughput is a property of the *data*, not
+     * of the code -- a program whose gather relies on cache reuse is usually
+     * fastest well below the hardware maximum, because co-resident blocks
+     * compete for the same cache. Only the runtime can know that, which is why
+     * this is a runtime knob and not a compile-time launch bound. */
+    uint32_t prog_blocks_per_sm;
+
     memory_allocator_type_t memory_allocator_type;
     memory_size_t memory_size_initial;
     memory_size_t memory_size_resize;
@@ -100,17 +112,20 @@ typedef struct  conf_s
 {
     conf_device_t device;      /* device conf */
     conf_drivers_t drivers;    /* driver conf */
-    bool merge_transfers;           /* attempt to merge continuous memory to a single transfer */
+    bool merge_copies;              /* attempt to merge continuous memory to a single copy */
     bool report_stats_on_deinit;    /* report stats on deinit */
 
-    /* keep track of registered memory, and split transfers for each registered
-     * segment to avoid cuda crashing while transfering memory that is
+    /* keep track of registered memory, and split copies for each registered
+     * segment to avoid cuda crashing while copying memory that is
      * partially registered */
     bool protect_registered_memory_overflow;
 
+    /* dump taskgraph to dot file after recording */
+    bool taskgraph_dump;
+
     /* prefetch memory: when completing a predecessor, if the successor place
      * of execution is known, and its a WaR dependency, then initiate data
-     * transfer now */
+     * copy now */
     bool enable_prefetching;
 
     /* pause progress thread until a random command completed,

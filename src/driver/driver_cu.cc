@@ -70,9 +70,14 @@
 # include <cassert>
 # include <cstdio>
 # include <cstdint>
+# include <cstdlib>
 # include <cerrno>
 
 # include <algorithm>
+# include <map>
+# include <string>
+# include <tuple>
+# include <utility>
 
 XKRT_NAMESPACE_BEGIN
 
@@ -357,18 +362,61 @@ XKRT_DRIVER_ENTRYPOINT(device_init)(device_driver_id_t device_driver_id)
     CU_SAFE_CALL(cuDeviceGetAttribute(&device->cu.prop.cc_minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, device->cu.device));
     snprintf(device->cu.prop.arch, sizeof(device->cu.prop.arch), "sm_%d%d",
              device->cu.prop.cc_major, device->cu.prop.cc_minor);
+
+    /* SM count and register file size: the unit and the currency of the
+     * blocks-per-SM occupancy targets (see cu_prog_prepare) */
+    CU_SAFE_CALL(cuDeviceGetAttribute(&device->cu.prop.nsm, CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, device->cu.device));
+    CU_SAFE_CALL(cuDeviceGetAttribute(&device->cu.prop.regs_per_sm, CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_MULTIPROCESSOR, device->cu.device));
 }
 
 /* Device LLVM code-generation target (see driver_t::f_device_get_target). The
  * triple is fixed for CUDA; the arch is the device's compute capability, cached
  * in device_init. Both strings are stable (constant / device-owned). */
 static void
-XKRT_DRIVER_ENTRYPOINT(device_get_target)(device_driver_id_t device_driver_id,
-                                          const char ** triple, const char ** arch)
-{
-    device_cu_t * device = device_cu_get(device_driver_id);
-    if (triple) *triple = "nvptx64-nvidia-cuda";
-    if (arch)   *arch   = device ? device->cu.prop.arch : NULL;
+XKRT_DRIVER_ENTRYPOINT(device_get_target)(
+    device_driver_id_t device_driver_id,
+    const char ** triple,
+    const char ** arch
+) {
+    if (triple)
+        *triple = "nvptx64-nvidia-cuda";
+
+    if (arch)
+    {
+        device_cu_t * device = device_cu_get(device_driver_id);
+        *arch = device ? device->cu.prop.arch : NULL;
+    }
+}
+
+/* Blocks (CTAs) of `block_threads` threads the device can co-schedule per SM for
+ * the kernel `fn`, i.e. its occupancy limit (see driver_t::f_prog_max_blocks_per_sm).
+ * 0 when `fn` is not a resolved device kernel. */
+static unsigned int
+XKRT_DRIVER_ENTRYPOINT(prog_max_blocks_per_sm)(
+    device_driver_id_t device_driver_id,
+    void * fn,
+    unsigned int block_threads,
+    size_t dyn_smem
+) {
+    if (fn == NULL || block_threads == 0)
+        return 0;
+
+    cu_set_context(device_driver_id);
+
+    int blocks = 0;
+    const CUresult res = cuOccupancyMaxActiveBlocksPerMultiprocessor(
+        &blocks, reinterpret_cast<CUfunction>(fn), (int) block_threads, dyn_smem);
+    return (res == CUDA_SUCCESS && blocks > 0) ? (unsigned int) blocks : 0;
+}
+
+/* Number of SMs on the device (see driver_t::f_device_compute_units). Read once
+ * at device init into cu.prop.nsm. */
+static unsigned int
+XKRT_DRIVER_ENTRYPOINT(device_compute_units)(
+    device_driver_id_t device_driver_id
+) {
+    const device_cu_t * device = device_cu_get(device_driver_id);
+    return (device && device->cu.prop.nsm > 0) ? (unsigned int) device->cu.prop.nsm : 0;
 }
 
 # define USE_MMAP_EXPLICITLY 0
@@ -633,60 +681,423 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_suggest)(
     }
 }
 
-/* A JIT-fused device kernel arrives as PTX in the PROG source with the launcher fn
- * unresolved (cgir's jit pass emits PTX; the driver compiles it). On first launch,
- * load the PTX module (the CUDA driver JIT-compiles it to SASS) and resolve the
- * entry (source.symbol), caching the CUfunction in the launcher so replays reuse
- * it. The module is kept for the process lifetime (as the host JIT does). A no-op
- * for precompiled device kernels (fn already set) and non-PTX sources. */
+/* Modules already loaded from PTX, keyed by (device, PTX text, register cap).
+ * cgir's jit pass gives every command node its own copy of the emitted PTX, so a
+ * graph typically holds many nodes whose PTX is byte-identical (the same
+ * construct instantiated over different tiles). Without this map each of them
+ * would pay its own cuModuleLoadDataEx -- i.e. its own PTX->SASS compile,
+ * several ms each -- and leave its own copy of the code resident on the device.
+ * The register cap is part of the key because the same PTX compiled under a
+ * different cap is different code (see cu_prog_raise_occupancy). Never evicted:
+ * modules are kept for the process lifetime (as the host JIT does). */
+static spinlock_t cu_ptx_modules_lock;
+static std::map<std::tuple<device_driver_id_t, std::string, unsigned int>, CUmodule> cu_ptx_modules;
+
+/* Compile `ptx` for this device with at most `maxregs` registers per thread (0 =
+ * let ptxas choose) and resolve `sym` in it. Modules are cached; NULL on
+ * failure to resolve. Requires the device context to be current. */
+static CUfunction
+cu_ptx_get_function(
+    device_driver_id_t device_driver_id,
+    const std::string & ptx,
+    const char * sym,
+    unsigned int maxregs
+) {
+    SPINLOCK_LOCK(cu_ptx_modules_lock);
+
+    CUmodule mod = NULL;
+    const auto key = std::make_tuple(device_driver_id, ptx, maxregs);
+    auto it = cu_ptx_modules.find(key);
+    if (it != cu_ptx_modules.end())
+    {
+        mod = it->second;
+    }
+    else
+    {
+        /* Load via cuModuleLoadDataEx with JIT log buffers so a PTX compile/link
+         * failure (e.g. an unresolved extern such as __kmpc_target_init from the
+         * OpenMP device runtime) is reported with the ptxas diagnostic instead of
+         * an opaque CUDA_ERROR_INVALID_PTX (218). */
+        char jit_info[8192]; jit_info[0] = '\0';
+        char jit_err [8192]; jit_err [0] = '\0';
+        CUjit_option jit_opts[5] = {
+            CU_JIT_INFO_LOG_BUFFER,  CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES,
+            CU_JIT_ERROR_LOG_BUFFER, CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES,
+            CU_JIT_MAX_REGISTERS,
+        };
+        void * jit_optvals[5] = {
+            (void *) jit_info, (void *) (uintptr_t) sizeof(jit_info),
+            (void *) jit_err,  (void *) (uintptr_t) sizeof(jit_err),
+            (void *) (uintptr_t) maxregs,
+        };
+        const unsigned int nopts = maxregs ? 5 : 4;
+
+        CUresult lres = cuModuleLoadDataEx(&mod, ptx.c_str(), nopts, jit_opts, jit_optvals);
+        if (lres != CUDA_SUCCESS)
+            LOGGER_FATAL("cuModuleLoadDataEx failed (%d) for JIT'd device program:\n%s%s",
+                (int) lres,
+                jit_err[0]  ? jit_err  : "(no JIT error log)\n",
+                jit_info[0] ? jit_info : "");
+        cu_ptx_modules.emplace(key, mod);
+    }
+    SPINLOCK_UNLOCK(cu_ptx_modules_lock);
+
+    CUfunction fn = NULL;
+    if (cuModuleGetFunction(&fn, mod, sym) != CUDA_SUCCESS)
+    {
+        LOGGER_FATAL("cuModuleGetFunction failed for JIT'd device program `%s`", sym);
+        return NULL;
+    }
+    return fn;
+}
+
+/* Blocks per SM the device would co-schedule for `fn` with `threads` threads and
+ * `dyn` bytes of dynamic shared memory. 0 if the query fails. */
+static inline int
+cu_occupancy(CUfunction fn, unsigned int threads, size_t dyn)
+{
+    int blocks = 0;
+    if (cuOccupancyMaxActiveBlocksPerMultiprocessor(&blocks, fn, (int) threads, dyn) != CUDA_SUCCESS)
+        return 0;
+    return (blocks > 0) ? blocks : 0;
+}
+
+/* Written into command_prog_t::blocks_per_sm once the occupancy contract has been
+ * applied to a command, so the once-per-command work below is not redone on every
+ * launch. That field is documented as a request the driver consumes, so
+ * overwriting it is allowed. */
+static constexpr unsigned int CU_PROG_OCCUPANCY_APPLIED = ~0u;
+
+/* How far a rewritten program's occupancy may drift from the recorded one before
+ * the driver does anything about it, as a ratio in halves: 3/2, i.e. enforce only
+ * past a factor of 1.5 either way.
+ *
+ * A tolerance is not a concession, it is what makes the guard correct. Every lever
+ * the driver has is coarse -- the carveout is rounded to the device's own buckets,
+ * a register cap moves residency in whole blocks -- so demanding an exact match
+ * routinely means overshooting it. Measured on Krylov CG: a reduction kernel came
+ * out at 12 blocks/SM against 10 recorded, and the nearest carveout that satisfied
+ * "at most 10" gave 6. Cutting residency 40% to correct a 20% drift cost 35% of
+ * that kernel's runtime -- the guard did more damage than the drift it existed to
+ * prevent.
+ *
+ * The ratio is chosen against the regression that motivated the guard, which was
+ * roughly 7 -> 16 blocks/SM (2.3x) and still lands well outside it. It can afford
+ * to be generous because the driver is no longer the primary mechanism: cgir now
+ * declares the target to the assembler (`.minnctapersm`, see
+ * command_prog_t::blocks_per_sm), so the code arrives already sized for it and the
+ * driver only has to catch what codegen could not. */
+static constexpr unsigned int CU_PROG_OCCUPANCY_TOLERANCE_NUM = 3;
+static constexpr unsigned int CU_PROG_OCCUPANCY_TOLERANCE_DEN = 2;
+
+/* Whether `now` is far enough above / below `target` to be worth acting on.
+ * Written as products so the comparison stays in integers and never divides by a
+ * zero target (callers guarantee target > 0, but the form is robust anyway). */
+static inline bool
+cu_prog_occupancy_far_above(unsigned int now, unsigned int target)
+{
+    return (uint64_t) now * CU_PROG_OCCUPANCY_TOLERANCE_DEN >
+           (uint64_t) target * CU_PROG_OCCUPANCY_TOLERANCE_NUM;
+}
+
+static inline bool
+cu_prog_occupancy_far_below(unsigned int now, unsigned int target)
+{
+    return (uint64_t) now * CU_PROG_OCCUPANCY_TOLERANCE_NUM <
+           (uint64_t) target * CU_PROG_OCCUPANCY_TOLERANCE_DEN;
+}
+
+/* Bring a rewritten program's occupancy back down to `target`.
+ *
+ * Rewriting a program's code changes the per-block resources it uses, and those
+ * decide how many blocks the hardware co-schedules per SM -- so a pass that
+ * recompiles or fuses programs silently changes a launch property nobody asked
+ * it to change. That is not neutral: a program whose speed rests on cache reuse
+ * slows down when more of its blocks run at once and compete for the same cache.
+ *
+ * The lever has to be a resource the hardware accounts *per block*, so that the
+ * residency it frees cannot simply be taken by another block. Shrinking the grid
+ * does not qualify and does not work -- the blocks of a concurrently running
+ * program take the freed slots. Two that do, cheapest first:
+ *
+ *   1. the L1/shared-memory carveout. Shared-memory capacity bounds residency
+ *      (every resident block costs at least the driver's per-block reservation),
+ *      and a smaller carveout leaves *more* L1 -- which is what a program that
+ *      used to be co-scheduled sparsely tends to want. Free, so try it first.
+ *   2. dynamic shared memory as ballast, on top of whatever the program itself
+ *      requires. Always sufficient, but it spends the capacity L1 shares on most
+ *      devices, so it is the fallback.
+ *
+ * The carveout is a property of the CUfunction, which commands running the same
+ * code share (see the module cache above); they also share the recorded target,
+ * being instances of the same program, so the last writer agrees with the others.
+ * The ballast is per-command.
+ *
+ * `required` is the dynamic shared memory the program asks for in its own right;
+ * the returned amount is never below it. */
+static unsigned int
+cu_prog_lower_occupancy(CUfunction fn, unsigned int threads, unsigned int target,
+                        unsigned int required, const char * name)
+{
+    const int now = cu_occupancy(fn, threads, required);
+
+    /* The carveout this function was handed. Both scans below move it, so every
+     * path that decides against intervening has to put it back: the L1/shared
+     * split is an observable launch property, and silently changing it on a
+     * program we chose not to touch is precisely the class of accident this guard
+     * exists to prevent. CU_SHAREDMEM_CARVEOUT_DEFAULT (-1) is the "no preference"
+     * value and a legal thing to set back. */
+    int entry_pct = -1;
+    if (cuFuncGetAttribute(&entry_pct, CU_FUNC_ATTRIBUTE_PREFERRED_SHARED_MEMORY_CARVEOUT,
+                           fn) != CUDA_SUCCESS)
+        entry_pct = -1;
+
+    /* 1. Carveout. Residency is monotone non-decreasing in the carveout, so scan
+     * upwards and keep the setting with the highest residency that still respects
+     * the target; among equal residencies the smallest carveout wins, since it
+     * leaves the most L1. The percentage is a hint the driver rounds to its own
+     * buckets, hence a coarse scan rather than a binary search.
+     *
+     * Those buckets are why "still respects the target" is not enough on its own:
+     * the reachable residencies can step straight over it (10 wanted, 6 and 14
+     * offered), and taking the one below trades a small excess for a large
+     * deficit -- measured at 35% of a reduction kernel's runtime. A candidate that
+     * undershoots by more than the tolerance is therefore refused, and the scan
+     * also notes the cheapest carveout that stays *above* the target, which is the
+     * right base for the finer lever below. */
+    int best_pct = -1, best_blocks = 0;   /* closest at or below target */
+    int base_pct = -1;                    /* cheapest still above it */
+    for (int pct = 0 ; pct <= 100 ; pct += 5)
+    {
+        if (cuFuncSetAttribute(fn, CU_FUNC_ATTRIBUTE_PREFERRED_SHARED_MEMORY_CARVEOUT, pct) != CUDA_SUCCESS)
+            break ;
+        const int blocks = cu_occupancy(fn, threads, required);
+        if (blocks == 0)
+            continue ;
+        if ((unsigned int) blocks > target)
+        {
+            if (base_pct < 0)
+                base_pct = pct;
+            continue ;
+        }
+        if (blocks > best_blocks)
+        {
+            best_blocks = blocks;
+            best_pct    = pct;
+        }
+    }
+    if (best_pct >= 0 && !cu_prog_occupancy_far_below((unsigned int) best_blocks, target))
+    {
+        cuFuncSetAttribute(fn, CU_FUNC_ATTRIBUTE_PREFERRED_SHARED_MEMORY_CARVEOUT, best_pct);
+        LOGGER_INFO("prog `%s`: rewritten code is %d blocks/SM vs %u recorded; "
+                    "a %d%% shared-memory carveout brings it back to %d",
+                    name, now, target, best_pct, best_blocks);
+        return required;
+    }
+
+    /* 2. Ballast. Residency is monotone non-increasing in the dynamic shared
+     * memory, so binary-search the smallest amount that meets the target, i.e. the
+     * least L1 given up. Stay under the 48KiB that needs no opt-in.
+     *
+     * Start from the cheapest carveout that still leaves headroom above the
+     * target. Starting from one already below it would bake in the very undershoot
+     * step 1 just refused, and the byte-granular search would then dutifully add
+     * nothing while residency sat far too low. When no carveout leaves headroom,
+     * no combination of the two levers can land near the target and the honest
+     * answer is to leave the program alone. */
+    if (base_pct < 0)
+    {
+        cuFuncSetAttribute(fn, CU_FUNC_ATTRIBUTE_PREFERRED_SHARED_MEMORY_CARVEOUT, entry_pct);
+        LOGGER_WARN("prog `%s`: rewritten code is %d blocks/SM vs %u recorded and no "
+                    "per-block resource brings it near it; launching as-is",
+                    name, now, target);
+        return required;
+    }
+    cuFuncSetAttribute(fn, CU_FUNC_ATTRIBUTE_PREFERRED_SHARED_MEMORY_CARVEOUT, base_pct);
+
+    /* Three outcomes per probe, not two: past the shared-memory capacity the
+     * occupancy query reports 0 blocks, which means `mid` is too much and the
+     * search has to go *down*. Reading that as "not enough ballast yet" and going
+     * up -- as this did -- walks the search into configurations that fit even
+     * less, ends with nothing found, and then reports success. */
+    size_t lo = (size_t) required + 1, hi = 48u * 1024u, found = 0;
+    while (lo <= hi)
+    {
+        const size_t mid = lo + (hi - lo) / 2;   /* >= lo >= 1, so mid - 1 is safe */
+        const int blocks = cu_occupancy(fn, threads, mid);
+        if (blocks == 0)                            /* exceeds shared capacity */
+            hi = mid - 1;
+        else if ((unsigned int) blocks <= target)   /* enough; try less */
+        {
+            found = mid;
+            hi    = mid - 1;
+        }
+        else                                        /* not enough yet */
+            lo = mid + 1;
+    }
+    if (found == 0)
+    {
+        cuFuncSetAttribute(fn, CU_FUNC_ATTRIBUTE_PREFERRED_SHARED_MEMORY_CARVEOUT, entry_pct);
+        LOGGER_WARN("prog `%s`: rewritten code is %d blocks/SM vs %u recorded and no "
+                    "per-block resource brings it back; launching as-is",
+                    name, now, target);
+        return required;
+    }
+    LOGGER_INFO("prog `%s`: rewritten code is %d blocks/SM vs %u recorded; a %d%% "
+                "carveout plus %zu bytes of shared-memory ballast bring it back to %d",
+                name, now, target, base_pct, found, cu_occupancy(fn, threads, found));
+    return (unsigned int) found;
+}
+
+/* Resolve a JIT'd device kernel's handle. It arrives as PTX with its launcher fn
+ * unresolved (cgir's jit pass emits PTX; the driver compiles it): load the module
+ * (the CUDA driver JIT-compiles it to SASS) and resolve the entry
+ * (source.symbol), caching the CUfunction in the launcher so replays reuse it. A
+ * no-op for precompiled device kernels and non-PTX sources. */
 static void
-cu_ensure_prog_loaded(device_driver_id_t device_driver_id, cgir::command_t * command)
+cu_prog_resolve(device_driver_id_t device_driver_id, cgir::command_t * command)
 {
     auto & prog = command->prog;
-    if (prog.launcher.variadic.fn != NULL)
-        return ;
-    if (prog.source.type != cgir::COMMAND_PROG_SOURCE_TYPE_PTX ||
+
+    if (prog.launcher.variadic.fn != NULL ||
+        prog.source.type != cgir::COMMAND_PROG_SOURCE_TYPE_PTX ||
         prog.source.content.llvmir.raw == NULL)
         return ;
 
     cu_set_context(device_driver_id);
-    CUmodule mod = NULL;
-    /* Load via cuModuleLoadDataEx with JIT log buffers so a PTX compile/link
-     * failure (e.g. an unresolved extern such as __kmpc_target_init from the
-     * OpenMP device runtime) is reported with the ptxas diagnostic instead of an
-     * opaque CUDA_ERROR_INVALID_PTX (218). */
-    char jit_info[8192]; jit_info[0] = '\0';
-    char jit_err [8192]; jit_err [0] = '\0';
-    CUjit_option jit_opts[] = {
-        CU_JIT_INFO_LOG_BUFFER,  CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES,
-        CU_JIT_ERROR_LOG_BUFFER, CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES,
-    };
-    void * jit_optvals[] = {
-        (void *) jit_info, (void *) (uintptr_t) sizeof(jit_info),
-        (void *) jit_err,  (void *) (uintptr_t) sizeof(jit_err),
-    };
-    CUresult lres = cuModuleLoadDataEx(&mod, prog.source.content.llvmir.raw,
-        (unsigned int) (sizeof(jit_opts) / sizeof(jit_opts[0])), jit_opts, jit_optvals);
-    if (lres != CUDA_SUCCESS)
-        LOGGER_FATAL("cuModuleLoadDataEx failed (%d) for JIT'd device program:\n%s%s",
-            (int) lres,
-            jit_err[0]  ? jit_err  : "(no JIT error log)\n",
-            jit_info[0] ? jit_info : "");
+
+    const std::string ptx(static_cast<const char *>(prog.source.content.llvmir.raw));
     const char * sym = prog.source.content.llvmir.symbol
         ? prog.source.content.llvmir.symbol : "__fused_wrapper";
-    CUfunction fn = NULL;
-    CU_SAFE_CALL(cuModuleGetFunction(&fn, mod, sym));
+
+    CUfunction fn = cu_ptx_get_function(device_driver_id, ptx, sym, 0);
+    assert(fn);
     prog.launcher.variadic.fn = reinterpret_cast<void (*)(void **)>(fn);
 }
 
-/* Return a handle to the druver's internal representation of the batch */
+/* Raise a rewritten program's occupancy back up to `target`, by re-JITting its
+ * PTX under a register cap. The mirror image of cu_prog_lower_occupancy: a
+ * rewrite that makes a program *hungrier* (a fused kernel holding more live
+ * values, say) starves the device of parallelism just as surely as one that
+ * makes it leaner floods the cache.
+ *
+ * Only possible for a program we hold the source of -- there is nothing to
+ * recompile in a precompiled kernel, and by construction its occupancy already
+ * is the recorded one. Trading registers for occupancy backfires once the cap
+ * forces spills, so the new code is accepted only if it actually gains blocks
+ * and spills no more than the code it would replace. */
+static void
+cu_prog_raise_occupancy(device_driver_id_t device_driver_id, cgir::command_t * command,
+                        unsigned int threads, unsigned int target, int now, const char * name)
+{
+    auto & prog = command->prog;
+
+    if (prog.source.type != cgir::COMMAND_PROG_SOURCE_TYPE_PTX ||
+        prog.source.content.llvmir.raw == NULL)
+        return ;
+
+    const device_cu_t * device = device_cu_get(device_driver_id);
+    if (device == NULL || device->cu.prop.regs_per_sm <= 0)
+        return ;
+
+    /* registers per thread that leave room for `target` blocks on an SM */
+    const uint64_t slots = (uint64_t) target * (uint64_t) threads;
+    if (slots == 0)
+        return ;
+    uint64_t cap = (uint64_t) device->cu.prop.regs_per_sm / slots;
+    if (cap > 255)
+        cap = 255;
+    if (cap < 16)   /* below this ptxas has no realistic chance */
+        return ;
+
+    CUfunction fn = reinterpret_cast<CUfunction>(prog.launcher.variadic.fn);
+    int local_before = 0;
+    cuFuncGetAttribute(&local_before, CU_FUNC_ATTRIBUTE_LOCAL_SIZE_BYTES, fn);
+
+    const std::string ptx(static_cast<const char *>(prog.source.content.llvmir.raw));
+    const char * sym = prog.source.content.llvmir.symbol
+        ? prog.source.content.llvmir.symbol : "__fused_wrapper";
+    CUfunction capped = cu_ptx_get_function(device_driver_id, ptx, sym, (unsigned int) cap);
+    assert(capped);
+
+    int local_after = 0;
+    cuFuncGetAttribute(&local_after, CU_FUNC_ATTRIBUTE_LOCAL_SIZE_BYTES, capped);
+    const int gained = cu_occupancy(capped, threads, prog.dyn_shmem);
+
+    if (gained > now && local_after <= local_before)
+    {
+        prog.launcher.variadic.fn = reinterpret_cast<void (*)(void **)>(capped);
+        LOGGER_INFO("prog `%s`: rewritten code is %d blocks/SM vs %u recorded; "
+                    "recompiling under a %u-register cap brings it back to %d",
+                    name, now, target, (unsigned int) cap, gained);
+    }
+    else
+    {
+        LOGGER_INFO("prog `%s`: rewritten code is %d blocks/SM vs %u recorded; a "
+                    "%u-register cap would give %d blocks/SM and %d bytes of spill "
+                    "(vs %d), declining", name, now, target, (unsigned int) cap,
+                    gained, local_after, local_before);
+    }
+}
+
+/* Prepare a PROG command for launch: resolve its kernel handle, then hold it to
+ * its recorded occupancy. Both are once-per-command; the second runs for
+ * precompiled kernels too, where it is a no-op by construction (their occupancy
+ * *is* the recorded one), which keeps one code path and lets
+ * XKRT_PROG_BLOCKS_PER_SM override the target for any program.
+ *
+ * "Hold it to" means within a tolerance, not exactly -- see
+ * CU_PROG_OCCUPANCY_TOLERANCE_NUM for why an exact reading of the contract makes
+ * the guard harmful. */
+static void
+cu_prog_prepare(device_driver_id_t device_driver_id, cgir::command_t * command)
+{
+    auto & prog = command->prog;
+
+    cu_prog_resolve(device_driver_id, command);
+
+    if (prog.blocks_per_sm == CU_PROG_OCCUPANCY_APPLIED)
+        return ;
+
+    const device_cu_t * device = device_cu_get(device_driver_id);
+    const uint32_t policy = (device && device->inherited.conf)
+                          ? device->inherited.conf->prog_blocks_per_sm : 0;
+    const unsigned int target = policy ? (unsigned int) policy : prog.blocks_per_sm;
+    prog.blocks_per_sm = CU_PROG_OCCUPANCY_APPLIED;
+
+    const unsigned int threads = prog.block.x * prog.block.y * prog.block.z;
+    CUfunction fn = reinterpret_cast<CUfunction>(prog.launcher.variadic.fn);
+    if (target == 0 || threads == 0 || fn == NULL)
+        return ;
+
+    cu_set_context(device_driver_id);
+
+    const int now = cu_occupancy(fn, threads, prog.dyn_shmem);
+    if (now == 0)
+        return ;
+
+    const char * name = prog.source.content.llvmir.symbol
+                      ? prog.source.content.llvmir.symbol : "?";
+
+    if (cu_prog_occupancy_far_above((unsigned int) now, target))
+        prog.dyn_shmem = cu_prog_lower_occupancy(fn, threads, target, prog.dyn_shmem, name);
+    else if (cu_prog_occupancy_far_below((unsigned int) now, target))
+        cu_prog_raise_occupancy(device_driver_id, command, threads, target, now, name);
+}
+
+command_pack_cu_handle_t * XKRT_DRIVER_ENTRYPOINT(command_pack_ensure)(
+    device_driver_id_t device_driver_id,
+    command_t * command
+);
+
+/* Return a handle to the druver's internal representation of the pack */
 void *
-xkrt_cuda_driver_command_batch_init(
+XKRT_DRIVER_ENTRYPOINT(command_pack_init)(
     device_driver_id_t device_driver_id,
     cgir::command_t * command
 ) {
-    assert(command->type == cgir::COMMAND_TYPE_BATCH);
-    assert(command->batch.cg);
+    assert(command->type == cgir::COMMAND_TYPE_PACK);
+    assert(command->pack.cg);
 
     /* set context */
     cu_set_context(device_driver_id);
@@ -696,7 +1107,7 @@ xkrt_cuda_driver_command_batch_init(
     assert(device);
 
     /* allocate handle */
-    command_batch_cu_handle_t * handle = (command_batch_cu_handle_t *) malloc(sizeof(command_batch_cu_handle_t));
+    command_pack_cu_handle_t * handle = (command_pack_cu_handle_t *) malloc(sizeof(command_pack_cu_handle_t));
     assert(handle);
 
     /* create a CUDA graph */
@@ -706,15 +1117,14 @@ xkrt_cuda_driver_command_batch_init(
      * a node is processed, all its predecessors have already been processed,
      * so we can set CUDA dependencies */
     struct pls_t { CUgraphNode cu_node; };
-    using iterator_t = cgir::command_graph_t::node_iterator_t<pls_t>;
-    constexpr cgir::command_graph_walk_direction_t direction          = cgir::COMMAND_GRAPH_WALK_DIRECTION_FORWARD;
-    constexpr cgir::command_graph_walk_search_t    search             = cgir::COMMAND_GRAPH_WALK_SEARCH_BFS;
-    constexpr bool                                include_entry_exit = false;
+    constexpr cgir::command_graph_walk_search_t search = cgir::COMMAND_GRAPH_WALK_SEARCH_BFS;
+    constexpr cgir::command_graph_walk_order_t  order  = cgir::COMMAND_GRAPH_WALK_ORDER_PRE;
+    constexpr bool include_entry_exit = false;
 
-    std::vector<iterator_t> iterators = command->batch.cg->create_node_iterators<pls_t, include_entry_exit, direction, search>();
+    auto iterators = command->pack.cg->create_node_iterators<include_entry_exit, pls_t, search, order>();
 
     /* Iterate once to create all nodes */
-    for (iterator_t & it : iterators)
+    for (auto & it : iterators)
     {
         /* get command graph node */
         cgir::command_graph_node_t * node = it.node;
@@ -743,9 +1153,9 @@ xkrt_cuda_driver_command_batch_init(
                     {
                         CUDA_KERNEL_NODE_PARAMS params;
                         memset(&params, 0, sizeof(params));
-                        /* JIT-fused device kernels arrive as PTX: load + resolve on
-                         * first use (no-op otherwise). */
-                        cu_ensure_prog_loaded(device_driver_id, command);
+                        /* resolve the kernel handle (JIT'd kernels arrive as PTX)
+                         * and settle the occupancy contract; no-op afterwards */
+                        cu_prog_prepare(device_driver_id, command);
                         /* fn is CGIR's uniform void(void**) program pointer; for a
                          * device kernel it actually holds the CUfunction handle
                          * (function<->object pointer reinterpret is POSIX-safe). */
@@ -756,7 +1166,7 @@ xkrt_cuda_driver_command_batch_init(
                         params.blockDimX        = command->prog.block.x;
                         params.blockDimY        = command->prog.block.y;
                         params.blockDimZ        = command->prog.block.z;
-                        params.sharedMemBytes   = 0;
+                        params.sharedMemBytes   = command->prog.dyn_shmem;
                         /* VARIADIC: args is the kernelParams pointer array. PACKED:
                          * args is a byte buffer passed via the CU_LAUNCH_PARAM_BUFFER
                          * "extra" config (kernelParams must be NULL). */
@@ -777,6 +1187,40 @@ xkrt_cuda_driver_command_batch_init(
                         }
 
                         CU_SAFE_CALL(cuGraphAddKernelNode(cu_node, handle->graph, deps, ndeps, &params));
+
+                        /* A program cgir fused from several device programs orders
+                         * its parts with a grid-wide barrier, which only completes
+                         * if every block is resident. In a stream that guarantee
+                         * comes from launching cooperatively; in a graph it comes
+                         * from the same attribute on the node
+                         * (CU_LAUNCH_ATTRIBUTE_COOPERATIVE is documented valid for
+                         * graph nodes as well as launches). Without it the node is
+                         * an ordinary launch, nothing holds the grid resident, and
+                         * the barrier hangs -- which is what packing a fused kernel
+                         * used to do.
+                         *
+                         * It also makes the driver validate the grid against what
+                         * the device can co-schedule, so a fused kernel that is too
+                         * large fails the launch instead of deadlocking. */
+                        if (command->prog.requires_coresident_grid)
+                        {
+                            /* Same restriction as the stream path: cgir builds fused
+                             * device kernels over individual parameters, never the
+                             * packed byte buffer, because the cooperative path has
+                             * no way to pass one. It cannot happen; check rather
+                             * than trust. */
+                            if (command->prog.prototype == cgir::CGIR_COMMAND_PROG_FUNCTION_PROTOTYPE_PACKED)
+                                LOGGER_FATAL("A fused device program uses the packed "
+                                             "argument ABI, which a cooperative graph "
+                                             "node cannot pass");
+
+                            CUlaunchAttributeValue coop;
+                            memset(&coop, 0, sizeof(coop));
+                            coop.cooperative = 1;
+                            CU_SAFE_CALL(
+                                cuGraphKernelNodeSetAttribute(
+                                    *cu_node, CU_LAUNCH_ATTRIBUTE_COOPERATIVE, &coop));
+                        }
                         break ;
                     }
 
@@ -894,28 +1338,18 @@ xkrt_cuda_driver_command_batch_init(
                         break ;
                     }
 
-                    case (cgir::COMMAND_TYPE_BATCH):
+                    case (cgir::COMMAND_TYPE_PACK):
                     {
-                        // assert(command->batch.cg == false);
-
-                        if (command->batch.driver_handle == NULL)
-                            command->batch.driver_handle = xkrt_cuda_driver_command_batch_init(device_driver_id, command);
-
-                        if (command->batch.driver_handle == NULL)
-                            LOGGER_FATAL("Failed to initialized a command batch");
-
-                        command_batch_cu_handle_t * command_handle = (command_batch_cu_handle_t *) command->batch.driver_handle;
-                        assert(command_handle);
-
+                        command_pack_cu_handle_t * command_handle = XKRT_DRIVER_ENTRYPOINT(command_pack_ensure)(device_driver_id, (command_t *) command);
                         CU_SAFE_CALL(cuGraphAddChildGraphNode(cu_node, handle->graph, deps, ndeps, command_handle->graph));
                         break ;
                     }
 
                     default:
                     {
-                        /* unsupported command type for CUDA graph batching:
+                        /* unsupported command type for CUDA graph packing:
                          * abort the contraction */
-                        LOGGER_FATAL("Cannot batch command type %s into CUDA graph", cgir::command_type_to_str(command->type));
+                        LOGGER_FATAL("Cannot pack command type %s into CUDA graph", cgir::command_type_to_str(command->type));
                         CU_SAFE_CALL(cuGraphDestroy(handle->graph));
                         return NULL;
                     }
@@ -934,11 +1368,11 @@ xkrt_cuda_driver_command_batch_init(
         } /* switch case(command->type) */
     } /* for each iterator */
 
-    assert(command->batch.cg);
-    cgir::command_graph_node_t * entry = command->batch.cg->node_get_entry();
+    assert(command->pack.cg);
+    cgir::command_graph_node_t * entry = command->pack.cg->node_get_entry();
 
     /* iterate a second time to set dependencies */
-    for (iterator_t & it : iterators)
+    for (auto & it : iterators)
     {
         /* get command graph node */
         cgir::command_graph_node_t * node = it.node;
@@ -973,11 +1407,11 @@ xkrt_cuda_driver_command_batch_init(
 }
 
 void
-xkrt_cuda_driver_command_batch_deinit(
+XKRT_DRIVER_ENTRYPOINT(command_pack_deinit)(
     device_driver_id_t device_driver_id,
     const cgir::command_t * command
 ) {
-    command_batch_cu_handle_t * handle = (command_batch_cu_handle_t *) command->batch.driver_handle;
+    command_pack_cu_handle_t * handle = (command_pack_cu_handle_t *) ((command_graph_t *) command->pack.cg)->driver_handle;
 
     cu_set_context(device_driver_id);
 
@@ -990,6 +1424,24 @@ xkrt_cuda_driver_command_batch_deinit(
     free(handle);
 }
 
+command_pack_cu_handle_t *
+XKRT_DRIVER_ENTRYPOINT(command_pack_ensure)(
+    device_driver_id_t device_driver_id,
+    command_t * command
+) {
+    command_graph_t * cg = (command_graph_t *) command->pack.cg;
+    if (cg == NULL)
+        LOGGER_FATAL("Batch commands must have an associated command graph");
+
+    if (cg->driver_handle == NULL)
+        cg->driver_handle = XKRT_DRIVER_ENTRYPOINT(command_pack_init)(device_driver_id, command);
+
+    if (cg->driver_handle == NULL)
+        LOGGER_FATAL("Failed to initialized a command pack");
+
+    return  (command_pack_cu_handle_t *) cg->driver_handle;
+}
+
 static int
 XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
     device_driver_id_t device_driver_id,
@@ -1000,11 +1452,9 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
     {
         case (cgir::COMMAND_TYPE_PROG):
         {
-            constexpr size_t sharedmemory = 0;
-
-            /* JIT-fused device kernels arrive as PTX: load + resolve on first use
-             * (no-op for precompiled kernels / non-PTX sources). */
-            cu_ensure_prog_loaded(device_driver_id, command);
+            /* resolve the kernel handle (JIT'd kernels arrive as PTX) and settle
+             * the occupancy contract; no-op afterwards */
+            cu_prog_prepare(device_driver_id, command);
 
             /* Two arg forms (see command_prog_function_prototype_t):
              *  - VARIADIC: `args` is the kernelParams pointer array.
@@ -1018,21 +1468,63 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
                 (void *) CU_LAUNCH_PARAM_BUFFER_SIZE,    (void *) &command->prog.args_size,
                 (void *) CU_LAUNCH_PARAM_END
             };
-            CU_SAFE_CALL(
-                cuLaunchKernel(
-                    reinterpret_cast<CUfunction>(command->prog.launcher.variadic.fn),
-                    command->prog.grid.x,
-                    command->prog.grid.y,
-                    command->prog.grid.z,
-                    command->prog.block.x,
-                    command->prog.block.y,
-                    command->prog.block.z,
-                    sharedmemory,
-                    stream,
-                    packed ? nullptr : command->prog.args,   /* kernelParams */
-                    packed ? cu_config : nullptr             /* extra */
-                )
-            );
+            if (command->prog.requires_coresident_grid)
+            {
+                /* A program cgir fused from several device programs. It is one
+                 * launch where there used to be several, so the ordering the
+                 * launch boundaries used to provide now comes from a grid-wide
+                 * barrier inside the kernel -- and that barrier only completes if
+                 * every block is running at once. A cooperative launch is what
+                 * guarantees it: the driver either schedules the whole grid or
+                 * refuses, where an ordinary launch would simply hang.
+                 *
+                 * cgir checked the grid against max_coresident_blocks before
+                 * fusing, so a refusal here means that estimate was optimistic --
+                 * which is worth failing loudly over, and is exactly the outcome
+                 * this launch exists to turn into an error instead of a hang.
+                 *
+                 * cgir builds a fused device kernel over individual parameters
+                 * (the kernelParams ABI), never the packed byte buffer, and
+                 * cuLaunchCooperativeKernel has no `extra` argument to pass one
+                 * through -- so a packed fused device program would be silently
+                 * mislaunched. It cannot happen; check rather than trust. */
+                if (packed)
+                    LOGGER_FATAL("A fused device program uses the packed argument "
+                                 "ABI, which a cooperative launch cannot pass");
+
+                CU_SAFE_CALL(
+                    cuLaunchCooperativeKernel(
+                        reinterpret_cast<CUfunction>(command->prog.launcher.variadic.fn),
+                        command->prog.grid.x,
+                        command->prog.grid.y,
+                        command->prog.grid.z,
+                        command->prog.block.x,
+                        command->prog.block.y,
+                        command->prog.block.z,
+                        command->prog.dyn_shmem,
+                        stream,
+                        command->prog.args   /* kernelParams */
+                    )
+                );
+            }
+            else
+            {
+                CU_SAFE_CALL(
+                    cuLaunchKernel(
+                        reinterpret_cast<CUfunction>(command->prog.launcher.variadic.fn),
+                        command->prog.grid.x,
+                        command->prog.grid.y,
+                        command->prog.grid.z,
+                        command->prog.block.x,
+                        command->prog.block.y,
+                        command->prog.block.z,
+                        command->prog.dyn_shmem,
+                        stream,
+                        packed ? nullptr : command->prog.args,   /* kernelParams */
+                        packed ? cu_config : nullptr             /* extra */
+                    )
+                );
+            }
 
             return EINPROGRESS;
         }
@@ -1169,19 +1661,9 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
             return EINPROGRESS;
         }
 
-        case (cgir::COMMAND_TYPE_BATCH):
+        case (cgir::COMMAND_TYPE_PACK):
         {
-            /* initialize cuda graph on first encounter */
-            if (command->batch.driver_handle == NULL)
-                command->batch.driver_handle = xkrt_cuda_driver_command_batch_init(device_driver_id, command);
-
-            if (command->batch.driver_handle == NULL)
-                LOGGER_FATAL("Failed to initialized a command batch");
-
-            /* launch it */
-            command_batch_cu_handle_t * handle = (command_batch_cu_handle_t *) command->batch.driver_handle;
-            assert(handle->graph_exec);
-
+            command_pack_cu_handle_t * handle = XKRT_DRIVER_ENTRYPOINT(command_pack_ensure)(device_driver_id, command);
             CU_SAFE_CALL(cuGraphLaunch(handle->graph_exec, stream));
             return EINPROGRESS;
         }
@@ -1279,7 +1761,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_progress)(
             case (cgir::COMMAND_TYPE_COPY_H2D_2D):
             case (cgir::COMMAND_TYPE_COPY_D2H_2D):
             case (cgir::COMMAND_TYPE_COPY_D2D_2D):
-            case (cgir::COMMAND_TYPE_BATCH):
+            case (cgir::COMMAND_TYPE_PACK):
             {
                 CUevent event = queue->cu.events.buffer[p];
                 CUresult res = cuEventQuery(event);
@@ -1369,17 +1851,24 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_create)(
 
 static void
 XKRT_DRIVER_ENTRYPOINT(command_queue_delete)(
+    device_t * device,
     command_queue_t * iqueue
 ) {
+    assert(device);
+    cu_set_context(device->driver_id);
+
     queue_cu_t * queue = (queue_cu_t *) iqueue;
+
+    if (queue->cu.handle.high)
+        CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.high));
+    if (queue->cu.handle.low)
+        CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.low));
     if (queue->cu.blas.handle)
         cublasDestroy(queue->cu.blas.handle);
     if (queue->cu.sparse.handle)
         cusparseDestroy(queue->cu.sparse.handle);
     if (queue->cu.solver.handle)
         cusolverDnDestroy(queue->cu.solver.handle);
-    CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.high));
-    CU_SAFE_CALL(cuStreamDestroy(queue->cu.handle.low));
     free(queue);
 }
 
@@ -1496,28 +1985,28 @@ XKRT_DRIVER_ENTRYPOINT(power_stop)(device_driver_id_t device_driver_id, power_t 
 # endif /* XKRT_SUPPORT_NVML */
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_h2d)(void * dst, void * src, const size_t size)
+XKRT_DRIVER_ENTRYPOINT(copy_h2d)(void * dst, void * src, const size_t size)
 {
     CU_SAFE_CALL(cuMemcpyHtoD((CUdeviceptr) dst, src, size));
     return 0;
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2h)(void * dst, void * src, const size_t size)
+XKRT_DRIVER_ENTRYPOINT(copy_d2h)(void * dst, void * src, const size_t size)
 {
     CU_SAFE_CALL(cuMemcpyDtoH(dst, (CUdeviceptr) src, size));
     return 0;
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2d)(void * dst, void * src, const size_t size)
+XKRT_DRIVER_ENTRYPOINT(copy_d2d)(void * dst, void * src, const size_t size)
 {
     CU_SAFE_CALL(cuMemcpyDtoD((CUdeviceptr)dst, (CUdeviceptr) src, size));
     return 0;
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_h2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
     queue_cu_t * queue = (queue_cu_t *) iqueue;
     CU_SAFE_CALL(cuMemcpyHtoDAsync((CUdeviceptr) dst, src, size, queue->cu.handle.high));
@@ -1525,7 +2014,7 @@ XKRT_DRIVER_ENTRYPOINT(transfer_h2d_async)(void * dst, void * src, const size_t 
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_d2h_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
     queue_cu_t * queue = (queue_cu_t *) iqueue;
     CU_SAFE_CALL(cuMemcpyDtoHAsync(dst, (CUdeviceptr) src, size, queue->cu.handle.high));
@@ -1533,7 +2022,7 @@ XKRT_DRIVER_ENTRYPOINT(transfer_d2h_async)(void * dst, void * src, const size_t 
 }
 
 int
-XKRT_DRIVER_ENTRYPOINT(transfer_d2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
+XKRT_DRIVER_ENTRYPOINT(copy_d2d_async)(void * dst, void * src, const size_t size, command_queue_t * iqueue)
 {
     queue_cu_t * queue = (queue_cu_t *) iqueue;
     CU_SAFE_CALL(cuMemcpyDtoDAsync((CUdeviceptr)dst, (CUdeviceptr) src, size, queue->cu.handle.high));
@@ -1637,13 +2126,15 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
 
     REGISTER(device_info);
     REGISTER(device_get_target);
+    REGISTER(prog_max_blocks_per_sm);
+    REGISTER(device_compute_units);
 
-    REGISTER(transfer_h2d);
-    REGISTER(transfer_d2h);
-    REGISTER(transfer_d2d);
-    REGISTER(transfer_h2d_async);
-    REGISTER(transfer_d2h_async);
-    REGISTER(transfer_d2d_async);
+    REGISTER(copy_h2d);
+    REGISTER(copy_d2h);
+    REGISTER(copy_d2d);
+    REGISTER(copy_h2d_async);
+    REGISTER(copy_d2h_async);
+    REGISTER(copy_d2d_async);
 
     REGISTER(memory_device_info);
     REGISTER(memory_device_allocate);

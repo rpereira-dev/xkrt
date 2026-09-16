@@ -239,7 +239,7 @@ Distribution is implemented by spawning empty tasks with read accesses, which tr
 A **driver** (`driver_t`) abstracts a device backend. Each driver provides function pointers for:
 - Device lifecycle (init, finalize, create, destroy)
 - Memory management (allocate, deallocate, register, unregister)
-- Data transfers (host-to-device, device-to-host, device-to-device, sync and async)
+- Data copies (host-to-device, device-to-host, device-to-device, sync and async)
 - Kernel launch
 - Queue management
 - Module loading (for compiled kernels)

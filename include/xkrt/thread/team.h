@@ -45,6 +45,7 @@
 #  include <xkrt/task/task.hpp>
 #  include <xkrt/thread/deque.hpp>
 #  include <xkrt/thread/team-thread-place.h>
+#  include <xkrt/tool.h>
 
 #  include <pthread.h>
 #  include <atomic>
@@ -184,11 +185,19 @@ typedef enum    thread_state_t
     XKRT_THREAD_INITIALIZED     = 1
 }               thread_state_t;
 
+typedef std::atomic<thread_state_t> thread_state_atomic_t;
+static_assert(thread_state_atomic_t::is_always_lock_free);
+
 /* a team, currently is made of 1 thread max per device, bound onto its closest physical cpu */
 struct team_t
 {
     // default constructor
-    team_t() : desc() {}
+    team_t() : desc()
+    {
+        # if XKRT_SUPPORT_TOOLS
+        this->tool_data.value = 0;
+        # endif /* XKRT_SUPPORT_TOOLS */
+    }
 
     // team description, to be filled by the user before forking it
     team_desc_t desc;
@@ -201,7 +210,7 @@ struct team_t
         thread_t * threads;
 
         /* thread states, use for synchronizing */
-        thread_state_t * threads_state;
+        thread_state_atomic_t * threads_state;
 
         /* number of threads */
         int nthreads;
@@ -235,6 +244,13 @@ struct team_t
         } parallel_for;
 
     } priv;
+
+    # if XKRT_SUPPORT_TOOLS
+    /* tool-owned data (XKRT-T), never inspected by the runtime. Kept outside
+     * `priv` so it survives the `memset` of `priv` performed by team_create;
+     * it is (re)initialized explicitly when the team is created. */
+    xkrt_tool_data_t tool_data;
+    # endif /* XKRT_SUPPORT_TOOLS */
 
     /* get a thread */
     thread_t * get_thread(int tid);

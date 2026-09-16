@@ -337,6 +337,9 @@ __task_complete(
     SPINLOCK_UNLOCK(task->state.lock);
     assert(task->parent);
 
+    // report the task completing to the tool
+    XKRT_TOOL_EMIT(runtime, XKRT_CALLBACK_TASK_COMPLETE, xkrt_callback_task_complete_t, task);
+
     // if the task has successors, that dependency is now satisfied
     if (task->flags & TASK_FLAG_ACCESSES)
     {
@@ -346,7 +349,11 @@ __task_complete(
         for (task_access_counter_t i = 0 ; i < acs->ac ; ++i)
         {
             access_t * access = accesses + i;
-            assert(access->mode & ACCESS_MODE_V || access->state == ACCESS_STATE_FETCHED);
+            assert(
+                access->mode & ACCESS_MODE_V ||
+                access->state == ACCESS_STATE_FETCHED ||
+                (access->type == ACCESS_TYPE_HANDLE && access->state == ACCESS_STATE_INIT)
+            );
 
             // detached access, not my responsibility to fulfill this dependency
             if (access->mode & ACCESS_MODE_D)
@@ -643,7 +650,11 @@ task_execute(
                 thread->current_taskgroup = (task->flags & TASK_FLAG_TASKGROUP)
                                           ? TASK_GRP_INFO(task)->taskgroup : NULL;
 
+                XKRT_TOOL_EMIT(runtime, XKRT_CALLBACK_TASK_SCHEDULE, xkrt_callback_task_schedule_t, thread, current, task);
+
                 ((void (*)(runtime_t *, device_t *, task_t *)) format->f[targetfmt])(runtime, device, task);
+
+                XKRT_TOOL_EMIT(runtime, XKRT_CALLBACK_TASK_SCHEDULE, xkrt_callback_task_schedule_t, thread, task, current);
 
                 thread->current_taskgroup = current_taskgroup;
                 thread->current_task = current;
@@ -678,7 +689,6 @@ task_fetch_execute(
 ) {
     assert(task);
     assert(task->state.value == TASK_STATE_READY);
-    assert(((task->flags & TASK_FLAG_DEVICE) && device) || !device);
 
     /* if that's a device task, then fetches to the device. Else, fetch to the host */
     device_unique_id_t device_unique_id = (task->flags & TASK_FLAG_DEVICE) ? device->unique_id : XKRT_HOST_DEVICE_UNIQUE_ID;
@@ -800,6 +810,9 @@ runtime_t::taskgroup_begin(void)
     // push a new group nested in the current one; tasks created from now on
     // (and their descendants) bind to it until the matching taskgroup_end
     thread->current_taskgroup = new taskgroup_t(thread->current_taskgroup);
+
+    // a taskgroup is a synchronization region
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_TASKGROUP, xkrt_callback_taskgroup_t, thread, thread->current_task, XKRT_SCOPE_BEGIN);
 }
 
 void
@@ -817,6 +830,9 @@ runtime_t::taskgroup_end(void)
     // created (incremented) during its parent's body, before the parent's own
     // completion (decrement).
     this->task_wait(&tg->count);
+
+    // the taskgroup synchronization region ends once every bound task completed
+    XKRT_TOOL_EMIT(this, XKRT_CALLBACK_TASKGROUP, xkrt_callback_taskgroup_t, thread, thread->current_task, XKRT_SCOPE_END);
 
     // pop back to the enclosing group and release this one
     thread->current_taskgroup = tg->parent;

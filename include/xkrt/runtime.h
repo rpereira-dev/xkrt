@@ -52,6 +52,7 @@
 # include <xkrt/task/task.hpp>
 # include <xkrt/thread/team.h>
 # include <xkrt/thread/thread.h>
+# include <xkrt/tool.h>
 # include <xkrt/types.h>
 
 # include <hwloc.h>
@@ -107,6 +108,10 @@ struct  runtime_t
     # endif /* XKRT_MEMORY_REGISTER_ASSISTED */
 
     hwloc_topology_t topology;  ///< Hardware locality topology (read-only, initialized at startup)
+
+    # if XKRT_SUPPORT_TOOLS
+    xkrt_tool_state_t tool;  ///< Tooling interface (XKRT-T) state, private to this runtime instance
+    # endif /* XKRT_SUPPORT_TOOLS */
 
     //////////////////////////////////////////////////////////////////////////////////////////////
     // PUBLIC INTERFACES //
@@ -211,6 +216,39 @@ struct  runtime_t
         const device_unique_id_t      src_device_unique_id,
         const memory_replica_view_t & src_device_view,
         const callback_t            & callback
+    );
+
+    /**
+     * @brief Synchronously copy memory between two devices
+     *
+     * Blocks the calling thread until the copy completed. No task is spawned,
+     * no command is queued: the copy is issued directly through the driver
+     * synchronous copy entrypoints (`f_copy_h2d`, `f_copy_d2h`, `f_copy_d2d`),
+     * which fallback on the vendor blocking primitives (`cuMemcpyHtoD`,
+     * `hipMemcpy`, ...). A host-to-host copy falls back on `memcpy`.
+     *
+     * The device performing the copy is deduced from the operands: the
+     * destination device if it is not the host, the source device otherwise.
+     *
+     * @warning This bypasses the coherence protocol and the dependency
+     * resolution: the caller is responsible for ensuring that no concurrent
+     * task or command accesses the involved memory segments.
+     *
+     * @warning The driver entrypoints do not bind a device context. The
+     * calling thread must already be bound to the device performing the copy.
+     *
+     * @param size Number of bytes to copy
+     * @param dst_device_unique_id Destination device global ID
+     * @param dst_device_addr Destination device address
+     * @param src_device_unique_id Source device global ID
+     * @param src_device_addr Source device address
+     */
+    void memory_copy(
+        const size_t               size,
+        const device_unique_id_t   dst_device_unique_id,
+        const uintptr_t            dst_device_addr,
+        const device_unique_id_t   src_device_unique_id,
+        const uintptr_t            src_device_addr
     );
 
     /**
@@ -907,6 +945,9 @@ struct  runtime_t
             memcpy(task_args, args, args_size);
         }
 
+        // report task creation to the tool
+        XKRT_TOOL_EMIT(this, XKRT_CALLBACK_TASK_CREATE, xkrt_callback_task_create_t, task);
+
         return task;
     }
 
@@ -1171,6 +1212,14 @@ struct  runtime_t
         this->team_task_commit(team, task);
     }
 
+    inline void
+    team_task_spawn(
+        team_t * team,
+        const task_routine_t & f
+    ) {
+        return this->team_task_spawn<TASK_FLAG_ZERO>(team, XKRT_UNSPECIFIED_DEVICE_UNIQUE_ID, 0, nullptr, nullptr, f);
+    }
+
     //////////////////
     // TEAM - UTILS //
     //////////////////
@@ -1353,6 +1402,21 @@ struct  runtime_t
     void task_dependency_graph_record_stop(void);
 
     /**
+     *  Return true iff the currently executing task is recording a task
+     *  dependency graph (i.e. has the 'TASK_FLAG_GRAPH_RECORDING' bit set).
+     */
+    bool task_dependency_graph_is_recording(void);
+
+    /**
+     *  Return true iff the currently executing task is itself being recorded
+     *  into a task dependency graph (i.e. has the 'TASK_FLAG_RECORD' bit set),
+     *  meaning the commands it emits are captured for later replay. This holds
+     *  for the child tasks spawned while recording (e.g. device kernels), which
+     *  carry 'TASK_FLAG_RECORD' but not 'TASK_FLAG_GRAPH_RECORDING'.
+     */
+    bool task_is_being_recorded(void);
+
+    /**
      *  Destroy a command graph record
      */
     void task_dependency_graph_destroy(task_dependency_graph_t * tdg);
@@ -1380,6 +1444,53 @@ struct  runtime_t
      *  Destroy a command graph
      */
     void command_graph_destroy(command_graph_t * cg);
+
+    /////////////
+    // TOOLING //
+    /////////////
+
+    # if XKRT_SUPPORT_TOOLS
+
+    /**
+     * @brief Discover and activate the tooling interface (XKRT-T) for this
+     * runtime. Called by init(). Order: a result registered through
+     * tool_connect() takes priority, otherwise XKRT_TOOL_PATH is dlopen'd.
+     */
+    void tool_init(void);
+
+    /**
+     * @brief Finalize the active tool, if any. Called by deinit().
+     */
+    void tool_fini(void);
+
+    /**
+     * @brief Register an in-process tool result, activated by the next
+     * tool_init(). Must be called before init(). Used e.g. by XKOMP.
+     */
+    void tool_connect(xkrt_tool_result_t * result);
+
+    /**
+     * @brief Register (or clear, if callback == NULL) the callback for `event`.
+     * Called by a tool from its initialize routine.
+     */
+    xkrt_set_result_t tool_set_callback(xkrt_callback_t event, xkrt_callback_generic_t callback);
+
+    /**
+     * @brief Retrieve the callback currently registered for `event`, if any.
+     */
+    int tool_get_callback(xkrt_callback_t event, xkrt_callback_generic_t * callback);
+
+    /**
+     * @brief Return a runtime-wide monotonically increasing identifier.
+     */
+    uint64_t tool_unique_id(void);
+
+    # else /* !XKRT_SUPPORT_TOOLS */
+
+    inline void tool_init(void) {}
+    inline void tool_fini(void) {}
+
+    # endif /* XKRT_SUPPORT_TOOLS */
 
     ///////////
     // STATS //

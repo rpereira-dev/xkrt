@@ -97,6 +97,8 @@ typedef struct  device_cu_t
             int cc_major;       /* compute capability major */
             int cc_minor;       /* compute capability minor */
             char arch[16];      /* device arch / target-cpu, e.g. "sm_80" */
+            int nsm;            /* number of SMs (multiprocessors) */
+            int regs_per_sm;    /* registers per SM (occupancy arithmetic) */
         } prop;
 
     } cu;
@@ -107,14 +109,14 @@ typedef struct  driver_cu_t
     driver_t super;
 }               driver_cu_t;
 
-/* Opaque state kept behind command_batch_t::driver_handle for CUDA.
+/* Opaque state kept behind command_pack_t::driver_handle for CUDA.
  * Forward-declared here so it can be used in command_queue_launch. */
-typedef struct  command_batch_cu_handle_t
+typedef struct  command_pack_cu_handle_t
 {
     CUgraph     graph;
     CUgraphExec graph_exec;
 
-}               command_batch_cu_handle_t;
+}               command_pack_cu_handle_t;
 
 XKRT_NAMESPACE_END
 

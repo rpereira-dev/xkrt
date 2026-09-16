@@ -71,7 +71,7 @@ class RouterAffinity : public Router
             if (valid & (1 << dst))
                 return dst;
 
-            /* find a device for P2P transfer - lowest rank <=> best performance */
+            /* find a device for P2P copy - lowest rank <=> best performance */
             for (int rank = 0 ; rank < XKRT_DEVICES_PERF_RANK_MAX - 1 ; ++rank)
             {
                 /* get valid devices for this perf */

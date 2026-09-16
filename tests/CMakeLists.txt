@@ -88,3 +88,8 @@ add_subdirectory(team)
 add_subdirectory(file)
 add_subdirectory(api/c)
 add_subdirectory(khp-tree)
+
+# XKRT tooling interface (XKRT-T) tests, only when the interface is built
+if (USE_TOOLS)
+    add_subdirectory(tool)
+endif()

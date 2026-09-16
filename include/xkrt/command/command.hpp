@@ -66,6 +66,12 @@ typedef enum    command_flag_t
     /* if the command is a host program launching additional commands */
     COMMAND_FLAG_PROG_LAUNCHER  = (1 << 2),
 
+    /* if the command_t storage was allocated from a queue's command pool (and
+     * must be recycled to it on completion). Commands NOT carrying this flag are
+     * externally owned (e.g. a command-graph node command pushed for replay) and
+     * are never freed by the queue. Set by 'command_new'; consumed on completion. */
+    COMMAND_FLAG_POOLED         = (1 << 3),
+
 }               command_flag_t;
 
 inline constexpr command_flag_t
@@ -88,6 +94,9 @@ struct command_t : cgir::command_t
         command_callback_index_t n;
     } callbacks;
 
+    /* team_t that must replay the command */
+    void * replay_team;
+
     /* constructor */
     command_t(
         cgir::command_type_t type,
@@ -95,7 +104,8 @@ struct command_t : cgir::command_t
     ) :
         cgir::command_t(type),
         flags(flags),
-        callbacks{}
+        callbacks{},
+        replay_team(nullptr)
     {}
 
     inline void
@@ -192,11 +202,19 @@ struct command_graph_t : cgir::command_graph_t
     /* mutex/cond to notify threads waiting on the replay completion */
     std::atomic<uint32_t> completed;
 
+    /* team_t that must replay the graph */
+    void * replay_team;
+
+    /* Handle for driver (runtime_t for host, cuGraph for CUDA device, etc.) */
+    void * driver_handle;
+
     command_graph_t(void) :
         commands(),
         nodes(),
         rc(0),
-        completed(0)
+        completed(0),
+        replay_team(nullptr),
+        driver_handle(NULL)
     {}
 
     /* return number of nodes */

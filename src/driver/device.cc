@@ -133,9 +133,9 @@ device_t::offloader_queues_are_empty(
         for (int i = 0 ; i < this->count[s] ; ++i)
         {
             const command_queue_t * queue = this->queues[tid][s][i];
-            if (*ready == false && !queue->ready.is_empty())
+            if (*ready == false && queue->has_ready())
                 *ready = true;
-            if (*pending == false && !queue->pending.is_empty())
+            if (*pending == false && !queue->pending_empty())
                 *pending = true;
             if (*ready && *pending)
                 return ;
@@ -169,11 +169,11 @@ device_t::offloader_queue_next(
 void
 device_t::offloader_queue_command_new(
     const command_queue_type_t qtype,   /* IN  */
-    const cgir::command_type_t ctype,         /* IN  */
+    const cgir::command_type_t ctype,   /* IN  */
     const command_flag_t flags,         /* IN  */
     thread_t ** pthread,                /* OUT */
     command_queue_t ** pqueue,          /* OUT */
-    command_t ** pcommand                   /* OUT */
+    command_t ** pcommand               /* OUT */
 ) {
     assert(pqueue);
     assert(pcommand);
@@ -184,15 +184,10 @@ device_t::offloader_queue_command_new(
     assert(*pqueue);
     assert((*pqueue)->type == qtype);
 
-    /* allocate the command */
-    do {
-        REENTRANT_SPINLOCK_LOCK((*pqueue)->reentrant_spinlock);
-        (*pcommand) = (*pqueue)->command_new(ctype, flags);
-        if (*pcommand)
-            break ; /* will be unlock during 'commit' */
-        REENTRANT_SPINLOCK_UNLOCK((*pqueue)->reentrant_spinlock);
-        LOGGER_FATAL("Stream is full, increase 'XKRT_OFFLOADER_CAPACITY' or implement support for full-queue management yourself :-) (sorry)");
-    } while (1);
+    /* allocate the command; the ring slot is reserved later, lock-free, at 'commit'
+     * (fatal there if the ring is full) */
+    (*pcommand) = (*pqueue)->command_new(ctype, flags);
+    assert(*pcommand);
 }
 
 /* commit a queue command and wakeup thread */
@@ -224,21 +219,26 @@ device_t::offloader_queue_command_commit(
             command_t * commandrec = task_put_command_record(task);
             memcpy(commandrec, command, sizeof(command_t));
             commandrec->completion_callback_clear();
+            /* Unset pool flag, to avoid free during graph replay */
+            commandrec->flags = (command_flag_t) (commandrec->flags & ~COMMAND_FLAG_POOLED);
 
             // if skipping command execution
             if (!(task->parent->flags & TASK_FLAG_GRAPH_EXECUTE_COMMAND))
             {
-                // complete it now and return
+                // complete it now and return. The command was allocated from the
+                // queue pool by 'command_new' but is never committed here, so
+                // recycle it explicitly (completion, which normally frees it, will
+                // not run for it).
                 command->completion_callback_raise();
-                REENTRANT_SPINLOCK_UNLOCK(queue->reentrant_spinlock);
+                if (command->flags & COMMAND_FLAG_POOLED)
+                    queue->pool.free(command);
                 return ;
             }
         }
     }
 
-    /* commit command to the queue */
+    /* commit command to the queue (lock-free, multi-producer) */
     queue->commit(command);
-    REENTRANT_SPINLOCK_UNLOCK(queue->reentrant_spinlock);
 
     /* wakeup device worker thread */
     thread->wakeup();

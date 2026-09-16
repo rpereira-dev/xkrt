@@ -49,7 +49,7 @@ class Router
         virtual ~Router() {}
 
         /**
-         *  Retrieve the source to use for a data transfer to 'dst' where the
+         *  Retrieve the source to use for a data copy to 'dst' where the
          *  valid sources are amongst the 'valid' bitfield
          */
         virtual device_unique_id_t

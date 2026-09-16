@@ -231,7 +231,7 @@ device_thread_main(
     if (driver->f_command_queue_delete)
         for (uint8_t j = 0 ; j < XKRT_QUEUE_TYPE_ALL ; ++j)
             for (int k = 0 ; k < device->count[j] ; ++k)
-                driver->f_command_queue_delete(device->queues[thread->tid][j][k]);
+                driver->f_command_queue_delete(device, device->queues[thread->tid][j][k]);
 
     return NULL;
 }
@@ -244,18 +244,21 @@ runtime_t::task_thread_enqueue(
     thread_t * tls = thread_t::get_tls();
     assert(tls);
 
-    // pushing to my own queue or another thread ?
-    int r = (tls == thread) ? thread->deque.push(task) : thread->deque.give(task);
+    // pushing to my own queue, or to another thread ?
+    int r = (thread == tls) ? thread->deque.push(task) : thread->deque.give(task);
     if (r)
-        LOGGER_FATAL("Queue is full, what to do????");
+        LOGGER_FATAL("Queue was full, what to do????");
 
     // TODO: this is quite ugly, but the thread may be sleeping in three places:
     //  - within its condition
     //  - within a team barrier (thus, the broadcast)
     //  - within parallel for
-    thread->wakeup();
+
     if (thread->team)
         pthread_cond_signal(&thread->team->priv.barrier.cond);
+
+    if (thread != tls)
+        thread->wakeup();
 }
 
 void
@@ -264,15 +267,22 @@ runtime_t::task_team_enqueue(
     task_t * task
 ) {
     // get a random thread in the team
-    int nthreads = team->get_nthreads();
+    const int nthreads = team->get_nthreads();
+    assert(nthreads);
+
     thread_t * tls = thread_t::get_tls();
     assert(tls);
-    int start = tls->rng() % nthreads;
+    const int start = (int) (tls->rng() % (unsigned int) nthreads);
 
-    // assign it the task
-    thread_t * thread = team->get_thread(start);
-    assert((volatile thread_state_t) team->priv.threads_state[thread->tid] == XKRT_THREAD_INITIALIZED);
-    return this->task_thread_enqueue(thread, task);
+    for (int i = 0 ; i < nthreads ; ++i)
+    {
+        const int tid = (start + i) % nthreads;
+        if (team->priv.threads_state[tid].load(std::memory_order_acquire) != XKRT_THREAD_INITIALIZED)
+            continue ;
+        return this->task_thread_enqueue(team->get_thread(tid), task);
+    }
+
+    LOGGER_FATAL("Enqueued a task onto a team with no initialized thread");
 }
 
 static inline void

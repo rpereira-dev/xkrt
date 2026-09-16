@@ -217,10 +217,10 @@ __parse_verbose(conf_t * conf, char const * value)
 }
 
 static void
-__parse_merge_transfers(conf_t * conf, char const * value)
+__parse_merge_copies(conf_t * conf, char const * value)
 {
     if (value)
-        conf->merge_transfers = atoi(value) ? true : false;
+        conf->merge_copies = atoi(value) ? true : false;
 }
 
 static void
@@ -228,6 +228,13 @@ __parse_kern_per_queue(conf_t * conf, char const * value)
 {
     if (value)
         conf->device.offloader.queues[XKRT_QUEUE_TYPE_KERN].concurrency = (uint32_t) MAX(atoi(value), 1);
+}
+
+static void
+__parse_prog_blocks_per_sm(conf_t * conf, char const * value)
+{
+    if (value)
+        conf->device.prog_blocks_per_sm = (uint32_t) MAX(atoi(value), 0);
 }
 
 static void
@@ -338,6 +345,13 @@ __parse_p2p(conf_t * conf, char const * value)
 }
 
 static void
+__parse_taskgraph_dump(conf_t * conf, char const * value)
+{
+    if (value)
+        conf->taskgraph_dump = (bool) atoi(value);
+}
+
+static void
 __parse_warmup(conf_t * conf, char const * value)
 {
     if (value)
@@ -415,6 +429,22 @@ __parse_task_prefetch(conf_t * conf, char const * value)
         conf->enable_prefetching = atoi(value);
 }
 
+static void
+__parse_tool_path(conf_t * conf, char const * value)
+{
+    (void) conf;
+    /* The tool path is read directly by runtime_t::tool_init() through getenv
+     * when the tooling interface is compiled in. This entry only exists so the
+     * variable is recognized (and so we can warn otherwise). */
+    # if !XKRT_SUPPORT_TOOLS
+    if (value)
+        LOGGER_WARN("`XKRT_TOOL_PATH` is set but XKRT was not built with the "
+                    "tooling interface (`-DUSE_TOOLS=ON`); ignoring.");
+    # else
+    (void) value;
+    # endif
+}
+
 void __parse_help(conf_t * conf, char const * value);
 
 extern char ** environ;
@@ -428,37 +458,40 @@ typedef struct  conf_parse_t
 
 // variables are parsed in-order
 static conf_parse_t CONF_PARSE[] = {
-    {"CACHE_LIMIT",                      NULL,                              NULL},
-    {"D2H_PER_QUEUE",                    __parse_d2h_per_queue,             "Number of concurrent copies per D2H queue before throttling device-thread"},
-    {"D2D_PER_QUEUE",                    __parse_d2d_per_queue,             "Number of concurrent copies per D2D queue before throttling device-thread"},
-    {"P2P_PER_QUEUE",                    __parse_p2p_per_queue,             "Number of concurrent copies per P2P queue before throttling device-thread"},
-    {"DEFAULT_MATH",                     NULL,                              NULL},
-    {"DRIVERS",                          __parse_drivers,                   "Exemple: 'cuda,4;hip,2;host,3' - will enable drivers cuda, hip and host respectively with 4, 2, and 3 threads per device."},
-    {"ALLOCATOR_TYPE",                   __parse_allocator_type,            "Either 'buddy' or 'freelist'"},
     {"ALLOCATOR_CHUNK_INITIAL",          __parse_allocator_chunk_initial,   "Size of the initial chunk of driver's memory for the allocator."},
     {"ALLOCATOR_CHUNK_RESIZE",           __parse_allocator_chunk_resize,    "Size of chunks to use when re-allocating driver's memory."},
+    {"ALLOCATOR_TYPE",                   __parse_allocator_type,            "Either 'buddy' or 'freelist'"},
+    {"BUSY_POLLING",                     __parse_busy_polling,              "Whether progression threads should pause when there is no tasks and no ready/pending commands"},
+    {"CACHE_LIMIT",                      NULL,                              NULL},
+    {"D2D_PER_QUEUE",                    __parse_d2d_per_queue,             "Number of concurrent copies per D2D queue before throttling device-thread"},
+    {"D2H_PER_QUEUE",                    __parse_d2h_per_queue,             "Number of concurrent copies per D2H queue before throttling device-thread"},
+    {"DEFAULT_MATH",                     NULL,                              NULL},
+    {"DRIVERS",                          __parse_drivers,                   "Exemple: 'cuda,4;hip,2;host,3' - will enable drivers cuda, hip and host respectively with 4, 2, and 3 threads per device."},
     {"H2D_PER_QUEUE",                    __parse_h2d_per_queue,             "Number of concurrent copies per H2D queue before throttling device-thread"},
     {"HELP",                             __parse_help,                      "Show this helper"},
     {"KERN_PER_QUEUE",                   __parse_kern_per_queue,            "Number of concurrent kernels per KERN queue before throttling device-thread"},
-    {"MERGE_TRANSFERS",                  __parse_merge_transfers,           "Merge memory transfers over continuous virtual memory"},
+    {"MEMORY_REGISTER_PROTECT_OVERFLOW", __parse_register_overflow,         "Split memory copies to avoid overflow over registered/unregistered memory that causes cuda to crash"},
+    {"MERGE_COPIES",                     __parse_merge_copies,              "Merge memory copies over continuous virtual memory"},
     {"NGPUS",                            __parse_ngpus,                     "Number of gpus to use"},
-    {"MEMORY_REGISTER_PROTECT_OVERFLOW", __parse_register_overflow,         "Split memory transfers to avoid overflow over registered/unregistered memory that causes cuda to crash"},
-    {"PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,         "When progression threads have nothing else to do but poll pending commands, put it to sleep until the completion of a random command of a random steam."},
-    {"BUSY_POLLING",                     __parse_busy_polling,              "Whether progression threads should pause when there is no tasks and no ready/pending commands"},
-    {"TASK_PREFETCH",                    __parse_task_prefetch,           "If enabled, after completing a task, initiate data transfers for all its WaR successors that place of execution is already known (else, transfers only starts once the successor is ready)."},
-    {"NQUEUES_D2H",                      __parse_nqueues_d2h,               "Number of D2H queues per device"},
-    {"NQUEUES_H2D",                      __parse_nqueues_h2d,               "Number of H2D queues per device"},
     {"NQUEUES_D2D",                      __parse_nqueues_d2d,               "Number of D2D queues per device"},
-    {"NQUEUES_P2P",                      __parse_nqueues_p2p,               "Number of P2P queues per device"},
-    {"NQUEUES_KERN",                     __parse_nqueues_kern,              "Number of KERN queues per device"},
+    {"NQUEUES_D2H",                      __parse_nqueues_d2h,               "Number of D2H queues per device"},
     {"NQUEUES_FR",                       __parse_nqueues_fr,                "Number of FR queues per device"},
     {"NQUEUES_FW",                       __parse_nqueues_fw,                "Number of FW queues per device"},
+    {"NQUEUES_H2D",                      __parse_nqueues_h2d,               "Number of H2D queues per device"},
+    {"NQUEUES_KERN",                     __parse_nqueues_kern,              "Number of KERN queues per device"},
+    {"NQUEUES_P2P",                      __parse_nqueues_p2p,               "Number of P2P queues per device"},
     {"OFFLOADER_CAPACITY",               __parse_offloader_capacity,        "Maximum number of pending commands per queue"},
+    {"P2P_PER_QUEUE",                    __parse_p2p_per_queue,             "Number of concurrent copies per P2P queue before throttling device-thread"},
+    {"PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,         "When progression threads have nothing else to do but poll pending commands, put it to sleep until the completion of a random command of a random steam."},
     {"PRECISION",                        NULL,                              NULL},
+    {"PROG_BLOCKS_PER_SM",               __parse_prog_blocks_per_sm,        "Occupancy of device program launches, in blocks (CTAs) per SM. 0 (default) holds each program to the occupancy it was recorded with, so that recompiling or fusing it does not silently change how densely the device co-schedules it; a positive value overrides that target for every program. It is a target with tolerance, not an exact figure: the driver only intervenes past a factor of 1.5 either way, because every lever it has is coarse and demanding an exact match costs more than the drift it corrects. Enforced with per-block resources (shared-memory carveout, then dynamic shared memory)."},
     {"STATS",                            __parse_stats,                     "Boolean to dump stats on deinit"},
-    {"USE_P2P",                          __parse_p2p,                       "Boolean to enable/disable the use of p2p transfers"},
-    {"WARMUP",                           __parse_warmup,                    "Boolean to enable/disable threads/devices warmup on runtime initialization"},
+    {"TASK_PREFETCH",                    __parse_task_prefetch,             "If enabled, after completing a task, initiate data copies for all its WaR successors that place of execution is already known (else, copies only starts once the successor is ready)."},
+    {"TASKGRAPH_DUMP",                   __parse_taskgraph_dump,           "If enabled, dump a taskgraph to a dot file after recording it."},
+    {"TOOL_PATH",                        __parse_tool_path,                 "Path to a tooling interface (XKRT-T) shared library exporting `xkrt_tool_start` (requires `-DUSE_TOOLS=ON`)"},
+    {"USE_P2P",                          __parse_p2p,                       "Boolean to enable/disable the use of p2p copies"},
     {"VERBOSE",                          __parse_verbose,                   "Verbosity level (the higher the most)"},
+    {"WARMUP",                           __parse_warmup,                    "Boolean to enable/disable threads/devices warmup on runtime initialization"},
     {NULL, NULL, NULL}
 };
 
@@ -531,12 +564,14 @@ conf_t::init(void)
     this->device.memory_size_resize.amount      = 0;
     this->device.memory_size_resize.unit        = XKRT_MEMORY_SIZE_UNIT_ABSOLUTE;
     this->device.use_p2p                        = true;
-    this->merge_transfers                       = false;
+    this->device.prog_blocks_per_sm             = 0;
+    this->merge_copies                          = false;
     this->protect_registered_memory_overflow    = true;
     this->enable_progress_thread_pause          = true;
     this->enable_busy_polling                   = false;
     this->enable_prefetching                    = true;
     this->warmup                                = false;
+    this->taskgraph_dump                        = false;
 
     //////////////////
     // drivers conf //

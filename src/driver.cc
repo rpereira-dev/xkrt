@@ -36,6 +36,7 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
+# include <xkrt/internals.h>
 # include <xkrt/runtime.h>
 
 XKRT_NAMESPACE_USE;
@@ -73,7 +74,7 @@ command_type_to_queue_type(
     switch (ctype)
     {
         case (cgir::COMMAND_TYPE_PROG):
-        case (cgir::COMMAND_TYPE_BATCH):
+        case (cgir::COMMAND_TYPE_PACK):
             return XKRT_QUEUE_TYPE_KERN;
 
         case (cgir::COMMAND_TYPE_COPY_H2H_1D):
@@ -127,8 +128,8 @@ command_type_to_queue_type(
  *   - KMP: a recorded OpenMP task body that was NOT JIT-compiled; run it directly
  *     through its ahead-of-time libomp routine `fn(gtid, task)`. Recorded bodies
  *     replay with gtid 0 (as the previous replay path did). */
-static inline void
-command_prog_run_host(command_t * command)
+void
+XKRT_NAMESPACE::command_prog_run_host(command_t * command)
 {
     auto & prog = command->prog;
     switch (prog.prototype)
@@ -181,16 +182,25 @@ command_prog_launch_host(
 
         case (cgir::CGIR_COMMAND_PROG_LAUNCH_MODE_TASK_SPAWN):
         {
-            runtime->task_spawn<TASK_FLAG_ZERO>(
-                (const device_unique_id_t)    XKRT_UNSPECIFIED_DEVICE_UNIQUE_ID,
-                (const task_access_counter_t) 0,
-                (const xkrt::runtime_t::task_accesses_setter_t) nullptr,
-                (const xkrt::runtime_t::task_split_condition_t) nullptr,
+            const runtime_t::task_routine_t routine =
                 [command] (runtime_t *, device_t *, task_t *) {
                     command_prog_run_host(command);
                     command->completion_callback_raise();   // complete command after the task ran
                 }
-            );
+            ;
+
+            // During replay this command carries the team of the thread that
+            // initiated the replay: spawn the host task there so it runs on a
+            // host (device == NULL) thread, rather than on the current team -
+            // which may be a device team when a device command's completion
+            // callback drives the wavefront (the assertion in task_fetch_execute
+            // otherwise fires: a non-device task on a device implicit team).
+
+            if (command->replay_team != nullptr)
+                runtime->team_task_spawn((team_t *) command->replay_team, routine);
+            else
+                runtime->task_spawn(routine);
+
             break ;
         }
 
@@ -235,7 +245,7 @@ runtime_t::command_submit(
             case (cgir::COMMAND_TYPE_COPY_H2D_2D):
             case (cgir::COMMAND_TYPE_COPY_D2H_2D):
             case (cgir::COMMAND_TYPE_COPY_D2D_2D):
-            case (cgir::COMMAND_TYPE_BATCH):
+            case (cgir::COMMAND_TYPE_PACK):
             {
                 driver_t * driver = this->driver_get(device->driver_type);
                 assert(driver);
@@ -261,12 +271,9 @@ runtime_t::command_submit(
         assert(thread);
         assert(queue);
 
-        REENTRANT_SPINLOCK_LOCK(queue->reentrant_spinlock);
-        {
-            queue->emplace(command);
-            queue->commit(command);
-        }
-        REENTRANT_SPINLOCK_UNLOCK(queue->reentrant_spinlock);
+        /* commit the (externally-owned) command pointer into the ring (lock-free,
+         * multi-producer); it is not pool-owned, so completion won't recycle it */
+        queue->commit(command);
 
         thread->wakeup();
     }
