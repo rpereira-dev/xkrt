@@ -982,7 +982,7 @@ fi
 
 # ── cgir ────────────────────────────────────────────────────────────────────
 step "cgir  [cmake; no runtime dependencies; parallel to hwloc]"
-prompt_cmake_component CGIR cgir "https://github.com/JLESC-Tasking-Group/opencg" release/latest Release
+prompt_cmake_component CGIR cgir "https://github.com/JLESC-Tasking-Group/cgir" release/latest Release
 
 # ── xkrt ──────────────────────────────────────────────────────────────────────
 step "xkrt  [cmake; depends on hwloc + cgir]"
@@ -1299,7 +1299,7 @@ fi
 
 # ── cgir ────────────────────────────────────────────────────────────────────
 if [[ "$INSTALL_CGIR" == "true" ]]; then
-    _component_prep CGIR cgir "https://github.com/JLESC-Tasking-Group/opencg"
+    _component_prep CGIR cgir "https://github.com/JLESC-Tasking-Group/cgir"
     if [[ "$_NEED_BUILD" == "yes" ]]; then
         # If a custom LLVM was built, force cgir's find_package(LLVM)/find_package(MLIR)
         # onto that exact build so it can never silently fall back to a system LLVM/MLIR.
