@@ -1085,19 +1085,19 @@ cu_prog_prepare(device_driver_id_t device_driver_id, cgir::command_t * command)
         cu_prog_raise_occupancy(device_driver_id, command, threads, target, now, name);
 }
 
-command_batch_cu_handle_t * XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(
+command_pack_cu_handle_t * XKRT_DRIVER_ENTRYPOINT(command_pack_ensure)(
     device_driver_id_t device_driver_id,
     command_t * command
 );
 
-/* Return a handle to the druver's internal representation of the batch */
+/* Return a handle to the druver's internal representation of the pack */
 void *
-XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
+XKRT_DRIVER_ENTRYPOINT(command_pack_init)(
     device_driver_id_t device_driver_id,
     cgir::command_t * command
 ) {
     assert(command->type == cgir::COMMAND_TYPE_PACK);
-    assert(command->batch.cg);
+    assert(command->pack.cg);
 
     /* set context */
     cu_set_context(device_driver_id);
@@ -1107,7 +1107,7 @@ XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
     assert(device);
 
     /* allocate handle */
-    command_batch_cu_handle_t * handle = (command_batch_cu_handle_t *) malloc(sizeof(command_batch_cu_handle_t));
+    command_pack_cu_handle_t * handle = (command_pack_cu_handle_t *) malloc(sizeof(command_pack_cu_handle_t));
     assert(handle);
 
     /* create a CUDA graph */
@@ -1121,7 +1121,7 @@ XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
     constexpr cgir::command_graph_walk_order_t  order  = cgir::COMMAND_GRAPH_WALK_ORDER_PRE;
     constexpr bool include_entry_exit = false;
 
-    auto iterators = command->batch.cg->create_node_iterators<include_entry_exit, pls_t, search, order>();
+    auto iterators = command->pack.cg->create_node_iterators<include_entry_exit, pls_t, search, order>();
 
     /* Iterate once to create all nodes */
     for (auto & it : iterators)
@@ -1340,16 +1340,16 @@ XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
 
                     case (cgir::COMMAND_TYPE_PACK):
                     {
-                        command_batch_cu_handle_t * command_handle = XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(device_driver_id, (command_t *) command);
+                        command_pack_cu_handle_t * command_handle = XKRT_DRIVER_ENTRYPOINT(command_pack_ensure)(device_driver_id, (command_t *) command);
                         CU_SAFE_CALL(cuGraphAddChildGraphNode(cu_node, handle->graph, deps, ndeps, command_handle->graph));
                         break ;
                     }
 
                     default:
                     {
-                        /* unsupported command type for CUDA graph batching:
+                        /* unsupported command type for CUDA graph packing:
                          * abort the contraction */
-                        LOGGER_FATAL("Cannot batch command type %s into CUDA graph", cgir::command_type_to_str(command->type));
+                        LOGGER_FATAL("Cannot pack command type %s into CUDA graph", cgir::command_type_to_str(command->type));
                         CU_SAFE_CALL(cuGraphDestroy(handle->graph));
                         return NULL;
                     }
@@ -1368,8 +1368,8 @@ XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
         } /* switch case(command->type) */
     } /* for each iterator */
 
-    assert(command->batch.cg);
-    cgir::command_graph_node_t * entry = command->batch.cg->node_get_entry();
+    assert(command->pack.cg);
+    cgir::command_graph_node_t * entry = command->pack.cg->node_get_entry();
 
     /* iterate a second time to set dependencies */
     for (auto & it : iterators)
@@ -1407,11 +1407,11 @@ XKRT_DRIVER_ENTRYPOINT(command_batch_init)(
 }
 
 void
-XKRT_DRIVER_ENTRYPOINT(command_batch_deinit)(
+XKRT_DRIVER_ENTRYPOINT(command_pack_deinit)(
     device_driver_id_t device_driver_id,
     const cgir::command_t * command
 ) {
-    command_batch_cu_handle_t * handle = (command_batch_cu_handle_t *) ((command_graph_t *) command->batch.cg)->driver_handle;
+    command_pack_cu_handle_t * handle = (command_pack_cu_handle_t *) ((command_graph_t *) command->pack.cg)->driver_handle;
 
     cu_set_context(device_driver_id);
 
@@ -1424,22 +1424,22 @@ XKRT_DRIVER_ENTRYPOINT(command_batch_deinit)(
     free(handle);
 }
 
-command_batch_cu_handle_t *
-XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(
+command_pack_cu_handle_t *
+XKRT_DRIVER_ENTRYPOINT(command_pack_ensure)(
     device_driver_id_t device_driver_id,
     command_t * command
 ) {
-    command_graph_t * cg = (command_graph_t *) command->batch.cg;
+    command_graph_t * cg = (command_graph_t *) command->pack.cg;
     if (cg == NULL)
         LOGGER_FATAL("Batch commands must have an associated command graph");
 
     if (cg->driver_handle == NULL)
-        cg->driver_handle = XKRT_DRIVER_ENTRYPOINT(command_batch_init)(device_driver_id, command);
+        cg->driver_handle = XKRT_DRIVER_ENTRYPOINT(command_pack_init)(device_driver_id, command);
 
     if (cg->driver_handle == NULL)
-        LOGGER_FATAL("Failed to initialized a command batch");
+        LOGGER_FATAL("Failed to initialized a command pack");
 
-    return  (command_batch_cu_handle_t *) cg->driver_handle;
+    return  (command_pack_cu_handle_t *) cg->driver_handle;
 }
 
 static int
@@ -1663,7 +1663,7 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
 
         case (cgir::COMMAND_TYPE_PACK):
         {
-            command_batch_cu_handle_t * handle = XKRT_DRIVER_ENTRYPOINT(command_batch_ensure)(device_driver_id, command);
+            command_pack_cu_handle_t * handle = XKRT_DRIVER_ENTRYPOINT(command_pack_ensure)(device_driver_id, command);
             CU_SAFE_CALL(cuGraphLaunch(handle->graph_exec, stream));
             return EINPROGRESS;
         }

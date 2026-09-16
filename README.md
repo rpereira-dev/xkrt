@@ -25,6 +25,7 @@ Compatible branches for each software
 
 | LLVM(ANL)      | CGIR         | XKRT           | XKBlas         | XKOMP        | XK.jl              | Description        |
 | :------------- | :----------- | :------------- | :------------- | :----------- | :------------------| :------------------|
+| release/v1.3   | release/v1.0 | release/v1.3   | release/v2.1   | release/v1.0 | N/A                | CGO paper          |
 | release/v1.2.0 | release/v0.4 | release/v1.2.0 | release/v2.0.4 | release/v0.3 | N/A                | CGIR JIT (PTX)     |
 | release/v1.1.0 | release/v0.3 | release/v1.1.0 | N/A            | release/v0.2 | N/A                | CGIR JIT (LLVMIR)  |
 | release/v1.0.0 | release/v0.2 | release/v1.0.3 | release/v2.0.3 | release/v0.1 | N/A                | First stable       |

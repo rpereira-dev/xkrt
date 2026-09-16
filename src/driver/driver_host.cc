@@ -338,8 +338,8 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_process_node)(
                 // and propagate the replay team to the nested sub-graph
                 if (node->command->type == cgir::COMMAND_TYPE_PACK && node->device_unique_id == XKRT_HOST_DEVICE_UNIQUE_ID)
                 {
-                    ((command_graph_t *) node->command->batch.cg)->replay_team   = cg->replay_team;
-                    ((command_graph_t *) node->command->batch.cg)->driver_handle = runtime;
+                    ((command_graph_t *) node->command->pack.cg)->replay_team   = cg->replay_team;
+                    ((command_graph_t *) node->command->pack.cg)->driver_handle = runtime;
                 }
             }
 
@@ -458,7 +458,7 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(
     return 0;
 }
 
-/* Replay a batch whose sub-graph is a linear sequence of OpenMP-task PROG
+/* Replay a pack whose sub-graph is a linear sequence of OpenMP-task PROG
  * commands (marked `is_serial` by CGIR's sequence pass).
  *
  * Instead of the wavefront (which would spawn one task per command), we spawn a
@@ -476,7 +476,7 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(
     command_graph_node_t * exit  = (command_graph_node_t *) cg->node_get_exit();
 
     // Completion flags: `exit->state` is polled by the KERN command_queue_progress
-    // (async batch path), while `cg->completed` is waited on by command_graph_wait
+    // (async pack path), while `cg->completed` is waited on by command_graph_wait
     // (synchronous command_execute path). Reset both before spawning the task.
     exit->state = COMMAND_GRAPH_NODE_STATE_INIT;
     cg->completed.store(1, std::memory_order_seq_cst);
@@ -538,7 +538,7 @@ XKRT_DRIVER_ENTRYPOINT(command_execute)(
 ) {
     assert(command->type == cgir::COMMAND_TYPE_PACK);
 
-    command_graph_t * cg = (command_graph_t *) command->batch.cg;
+    command_graph_t * cg = (command_graph_t *) command->pack.cg;
     assert(cg);
 
     runtime_t * runtime = (runtime_t *) cg->driver_handle;
@@ -606,12 +606,12 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
 
         return EINPROGRESS;
     }
-    // batch commands = emit all sub-cg commands
+    // pack commands = emit all sub-cg commands
     else
     {
         assert(command->type == cgir::COMMAND_TYPE_PACK);
 
-        command_graph_t * cg = (command_graph_t *) command->batch.cg;
+        command_graph_t * cg = (command_graph_t *) command->pack.cg;
         assert(cg);
 
         runtime_t * runtime  = (runtime_t *) cg->driver_handle;
@@ -636,7 +636,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_suggest)(
         case (XKRT_QUEUE_TYPE_FD_WRITE):
             return 1;
 
-        // KERN is used for batches
+        // KERN is used for packes
         case (XKRT_QUEUE_TYPE_KERN):
             return 1;
 
@@ -716,7 +716,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_wait)(
         {
             assert(command->type == cgir::COMMAND_TYPE_PACK);
 
-            command_graph_t * cg = (command_graph_t *) command->batch.cg;
+            command_graph_t * cg = (command_graph_t *) command->pack.cg;
             assert(cg);
 
             runtime_t * runtime = (runtime_t *) cg->driver_handle;
@@ -795,9 +795,9 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_progress)(
             iqueue->progress([&] (command_t * command, xkrt_command_queue_list_counter_t p) {
 
                 assert(command->type == cgir::COMMAND_TYPE_PACK);
-                assert(command->batch.cg);
+                assert(command->pack.cg);
 
-                command_graph_node_t * exit  = (command_graph_node_t *) command->batch.cg->node_get_exit();
+                command_graph_node_t * exit  = (command_graph_node_t *) command->pack.cg->node_get_exit();
                 if ((volatile command_graph_node_state_t) exit->state == COMMAND_GRAPH_NODE_STATE_COMPLETE)
                 {
                     iqueue->complete_command(p);
@@ -874,7 +874,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_delete)(
             break ;
         }
 
-        // KERN is used for batches
+        // KERN is used for packes
         case (XKRT_QUEUE_TYPE_KERN):
         {
             break ;
