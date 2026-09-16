@@ -139,6 +139,27 @@ typedef struct  driver_t
      * JIT/fusion codegen target. */
     void (*f_device_get_target)(device_driver_id_t device_driver_id, const char ** triple, const char ** arch);
 
+    /* Occupancy limit of a resolved device kernel: how many blocks (CTAs) of
+     * `block_threads` threads and `dyn_smem` bytes of dynamic shared memory the
+     * device can co-schedule per SM. Returns 0 when unknown.
+     *
+     * Used to keep a program's occupancy stable across a code substitution: the
+     * `jit` pass replaces a kernel's code, which changes its register footprint
+     * and hence how many blocks the device co-schedules -- a silent change of
+     * launch behaviour that can dominate runtime for cache-sensitive kernels.
+     * See command_prog_t::blocks_per_sm. Optional (NULL => no occupancy
+     * management on this driver). */
+    unsigned int (*f_prog_max_blocks_per_sm)(device_driver_id_t device_driver_id, void * fn, unsigned int block_threads, size_t dyn_smem);
+
+    /* Number of compute units (SMs) on the device, or 0 when unknown.
+     *
+     * With f_prog_max_blocks_per_sm this gives how many blocks of a program can
+     * run at the same time, which is what decides whether cgir may fuse several
+     * device programs into one kernel: a fused kernel orders its parts with a
+     * grid-wide barrier, and that barrier only completes if every block is
+     * resident. See command_prog_t::max_coresident_blocks. Optional. */
+    unsigned int (*f_device_compute_units)(device_driver_id_t device_driver_id);
+
     ////////////////////////////////
     //  MEMORY MANAGEMENT         //
     ////////////////////////////////
@@ -230,14 +251,14 @@ typedef struct  driver_t
     // COMMANDS MANAGEMENT //
     /////////////////////////
 
-    /* Contract the passed command subgraph to a single BATCH command.
+    /* Contract the passed command subgraph to a single PACK command.
      * All commands of the subgraph are scheduled on the same device of `driver_id`.
      * The resulting command must be written to `command` */
-    void * (*f_command_batch_init)(device_driver_id_t device_driver_id, command_batch_t * cmd);
+    void * (*f_command_pack_init)(device_driver_id_t device_driver_id, command_pack_t * cmd);
 
-    /* Release driver resources associated with a BATCH command
+    /* Release driver resources associated with a PACK command
      * previously created by f_command_graph_init */
-    void (*f_command_batch_deinit)(device_driver_id_t device_driver_id, const command_batch_t * cmd, void * handle);
+    void (*f_command_pack_deinit)(device_driver_id_t device_driver_id, const command_pack_t * cmd, void * handle);
     # endif
 
     ///////////////////
