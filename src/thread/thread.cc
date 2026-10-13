@@ -213,7 +213,7 @@ team_create_get_place(
                     return ;
                 }
 
-                case (XKRT_TEAM_BINDING_PLACES_HYPERTHREAD):
+                case (XKRT_TEAM_BINDING_PLACES_THREAD):
                 case (XKRT_TEAM_BINDING_PLACES_CORE):
                 case (XKRT_TEAM_BINDING_PLACES_L1):
                 case (XKRT_TEAM_BINDING_PLACES_L2):
@@ -223,13 +223,13 @@ team_create_get_place(
                 case (XKRT_TEAM_BINDING_PLACES_MACHINE):
                 {
                     hwloc_obj_type_t type =
-                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_HYPERTHREAD) ? HWLOC_OBJ_PU          :
-                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_CORE)        ? HWLOC_OBJ_CORE        :
-                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L1)          ? HWLOC_OBJ_L1CACHE     :
-                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L2)          ? HWLOC_OBJ_L2CACHE     :
-                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L3)          ? HWLOC_OBJ_L3CACHE     :
-                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_NUMA)        ? HWLOC_OBJ_NUMANODE    :
-                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_MACHINE)     ? HWLOC_OBJ_MACHINE     :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_THREAD)  ? HWLOC_OBJ_PU          :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_CORE)    ? HWLOC_OBJ_CORE        :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L1)      ? HWLOC_OBJ_L1CACHE     :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L2)      ? HWLOC_OBJ_L2CACHE     :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_L3)      ? HWLOC_OBJ_L3CACHE     :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_NUMA)    ? HWLOC_OBJ_NUMANODE    :
+                        (team->desc.binding.places == XKRT_TEAM_BINDING_PLACES_MACHINE) ? HWLOC_OBJ_MACHINE     :
                         HWLOC_OBJ_CORE;
                     ;
 

@@ -99,7 +99,7 @@ typedef enum    team_binding_mode_t
 
 typedef enum    team_binding_places_t
 {
-    XKRT_TEAM_BINDING_PLACES_HYPERTHREAD,
+    XKRT_TEAM_BINDING_PLACES_THREAD,
     XKRT_TEAM_BINDING_PLACES_CORE,
     XKRT_TEAM_BINDING_PLACES_L1,
     XKRT_TEAM_BINDING_PLACES_L2,
