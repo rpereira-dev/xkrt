@@ -74,6 +74,8 @@ CC=clang CXX=clang++ CMAKE_PREFIX_PATH=$CUDA_PATH:$CMAKE_PREFIX_PATH cmake -DUSE
 - `XKRT_HELP=1` - displays available environment variables.
 
 # Directions for improvements / known issues
+- Submit not ready device task and synchronize via events
+- Figure-out how to build multi-GPU CUDA graphs programatically (i.e., without record as shown in https://www.nvidia.com/en-us/on-demand/session/gtc26-s81859/ - if possible at all) - look at https://forums.developer.nvidia.com/t/cudagraph-t-and-multiple-devices/360949
 - There is currently 1x coherence controller per couple `(LD, sizeof(TYPE))` while there should be for `LD * sizeof(TYPE)` - which can be useful for in-place mixed-precision conversions
 - Add a memory coherency controller for 'point' accesses, to retrieve original xkblas/kaapi behavior - that is a decentralized and tile-base coherence protocol
 - Stuff from `xkrt-init` could be moved for lazier initializations
