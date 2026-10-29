@@ -73,6 +73,25 @@ extern int LOGGER_INITIALIZED;
 extern volatile double   LOGGER_TIME_ELAPSED;
 extern volatile uint64_t LOGGER_LAST_TIME;
 
+# if defined(__GNUC__) || defined(__clang__)
+#  define LOGGER_PRINTF_ATTR(F, A) __attribute__((format(printf, F, A)))
+# else
+#  define LOGGER_PRINTF_ATTR(F, A)
+# endif
+
+# ifdef __cplusplus
+extern "C" {
+# endif
+
+char const * logger_once_format(char const * fmt, ...) LOGGER_PRINTF_ATTR(1, 2);
+void logger_once_free_buffer(void);
+int logger_once_register(int lvl, char const * msg);
+void logger_once_reset(void);
+
+# ifdef __cplusplus
+}
+# endif
+
 # define LOGGER_PRINT_LINE() \
     fprintf(LOGGER_FD, "%s:%d (%s)\n", __FILE__, __LINE__, __func__);
 
@@ -87,6 +106,17 @@ extern volatile uint64_t LOGGER_LAST_TIME;
 #  define LOGGER_ERROR(...)
 #  define LOGGER_IMPL(...)
 #  define LOGGER_DEBUG(...)
+
+#  define LOGGER_PRINT_ONCE(...)
+#  define LOGGER_NOT_IMPLEMENTED_WARN_ONCE(...)
+#  define LOGGER_NOT_SUPPORTED_ONCE(...)
+#  define LOGGER_NOT_IMPLEMENTED_ONCE(...)
+#  define LOGGER_INFO_ONCE(...)
+#  define LOGGER_WARN_ONCE(...)
+#  define LOGGER_ERROR_ONCE(...)
+#  define LOGGER_IMPL_ONCE(...)
+#  define LOGGER_DEBUG_ONCE(...)
+
 #  define LOGGER_FATAL(...)                                                         \
     do {                                                                            \
         fprintf(LOGGER_FD, "XKRT aborted with the following error message:\n\t");   \
@@ -100,26 +130,31 @@ extern volatile uint64_t LOGGER_LAST_TIME;
 
 # else /* LOGGER_SHUT_UP */
 
-# define LOGGER_PRINT(LVL, ...)                                                 \
+# define LOGGER_INIT()                                                          \
     do {                                                                        \
         if (!LOGGER_INITIALIZED)                                                \
         {                                                                       \
             LOGGER_INITIALIZED = 1;                                             \
-            char * s = getenv("LOGGER_VERBOSE");                                \
-            if (s)                                                              \
-                LOGGER_VERBOSE = atoi(s);                                       \
+            char * _logger_env = getenv("LOGGER_VERBOSE");                      \
+            if (_logger_env)                                                    \
+                LOGGER_VERBOSE = atoi(_logger_env);                             \
         }                                                                       \
+    } while (0)
+
+# define LOGGER_PRINT(LVL, ...)                                                 \
+    do {                                                                        \
+        LOGGER_INIT();                                                          \
         if (LVL <= LOGGER_VERBOSE)                                              \
         {                                                                       \
             SPINLOCK_LOCK(LOGGER_PRINT_MTX);                                    \
             struct timespec _ts;                                                \
             clock_gettime(CLOCK_MONOTONIC, &_ts);                               \
-            uint64_t t = (uint64_t)(_ts.tv_sec * 1000000000) +                  \
-                            (uint64_t) _ts.tv_nsec;                             \
+            uint64_t _logger_t = (uint64_t)(_ts.tv_sec * 1000000000) +          \
+                                    (uint64_t) _ts.tv_nsec;                     \
             if (LOGGER_LAST_TIME != 0)                                          \
                 LOGGER_TIME_ELAPSED = LOGGER_TIME_ELAPSED +                     \
-                                        (double) (t - LOGGER_LAST_TIME) / 1e9;  \
-            LOGGER_LAST_TIME = t;                                               \
+                                (double) (_logger_t - LOGGER_LAST_TIME) / 1e9;  \
+            LOGGER_LAST_TIME = _logger_t;                                       \
             if (isatty(STDOUT_FILENO))                                          \
                 fprintf(LOGGER_FD, "[%8lf] "                                    \
                                 "[TID=%d] "                                     \
@@ -150,22 +185,50 @@ extern volatile uint64_t LOGGER_LAST_TIME;
         }                                                                       \
     } while (0)
 
+# define LOGGER_PRINT_ONCE(LVL, ...)                                            \
+    do {                                                                        \
+        LOGGER_INIT();                                                          \
+        if ((LVL) <= LOGGER_VERBOSE)                                            \
+        {                                                                       \
+            char const * _logger_once_msg = logger_once_format(__VA_ARGS__);    \
+            if (_logger_once_msg == NULL)                                       \
+                LOGGER_PRINT((LVL), __VA_ARGS__);       /* OOM: don't lose it */\
+            else if (logger_once_register((LVL), _logger_once_msg))             \
+                LOGGER_PRINT((LVL), "%s", _logger_once_msg);                    \
+        }                                                                       \
+    } while (0)
+
 # define LOGGER_NOT_IMPLEMENTED_WARN(S)                                 \
     LOGGER_IMPL("'%s' at %s:%d in %s()",                                \
             S, __FILE__, __LINE__, __func__);
 
+# define LOGGER_NOT_IMPLEMENTED_WARN_ONCE(S)                            \
+    LOGGER_IMPL_ONCE("'%s' at %s:%d in %s()",                           \
+            S, __FILE__, __LINE__, __func__)
+
 # define LOGGER_NOT_SUPPORTED()   LOGGER_NOT_IMPLEMENTED_WARN("Not supported")
 # define LOGGER_NOT_IMPLEMENTED() LOGGER_NOT_IMPLEMENTED_WARN("Not implemented")
+
+# define LOGGER_NOT_SUPPORTED_ONCE()   LOGGER_NOT_IMPLEMENTED_WARN_ONCE("Not supported")
+# define LOGGER_NOT_IMPLEMENTED_ONCE() LOGGER_NOT_IMPLEMENTED_WARN_ONCE("Not implemented")
 
 # define LOGGER_INFO(...)  LOGGER_PRINT(LOGGER_PRINT_INFO_ID,  __VA_ARGS__)
 # define LOGGER_WARN(...)  LOGGER_PRINT(LOGGER_PRINT_WARN_ID,  __VA_ARGS__)
 # define LOGGER_ERROR(...) LOGGER_PRINT(LOGGER_PRINT_ERROR_ID, __VA_ARGS__)
 # define LOGGER_IMPL(...)  LOGGER_PRINT(LOGGER_PRINT_IMPL_ID,  __VA_ARGS__)
 # define LOGGER_FATAL(...) LOGGER_PRINT(LOGGER_PRINT_FATAL_ID, __VA_ARGS__)
+
+# define LOGGER_INFO_ONCE(...)  LOGGER_PRINT_ONCE(LOGGER_PRINT_INFO_ID,  __VA_ARGS__)
+# define LOGGER_WARN_ONCE(...)  LOGGER_PRINT_ONCE(LOGGER_PRINT_WARN_ID,  __VA_ARGS__)
+# define LOGGER_ERROR_ONCE(...) LOGGER_PRINT_ONCE(LOGGER_PRINT_ERROR_ID, __VA_ARGS__)
+# define LOGGER_IMPL_ONCE(...)  LOGGER_PRINT_ONCE(LOGGER_PRINT_IMPL_ID,  __VA_ARGS__)
+
 # if XKRT_SUPPORT_DEBUG
-#  define LOGGER_DEBUG(...) LOGGER_PRINT(LOGGER_PRINT_DEBUG_ID, __VA_ARGS__)
+#  define LOGGER_DEBUG(...)      LOGGER_PRINT(LOGGER_PRINT_DEBUG_ID, __VA_ARGS__)
+#  define LOGGER_DEBUG_ONCE(...) LOGGER_PRINT_ONCE(LOGGER_PRINT_DEBUG_ID, __VA_ARGS__)
 # else
 #  define LOGGER_DEBUG(...)
+#  define LOGGER_DEBUG_ONCE(...)
 # endif
 
 # endif /* LOGGER_SHUT_UP */

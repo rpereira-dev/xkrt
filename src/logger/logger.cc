@@ -36,8 +36,14 @@
 
 # include <stdint.h>
 
+# include <xkrt/data-structures/uthash.h>
 # include <xkrt/logger/logger.h>
 # include <xkrt/sync/spinlock.h>
+
+# include <stdarg.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <string.h>
 
 volatile spinlock_t LOGGER_PRINT_MTX;
 
@@ -64,3 +70,175 @@ char const * LOGGER_PRINT_HEADERS[LOGGER_PRINT_ID_MAX] = {
 
 int LOGGER_VERBOSE = LOGGER_PRINT_INFO_ID;
 int LOGGER_INITIALIZED = 0;
+
+/* ------------------------------------------------------------------------ */
+/*  Support for the LOGGER_*_ONCE macros                                    */
+/* ------------------------------------------------------------------------ */
+
+/** Initial size of the per-thread formatting buffer (grows if needed) */
+# ifndef LOGGER_ONCE_BUFSZ
+#  define LOGGER_ONCE_BUFSZ 1024
+# endif
+
+/**
+ *  Upper bound on the number of distinct messages remembered.  It protects
+ *  against unbounded growth when a message embeds a varying value (pointer,
+ *  counter...).  Once reached, unknown messages are simply printed every time.
+ */
+# ifndef LOGGER_ONCE_MAX_ENTRIES
+#  define LOGGER_ONCE_MAX_ENTRIES 4096
+# endif
+
+/* ---- per-thread formatting buffer --------------------------------------- */
+
+/* the buffer, lazily malloc()'d by each thread on its first use, then reused */
+static _Thread_local char *  LOGGER_TLS_BUF = NULL;
+static _Thread_local size_t  LOGGER_TLS_CAP = 0;
+
+/**
+ *  Make sure the calling thread's buffer holds at least 'need' bytes.
+ *  The previous content is NOT preserved.  Returns NULL if malloc() fails.
+ */
+static char *
+logger_tls_buffer(size_t need)
+{
+    if (LOGGER_TLS_BUF && LOGGER_TLS_CAP >= need)
+        return LOGGER_TLS_BUF;
+
+    size_t cap = LOGGER_TLS_CAP ? LOGGER_TLS_CAP : (size_t) LOGGER_ONCE_BUFSZ;
+    while (cap < need)
+        cap *= 2;
+
+    free(LOGGER_TLS_BUF);
+    LOGGER_TLS_BUF = NULL;
+    LOGGER_TLS_CAP = 0;
+
+    char * buf = (char *) malloc(cap);
+    if (buf == NULL)
+        return NULL;
+
+    LOGGER_TLS_BUF = buf;
+    LOGGER_TLS_CAP = cap;
+    return buf;
+}
+
+char const *
+logger_once_format(char const * fmt, ...)
+{
+    char * buf = LOGGER_TLS_BUF;
+    if (buf == NULL)
+    {
+        buf = logger_tls_buffer(LOGGER_ONCE_BUFSZ);
+        if (buf == NULL)
+            return NULL;
+    }
+
+    va_list ap, ap2;
+    va_start(ap, fmt);
+    va_copy(ap2, ap);
+
+    int n = vsnprintf(buf, LOGGER_TLS_CAP, fmt, ap);
+    va_end(ap);
+
+    if (n < 0)
+    {
+        buf = NULL;
+    }
+    else if ((size_t) n >= LOGGER_TLS_CAP)  /* truncated: grow, then redo */
+    {
+        buf = logger_tls_buffer((size_t) n + 1);
+        if (buf)
+            vsnprintf(buf, LOGGER_TLS_CAP, fmt, ap2);
+    }
+    va_end(ap2);
+    return buf;
+}
+
+void
+logger_once_free_buffer(void)
+{
+    free(LOGGER_TLS_BUF);
+    LOGGER_TLS_BUF = NULL;
+    LOGGER_TLS_CAP = 0;
+}
+
+/* ---- set of already printed messages ------------------------------------ */
+
+typedef struct  logger_once_entry_t
+{
+    char *          key;    /* NUL-terminated, stored right after the struct */
+    UT_hash_handle  hh;
+}               logger_once_entry_t;
+
+static logger_once_entry_t *    LOGGER_ONCE_SETS[LOGGER_PRINT_ID_MAX] = { NULL };
+static unsigned int             LOGGER_ONCE_COUNT = 0;
+static volatile spinlock_t      LOGGER_ONCE_MTX = 0;
+
+int
+logger_once_register(int lvl, char const * msg)
+{
+    if (lvl < 0 || lvl >= LOGGER_PRINT_ID_MAX)
+        return 1;
+
+    logger_once_entry_t * e = NULL;
+
+    SPINLOCK_LOCK(LOGGER_ONCE_MTX);
+    HASH_FIND_STR(LOGGER_ONCE_SETS[lvl], msg, e);
+    int full = (LOGGER_ONCE_COUNT >= LOGGER_ONCE_MAX_ENTRIES);
+    SPINLOCK_UNLOCK(LOGGER_ONCE_MTX);
+
+    if (e)
+        return 0;
+    if (full)
+        return 1;
+
+    size_t len = strlen(msg);
+    logger_once_entry_t * n = (logger_once_entry_t *) malloc(sizeof(logger_once_entry_t) + len + 1);
+    if (n == NULL)
+        return 1;
+    n->key = (char *) (n + 1);
+    memcpy(n->key, msg, len + 1);
+
+    int first = 1;
+    SPINLOCK_LOCK(LOGGER_ONCE_MTX);
+    {
+        HASH_FIND_STR(LOGGER_ONCE_SETS[lvl], msg, e);
+        if (e)
+            first = 0;
+        else if (LOGGER_ONCE_COUNT < LOGGER_ONCE_MAX_ENTRIES)
+        {
+            HASH_ADD_KEYPTR(hh, LOGGER_ONCE_SETS[lvl], n->key, len, n);
+            ++LOGGER_ONCE_COUNT;
+            n = NULL;
+        }
+    }
+    SPINLOCK_UNLOCK(LOGGER_ONCE_MTX);
+
+    free(n);
+    return first;
+}
+
+void
+logger_once_reset(void)
+{
+    logger_once_entry_t * old[LOGGER_PRINT_ID_MAX];
+
+    SPINLOCK_LOCK(LOGGER_ONCE_MTX);
+    for (int i = 0 ; i < LOGGER_PRINT_ID_MAX ; ++i)
+    {
+        old[i] = LOGGER_ONCE_SETS[i];
+        LOGGER_ONCE_SETS[i] = NULL;
+    }
+    LOGGER_ONCE_COUNT = 0;
+    SPINLOCK_UNLOCK(LOGGER_ONCE_MTX);
+
+    for (int i = 0 ; i < LOGGER_PRINT_ID_MAX ; ++i)
+    {
+        logger_once_entry_t * e, * tmp;
+        HASH_ITER(hh, old[i], e, tmp)
+        {
+            HASH_DEL(old[i], e);
+            free(e);
+        }
+    }
+}
