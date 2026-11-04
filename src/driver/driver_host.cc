@@ -298,6 +298,38 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_node_completion_callback)(
     return XKRT_DRIVER_ENTRYPOINT(command_graph_replay_node_complete)(runtime, cg, node);
 }
 
+/* Whether the edge pred -> succ is ordered on the device: succ waits on the
+ * device for pred, and is released by pred's launch rather than its
+ * completion (see command_graph_ordering_setup) */
+static inline bool
+__command_graph_edge_on_device(
+    cgir::command_graph_node_t * pred,
+    cgir::command_graph_node_t * succ
+) {
+    if (succ->type != cgir::COMMAND_GRAPH_NODE_TYPE_COMMAND || pred->type != cgir::COMMAND_GRAPH_NODE_TYPE_COMMAND)
+        return false;
+    const command_t * s = (const command_t *) succ->command;
+    for (uint32_t i = 0 ; i < s->order.nwaits ; ++i)
+        if (s->order.waits[i] == pred->command)
+            return true;
+    return false;
+}
+
+/* Whether some node waits for the completion of `node`: the exit (the replay
+ * waits for it), or a successor not ordered after it on the device */
+static inline bool
+__command_graph_node_completion_awaited(
+    command_graph_t * cg,
+    command_graph_node_t * node
+) {
+    if (node == cg->node_get_exit())
+        return true;
+    for (cgir::command_graph_node_t * succ : node->successors)
+        if (!__command_graph_edge_on_device(node, succ))
+            return true;
+    return false;
+}
+
 template <command_graph_node_wc_type_t initial_dwc>
 static inline void
 XKRT_DRIVER_ENTRYPOINT(command_graph_replay_process_node)(
@@ -320,14 +352,20 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_process_node)(
                 // clear all previous callbacks
                 ((command_t *) node->command)->completion_callback_clear();
 
-                // add a callback to notify successor commands of that predecessor completion
-                static_assert(XKRT_CALLBACK_ARGS_MAX >= 3);
-                callback_t callback;
-                callback.func = XKRT_DRIVER_ENTRYPOINT(command_graph_replay_node_completion_callback);
-                callback.args[0] = runtime;
-                callback.args[1] = cg;
-                callback.args[2] = node;
-                ((command_t *) node->command)->completion_callback_push(callback);
+                // add a callback to notify successor commands of that
+                // predecessor completion -- unless every successor was
+                // released at its launch: then nothing awaits its completion
+                // (see command_graph_ordering_setup)
+                if (__command_graph_node_completion_awaited(cg, node))
+                {
+                    static_assert(XKRT_CALLBACK_ARGS_MAX >= 3);
+                    callback_t callback;
+                    callback.func = XKRT_DRIVER_ENTRYPOINT(command_graph_replay_node_completion_callback);
+                    callback.args[0] = runtime;
+                    callback.args[1] = cg;
+                    callback.args[2] = node;
+                    ((command_t *) node->command)->completion_callback_push(callback);
+                }
 
                 // forward the replay team so a host task emitted by this command
                 // is spawned on the replay-initiator's team, not the (device)
@@ -394,8 +432,11 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_node_complete)(
     command_graph_t * cg,
     command_graph_node_t * node
 ) {
-    // submit successor nodes
+    // submit successor nodes -- except those the command already released
+    // when it was launched (device-side ordering, see command_graph_ordering_setup)
     node->foreach_successor([&] (cgir::command_graph_node_t * succ) {
+        if (__command_graph_edge_on_device(node, succ))
+            return ;
         XKRT_DRIVER_ENTRYPOINT(command_graph_replay_process_node)<1>(runtime, cg, (command_graph_node_t *) succ);
     });
 
@@ -411,6 +452,234 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_replay_node_complete)(
     {
         // nothing to do
     }
+}
+
+/* A command was launched (its event recorded): release the successors that
+ * wait for its launch rather than its completion. */
+static void
+XKRT_DRIVER_ENTRYPOINT(command_graph_replay_node_launched)(
+    void * args[XKRT_CALLBACK_ARGS_MAX]
+) {
+    runtime_t            * runtime = (runtime_t *)            args[0];
+    command_graph_t      * cg      = (command_graph_t *)      args[1];
+    command_graph_node_t * node    = (command_graph_node_t *) args[2];
+    node->foreach_successor([&] (cgir::command_graph_node_t * succ) {
+        if (__command_graph_edge_on_device(node, succ))
+            XKRT_DRIVER_ENTRYPOINT(command_graph_replay_process_node)<1>(runtime, cg, (command_graph_node_t *) succ);
+    });
+}
+
+/* Device-side ordering (XKRT_REPLAY_DEVICE_ORDERING, command_t::order).
+ *
+ * A replayed command is normally released when the host has seen all its
+ * predecessors complete: between two dependent device commands, the device
+ * idles while the host polls the first one's event, runs the completion
+ * callbacks, then submits and launches the second -- some 10us per edge on a
+ * CUDA device. Instead, an edge between two commands of devices of the same
+ * driver is ordered by the devices themselves: the successor waits, on the
+ * device, for the predecessor's event (events synchronize across devices of a
+ * driver), and that edge counts for its release as soon as the predecessor is
+ * LAUNCHED: the predecessor's `launched` callback releases it, its completion
+ * no longer does. Every other edge (from the host, from a device of another
+ * driver) still counts at the predecessor's completion. A command is released
+ * once all its edges counted, so it may wait both for some predecessors'
+ * launch and for others' completion.
+ *
+ * The graph's exit node is an empty command of a device, when some
+ * predecessor is a command a driver orders: it is launched like any other
+ * command, and the replay completes when its event does. The entry too, when
+ * all its successors are commands of one driver. Every command has a path to
+ * the exit, whose edges each either order the commands on the device or wait
+ * for completion, so the exit completes after every command of the replay
+ * did.
+ *
+ * A command whose successors are all ordered after it on the device has
+ * nothing to do on completion: it gets no completion callback. The host may then see it
+ * complete only after the next replay launched it again -- see
+ * command_t::order.launch.
+ *
+ * Set up once per graph, on its first replay. */
+
+/* Return the driver if the node is a command its device can order, else NULL */
+static driver_t *
+__command_graph_node_orderable(
+    runtime_t * runtime,
+    command_graph_node_t * node
+) {
+    if (node->type != cgir::COMMAND_GRAPH_NODE_TYPE_COMMAND || node->command == NULL)
+        return NULL;
+    if (node->device_unique_id == XKRT_HOST_DEVICE_UNIQUE_ID ||
+        node->device_unique_id == XKRT_UNSPECIFIED_DEVICE_UNIQUE_ID)
+        return NULL;
+    if (((command_t *) node->command)->flags & COMMAND_FLAG_PROG_LAUNCHER)
+        return NULL;
+
+    /* programs, copies and empty commands: commands the driver launches on
+     * one of its streams */
+    switch (node->command->type)
+    {
+        case (cgir::COMMAND_TYPE_EMPTY):
+        case (cgir::COMMAND_TYPE_PROG):
+        case (cgir::COMMAND_TYPE_COPY_H2D_1D):
+        case (cgir::COMMAND_TYPE_COPY_D2H_1D):
+        case (cgir::COMMAND_TYPE_COPY_D2D_1D):
+        case (cgir::COMMAND_TYPE_COPY_H2D_2D):
+        case (cgir::COMMAND_TYPE_COPY_D2H_2D):
+        case (cgir::COMMAND_TYPE_COPY_D2D_2D):
+            break ;
+        default:
+            return NULL;
+    }
+
+    device_t * device = runtime->device_get(node->device_unique_id);
+    if (device == NULL)
+        return NULL;
+
+    driver_t * driver = runtime->driver_get(device->driver_type);
+    if (driver == NULL || !driver->device_ordering)
+        return NULL;
+
+    return driver;
+}
+
+/* Whether the node waits on the device for its predecessor `p`: both are
+ * orderable commands of one driver */
+static inline bool
+__command_graph_edge_orderable(
+    runtime_t * runtime,
+    driver_t * driver,
+    cgir::command_graph_node_t * p
+) {
+    return driver && __command_graph_node_orderable(runtime, (command_graph_node_t *) p) == driver;
+}
+
+/* Return the number of predecessors the node waits for on the device */
+static uint32_t
+__command_graph_node_nwaits(
+    runtime_t * runtime,
+    command_graph_node_t * node
+) {
+    driver_t * driver = __command_graph_node_orderable(runtime, node);
+    uint32_t nwaits = 0;
+    for (cgir::command_graph_node_t * p : node->predecessors)
+        if (__command_graph_edge_orderable(runtime, driver, p))
+            ++nwaits;
+    return nwaits;
+}
+
+/* Make the EMPTY `node` an empty command of the device of one of
+ * `neighbors`, orderable commands: the first one, if `all` of them are
+ * orderable commands of one driver, else if any is */
+static void
+__command_graph_node_to_empty_command(
+    runtime_t * runtime,
+    command_graph_t * cg,
+    command_graph_node_t * node,
+    const std::list<cgir::command_graph_node_t *> & neighbors,
+    const bool all
+) {
+    if (node->type != cgir::COMMAND_GRAPH_NODE_TYPE_EMPTY)
+        return ;
+
+    driver_t * driver = NULL;
+    cgir::command_graph_node_t * first = NULL;
+    for (cgir::command_graph_node_t * n : neighbors)
+    {
+        driver_t * d = __command_graph_node_orderable(runtime, (command_graph_node_t *) n);
+        if (all && (d == NULL || (driver && d != driver)))
+            return ;
+        if (d && first == NULL)
+        {
+            driver = d;
+            first  = n;
+        }
+    }
+    if (first == NULL)
+        return ;
+
+    node->device_unique_id = first->device_unique_id;
+    node->command          = cg->commands.put(cgir::COMMAND_TYPE_EMPTY, COMMAND_FLAG_NONE);
+    node->type             = cgir::COMMAND_GRAPH_NODE_TYPE_COMMAND;
+}
+
+static void
+command_graph_ordering_setup(
+    runtime_t * runtime,
+    command_graph_t * cg
+) {
+    cg->ordering_ready = true;
+    if (!runtime->conf.replay_device_ordering)
+        return ;
+
+    command_graph_node_t * entry = (command_graph_node_t *) cg->node_get_entry();
+    command_graph_node_t * exit  = (command_graph_node_t *) cg->node_get_exit();
+
+    // The exit becomes an empty command of a device if some predecessor is
+    // an orderable command: it waits on the device for those of its driver,
+    // for the completion of the others. The entry, only if all its successors
+    // are orderable commands of one driver: its other successors would
+    // otherwise wait for its completion, where they need not wait at all.
+    __command_graph_node_to_empty_command(runtime, cg, exit,  exit->predecessors, false);
+    __command_graph_node_to_empty_command(runtime, cg, entry, entry->successors,  true);
+
+    // count edges ordered on the devices, to allocate all `waits` arrays at once
+    size_t nedges = 0;
+    cg->walk([&] (cgir::command_graph_node_t * node) {
+        nedges += __command_graph_node_nwaits(runtime, (command_graph_node_t *) node);
+    });
+    if (nedges == 0)
+        return ;
+
+    // one buffer for all the `waits` arrays (freed with the graph)
+    cg->order_waits = (command_t **) malloc(nedges * sizeof(command_t *));
+    assert(cg->order_waits);
+
+    // set up the device edges: the `waits` of their successor, the `launched`
+    // callback of their predecessor
+    command_t ** next = cg->order_waits;
+    int nlaunch = 0;
+    int ncommands = 0;
+    cg->walk([&] (cgir::command_graph_node_t * n) {
+
+        command_graph_node_t * node = (command_graph_node_t *) n;
+        if (node->type == cgir::COMMAND_GRAPH_NODE_TYPE_COMMAND)
+            ++ncommands;
+
+        const uint32_t nwaits = __command_graph_node_nwaits(runtime, node);
+        if (nwaits == 0)
+            return ;
+
+        driver_t * driver = __command_graph_node_orderable(runtime, node);
+        command_t * command = (command_t *) node->command;
+        command->order.waits  = next;
+        command->order.nwaits = 0;
+        next += nwaits;
+
+        for (cgir::command_graph_node_t * p : node->predecessors)
+        {
+            if (!__command_graph_edge_orderable(runtime, driver, p))
+                continue ;
+
+            command_graph_node_t * pred = (command_graph_node_t *) p;
+            command_t * pcommand = (command_t *) pred->command;
+            command->order.waits[command->order.nwaits++] = pcommand;
+
+            // first time this predecessor releases a successor at launch
+            if (pcommand->order.launched.func == NULL)
+            {
+                pcommand->order.launched.func    = XKRT_DRIVER_ENTRYPOINT(command_graph_replay_node_launched);
+                pcommand->order.launched.args[0] = runtime;
+                pcommand->order.launched.args[1] = cg;
+                pcommand->order.launched.args[2] = pred;
+            }
+        }
+        assert(command->order.nwaits == nwaits);
+        ++nlaunch;
+    });
+    assert(next == cg->order_waits + nedges);
+
+    LOGGER_INFO("replay ordering: %d of %d commands wait on the device for %zu predecessors",
+                nlaunch, ncommands, nedges);
 }
 
 static int
@@ -439,6 +708,10 @@ XKRT_DRIVER_ENTRYPOINT(command_graph_launch)(
     // a linear sequence of OpenMP tasks replays as a single super-task
     if (cg->is_serial)
         return XKRT_DRIVER_ENTRYPOINT(command_graph_replay_sequence)(runtime, cg);
+
+    // decide, once, which nodes the device can order itself
+    if (!cg->ordering_ready)
+        command_graph_ordering_setup(runtime, cg);
 
      // increase replay counter
     ++cg->rc;

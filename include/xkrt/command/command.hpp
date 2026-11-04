@@ -41,6 +41,8 @@
 
 # include <cgir/cgir.hpp>
 
+# include <atomic>
+
 # include <xkrt/callback.h>
 # include <xkrt/namespace.h>
 # include <xkrt/data-structures/memory-pool.h>
@@ -72,6 +74,11 @@ typedef enum    command_flag_t
      * are never freed by the queue. Set by 'command_new'; consumed on completion. */
     COMMAND_FLAG_POOLED         = (1 << 3),
 
+    /* if the driver should time the command's execution and report it (see
+     * src/driver/tuning.hpp): its graph wants durations for the
+     * `critical-path` pass. Set and cleared by the replay. */
+    COMMAND_FLAG_MEASURE        = (1 << 4),
+
 }               command_flag_t;
 
 inline constexpr command_flag_t
@@ -97,6 +104,35 @@ struct command_t : cgir::command_t
     /* team_t that must replay the command */
     void * replay_team;
 
+    /* Device-side ordering, during a command-graph replay on a driver that
+     * supports it. A command whose predecessors are all commands of devices
+     * of the same driver is launched as soon as they are LAUNCHED, not
+     * completed: its stream first waits on their `event` (events synchronize
+     * across devices of a driver), so the devices order them themselves and
+     * the host round trip between the two disappears. */
+    struct {
+        /* the commands whose `event` the launch must wait on */
+        command_t ** waits;
+        uint32_t nwaits;
+
+        /* The queue entry the command was last launched from, with bit 0 set
+         * once the host saw that launch complete: successors launched after
+         * that do not wait on `event`. Tagged with the entry, so that the
+         * completion of a previous replay's launch, seen by the host after the
+         * command was launched again, is not taken for the new one's.
+         * Accessed through std::atomic_ref (see order_launched/_completed/
+         * _done), so that command_t stays trivially copyable. */
+        uintptr_t launch;
+
+        /* the event of the queue slot the command was last launched from,
+         * recorded right after the launch (set by the driver) */
+        void * event;
+
+        /* raised by the launching thread once the command is launched (its
+         * event recorded): releases the successors that only wait for that */
+        callback_t launched;
+    } order;
+
     /* constructor */
     command_t(
         cgir::command_type_t type,
@@ -105,8 +141,16 @@ struct command_t : cgir::command_t
         cgir::command_t(type),
         flags(flags),
         callbacks{},
-        replay_team(nullptr)
-    {}
+        replay_team(NULL),
+        order{
+            .waits = NULL,
+            .nwaits = 0,
+            .launch = 0,
+            .event = NULL,
+            .launched = { .func = NULL }
+        }
+    {
+    }
 
     inline void
     completion_callback_push(const callback_t & callback)
@@ -130,6 +174,33 @@ struct command_t : cgir::command_t
             assert(this->callbacks.list[i].func);
             this->callbacks.list[i].raise();
         }
+    }
+
+    /* device-side ordering, see `order.launch` */
+
+    /* the command is being launched from queue entry `entry` */
+    inline void
+    order_launched(const void * entry)
+    {
+        assert(((uintptr_t) entry & 1) == 0);
+        std::atomic_ref<uintptr_t>(this->order.launch).store((uintptr_t) entry, std::memory_order_relaxed);
+    }
+
+    /* the host saw the launch from `entry` complete: no effect if the command
+     * was launched again since */
+    inline void
+    order_completed(const void * entry)
+    {
+        uintptr_t expected = (uintptr_t) entry;
+        std::atomic_ref<uintptr_t>(this->order.launch).compare_exchange_strong(
+            expected, expected | 1, std::memory_order_release, std::memory_order_relaxed);
+    }
+
+    /* whether the host saw the command's last launch complete */
+    inline bool
+    order_done(void)
+    {
+        return std::atomic_ref<uintptr_t>(this->order.launch).load(std::memory_order_acquire) & 1;
     }
 };
 
@@ -162,6 +233,7 @@ struct command_graph_node_t : cgir::command_graph_node_t
 
     /* spinlock to reinitialize the node on replay */
     spinlock_t spinlock;
+
 
     /* constructor/destructor */
     command_graph_node_t(
@@ -208,13 +280,22 @@ struct command_graph_t : cgir::command_graph_t
     /* Handle for driver (runtime_t for host, cuGraph for CUDA device, etc.) */
     void * driver_handle;
 
+    /* whether device-side ordering was set up on the nodes (first replay) */
+    bool ordering_ready;
+
+    /* storage of every command's `order.waits` array: one allocation per
+     * graph, sized by the number of edges ordered on the devices */
+    command_t ** order_waits;
+
     command_graph_t(void) :
         commands(),
         nodes(),
         rc(0),
         completed(0),
-        replay_team(nullptr),
-        driver_handle(NULL)
+        replay_team(NULL),
+        driver_handle(NULL),
+        ordering_ready(false),
+        order_waits(NULL)
     {}
 
     /* return number of nodes */

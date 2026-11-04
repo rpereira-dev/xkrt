@@ -88,6 +88,18 @@ typedef struct  conf_device_t
      * this is a runtime knob and not a compile-time launch bound. */
     uint32_t prog_blocks_per_sm;
 
+    /* Device programs cgir JIT-compiled while keeping their ahead-of-time
+     * kernel (cgir::command_prog_t::aot_variant, CGIR_JIT_VARIANT=auto): how
+     * many timed launches of EACH variant to collect before keeping the faster
+     * one (by best launch). 0 = do not measure, launch the JIT'd code. */
+    uint32_t prog_variant_samples;
+
+    /* Device programs whose launch size the runtime may choose
+     * (cgir::command_prog_t::grid_flexible: no num_teams in the source): time
+     * each of cgir::command_prog_grid_candidates() block counts and keep the
+     * fastest (same protocol and sample count as the variants). */
+    bool prog_grid_tuning;
+
     memory_allocator_type_t memory_allocator_type;
     memory_size_t memory_size_initial;
     memory_size_t memory_size_resize;
@@ -135,6 +147,13 @@ typedef struct  conf_s
 
     /* pause progression threads when there is no ready tasks, or no pending/ready commands */
     bool enable_busy_polling;
+
+    /* Command-graph replay: release a device command as soon as its
+     * predecessors, on devices of the same driver, are launched, the devices
+     * ordering them through events, instead of when the host sees them
+     * complete (see command_t::order). Needs driver support
+     * (driver_t::device_ordering). */
+    bool replay_device_ordering;
 
     /* to warmup threads/devices on init (touch memory pages, allocate device memory...) */
     bool warmup;

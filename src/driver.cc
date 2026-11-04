@@ -38,6 +38,8 @@
 
 # include <xkrt/internals.h>
 # include <xkrt/runtime.h>
+# include <xkrt/logger/metric.h>
+# include "driver/tuning.hpp"
 
 XKRT_NAMESPACE_USE;
 
@@ -75,6 +77,7 @@ command_type_to_queue_type(
     {
         case (cgir::COMMAND_TYPE_PROG):
         case (cgir::COMMAND_TYPE_PACK):
+        case (cgir::COMMAND_TYPE_EMPTY):
             return XKRT_QUEUE_TYPE_KERN;
 
         case (cgir::COMMAND_TYPE_COPY_H2H_1D):
@@ -128,8 +131,8 @@ command_type_to_queue_type(
  *   - KMP: a recorded OpenMP task body that was NOT JIT-compiled; run it directly
  *     through its ahead-of-time libomp routine `fn(gtid, task)`. Recorded bodies
  *     replay with gtid 0 (as the previous replay path did). */
-void
-XKRT_NAMESPACE::command_prog_run_host(command_t * command)
+static void
+command_prog_run_host_body(command_t * command)
 {
     auto & prog = command->prog;
     switch (prog.prototype)
@@ -152,6 +155,87 @@ XKRT_NAMESPACE::command_prog_run_host(command_t * command)
         default:
             LOGGER_FATAL("Unsupported PROG function prototype %d on host", (int) prog.prototype);
     }
+}
+
+/*****************************************************************************
+ * Host programs: ahead-of-time / JIT variant, and duration                   *
+ *                                                                           *
+ * A host OpenMP task the `jit` pass recompiled under CGIR_JIT_VARIANT=auto  *
+ * keeps its recorded task routine in aot_variant.kmp_fn/kmp_task: the two   *
+ * implementations are measured against each other (tuning::CHOICE_VARIANT,  *
+ * pooled per (JIT function, task routine)), each launch running one of them *
+ * timed with a steady clock. The same clock gives the command's duration    *
+ * when its graph wants one (COMMAND_FLAG_MEASURE). See driver/tuning.hpp.   *
+ *****************************************************************************/
+
+/* the JIT configuration a command starts with: launching the AOT candidate
+ * overwrites it for the launch, so it is saved until the decision */
+typedef struct  host_jit_config_t
+{
+    cgir::command_prog_function_prototype_t prototype;
+    decltype(cgir::command_prog_t::launcher) launcher;
+}               host_jit_config_t;
+
+/* Install variant candidate `k` on the command. */
+static void
+host_variant_install(
+    command_t * command,
+    const host_jit_config_t & jit,
+    int k
+) {
+    auto & prog = command->prog;
+    if (k == tuning::VARIANT_CANDIDATE_AOT)
+    {
+        prog.prototype         = cgir::CGIR_COMMAND_PROG_FUNCTION_PROTOTYPE_KMP;
+        prog.launcher.kmp.fn   = prog.aot_variant.kmp_fn;
+        prog.launcher.kmp.task = prog.aot_variant.kmp_task;
+    }
+    else
+    {
+        prog.prototype = jit.prototype;
+        prog.launcher  = jit.launcher;
+    }
+}
+
+void
+XKRT_NAMESPACE::command_prog_run_host(command_t * command)
+{
+    auto & prog = command->prog;
+    tuning::sink_t trial;
+
+    if (prog.aot_variant.kmp_fn != NULL &&
+        prog.aot_variant.selected == cgir::CGIR_COMMAND_PROG_VARIANT_UNDECIDED)
+    {
+        host_jit_config_t jit;
+        jit.prototype = prog.prototype;
+        jit.launcher  = prog.launcher;
+
+        tuning::pool_key_t key;
+        key[0] = (uintptr_t) prog.launcher.variadic.fn;
+        key[1] = (uintptr_t) prog.aot_variant.kmp_fn;
+        key[2] = 0;
+
+        const int k = tuning::choose(
+            tuning::CHOICE_VARIANT, command, key, tuning::VARIANT_CANDIDATES,
+            prog.source.content.llvmir.symbol,
+            [] (unsigned int c) { return std::string(c == tuning::VARIANT_CANDIDATE_AOT ? "ahead-of-time" : "JIT"); },
+            &jit, sizeof(jit), &trial);
+        host_variant_install(command, jit, k);
+        /* a trial switches the command for this launch only (a command runs on
+         * one thread at a time); a decision is for good */
+        prog.aot_variant.selected = trial.empty() ? tuning::variant_of(k)
+                                                  : cgir::CGIR_COMMAND_PROG_VARIANT_UNDECIDED;
+    }
+
+    if (!tuning::measure(command, &trial))
+    {
+        command_prog_run_host_body(command);
+        return ;
+    }
+    const uint64_t t0 = get_nanotime();
+    command_prog_run_host_body(command);
+    const uint64_t tf = get_nanotime();
+    tuning::record(trial, (double) (tf - t0) * 1e-9);
 }
 
 static inline void

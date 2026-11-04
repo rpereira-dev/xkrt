@@ -237,6 +237,12 @@ typedef struct  driver_t
     /* launch a queue command */
     int (*f_command_queue_launch)(device_driver_id_t device_driver_id, command_queue_t * queue, command_t * cmd, xkrt_command_queue_list_counter_t idx);
 
+    /* Whether f_command_queue_launch honours command_t::order: makes the
+     * launch wait (on the device) for the `event` of each command in `waits`,
+     * possibly recorded on another device of this driver, and sets the
+     * command's `event` to the one it records after the launch. */
+    bool device_ordering;
+
     /* progrtream command */
     int (*f_command_queue_progress)(command_queue_t * queue);
 

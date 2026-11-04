@@ -35,6 +35,7 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
+# include "../driver/tuning.hpp"
 # include <xkrt/utils/min-max.h>
 # include <xkrt/conf/conf.h>
 # include <xkrt/logger/logger.h>
@@ -235,6 +236,27 @@ __parse_prog_blocks_per_sm(conf_t * conf, char const * value)
 {
     if (value)
         conf->device.prog_blocks_per_sm = (uint32_t) MAX(atoi(value), 0);
+}
+
+static void
+__parse_prog_variant_samples(conf_t * conf, char const * value)
+{
+    if (value)
+        conf->device.prog_variant_samples = (uint32_t) MAX(atoi(value), 0);
+}
+
+static void
+__parse_replay_device_ordering(conf_t * conf, char const * value)
+{
+    if (value)
+        conf->replay_device_ordering = atoi(value) != 0;
+}
+
+static void
+__parse_prog_grid_tuning(conf_t * conf, char const * value)
+{
+    if (value)
+        conf->device.prog_grid_tuning = atoi(value) != 0;
 }
 
 static void
@@ -485,6 +507,9 @@ static conf_parse_t CONF_PARSE[] = {
     {"PAUSE_PROGRESSION_THREADS",        __parse_pause_progress_th,         "When progression threads have nothing else to do but poll pending commands, put it to sleep until the completion of a random command of a random steam."},
     {"PRECISION",                        NULL,                              NULL},
     {"PROG_BLOCKS_PER_SM",               __parse_prog_blocks_per_sm,        "Occupancy of device program launches, in blocks (CTAs) per SM. 0 (default) holds each program to the occupancy it was recorded with, so that recompiling or fusing it does not silently change how densely the device co-schedules it; a positive value overrides that target for every program. It is a target with tolerance, not an exact figure: the driver only intervenes past a factor of 1.5 either way, because every lever it has is coarse and demanding an exact match costs more than the drift it corrects. Enforced with per-block resources (shared-memory carveout, then dynamic shared memory)."},
+    {"REPLAY_DEVICE_ORDERING",           __parse_replay_device_ordering,    "When replaying a command graph, launch a device command as soon as its predecessors on devices of the same driver are launched -- its stream waits on their events, so the devices order them -- instead of when the host has seen them complete. Removes the host round trip between dependent device commands. Commands depending on the host or on a device of another driver still wait for completion. Default 1."},
+    {"PROG_GRID_TUNING",                 __parse_prog_grid_tuning,          "Device programs whose launch size the runtime may choose (e.g., OpenMP target regions without num_teams): time each candidate block count (the recorded one, and 1, 2, 4, 8, 16 blocks per SM below it) and keep the fastest, with the protocol and sample count of PROG_VARIANT_SAMPLES. 0 keeps the recorded launch size. Default 1."},
+    {"PROG_VARIANT_SAMPLES",             __parse_prog_variant_samples,      "Device programs that have both a JIT-compiled and an ahead-of-time implementation (cgir CGIR_JIT_VARIANT=auto): timed launches of each variant to collect before keeping the faster one (by best launch: event timing noise only ever adds time). The first launch of each variant is a discarded warm-up. Launches alternate between the two while measuring, so no work is ever repeated. Command packs (CUDA graphs) holding such programs run unpacked, serialized in dependency order, until every program in them is decided. 0 = do not measure, launch the JIT'd code. The same count applies to the launch sizes of grid-flexible device programs, and to the timed replays that give each command its duration for the cgir `critical-path` pass. Default 3."},
     {"STATS",                            __parse_stats,                     "Boolean to dump stats on deinit"},
     {"TASK_PREFETCH",                    __parse_task_prefetch,             "If enabled, after completing a task, initiate data copies for all its WaR successors that place of execution is already known (else, copies only starts once the successor is ready)."},
     {"TASKGRAPH_DUMP",                   __parse_taskgraph_dump,           "If enabled, dump a taskgraph to a dot file after recording it."},
@@ -565,10 +590,13 @@ conf_t::init(void)
     this->device.memory_size_resize.unit        = XKRT_MEMORY_SIZE_UNIT_ABSOLUTE;
     this->device.use_p2p                        = true;
     this->device.prog_blocks_per_sm             = 0;
+    this->device.prog_variant_samples           = 3;
+    this->device.prog_grid_tuning               = true;
     this->merge_copies                          = false;
     this->protect_registered_memory_overflow    = true;
     this->enable_progress_thread_pause          = true;
     this->enable_busy_polling                   = false;
+    this->replay_device_ordering                = true;
     this->enable_prefetching                    = true;
     this->warmup                                = false;
     this->taskgraph_dump                        = false;
@@ -603,4 +631,6 @@ conf_t::init(void)
     //////////////////
     __parse_with_respect_to_prefix(this, "XKAAPI_");
     __parse_with_respect_to_prefix(this, "XKRT_");
+
+    tuning::configure(this->device.prog_variant_samples);
 }

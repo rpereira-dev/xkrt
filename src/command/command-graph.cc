@@ -34,6 +34,7 @@
 ** knowledge of the CeCILL-C license and that you accept its terms.
 **/
 
+# include "../driver/tuning.hpp"
 # include <xkrt/internals.h>
 # include <xkrt/runtime.h>
 # include <xkrt/sync/atomic.h>
@@ -430,6 +431,9 @@ runtime_t::command_graph_replay(command_graph_t * cg)
     // tasks, hence capturing it here rather than relying on the original thread.
     cg->replay_team = (void *) thread_t::get_tls()->team;
 
+    // the `critical-path` pass may want the commands timed (see tuning.hpp)
+    tuning::replay_prepare(cg);
+
     // submit the serialized command graph to replay
     this->command_submit(device_unique_id, &command);
 }
@@ -441,6 +445,9 @@ runtime_t::command_graph_replay(command_graph_t * cg)
 void
 runtime_t::command_graph_destroy(command_graph_t * cg)
 {
+    free(cg->order_waits);
+    cg->order_waits = nullptr;
+
     cg->nodes.release();
     cg->commands.release();
 }

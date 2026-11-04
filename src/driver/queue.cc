@@ -245,6 +245,12 @@ __complete_command_internal(
     );
 
     e->completed = true;
+
+    /* successors ordered on the device and launched from now on need not wait
+     * for it (command_t::order.launch) */
+    if (cmd->order.launched.func)
+        cmd->order_completed(e);
+
     cmd->completion_callback_raise();
     XKRT_STATS_INCR(queue->stats.commands[cmd->type].completed, 1);
 

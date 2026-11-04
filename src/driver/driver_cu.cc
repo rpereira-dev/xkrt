@@ -40,6 +40,7 @@
 
 # define XKRT_DRIVER_ENTRYPOINT(N) XKRT_DRIVER_TYPE_CU_ ## N
 
+# include "tuning.hpp"
 # include <xkrt/support.h>
 # include <xkrt/driver/device.hpp>
 # include <xkrt/driver/driver.h>
@@ -75,6 +76,7 @@
 
 # include <algorithm>
 # include <map>
+# include <vector>
 # include <string>
 # include <tuple>
 # include <utility>
@@ -1072,6 +1074,32 @@ cu_prog_prepare(device_driver_id_t device_driver_id, cgir::command_t * command)
 
     cu_set_context(device_driver_id);
 
+    /* The lowering decision must be made once per CUfunction, not once per
+     * command. Commands instantiated from the same construct share one CUfunction
+     * (see cu_ptx_modules), and cu_prog_lower_occupancy changes a property of
+     * that function -- its carveout -- before returning the per-command ballast.
+     * Re-measuring `now` for the next command therefore sees the carveout the
+     * first one left behind, which on its own often lands inside the tolerance
+     * band, so the guard stood down and launched it with no ballast at all.
+     * Measured on Krylov CG / A100: one launch in eight got 5 blocks/SM and the
+     * other seven 6, at the minimal shared-memory carveout, for a reduction
+     * kernel ~30% slower than its ahead-of-time twin. Remembering the outcome
+     * keyed by everything it depends on applies it to every sibling identically. */
+    using lower_key_t = std::tuple<CUfunction, unsigned int, unsigned int, unsigned int>;
+    static spinlock_t                            lower_lock = SPINLOCK_INITIALIZER;
+    static std::map<lower_key_t, unsigned int>   lower_memo;   /* -> dyn_shmem */
+    const lower_key_t lkey(fn, threads, prog.dyn_shmem, target);
+    {
+        SPINLOCK_LOCK(lower_lock);
+        auto it = lower_memo.find(lkey);
+        const bool hit = (it != lower_memo.end());
+        if (hit)
+            prog.dyn_shmem = it->second;
+        SPINLOCK_UNLOCK(lower_lock);
+        if (hit)
+            return ;
+    }
+
     const int now = cu_occupancy(fn, threads, prog.dyn_shmem);
     if (now == 0)
         return ;
@@ -1080,15 +1108,414 @@ cu_prog_prepare(device_driver_id_t device_driver_id, cgir::command_t * command)
                       ? prog.source.content.llvmir.symbol : "?";
 
     if (cu_prog_occupancy_far_above((unsigned int) now, target))
+    {
         prog.dyn_shmem = cu_prog_lower_occupancy(fn, threads, target, prog.dyn_shmem, name);
+        SPINLOCK_LOCK(lower_lock);
+        lower_memo.emplace(lkey, prog.dyn_shmem);
+        SPINLOCK_UNLOCK(lower_lock);
+    }
     else if (cu_prog_occupancy_far_below((unsigned int) now, target))
         cu_prog_raise_occupancy(device_driver_id, command, threads, target, now, name);
 }
+
+/*****************************************************************************
+ * Measured launch parameters, and durations                                 *
+ *                                                                           *
+ * A device program cgir recompiled under CGIR_JIT_VARIANT=auto carries both *
+ * implementations: the JIT'd kernel (launcher.variadic.fn, after            *
+ * cu_prog_resolve) and the ahead-of-time one (aot_variant.fn). Neither wins *
+ * everywhere -- the JIT sees the real occupancy, arguments and aliasing,    *
+ * but runs a different pipeline -- so the driver measures and keeps the     *
+ * faster (tuning::CHOICE_VARIANT, pooled per (device, JIT fn, AOT fn)).     *
+ * Once the code is settled, a grid_flexible program's block count is chosen *
+ * the same way among cgir::command_prog_grid_candidates()                   *
+ * (tuning::CHOICE_GRID, pooled per (device, kernel, recorded grid)). The    *
+ * protocol is the one of driver/tuning.hpp; here, a measured launch is      *
+ * bracketed by a pair of events, read back later without blocking.          *
+ *                                                                           *
+ * The same events time any command whose graph wants durations             *
+ * (COMMAND_FLAG_MEASURE), for the cgir `critical-path` pass.                *
+ *                                                                           *
+ * A kernel inside a CUDA graph cannot be timed on its own, so a command     *
+ * pack holding undecided programs is executed unpacked -- each command      *
+ * launched on the pack's stream in dependency order -- until all of them    *
+ * are decided; only then is the graph built, from the winning kernels.      *
+ * Serializing the pack also makes the samples clean: a kernel is timed      *
+ * alone, not alongside whatever the graph would have co-scheduled with it.  *
+ *****************************************************************************/
+
+/* a timed launch whose events have not been read yet */
+typedef struct  cu_timed_t
+{
+    CUevent start;
+    CUevent end;
+    tuning::sink_t sink;
+}               cu_timed_t;
+
+static spinlock_t                                             cu_timed_lock = SPINLOCK_INITIALIZER;
+static std::map<device_driver_id_t, std::vector<cu_timed_t>>  cu_timed;
+
+/* Events to record around a launch whose time goes to `sink`. */
+static void
+cu_timed_begin(device_driver_id_t device_driver_id, const tuning::sink_t & sink,
+               CUevent * start, CUevent * end)
+{
+    cu_timed_t t;
+    t.sink = sink;
+    CU_SAFE_CALL(cuEventCreate(&t.start, CU_EVENT_DEFAULT));
+    CU_SAFE_CALL(cuEventCreate(&t.end,   CU_EVENT_DEFAULT));
+    *start = t.start;
+    *end   = t.end;
+    SPINLOCK_LOCK(cu_timed_lock);
+    cu_timed[device_driver_id].push_back(t);
+    SPINLOCK_UNLOCK(cu_timed_lock);
+}
+
+/* Report every completed timed launch of this device. Never blocks; the
+ * device context must be current. Timing a kernel between two stream events
+ * can only overestimate it (if the device drains the stream before the host
+ * submits the kernel, the wait lands between the events), which is why the
+ * books keep best launches. */
+static void
+cu_timed_harvest(device_driver_id_t device_driver_id)
+{
+    std::vector<cu_timed_t> done;
+    SPINLOCK_LOCK(cu_timed_lock);
+    std::vector<cu_timed_t> & P = cu_timed[device_driver_id];
+    for (size_t i = 0 ; i < P.size() ; )
+    {
+        if (cuEventQuery(P[i].end) == CUDA_ERROR_NOT_READY)
+        {
+            ++i;
+            continue ;
+        }
+        done.push_back(P[i]);
+        P[i] = P.back();
+        P.pop_back();
+    }
+    SPINLOCK_UNLOCK(cu_timed_lock);
+    for (const cu_timed_t & t : done)
+    {
+        float ms = 0.0f;
+        if (cuEventElapsedTime(&ms, t.start, t.end) == CUDA_SUCCESS)
+            tuning::record(t.sink, 1e-3 * ms);
+        cuEventDestroy(t.start);
+        cuEventDestroy(t.end);
+    }
+}
+
+/* Whether launch sizes are tuned on this device (XKRT_PROG_GRID_TUNING). */
+static bool
+cu_grid_tuning_enabled(device_driver_id_t device_driver_id)
+{
+    const device_cu_t * device = device_cu_get(device_driver_id);
+    return device && device->inherited.conf && device->inherited.conf->prog_grid_tuning;
+}
+
+/* the JIT'd configuration of a command measuring its variant (launching the
+ * AOT candidate does not modify the command, but adopting it does) */
+typedef struct  cu_jit_config_t
+{
+    void * fn;
+    unsigned int dyn_shmem;
+}               cu_jit_config_t;
+
+/* Install variant candidate `k` on the command for good. */
+static void
+cu_variant_adopt(cgir::command_t * command, const cu_jit_config_t & jit, int k)
+{
+    auto & prog = command->prog;
+    if (k == tuning::VARIANT_CANDIDATE_AOT)
+    {
+        prog.launcher.variadic.fn = prog.aot_variant.fn;
+        prog.dyn_shmem            = prog.aot_variant.dyn_shmem;
+    }
+    else
+    {
+        prog.launcher.variadic.fn = reinterpret_cast<void (*)(void **)>(jit.fn);
+        prog.dyn_shmem            = jit.dyn_shmem;
+    }
+    prog.aot_variant.selected = tuning::variant_of(k);
+}
+
+static std::string
+cu_variant_label(unsigned int k)
+{
+    return (k == tuning::VARIANT_CANDIDATE_AOT) ? "ahead-of-time" : "JIT";
+}
+
+/* Whether a command is still measuring its variant / its launch size. */
+static bool
+cu_variant_open(const cgir::command_prog_t & prog)
+{
+    return prog.aot_variant.fn != NULL &&
+           prog.aot_variant.selected == cgir::CGIR_COMMAND_PROG_VARIANT_UNDECIDED;
+}
+
+/* The launch sizes a grid_flexible program may get, or 0 if it may not be
+ * tuned (then it is not grid_flexible any more). */
+static unsigned int
+cu_grid_candidates(device_driver_id_t device_driver_id, cgir::command_prog_t & prog,
+                   unsigned int cand[CGIR_GRID_CANDIDATES_MAX])
+{
+    if (!prog.grid_flexible)
+        return 0;
+    const device_cu_t * device = device_cu_get(device_driver_id);
+    const unsigned int nsm = (device && device->cu.prop.nsm > 0) ? (unsigned int) device->cu.prop.nsm : 0;
+    const unsigned int n = cgir::command_prog_grid_candidates(prog.grid.x, nsm, cand);
+    if (!cu_grid_tuning_enabled(device_driver_id) || tuning::samples() == 0 || n <= 1 ||
+        prog.grid.y != 1 || prog.grid.z != 1 || prog.requires_coresident_grid)
+    {
+        prog.grid_flexible = false;
+        return 0;
+    }
+    return n;
+}
+
+/* Pick the kernel, dynamic shared memory and block count of this launch of a
+ * prepared PROG command: the variant first, then (once it is settled) the
+ * launch size. Returns where the launch's time goes: empty when it need not be
+ * timed. */
+static tuning::sink_t
+cu_prog_pick(
+    device_driver_id_t device_driver_id,
+    command_t * command,
+    CUfunction * fn,
+    unsigned int * dyn,
+    unsigned int * grid_x
+) {
+    auto & prog = command->prog;
+    const char * name = prog.source.content.llvmir.symbol;
+    tuning::sink_t trial;
+    cu_timed_harvest(device_driver_id);
+
+    *fn     = reinterpret_cast<CUfunction>(prog.launcher.variadic.fn);
+    *dyn    = prog.dyn_shmem;
+    *grid_x = prog.grid.x;
+
+    if (cu_variant_open(prog))
+    {
+        cu_jit_config_t jit;
+        jit.fn        = (void *) prog.launcher.variadic.fn;
+        jit.dyn_shmem = prog.dyn_shmem;
+
+        tuning::pool_key_t key;
+        key[0] = (uintptr_t) device_driver_id;
+        key[1] = (uintptr_t) jit.fn;
+        key[2] = (uintptr_t) prog.aot_variant.fn;
+
+        const int k = tuning::choose(tuning::CHOICE_VARIANT, command, key, tuning::VARIANT_CANDIDATES,
+                                     name, cu_variant_label, &jit, sizeof(jit), &trial);
+        if (!trial.empty())
+        {
+            /* this launch only: the command keeps its JIT configuration */
+            *fn  = (k == tuning::VARIANT_CANDIDATE_AOT) ? reinterpret_cast<CUfunction>(prog.aot_variant.fn)
+                                                        : reinterpret_cast<CUfunction>(jit.fn);
+            *dyn = (k == tuning::VARIANT_CANDIDATE_AOT) ? prog.aot_variant.dyn_shmem : jit.dyn_shmem;
+            tuning::measure(command, &trial);
+            return trial;
+        }
+        cu_variant_adopt(command, jit, k);
+        *fn  = reinterpret_cast<CUfunction>(prog.launcher.variadic.fn);
+        *dyn = prog.dyn_shmem;
+    }
+
+    unsigned int cand[CGIR_GRID_CANDIDATES_MAX];
+    if (const unsigned int n = cu_grid_candidates(device_driver_id, prog, cand))
+    {
+        tuning::pool_key_t key;
+        key[0] = (uintptr_t) device_driver_id;
+        key[1] = (uintptr_t) *fn;
+        key[2] = (uintptr_t) prog.grid.x;
+
+        const int k = tuning::choose(tuning::CHOICE_GRID, command, key, n, name,
+                                     [&cand] (unsigned int c) { return std::to_string(cand[c]); },
+                                     nullptr, 0, &trial);
+        *grid_x = cand[k];
+        if (trial.empty())
+        {
+            prog.grid.x        = cand[k];
+            prog.grid_flexible = false;
+        }
+    }
+    tuning::measure(command, &trial);
+    return trial;
+}
+
+/* Settle a prepared PROG command without measuring: on the decisions if there
+ * are any, else on the JIT'd code and the recorded grid. Used when the command
+ * is about to be frozen into a CUDA graph. */
+static void
+cu_prog_settle(device_driver_id_t device_driver_id, cgir::command_t * command)
+{
+    auto & prog = command->prog;
+    cu_timed_harvest(device_driver_id);
+    if (cu_variant_open(prog))
+    {
+        cu_jit_config_t jit;
+        jit.fn        = (void *) prog.launcher.variadic.fn;
+        jit.dyn_shmem = prog.dyn_shmem;
+        const int k = tuning::settle(tuning::CHOICE_VARIANT, (const command_t *) command,
+                                     tuning::VARIANT_CANDIDATE_JIT, &jit, sizeof(jit));
+        cu_variant_adopt(command, jit, k);
+    }
+    unsigned int cand[CGIR_GRID_CANDIDATES_MAX];
+    if (cu_grid_candidates(device_driver_id, prog, cand))
+    {
+        prog.grid.x        = cand[tuning::settle(tuning::CHOICE_GRID, (const command_t *) command, 0)];
+        prog.grid_flexible = false;
+    }
+}
+
+/* Unpacked execution order of a command pack: its commands in a topological
+ * order of the pack's graph (Kahn's algorithm from the entry), computed once. */
+typedef struct  cu_pack_calib_t
+{
+    std::vector<cgir::command_t *> order;
+    unsigned int launches;
+    bool done;
+
+    cu_pack_calib_t(void) :
+        order(),
+        launches(0),
+        done(false)
+    {}
+
+}               cu_pack_calib_t;
+
+static spinlock_t                                          cu_pack_calib_lock = SPINLOCK_INITIALIZER;
+static std::map<const cgir::command_graph_t *, cu_pack_calib_t> cu_pack_calib;
+
+static cu_pack_calib_t &
+cu_pack_calib_get(cgir::command_graph_t * cg)
+{
+    SPINLOCK_LOCK(cu_pack_calib_lock);
+    auto it = cu_pack_calib.find(cg);
+    if (it == cu_pack_calib.end())
+    {
+        cu_pack_calib_t pc;
+        std::map<cgir::command_graph_node_t *, size_t> indeg;
+        std::vector<cgir::command_graph_node_t *>      stack;
+        /* in-degrees over the nodes reachable from the entry (not with
+         * cg->walk: its per-node stamps are not safe against a concurrent walk) */
+        std::vector<cgir::command_graph_node_t *> todo;
+        std::map<cgir::command_graph_node_t *, bool> seen;
+        todo.push_back(cg->node_get_entry());
+        seen[cg->node_get_entry()] = true;
+        while (!todo.empty())
+        {
+            cgir::command_graph_node_t * u = todo.back();
+            todo.pop_back();
+            for (cgir::command_graph_node_t * v : u->successors)
+            {
+                ++indeg[v];
+                if (!seen[v])
+                {
+                    seen[v] = true;
+                    todo.push_back(v);
+                }
+            }
+        }
+        stack.push_back(cg->node_get_entry());
+        while (!stack.empty())
+        {
+            cgir::command_graph_node_t * u = stack.back();
+            stack.pop_back();
+            if (u->type == cgir::COMMAND_GRAPH_NODE_TYPE_COMMAND && u->command)
+                pc.order.push_back(u->command);
+            for (cgir::command_graph_node_t * v : u->successors)
+                if (--indeg[v] == 0)
+                    stack.push_back(v);
+        }
+        it = cu_pack_calib.emplace(cg, std::move(pc)).first;
+    }
+    cu_pack_calib_t & pc = it->second;
+    SPINLOCK_UNLOCK(cu_pack_calib_lock);
+    return pc;
+}
+
+/* Whether the pack `command` must still run unpacked to measure the programs it
+ * holds (directly or in nested packs): their variant, their launch size, or
+ * the duration of its commands (for the cgir `critical-path` pass, whose
+ * priorities the graph's nodes then carry, see cu_graph_node_priority). Once false, stays false. A pack that
+ * keeps finding undecided programs past a generous bound stops measuring --
+ * the remaining ones are settled on the JIT'd code by cu_prog_variant_finalize
+ * when the graph is built. */
+static bool
+cu_pack_calibrating(device_driver_id_t device_driver_id, cgir::command_t * command)
+{
+    cgir::command_graph_t * cg = (cgir::command_graph_t *) command->pack.cg;
+    cu_pack_calib_t & pc = cu_pack_calib_get(cg);
+    if (pc.done)
+        return false;
+
+    const unsigned int samples = tuning::samples();
+    bool undecided = false;
+    if (samples > 0 && pc.launches < (2 + CGIR_GRID_CANDIDATES_MAX) * (samples + 1) + 8)
+    {
+        cu_timed_harvest(device_driver_id);
+        for (cgir::command_t * c : pc.order)
+        {
+            if (c->type == cgir::COMMAND_TYPE_PACK)
+                undecided |= cu_pack_calibrating(device_driver_id, c);
+            else if (c->type == cgir::COMMAND_TYPE_PROG && c->prog.grid_flexible &&
+                     cu_grid_tuning_enabled(device_driver_id))
+                undecided = true;   /* launch size not settled yet */
+            else if (c->type == cgir::COMMAND_TYPE_PROG && cu_variant_open(c->prog) &&
+                     !tuning::decided(tuning::CHOICE_VARIANT, (const command_t *) c))
+                undecided = true;
+            else if (((command_t *) c)->flags & COMMAND_FLAG_MEASURE)
+                undecided = true;   /* its duration is being measured */
+        }
+    }
+    if (!undecided)
+        pc.done = true;
+    else
+        ++pc.launches;
+    return undecided;
+}
+
+static int
+XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
+    device_driver_id_t device_driver_id,
+    CUstream stream,
+    command_t * command
+);
 
 command_pack_cu_handle_t * XKRT_DRIVER_ENTRYPOINT(command_pack_ensure)(
     device_driver_id_t device_driver_id,
     command_t * command
 );
+
+/* The CUDA priority of a kernel node: the command's critical-path priority
+ * (cgir `critical-path` pass, the measured time of the longest chain left
+ * behind it), scaled from [0, `pmax`] onto the device's priority range, the
+ * longest chains getting the greatest priority. When the GPU has blocks of
+ * several ready kernels to schedule, it takes those of the higher priority
+ * first. */
+static int
+cu_graph_node_priority(uint64_t priority, uint64_t pmax)
+{
+    int least, greatest;    /* e.g. 0 and -5: numerically lower is higher */
+    CU_SAFE_CALL(cuCtxGetStreamPriorityRange(&least, &greatest));
+    const uint64_t levels = (uint64_t) (least - greatest);
+    if (pmax == 0 || levels == 0)
+        return least;
+    return least - (int) ((priority * levels + pmax / 2) / pmax);
+}
+
+/* The largest priority among the kernels of `cg` (0 if none was set). */
+static uint64_t
+cu_graph_max_priority(cgir::command_graph_t * cg)
+{
+    uint64_t pmax = 0;
+    cg->walk([&] (cgir::command_graph_node_t * node) {
+        if (node->type == cgir::COMMAND_GRAPH_NODE_TYPE_COMMAND && node->command &&
+            node->command->type == cgir::COMMAND_TYPE_PROG)
+            pmax = std::max(pmax, node->command->priority);
+    });
+    return pmax;
+}
 
 /* Return a handle to the druver's internal representation of the pack */
 void *
@@ -1120,6 +1547,9 @@ XKRT_DRIVER_ENTRYPOINT(command_pack_init)(
     constexpr cgir::command_graph_walk_search_t search = cgir::COMMAND_GRAPH_WALK_SEARCH_BFS;
     constexpr cgir::command_graph_walk_order_t  order  = cgir::COMMAND_GRAPH_WALK_ORDER_PRE;
     constexpr bool include_entry_exit = false;
+
+    /* the kernels' critical-path priorities, see cu_graph_node_priority */
+    const uint64_t pmax = cu_graph_max_priority(command->pack.cg);
 
     auto iterators = command->pack.cg->create_node_iterators<include_entry_exit, pls_t, search, order>();
 
@@ -1156,6 +1586,8 @@ XKRT_DRIVER_ENTRYPOINT(command_pack_init)(
                         /* resolve the kernel handle (JIT'd kernels arrive as PTX)
                          * and settle the occupancy contract; no-op afterwards */
                         cu_prog_prepare(device_driver_id, command);
+                        /* a graph node has one kernel: settle on a variant and a size */
+                        cu_prog_settle(device_driver_id, command);
                         /* fn is CGIR's uniform void(void**) program pointer; for a
                          * device kernel it actually holds the CUfunction handle
                          * (function<->object pointer reinterpret is POSIX-safe). */
@@ -1187,6 +1619,16 @@ XKRT_DRIVER_ENTRYPOINT(command_pack_init)(
                         }
 
                         CU_SAFE_CALL(cuGraphAddKernelNode(cu_node, handle->graph, deps, ndeps, &params));
+
+                        if (pmax)
+                        {
+                            CUlaunchAttributeValue prio;
+                            memset(&prio, 0, sizeof(prio));
+                            prio.priority = cu_graph_node_priority(command->priority, pmax);
+                            CU_SAFE_CALL(
+                                cuGraphKernelNodeSetAttribute(
+                                    *cu_node, CU_LAUNCH_ATTRIBUTE_PRIORITY, &prio));
+                        }
 
                         /* A program cgir fused from several device programs orders
                          * its parts with a grid-wide barrier, which only completes
@@ -1400,8 +1842,14 @@ XKRT_DRIVER_ENTRYPOINT(command_pack_init)(
         }
     } /* for each iterator */
 
-    /* instantiate the CUDA graph into an executable */
-    CU_SAFE_CALL(cuGraphInstantiate(&handle->graph_exec, handle->graph, 0));
+    /* instantiate the CUDA graph into an executable -- honouring the nodes'
+     * priorities over the priority of the stream it is launched into, when the
+     * critical path set them */
+    const unsigned long long flags = pmax ? CUDA_GRAPH_INSTANTIATE_FLAG_USE_NODE_PRIORITY : 0;
+    if (pmax)
+        LOGGER_INFO("pack %p: kernel node priorities from the critical path (longest %.1fus)",
+                    (void *) command->pack.cg, 1e-3 * (double) pmax);
+    CU_SAFE_CALL(cuGraphInstantiate(&handle->graph_exec, handle->graph, flags));
 
     return handle;
 }
@@ -1443,18 +1891,35 @@ XKRT_DRIVER_ENTRYPOINT(command_pack_ensure)(
 }
 
 static int
-XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
+cu_command_launch_untimed(
     device_driver_id_t device_driver_id,
     CUstream stream,
     command_t * command
 ) {
     switch (command->type)
     {
+        /* nothing to run: the launch only waits for the command's
+         * predecessors and records its event */
+        case (cgir::COMMAND_TYPE_EMPTY):
+            return EINPROGRESS;
+
         case (cgir::COMMAND_TYPE_PROG):
         {
             /* resolve the kernel handle (JIT'd kernels arrive as PTX) and settle
              * the occupancy contract; no-op afterwards */
             cu_prog_prepare(device_driver_id, command);
+
+            /* the kernel and launch size, see cu_prog_pick */
+            CUfunction   fn;
+            unsigned int dyn_shmem, grid_x;
+            CUevent      ev_start = NULL, ev_end = NULL;
+            const tuning::sink_t sink = cu_prog_pick(device_driver_id, command, &fn, &dyn_shmem, &grid_x);
+            const bool   timed = !sink.empty();
+            if (timed)
+            {
+                cu_timed_begin(device_driver_id, sink, &ev_start, &ev_end);
+                CU_SAFE_CALL(cuEventRecord(ev_start, stream));
+            }
 
             /* Two arg forms (see command_prog_function_prototype_t):
              *  - VARIADIC: `args` is the kernelParams pointer array.
@@ -1494,14 +1959,14 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
 
                 CU_SAFE_CALL(
                     cuLaunchCooperativeKernel(
-                        reinterpret_cast<CUfunction>(command->prog.launcher.variadic.fn),
+                        fn,
                         command->prog.grid.x,
                         command->prog.grid.y,
                         command->prog.grid.z,
                         command->prog.block.x,
                         command->prog.block.y,
                         command->prog.block.z,
-                        command->prog.dyn_shmem,
+                        dyn_shmem,
                         stream,
                         command->prog.args   /* kernelParams */
                     )
@@ -1511,20 +1976,23 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
             {
                 CU_SAFE_CALL(
                     cuLaunchKernel(
-                        reinterpret_cast<CUfunction>(command->prog.launcher.variadic.fn),
-                        command->prog.grid.x,
+                        fn,
+                        grid_x,
                         command->prog.grid.y,
                         command->prog.grid.z,
                         command->prog.block.x,
                         command->prog.block.y,
                         command->prog.block.z,
-                        command->prog.dyn_shmem,
+                        dyn_shmem,
                         stream,
                         packed ? nullptr : command->prog.args,   /* kernelParams */
                         packed ? cu_config : nullptr             /* extra */
                     )
                 );
             }
+
+            if (timed)
+                CU_SAFE_CALL(cuEventRecord(ev_end, stream));
 
             return EINPROGRESS;
         }
@@ -1663,6 +2131,17 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
 
         case (cgir::COMMAND_TYPE_PACK):
         {
+            /* Measuring AOT/JIT variants of the programs it holds: run the pack
+             * unpacked, in dependency order on this one stream, which is a valid
+             * serialization of its graph (see cu_pack_calibrating). */
+            if (cu_pack_calibrating(device_driver_id, command))
+            {
+                cu_pack_calib_t & pc = cu_pack_calib_get((cgir::command_graph_t *) command->pack.cg);
+                for (cgir::command_t * c : pc.order)
+                    XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(device_driver_id, stream, (command_t *) c);
+                return EINPROGRESS;
+            }
+
             command_pack_cu_handle_t * handle = XKRT_DRIVER_ENTRYPOINT(command_pack_ensure)(device_driver_id, command);
             CU_SAFE_CALL(cuGraphLaunch(handle->graph_exec, stream));
             return EINPROGRESS;
@@ -1671,6 +2150,28 @@ XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
         default:
             return EINVAL;
     }
+}
+
+/* Launch `command` on `stream`. A program times itself (see cu_prog_pick);
+ * any other command is timed here when its graph wants its duration. */
+static int
+XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(
+    device_driver_id_t device_driver_id,
+    CUstream stream,
+    command_t * command
+) {
+    tuning::sink_t sink;
+    if (command->type == cgir::COMMAND_TYPE_PROG || command->type == cgir::COMMAND_TYPE_EMPTY ||
+        !tuning::measure(command, &sink))
+        return cu_command_launch_untimed(device_driver_id, stream, command);
+
+    CUevent start, end;
+    cu_timed_harvest(device_driver_id);
+    cu_timed_begin(device_driver_id, sink, &start, &end);
+    CU_SAFE_CALL(cuEventRecord(start, stream));
+    const int r = cu_command_launch_untimed(device_driver_id, stream, command);
+    CU_SAFE_CALL(cuEventRecord(end, stream));
+    return r;
 }
 
 int
@@ -1697,11 +2198,35 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_launch)(
 
     CUstream stream = queue->cu.handle.high;
 
+    /* device-side ordering (command_t::order): wait for the predecessors'
+     * launch events on the device, before the command. A predecessor may
+     * have run on another device: CUDA events synchronize across contexts.
+     *
+     * A predecessor the host already saw complete needs no wait. Its event is
+     * its queue slot's: the slot can be reclaimed once the predecessor
+     * completed, and its event recorded again by a later command of that
+     * queue. If that happens between this check and the wait, the command
+     * waits for that later command: on the same stream, so it is still
+     * ordered and cannot deadlock (the device only waits on commands launched
+     * earlier), it only waits longer. */
+    for (uint32_t i = 0 ; i < command->order.nwaits ; ++i)
+    {
+        command_t * pcommand = command->order.waits[i];
+        if (pcommand->order_done())
+            continue ;
+        CUevent pred = (CUevent) pcommand->order.event;
+        assert(pred);   /* a predecessor records it before releasing us */
+        CU_SAFE_CALL(cuStreamWaitEvent(stream, pred, CU_EVENT_WAIT_DEFAULT));
+    }
+
     int r = XKRT_DRIVER_ENTRYPOINT(command_launch_with_stream)(device_driver_id, stream, command);
     if (r == EINPROGRESS)
     {
         CUevent event = queue->cu.events.buffer[idx];
         CU_SAFE_CALL(cuEventRecord(event, stream));
+
+        /* successors ordered on the device wait on it */
+        command->order.event = (void *) event;
     }
 
     return r;
@@ -1762,6 +2287,7 @@ XKRT_DRIVER_ENTRYPOINT(command_queue_progress)(
             case (cgir::COMMAND_TYPE_COPY_D2H_2D):
             case (cgir::COMMAND_TYPE_COPY_D2D_2D):
             case (cgir::COMMAND_TYPE_PACK):
+            case (cgir::COMMAND_TYPE_EMPTY):
             {
                 CUevent event = queue->cu.events.buffer[p];
                 CUresult res = cuEventQuery(event);
@@ -2112,6 +2638,8 @@ XKRT_DRIVER_ENTRYPOINT(create_driver)(void)
     assert(driver);
 
     # define REGISTER(func) driver->super.f_##func = XKRT_DRIVER_ENTRYPOINT(func)
+
+    driver->super.device_ordering = true;
 
     REGISTER(init);
     REGISTER(finalize);
